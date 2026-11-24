@@ -4,8 +4,8 @@
   "private": true,
   "description": "Spring Boot backend (Maven). This package.json lets Turborepo orchestrate it alongside the JS apps.",
   "scripts": {
-    "dev": "mvnw spring-boot:run",
-    "build": "mvnw -DskipTests package",
-    "test": "mvnw test"
+    "dev": "./mvnw spring-boot:run -Dspring-boot.run.profiles=local",
+    "build": "./mvnw -B -DskipTests package",
+    "test": "./mvnw -B test"
   }
 }

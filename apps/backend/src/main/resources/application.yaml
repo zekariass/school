@@ -1,3 +1,17 @@
 spring:
   application:
     name: school-backend
+  # Connection settings come from the environment in every deployed environment.
+  # For local development use the "local" profile (application-local.yaml),
+  # which points at infra/docker-compose.yml.
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # Flyway owns the schema (docs/Database_Design.md)
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
