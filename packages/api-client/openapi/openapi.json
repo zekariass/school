@@ -1,54 +1,122 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "School API",
-    "version": "0.0.1",
-    "description": "Bootstrap snapshot. Replaced by the springdoc export of apps/backend in Implementation Plan M0.3; CI then fails if this file drifts from the backend."
+  "openapi" : "3.1.0",
+  "info" : {
+    "description" : "Multi-tenant school, family, learning and tutoring platform API. Errors are RFC 9457 problem details (application/problem+json) with a stable `code`.",
+    "title" : "School API",
+    "version" : "v1"
   },
-  "paths": {
-    "/actuator/health": {
-      "get": {
-        "operationId": "health",
-        "tags": ["system"],
-        "summary": "Liveness/readiness of the backend",
-        "responses": {
-          "200": {
-            "description": "Backend is up",
-            "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Health" } }
-            }
+  "servers" : [ {
+    "description" : "Same origin",
+    "url" : "/"
+  } ],
+  "paths" : {
+    "/api/v1/meta" : {
+      "get" : {
+        "operationId" : "getMeta",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MetaResponse"
+                }
+              }
+            },
+            "description" : "OK"
           },
-          "503": {
-            "description": "Backend is down or not ready",
-            "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Health" } }
-            }
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
           }
-        }
+        },
+        "summary" : "Service metadata and server time",
+        "tags" : [ "system" ]
       }
     }
   },
-  "components": {
-    "schemas": {
-      "Health": {
-        "type": "object",
-        "required": ["status"],
-        "properties": {
-          "status": { "type": "string", "enum": ["UP", "DOWN", "OUT_OF_SERVICE", "UNKNOWN"] },
-          "groups": { "type": "array", "items": { "type": "string" } }
-        }
+  "components" : {
+    "schemas" : {
+      "MetaResponse" : {
+        "type" : "object",
+        "properties" : {
+          "apiVersion" : {
+            "type" : "string"
+          },
+          "buildVersion" : {
+            "type" : "string"
+          },
+          "serverTime" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "service" : {
+            "type" : "string"
+          },
+          "supportedLocales" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "apiVersion", "buildVersion", "serverTime", "service", "supportedLocales" ]
       },
-      "ProblemDetail": {
-        "type": "object",
-        "description": "RFC 9457 error body returned by every failing endpoint.",
-        "properties": {
-          "type": { "type": "string", "format": "uri" },
-          "title": { "type": "string" },
-          "status": { "type": "integer" },
-          "detail": { "type": "string" },
-          "instance": { "type": "string" },
-          "code": { "type": "string", "description": "Stable machine-readable error code" }
-        }
+      "ProblemDetail" : {
+        "type" : "object",
+        "description" : "RFC 9457 problem details returned by every failing endpoint.",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "description" : "Stable machine-readable error code"
+          },
+          "detail" : {
+            "type" : "string"
+          },
+          "errors" : {
+            "type" : "array",
+            "description" : "Field errors (validation_failed)",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "code" : {
+                  "type" : "string"
+                },
+                "field" : {
+                  "type" : "string"
+                },
+                "message" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [ "code", "field", "message" ]
+            }
+          },
+          "instance" : {
+            "type" : "string"
+          },
+          "requestId" : {
+            "type" : "string",
+            "description" : "Correlates with server logs"
+          },
+          "status" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "format" : "uri"
+          }
+        },
+        "required" : [ "code", "status", "title", "type" ]
       }
     }
   }

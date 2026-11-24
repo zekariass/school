@@ -22,7 +22,7 @@ export interface ApiClientOptions {
  * Typed client for the School API, generated from the backend OpenAPI spec.
  *
  *   const api = createApiClient({ baseUrl, getAccessToken });
- *   const { data, error } = await api.GET('/actuator/health');
+ *   const { data, error } = await api.GET('/api/v1/meta');
  */
 export function createApiClient({ baseUrl, getAccessToken, getLocale, fetch }: ApiClientOptions) {
   const client = createClient<paths>({ baseUrl, ...(fetch ? { fetch } : {}) });

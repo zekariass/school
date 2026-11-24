@@ -4,15 +4,15 @@
  */
 
 export interface paths {
-    "/actuator/health": {
+    "/api/v1/meta": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Liveness/readiness of the backend */
-        get: operations["health"];
+        /** Service metadata and server time */
+        get: operations["getMeta"];
         put?: never;
         post?: never;
         delete?: never;
@@ -25,21 +25,33 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        Health: {
-            /** @enum {string} */
-            status: "UP" | "DOWN" | "OUT_OF_SERVICE" | "UNKNOWN";
-            groups?: string[];
+        MetaResponse: {
+            apiVersion: string;
+            buildVersion: string;
+            /** Format: date-time */
+            serverTime: string;
+            service: string;
+            supportedLocales: string[];
         };
-        /** @description RFC 9457 error body returned by every failing endpoint. */
+        /** @description RFC 9457 problem details returned by every failing endpoint. */
         ProblemDetail: {
-            /** Format: uri */
-            type?: string;
-            title?: string;
-            status?: number;
-            detail?: string;
-            instance?: string;
             /** @description Stable machine-readable error code */
-            code?: string;
+            code: string;
+            detail?: string;
+            /** @description Field errors (validation_failed) */
+            errors?: {
+                code: string;
+                field: string;
+                message: string;
+            }[];
+            instance?: string;
+            /** @description Correlates with server logs */
+            requestId?: string;
+            /** Format: int32 */
+            status: number;
+            title: string;
+            /** Format: uri */
+            type: string;
         };
     };
     responses: never;
@@ -50,7 +62,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    health: {
+    getMeta: {
         parameters: {
             query?: never;
             header?: never;
@@ -59,22 +71,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Backend is up */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Health"];
+                    "application/json": components["schemas"]["MetaResponse"];
                 };
             };
-            /** @description Backend is down or not ready */
-            503: {
+            /** @description Error (RFC 9457 problem details) */
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Health"];
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };

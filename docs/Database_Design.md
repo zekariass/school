@@ -49,7 +49,7 @@ The code blocks below are design DDL. They're complete enough to turn straight i
 | 16 | Portfolios | portfolios, portfolio_collections, portfolio_items, portfolio_attachments, portfolio_comments, portfolio_feedback, portfolio_approvals | P1 basic, P2 full |
 | 17 | Moderation & safeguarding | content_reports, moderation_cases, moderation_actions, safeguarding_incidents, safeguarding_incident_notes | P1 |
 | 18 | Consent & data governance | policy_documents, policy_versions, consent_records, data_sharing_grants, retention_policies, legal_holds, data_subject_requests | P1 (grants P4, retention P2) |
-| 19 | Audit & platform infrastructure | audit_logs, outbox_events, report_jobs | P1 |
+| 19 | Audit & platform infrastructure | audit_logs, event_publication (outbox), shedlock, report_jobs | P0–P1 |
 | 20 | Subscriptions | subscription_plans, plan_prices, plan_entitlements, subscriptions | P1 (manual), P5 billing |
 | 21 | Curriculum | education_systems, curriculum_versions, academic_levels, curriculum_subjects, curriculum_topics, learning_objectives, school_curriculum_adoptions, curriculum_mappings, learning_evidence, mastery_records | P2 |
 | 22 | Assignments, assessment, grading | grading_schemes, grading_scheme_bands, assessment_rubrics, rubric_criteria, rubric_levels, assignments, assignment_attachments, assignment_targets, assignment_submissions, submission_attachments, assessments, assessment_results, assessment_result_rubric_scores, period_grades, quizzes, quiz_questions, quiz_attempts, quiz_attempt_answers | P2 |
@@ -1766,18 +1766,30 @@ create table audit_logs (                        -- append-only; partition by mo
   primary key (id, occurred_at)
 ) partition by range (occurred_at);
 
-create table outbox_events (                     -- transactional outbox (§91)
-  id                  uuid primary key default uuidv7(),
-  aggregate_type      text not null,
-  aggregate_id        uuid not null,
-  event_type          text not null,             -- PointAwarded, PostPublished, MessageSent ...
-  payload             jsonb not null,
-  occurred_at         timestamptz not null default now(),
-  published_at        timestamptz,
-  attempts            smallint not null default 0,
-  last_error          text
+-- Transactional outbox (§91): Spring Modulith event publication registry (implemented in
+-- Phase 0, migration V0_02). One row per (event, transactional listener), written in the
+-- publishing transaction; completed when the listener succeeds, resubmitted otherwise.
+-- Schema is owned by Spring Modulith (spring-modulith-events-jdbc v2 layout); re-check on upgrade.
+create table event_publication (
+  id                     uuid not null primary key,
+  listener_id            text not null,
+  event_type             text not null,
+  serialized_event       text not null,             -- JSON
+  publication_date       timestamptz not null,
+  completion_date        timestamptz,
+  status                 text,
+  completion_attempts    int,
+  last_resubmission_date timestamptz
 );
-create index ix_outbox_unpublished on outbox_events (occurred_at) where published_at is null;
+create index event_publication_serialized_event_hash_idx on event_publication using hash (serialized_event);
+create index event_publication_by_completion_date_idx on event_publication (completion_date);
+
+create table shedlock (                          -- cluster-wide locks for @Scheduled jobs (V0_02)
+  name       varchar(64) primary key,
+  lock_until timestamptz not null,
+  locked_at  timestamptz not null,
+  locked_by  varchar(255) not null
+);
 
 create table report_jobs (                       -- async report generation (§91)
   id                  uuid primary key default uuidv7(),
@@ -3124,7 +3136,7 @@ Historical access (§12): FORMER members keep read access to content from their 
 ## 6. Indexing, partitioning, retention & operations
 
 - **Hot paths in P1:** class feed (`posts` partial indexes), inbox (`notifications`), conversation timeline (`messages (conversation_id, created_at desc)`), "my children" (`student_guardians (guardian_id) where status='ACTIVE'`), "my classes" (`class_students (student_id)` and `class_teachers (teacher_id)`, both partial on ACTIVE).
-- **Partition by month** once volumes justify it: `audit_logs` (from day one), `messages`, `notifications`, `notification_deliveries`, `point_transactions`, `outbox_events`. UUIDv7 keeps inserts append-friendly before that point.
+- **Partition by month** once volumes justify it: `audit_logs` (from day one), `messages`, `notifications`, `notification_deliveries`, `point_transactions`, `event_publication` (or purge completed rows, as EventPublicationMaintenance does). UUIDv7 keeps inserts append-friendly before that point.
 - **Search:** `pg_trgm` GIN indexes on users, tutors, courses and library titles. A separate search engine is deferred (§119).
 - **Retention jobs** read `retention_policies` and skip anything under `legal_holds` or `media.legal_hold`. Expired stories become `EXPIRED` at `expires_at`, and their media is deleted according to policy.
 - **Encryption:** TLS in transit, managed storage encryption at rest, and application-level encryption for `safeguarding_incidents.description` and incident notes. Payout account details are stored as tokens only.

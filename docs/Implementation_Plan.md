@@ -120,6 +120,18 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
    - an architecture test for module boundaries
    - a baseline `contextLoads` test
 
+**As built (24 Nov 2026):**
+- **Module boundaries:** Spring Modulith 2.2, verified by `ModularityTest`. Each direct subpackage of `com.nemaz.school` is a module. `common` is the open shared kernel and `system` holds the technical platform.
+- **Outbox (step 5):** Spring Modulith's event publication registry (`event_publication`, migration V0_02) replaces a hand-written `outbox_events` table. Listeners use `@ApplicationModuleListener` and must be idempotent, because `EventPublicationMaintenance` redelivers failed events.
+- **Scheduled jobs:** `@Scheduled` + ShedLock (`shedlock` table). A job framework (JobRunr or db-scheduler) is added only if a later milestone needs durable one-off jobs. Redis fan-out arrives with the WebSocket gateway in M2.
+- **OpenAPI:** springdoc 3.2. `OpenApiSpecTest` fails when `packages/api-client/openapi/openapi.json` drifts. Refresh the snapshot with `npm run openapi:export -w school-backend`, then run `npm run codegen`.
+- **Moved to M1,** because these need an authenticated user and their first tables:
+  - `Idempotency-Key` handling
+  - `TenantContext`
+  - the JPA base entity (UUIDv7 via Hibernate `@UuidGenerator(style = VERSION_7)`, `@Version`, timestamps)
+- **Error tracking:** Sentry or an equivalent is set up in M0.7 together with the hosting accounts.
+- **Local ports:** API 8180, web 3100, chosen to avoid clashing with other local projects.
+
 ### M0.4 Web skeleton (`apps/web`, Next.js 16)
 1. Replace the starter page. Set up the App Router route groups:
    - `(marketing)`

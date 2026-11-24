@@ -96,9 +96,9 @@ npm run codegen             # regenerate API client types and theme CSS
 Target a single app with `--filter`:
 
 ```bash
-npm run dev -- --filter=school-web       # Next.js dev server (http://localhost:3000)
+npm run dev -- --filter=school-web       # Next.js dev server (http://localhost:3100)
 npm run dev -- --filter=school-mobile    # Expo dev server (Metro on :8081)
-npm run dev -- --filter=school-backend   # Spring Boot, "local" profile (http://localhost:8080)
+npm run dev -- --filter=school-backend   # Spring Boot, "local" profile (http://localhost:8180)
 npm run build -- --filter=school-web
 ```
 
@@ -119,6 +119,32 @@ npm run dev --workspace=school-web
   for `npm run test`.
 - Flyway owns the schema (`ddl-auto: validate`). Migrations go in
   `apps/backend/src/main/resources/db/migration`.
+
+Local endpoints (`npm run dev -- --filter=school-backend`):
+
+| URL | What |
+|---|---|
+| http://localhost:8180/api/v1/meta | Public service metadata + server time |
+| http://localhost:8180/swagger-ui/index.html | API explorer (local only) |
+| http://localhost:8180/v3/api-docs | OpenAPI spec (local only) |
+| http://localhost:8180/actuator/health | Health; `/readiness`, `/liveness` probes |
+| http://localhost:8180/actuator/prometheus | Metrics (local only; private network elsewhere) |
+
+Deployed environments configure, besides the database:
+
+| Variable | Purpose |
+|---|---|
+| `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the API |
+| `API_DOCS_ENABLED` | `true` to serve the OpenAPI spec / Swagger UI (off by default) |
+| `LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs` | JSON logs for log aggregation |
+| `MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT` | Enables trace export (e.g. `http://collector:4318/v1/traces`) |
+| `TRACING_SAMPLING_PROBABILITY` | Trace sampling ratio (default 0.1) |
+| `OTLP_METRICS_EXPORT_ENABLED` | `true` to push metrics over OTLP (default: scrape Prometheus) |
+
+**Changing the API:** after editing controllers or DTOs, run
+`npm run openapi:export -w school-backend` (writes
+`packages/api-client/openapi/openapi.json`) and then `npm run codegen`
+(regenerates the TypeScript client). `OpenApiSpecTest` fails until both are done.
 
 ## Notes
 
