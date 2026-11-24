@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon, LogOutIcon, UserRoundIcon } from "lucide-react";
+import { ChevronDownIcon, LogOutIcon, UserRoundIcon, UserRoundPenIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Link } from "@/i18n/navigation";
 import { signOut } from "@/lib/sign-out";
 
 /** The signed-in user's name with a sign-out action, for every top bar. */
 export function UserMenu({ name, detail }: { name: string; detail?: string }) {
   const t = useTranslations("auth");
+  const tAccount = useTranslations("account");
   const locale = useLocale();
   const [pending, setPending] = useState(false);
 
@@ -35,6 +37,12 @@ export function UserMenu({ name, detail }: { name: string; detail?: string }) {
           {detail ? <span className="truncate text-xs font-normal text-muted-foreground">{detail}</span> : null}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="min-h-10 gap-2 rounded-lg">
+          <Link href="/account">
+            <UserRoundPenIcon className="size-4" aria-hidden />
+            {tAccount("link")}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem
           className="min-h-10 gap-2 rounded-lg"
           disabled={pending}

@@ -457,6 +457,72 @@
       "actor": "By",
       "target": "Target",
       "details": "Details"
+    },
+    "branding": {
+      "title": "Branding",
+      "logo": "Logo",
+      "logoHint": "Shown in headers and school lists. A square image works best.",
+      "cover": "Cover image",
+      "coverHint": "A wide image shown at the top of the school's page."
     }
+  },
+  "media": {
+    "avatar": {
+      "title": "Profile photo",
+      "hint": "Shown next to your name. Photos are saved again without location data.",
+      "choose": "Choose a photo",
+      "change": "Change photo",
+      "remove": "Remove photo",
+      "updated": "Your photo was updated.",
+      "removed": "Your photo was removed.",
+      "alt": "Profile photo of {name}"
+    },
+    "image": {
+      "choose": "Choose an image",
+      "change": "Change image",
+      "remove": "Remove image",
+      "none": "No image yet.",
+      "updated": "Image updated.",
+      "removed": "Image removed."
+    },
+    "picker": {
+      "takePhoto": "Take a photo",
+      "chooseFromLibrary": "Choose from library",
+      "cameraDenied": "Camera access is turned off. You can turn it on in your phone's Settings.",
+      "libraryDenied": "Photo access is turned off. You can turn it on in your phone's Settings.",
+      "cameraUnavailable": "The camera isn't available on this device."
+    },
+    "upload": {
+      "accept": "{types}, up to {size} MB.",
+      "preparing": "Preparing…",
+      "uploading": "Uploading… {percent}%",
+      "checking": "Checking the file…",
+      "processing": "Getting it ready…",
+      "cancel": "Cancel",
+      "progressLabel": "Upload progress"
+    },
+    "errors": {
+      "type": "This file type isn't allowed. Use {types}.",
+      "size": "This file is too large. The limit is {size} MB.",
+      "empty": "This file is empty.",
+      "network": "The upload didn't finish. Check your connection and try again.",
+      "processing": "We couldn't use this file. Please try a different one.",
+      "rejected": "This file isn't the type it claims to be. Please choose a different file.",
+      "timeout": "This is taking longer than expected. Please try again in a moment.",
+      "policies": "We couldn't load the upload rules. Please try again.",
+      "unavailable": "Image unavailable"
+    }
+  },
+  "account": {
+    "title": "Your account",
+    "subtitle": "Your name and photo, as others at your schools see them.",
+    "link": "Your account",
+    "name": "Display name",
+    "nameSaved": "Your name was saved.",
+    "phone": "Phone",
+    "email": "Email",
+    "notSet": "Not set",
+    "save": "Save",
+    "saveFailed": "We couldn't save your changes. Please try again."
   }
 }

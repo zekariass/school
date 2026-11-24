@@ -26,6 +26,17 @@ school:
       allow-ephemeral-key: true
     otp:
       pepper: local-development-pepper-not-a-secret-0123456789
+  storage:
+    # SeaweedFS from infra/docker-compose.yml. A phone on Wi-Fi cannot reach "localhost": start the
+    # backend with SCHOOL_STORAGE_PUBLIC_ENDPOINT=http://<LAN IP>:8343 for physical-device uploads.
+    endpoint: http://localhost:8343
+    public-endpoint: ${SCHOOL_STORAGE_PUBLIC_ENDPOINT:http://localhost:8343}
+    region: us-east-1
+    bucket: school-media-dev
+    access-key: school-dev
+    secret-key: school-dev-secret
+    create-bucket: true
+    cors-origins: http://localhost:3100
   sms:
     provider: console             # one-time codes are printed in the backend log
   bootstrap:

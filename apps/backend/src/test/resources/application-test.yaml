@@ -8,3 +8,11 @@ school:
       pepper: test-pepper-not-a-secret-0123456789abcdef
   sms:
     provider: console
+  storage:
+    # endpoint comes from the SeaweedFS Testcontainer (TestcontainersConfiguration)
+    region: us-east-1
+    bucket: school-media-test
+    access-key: school-dev
+    secret-key: school-dev-secret
+    create-bucket: true
+    cors-origins: http://localhost:3100

@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.nemaz.school.identity.domain.User;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,5 +28,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 	Optional<User> findByEmail(String email);
 
 	Optional<User> findByUsername(String username);
+
+	/** Forgets a deleted media file as avatar (the owner's avatar when {@code mediaId} is it). */
+	@Modifying
+	@Query("update User u set u.avatarMediaId = null where u.avatarMediaId = :mediaId")
+	int clearAvatar(@Param("mediaId") UUID mediaId);
 
 }

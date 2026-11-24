@@ -12,6 +12,11 @@ import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.common.pagination.CursorPage;
 import com.nemaz.school.common.pagination.KeysetPages;
 import com.nemaz.school.common.security.AccessibleScopes;
+import com.nemaz.school.common.security.CurrentUser;
+import com.nemaz.school.media.MediaContext;
+import com.nemaz.school.media.MediaPurpose;
+import com.nemaz.school.media.MediaService;
+import com.nemaz.school.media.MediaSummary;
 import com.nemaz.school.reference.CountryInfo;
 import com.nemaz.school.reference.ReferenceData;
 import com.nemaz.school.tenancy.domain.Organization;
@@ -34,10 +39,63 @@ public class OrganizationService {
 
 	private final AuditLog audit;
 
-	OrganizationService(OrganizationRepository organizations, ReferenceData reference, AuditLog audit) {
+	private final MediaService media;
+
+	OrganizationService(OrganizationRepository organizations, ReferenceData reference, AuditLog audit,
+			MediaService media) {
 		this.organizations = organizations;
 		this.reference = reference;
 		this.audit = audit;
+		this.media = media;
+	}
+
+	/** The READY logos of these organizations, by organization id. */
+	@Transactional(readOnly = true)
+	public java.util.Map<UUID, MediaSummary> logos(java.util.Collection<Organization> organizations) {
+		java.util.Map<UUID, UUID> mediaIds = new java.util.HashMap<>();
+		organizations.stream().filter((o) -> o.getLogoMediaId() != null).forEach((o) -> mediaIds.put(o.getId(), o.getLogoMediaId()));
+		java.util.Map<UUID, MediaSummary> summaries = this.media.summaries(mediaIds.values());
+		java.util.Map<UUID, MediaSummary> logos = new java.util.HashMap<>();
+		mediaIds.forEach((organizationId, mediaId) -> {
+			MediaSummary summary = summaries.get(mediaId);
+			if (summary != null) {
+				logos.put(organizationId, summary);
+			}
+		});
+		return logos;
+	}
+
+	/** Makes a READY BRANDING upload for this organization its logo; the previous file is deleted. */
+	public Organization setLogo(UUID id, UUID mediaId, CurrentUser user) {
+		Organization organization = get(id);
+		this.media.requireAttachable(mediaId, MediaPurpose.BRANDING, MediaContext.organization(id), user);
+		UUID previous = organization.getLogoMediaId();
+		if (!mediaId.equals(previous)) {
+			organization.setLogoMediaId(mediaId);
+			this.organizations.saveAndFlush(organization);
+			if (previous != null) {
+				this.media.discard(previous);
+			}
+			this.audit.record(AuditEntry.of("organization.logo.set", AuditOutcome.SUCCESS)
+				.target("organization", id)
+				.metadata("mediaId", mediaId.toString()));
+		}
+		return organization;
+	}
+
+	/** Removes the logo and deletes its file. */
+	public Organization clearLogo(UUID id) {
+		Organization organization = get(id);
+		UUID previous = organization.getLogoMediaId();
+		if (previous != null) {
+			organization.setLogoMediaId(null);
+			this.organizations.saveAndFlush(organization);
+			this.media.discard(previous);
+			this.audit.record(AuditEntry.of("organization.logo.clear", AuditOutcome.SUCCESS)
+				.target("organization", id)
+				.metadata("mediaId", previous.toString()));
+		}
+		return organization;
 	}
 
 	public Organization create(CreateOrganization command) {

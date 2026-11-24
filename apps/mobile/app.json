@@ -52,6 +52,14 @@
         }
       ],
       "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow School to use the photo you choose as your profile picture.",
+          "cameraPermission": "Allow School to use the camera to scan your class QR code or take your profile picture.",
+          "microphonePermission": false
+        }
+      ],
       "expo-sqlite",
       [
         "expo-localization",
@@ -62,12 +70,15 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow School to use the camera to scan your class QR code.",
+          "cameraPermission": "Allow School to use the camera to scan your class QR code or take your profile picture.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }
       ]
     ],
+    "locales": {
+      "am": "./locales/am.json"
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

@@ -8,7 +8,8 @@
 #   Service     Host port        Purpose
 #   postgres    5442             PostgreSQL 18 (DB "school", user/pass "school")
 #   redis       6390             Cache, rate limits, pub/sub fan-out
-#   s3          8343             SeaweedFS S3 API: local stand-in for Cloudflare R2
+#   s3          8343             SeaweedFS S3 API: local stand-in for Cloudflare R2 (bucket school-media-dev is
+#                                created by the backend's local profile, with CORS for the web app)
 #   mailpit     1035 / 8035      SMTP sink / web UI for dev emails
 #
 # Dev-only credentials. Never reuse them outside local development.
@@ -50,7 +51,9 @@ services:
     image: chrislusf/seaweedfs:4.52
     command: ["server", "-s3", "-s3.config=/etc/seaweedfs/s3.json", "-dir=/data"]
     ports:
-      - "127.0.0.1:8343:8333"
+      # Loopback only. A phone on Wi-Fi uploads straight to this port: start the stack with
+      # S3_BIND_ADDRESS=0.0.0.0 (and the backend with SCHOOL_STORAGE_PUBLIC_ENDPOINT=http://<LAN IP>:8343).
+      - "${S3_BIND_ADDRESS:-127.0.0.1}:8343:8333"
     volumes:
       - s3data:/data
       - ./seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro

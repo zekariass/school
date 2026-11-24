@@ -7,6 +7,7 @@ import com.nemaz.school.common.security.AccessControl;
 import com.nemaz.school.common.security.AccessScope;
 import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
+import com.nemaz.school.media.MediaSummary;
 import com.nemaz.school.tenancy.application.SchoolService;
 import com.nemaz.school.tenancy.domain.School;
 import com.nemaz.school.tenancy.domain.SchoolStatus;
@@ -48,11 +49,11 @@ public class SchoolLookupController {
 			throw ApiException.notFound("school.not_found");
 		}
 		return new SchoolSummary(school.getId(), school.getName(), school.getShortName(), school.getSlug(),
-				school.getCountryCode(), school.getStatus());
+				school.getCountryCode(), school.getStatus(), this.schools.get(school.getId()).logo());
 	}
 
 	public record SchoolSummary(@NotNull UUID id, @NotNull String name, String shortName, @NotNull String slug,
-			@NotNull String countryCode, @NotNull SchoolStatus status) {
+			@NotNull String countryCode, @NotNull SchoolStatus status, MediaSummary logo) {
 	}
 
 }

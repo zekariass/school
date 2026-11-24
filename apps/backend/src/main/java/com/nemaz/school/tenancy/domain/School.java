@@ -12,8 +12,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * The tenant. Media columns (logo, cover) and the education system are added by later
- * milestones (M2, P2).
+ * The tenant. The education system is added by a later milestone (P2).
  */
 @Entity
 @Table(name = "schools")
@@ -59,6 +58,10 @@ public class School extends BaseEntity {
 
 	private String brandColor;
 
+	private UUID logoMediaId;
+
+	private UUID coverMediaId;
+
 	@Enumerated(EnumType.STRING)
 	private SchoolStatus status;
 
@@ -91,6 +94,14 @@ public class School extends BaseEntity {
 		this.website = website;
 		this.brandColor = brandColor;
 		return this;
+	}
+
+	public void setLogoMediaId(UUID mediaId) {
+		this.logoMediaId = mediaId;
+	}
+
+	public void setCoverMediaId(UUID mediaId) {
+		this.coverMediaId = mediaId;
 	}
 
 	public void changeStatus(SchoolStatus status) {
@@ -159,6 +170,14 @@ public class School extends BaseEntity {
 
 	public String getBrandColor() {
 		return this.brandColor;
+	}
+
+	public UUID getLogoMediaId() {
+		return this.logoMediaId;
+	}
+
+	public UUID getCoverMediaId() {
+		return this.coverMediaId;
 	}
 
 	public SchoolStatus getStatus() {

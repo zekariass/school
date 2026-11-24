@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.nemaz.school.IntegrationTest;
+import com.nemaz.school.common.id.Ids;
 import com.nemaz.school.common.security.AccessScope;
 import com.nemaz.school.support.Persona;
 import com.nemaz.school.support.Personas;
@@ -240,10 +241,78 @@ class AuthorizationMatrixTest {
 		cases.add(new Case("GET school plans", HttpMethod.GET, (f) -> PLATFORM + "/plans", null,
 				allow(200, PLATFORM_ADMIN)));
 
+		// --- media (R-30: access follows the owning object; there is no role check on the media endpoints)
+		cases.add(new Case("GET media policies", HttpMethod.GET, (f) -> "/api/v1/media/policies", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("POST AVATAR upload", HttpMethod.POST, (f) -> "/api/v1/media/uploads",
+				(f) -> Map.of("purpose", "AVATAR", "filename", "me.jpg", "mimeType", "image/jpeg", "sizeBytes", 1000),
+				allow(201, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("POST BRANDING upload for school A", HttpMethod.POST, (f) -> "/api/v1/media/uploads",
+				(f) -> Map.of("purpose", "BRANDING", "filename", "logo.png", "mimeType", "image/png", "sizeBytes", 1000,
+						"context", Map.of("type", "SCHOOL", "id", f.schoolA())),
+				allow(201, MANAGERS_OF_SCHOOL_A)));
+		cases.add(new Case("POST BRANDING upload for the organization", HttpMethod.POST, (f) -> "/api/v1/media/uploads",
+				(f) -> Map.of("purpose", "BRANDING", "filename", "logo.png", "mimeType", "image/png", "sizeBytes", 1000,
+						"context", Map.of("type", "ORGANIZATION", "id", f.organization())),
+				allow(201, PLATFORM_ADMIN, COUNTRY_ADMIN_ET)));
+		cases.add(new Case("POST upload for a purpose without a policy", HttpMethod.POST, (f) -> "/api/v1/media/uploads",
+				(f) -> Map.of("purpose", "POST", "filename", "x.jpg", "mimeType", "image/jpeg", "sizeBytes", 1000,
+						"context", Map.of("type", "SCHOOL", "id", f.schoolA())),
+				allow(403)));
+		cases.add(new Case("GET READY branding media", HttpMethod.GET,
+				(f) -> "/api/v1/media/" + brandingMedia(f, "READY"), null, allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET branding media url", HttpMethod.GET,
+				(f) -> "/api/v1/media/" + brandingMedia(f, "READY") + "/url?variant=THUMB", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET branding media original url", HttpMethod.GET,
+				(f) -> "/api/v1/media/" + brandingMedia(f, "READY") + "/url?variant=ORIGINAL", null,
+				allow(400, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET pending branding media (uploader and managers only)", HttpMethod.GET,
+				(f) -> "/api/v1/media/" + brandingMedia(f, "PENDING_UPLOAD"), null,
+				allow(200, MANAGERS_OF_SCHOOL_A), 404));
+		cases.add(new Case("POST complete for somebody else's media", HttpMethod.POST,
+				(f) -> "/api/v1/media/" + brandingMedia(f, "READY") + "/complete", null,
+				allow(200, SCHOOL_ADMIN_A), 404));
+		cases.add(new Case("DELETE branding media", HttpMethod.DELETE, (f) -> "/api/v1/media/" + brandingMedia(f, "READY"),
+				null, allow(204, MANAGERS_OF_SCHOOL_A)));
+		cases.add(new Case("PUT my avatar (unknown media)", HttpMethod.PUT, (f) -> "/api/v1/me/avatar",
+				(f) -> Map.of("mediaId", UUID.randomUUID()), allow(404, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("DELETE my avatar", HttpMethod.DELETE, (f) -> "/api/v1/me/avatar", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("PUT school A logo", HttpMethod.PUT, (f) -> PLATFORM + "/schools/" + f.schoolA() + "/logo",
+				(f) -> Map.of("mediaId", UUID.randomUUID()), allow(404, MANAGERS_OF_SCHOOL_A)));
+		cases.add(new Case("DELETE school A logo", HttpMethod.DELETE,
+				(f) -> PLATFORM + "/schools/" + f.schoolA() + "/logo", null, allow(200, MANAGERS_OF_SCHOOL_A)));
+		cases.add(new Case("PUT school A cover", HttpMethod.PUT, (f) -> PLATFORM + "/schools/" + f.schoolA() + "/cover",
+				(f) -> Map.of("mediaId", UUID.randomUUID()), allow(404, MANAGERS_OF_SCHOOL_A)));
+		cases.add(new Case("DELETE school A cover", HttpMethod.DELETE,
+				(f) -> PLATFORM + "/schools/" + f.schoolA() + "/cover", null, allow(200, MANAGERS_OF_SCHOOL_A)));
+		cases.add(new Case("PUT organization logo", HttpMethod.PUT,
+				(f) -> PLATFORM + "/organizations/" + f.organization() + "/logo",
+				(f) -> Map.of("mediaId", UUID.randomUUID()), allow(404, PLATFORM_ADMIN, COUNTRY_ADMIN_ET)));
+		cases.add(new Case("DELETE organization logo", HttpMethod.DELETE,
+				(f) -> PLATFORM + "/organizations/" + f.organization() + "/logo", null,
+				allow(200, PLATFORM_ADMIN, COUNTRY_ADMIN_ET)));
+
 		// --- audit log: platform only
 		cases.add(new Case("GET audit logs", HttpMethod.GET, (f) -> PLATFORM + "/audit-logs?limit=5", null,
 				allow(200, PLATFORM_ADMIN)));
 		return cases;
+	}
+
+	/** A branding media row of school A uploaded by its administrator, in the given status (a fresh one per call). */
+	private UUID brandingMedia(Fixture f, String status) {
+		UUID id = Ids.newId();
+		String key = "schools/" + f.schoolA() + "/branding/" + id + "/original";
+		this.jdbc.update("""
+				insert into media (id, owner_id, school_id, purpose, context_type, context_id, bucket, object_key, mime_type,
+				                   media_kind, size_bytes, status, width, height)
+				values (?, ?, ?, 'BRANDING', 'SCHOOL', ?, 'school-media-test', ?, 'image/png', 'IMAGE', 1000, ?, 100, 100)""",
+				id, this.personas.get(SCHOOL_ADMIN_A).userId(), f.schoolA(), f.schoolA(), key, status);
+		this.jdbc.update("""
+				insert into media_variants (media_id, variant, object_key, mime_type, width, height, size_bytes)
+				values (?, 'THUMB', ?, 'image/jpeg', 100, 100, 500)""", id, key.replace("original", "thumb"));
+		return id;
 	}
 
 	@TestFactory

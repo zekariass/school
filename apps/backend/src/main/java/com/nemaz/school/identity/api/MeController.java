@@ -18,6 +18,7 @@ import com.nemaz.school.identity.application.MeService.ProfileChange;
 import com.nemaz.school.identity.domain.AccountType;
 import com.nemaz.school.identity.domain.User;
 import com.nemaz.school.identity.domain.UserStatus;
+import com.nemaz.school.media.MediaSummary;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +30,7 @@ import jakarta.validation.constraints.Size;
 
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -68,6 +70,19 @@ public class MeController {
 				LocaleContextHolder.getLocale()));
 	}
 
+	@PutMapping("/avatar")
+	@Operation(operationId = "setMyAvatar",
+			summary = "Use a READY AVATAR upload of mine as my avatar (the previous file is deleted)")
+	public MeResponse setAvatar(@Valid @RequestBody SetAvatarRequest r) {
+		return MeResponse.from(this.me.setAvatar(CurrentUser.require(), r.mediaId(), LocaleContextHolder.getLocale()));
+	}
+
+	@DeleteMapping("/avatar")
+	@Operation(operationId = "clearMyAvatar", summary = "Remove my avatar and delete its file")
+	public MeResponse clearAvatar() {
+		return MeResponse.from(this.me.clearAvatar(CurrentUser.require(), LocaleContextHolder.getLocale()));
+	}
+
 	@PutMapping("/password")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@Operation(operationId = "changeMyPassword",
@@ -81,6 +96,9 @@ public class MeController {
 			@Pattern(regexp = "^[a-z]{2,3}$", message = "validation.invalid") String preferredLanguageCode,
 			@Size(max = 64, message = "validation.tooLong") String timezone,
 			@Pattern(regexp = "^[A-Z0-9_]{1,32}$", message = "validation.invalid") String calendarPreference) {
+	}
+
+	public record SetAvatarRequest(@NotNull(message = "validation.required") UUID mediaId) {
 	}
 
 	public record ChangePasswordRequest(@Size(max = 128, message = "validation.tooLong") String currentPassword,
@@ -125,7 +143,8 @@ public class MeController {
 			String phone, @NotNull boolean phoneVerified, String username, String preferredLanguageCode, String timezone,
 			String calendarPreference, @NotNull UserStatus status, @NotNull boolean hasPassword, Instant lastLoginAt,
 			@NotNull List<RoleAssignmentSummary> roleAssignments,
-			@NotNull @Schema(description = "Permissions merged per scope, from all roles held there") List<ScopePermissions> scopes) {
+			@NotNull @Schema(description = "Permissions merged per scope, from all roles held there") List<ScopePermissions> scopes,
+			@Schema(description = "READY avatar; ask /media/{id}/url for a signed link") MediaSummary avatar) {
 
 		static MeResponse from(Me me) {
 			User u = me.user();
@@ -142,7 +161,7 @@ public class MeController {
 					u.getFamilyName(), u.getEmail(), u.getEmailVerifiedAt() != null, u.getPhoneE164(),
 					u.getPhoneVerifiedAt() != null, u.getUsername(), u.getPreferredLanguageCode(), u.getTimezone(),
 					u.getCalendarPreference(), u.getStatus(), me.hasPassword(), u.getLastLoginAt(),
-					me.assignments().stream().map(RoleAssignmentSummary::from).toList(), scopes);
+					me.assignments().stream().map(RoleAssignmentSummary::from).toList(), scopes, me.avatar());
 		}
 
 	}

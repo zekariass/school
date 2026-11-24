@@ -18,6 +18,11 @@ import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.common.pagination.CursorPage;
 import com.nemaz.school.common.pagination.KeysetPages;
 import com.nemaz.school.common.security.AccessibleScopes;
+import com.nemaz.school.common.security.CurrentUser;
+import com.nemaz.school.media.MediaContext;
+import com.nemaz.school.media.MediaPurpose;
+import com.nemaz.school.media.MediaService;
+import com.nemaz.school.media.MediaSummary;
 import com.nemaz.school.reference.CountryInfo;
 import com.nemaz.school.reference.ReferenceData;
 import com.nemaz.school.tenancy.SchoolCreated;
@@ -57,15 +62,18 @@ public class SchoolService {
 
 	private final AuditLog audit;
 
+	private final MediaService media;
+
 	SchoolService(SchoolRepository schools, SchoolLanguageRepository schoolLanguages,
 			OrganizationRepository organizations, ReferenceData reference, ApplicationEventPublisher events,
-			AuditLog audit) {
+			AuditLog audit, MediaService media) {
 		this.schools = schools;
 		this.schoolLanguages = schoolLanguages;
 		this.organizations = organizations;
 		this.reference = reference;
 		this.events = events;
 		this.audit = audit;
+		this.media = media;
 	}
 
 	/**
@@ -209,7 +217,70 @@ public class SchoolService {
 			.findBySchoolIdInOrderBySchoolIdAscLanguageCodeAsc(page.items().stream().map(School::getId).toList())
 			.stream()
 			.collect(Collectors.groupingBy(SchoolLanguage::getSchoolId));
-		return page.map((s) -> new SchoolDetails(s, languages.getOrDefault(s.getId(), List.of())));
+		Map<UUID, MediaSummary> summaries = this.media.summaries(page.items()
+			.stream()
+			.flatMap((s) -> java.util.stream.Stream.of(s.getLogoMediaId(), s.getCoverMediaId()))
+			.filter(java.util.Objects::nonNull)
+			.collect(Collectors.toSet()));
+		return page.map((s) -> new SchoolDetails(s, languages.getOrDefault(s.getId(), List.of()),
+				pick(summaries, s.getLogoMediaId()), pick(summaries, s.getCoverMediaId())));
+	}
+
+	/** Which of a school's two images. */
+	public enum SchoolImage {
+
+		LOGO, COVER
+
+	}
+
+	/** Makes a READY BRANDING upload for this school its logo or cover; the previous file is deleted. */
+	public SchoolDetails setImage(UUID id, SchoolImage image, UUID mediaId, CurrentUser user) {
+		School school = find(id);
+		this.media.requireAttachable(mediaId, MediaPurpose.BRANDING, MediaContext.school(id), user);
+		UUID previous = imageOf(school, image);
+		if (!mediaId.equals(previous)) {
+			assign(school, image, mediaId);
+			this.schools.saveAndFlush(school);
+			if (previous != null) {
+				this.media.discard(previous);
+			}
+			this.audit.record(AuditEntry.of("school." + image.name().toLowerCase(Locale.ROOT) + ".set",
+					AuditOutcome.SUCCESS)
+				.target("school", id)
+				.school(id)
+				.metadata("mediaId", mediaId.toString()));
+		}
+		return details(school);
+	}
+
+	/** Removes the logo or cover and deletes its file. */
+	public SchoolDetails clearImage(UUID id, SchoolImage image) {
+		School school = find(id);
+		UUID previous = imageOf(school, image);
+		if (previous != null) {
+			assign(school, image, null);
+			this.schools.saveAndFlush(school);
+			this.media.discard(previous);
+			this.audit.record(AuditEntry.of("school." + image.name().toLowerCase(Locale.ROOT) + ".clear",
+					AuditOutcome.SUCCESS)
+				.target("school", id)
+				.school(id)
+				.metadata("mediaId", previous.toString()));
+		}
+		return details(school);
+	}
+
+	private static UUID imageOf(School school, SchoolImage image) {
+		return (image == SchoolImage.LOGO) ? school.getLogoMediaId() : school.getCoverMediaId();
+	}
+
+	private static void assign(School school, SchoolImage image, UUID mediaId) {
+		if (image == SchoolImage.LOGO) {
+			school.setLogoMediaId(mediaId);
+		}
+		else {
+			school.setCoverMediaId(mediaId);
+		}
 	}
 
 	private School find(UUID id) {
@@ -217,8 +288,17 @@ public class SchoolService {
 	}
 
 	private SchoolDetails details(School school) {
-		return new SchoolDetails(school, this.schoolLanguages
-			.findBySchoolIdInOrderBySchoolIdAscLanguageCodeAsc(List.of(school.getId())));
+		return new SchoolDetails(school,
+				this.schoolLanguages.findBySchoolIdInOrderBySchoolIdAscLanguageCodeAsc(List.of(school.getId())),
+				summary(school.getLogoMediaId()), summary(school.getCoverMediaId()));
+	}
+
+	private static MediaSummary pick(Map<UUID, MediaSummary> summaries, UUID mediaId) {
+		return (mediaId != null) ? summaries.get(mediaId) : null;
+	}
+
+	private MediaSummary summary(UUID mediaId) {
+		return (mediaId != null) ? this.media.summary(mediaId).orElse(null) : null;
 	}
 
 	private void requireLanguage(String code, CountryInfo country, String notInCountryCode) {
@@ -249,7 +329,8 @@ public class SchoolService {
 			String brandColor, List<String> languageCodes) {
 	}
 
-	public record SchoolDetails(School school, List<SchoolLanguage> languages) {
+	/** {@code logo} and {@code cover} are null when unset or not READY. */
+	public record SchoolDetails(School school, List<SchoolLanguage> languages, MediaSummary logo, MediaSummary cover) {
 	}
 
 }

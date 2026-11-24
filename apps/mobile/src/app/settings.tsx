@@ -4,6 +4,7 @@ import { Link, router } from 'expo-router';
 import { View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
+import { AvatarSection } from '@/components/avatar-section';
 import { Button, Card, Screen, SegmentedControl, Text } from '@/components/ui';
 import { CALENDAR_PREFERENCES } from '@/lib/calendar/format-instant';
 import { SUPPORTED_LOCALES, isSupportedLocale } from '@school/i18n';
@@ -39,6 +40,8 @@ export default function SettingsScreen() {
 
   return (
     <Screen scroll edges={['bottom']} contentStyle={{ gap: spacing[5] }}>
+      {status === 'signedIn' && !preview ? <AvatarSection /> : null}
+
       <Section title={t('locale.label')}>
         <SegmentedControl
           accessibilityLabel={t('locale.label')}

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import com.nemaz.school.audit.AuditEntry;
 import com.nemaz.school.audit.AuditLog;
@@ -23,6 +24,10 @@ import com.nemaz.school.identity.domain.User;
 import com.nemaz.school.identity.infrastructure.AuthSessionStore;
 import com.nemaz.school.identity.infrastructure.PasswordCredentialRepository;
 import com.nemaz.school.identity.infrastructure.UserRepository;
+import com.nemaz.school.media.MediaContext;
+import com.nemaz.school.media.MediaPurpose;
+import com.nemaz.school.media.MediaService;
+import com.nemaz.school.media.MediaSummary;
 import com.nemaz.school.reference.ReferenceData;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -59,11 +64,13 @@ public class MeService {
 
 	private final AuditLog audit;
 
+	private final MediaService media;
+
 	private final Clock clock;
 
 	MeService(UserRepository users, PasswordCredentialRepository credentials, RoleAssignments roleAssignments,
 			ReferenceData reference, UserSnapshotCache snapshots, AuthSessionStore sessions, TokenService tokens,
-			PasswordEncoder encoder, AuditLog audit, Clock clock) {
+			PasswordEncoder encoder, AuditLog audit, MediaService media, Clock clock) {
 		this.users = users;
 		this.credentials = credentials;
 		this.roleAssignments = roleAssignments;
@@ -73,14 +80,14 @@ public class MeService {
 		this.tokens = tokens;
 		this.encoder = encoder;
 		this.audit = audit;
+		this.media = media;
 		this.clock = clock;
 	}
 
 	@Transactional(readOnly = true)
 	public Me get(CurrentUser current, Locale locale) {
 		User user = find(current);
-		return new Me(user, this.credentials.existsById(user.getId()),
-				this.roleAssignments.activeAssignments(user.getId(), locale));
+		return me(user, locale);
 	}
 
 	public Me update(CurrentUser current, ProfileChange change, Locale locale) {
@@ -115,8 +122,50 @@ public class MeService {
 		if (!Objects.equals(before.get("preferredLanguageCode"), after.get("preferredLanguageCode"))) {
 			this.snapshots.evictAfterCommit(user.getId());
 		}
+		return me(user, locale);
+	}
+
+	/**
+	 * Makes a READY avatar upload of the caller the user's avatar; the previous avatar file is
+	 * deleted.
+	 */
+	public Me setAvatar(CurrentUser current, UUID mediaId, Locale locale) {
+		User user = find(current);
+		this.media.requireAttachable(mediaId, MediaPurpose.AVATAR, MediaContext.user(user.getId()), current);
+		UUID previous = user.getAvatarMediaId();
+		if (!mediaId.equals(previous)) {
+			user.setAvatarMediaId(mediaId);
+			this.users.saveAndFlush(user);
+			if (previous != null) {
+				this.media.discard(previous);
+			}
+			this.audit.record(AuditEntry.of("identity.avatar.set", AuditOutcome.SUCCESS)
+				.target("user", user.getId())
+				.metadata("mediaId", mediaId.toString()));
+		}
+		return me(user, locale);
+	}
+
+	/** Removes the avatar and deletes its file. */
+	public Me clearAvatar(CurrentUser current, Locale locale) {
+		User user = find(current);
+		UUID previous = user.getAvatarMediaId();
+		if (previous != null) {
+			user.setAvatarMediaId(null);
+			this.users.saveAndFlush(user);
+			this.media.discard(previous);
+			this.audit.record(AuditEntry.of("identity.avatar.clear", AuditOutcome.SUCCESS)
+				.target("user", user.getId())
+				.metadata("mediaId", previous.toString()));
+		}
+		return me(user, locale);
+	}
+
+	private Me me(User user, Locale locale) {
+		MediaSummary avatar = (user.getAvatarMediaId() != null) ? this.media.summary(user.getAvatarMediaId()).orElse(null)
+				: null;
 		return new Me(user, this.credentials.existsById(user.getId()),
-				this.roleAssignments.activeAssignments(user.getId(), locale));
+				this.roleAssignments.activeAssignments(user.getId(), locale), avatar);
 	}
 
 	/**
@@ -170,7 +219,7 @@ public class MeService {
 			String calendarPreference) {
 	}
 
-	public record Me(User user, boolean hasPassword, List<AssignmentView> assignments) {
+	public record Me(User user, boolean hasPassword, List<AssignmentView> assignments, MediaSummary avatar) {
 	}
 
 }
