@@ -156,6 +156,38 @@ Deployed environments configure, besides the database:
 `packages/api-client/openapi/openapi.json`) and then `npm run codegen`
 (regenerates the TypeScript client). `OpenApiSpecTest` fails until both are done.
 
+## Container images
+
+Both deployable apps ship as Docker images, built by
+[`.github/workflows/images.yml`](.github/workflows/images.yml). Pushes to
+`main` and `v*.*.*` tags publish to GHCR as
+`ghcr.io/<owner>/school-backend` and `ghcr.io/<owner>/school-web`
+(tags: `sha-<short>`, `main`, `latest`, and `1.2.3` / `1.2` for release tags).
+Pull requests only build the images (no push) to catch Dockerfile breakage.
+
+```bash
+# Backend: Spring Boot on Temurin JRE 25 (build context: apps/backend)
+docker build -t school-backend:local apps/backend
+docker run --rm -p 8080:8080 \
+  -e DB_URL=jdbc:postgresql://host.docker.internal:5442/school \
+  -e DB_USERNAME=school -e DB_PASSWORD=school \
+  school-backend:local
+
+# Web: Next.js standalone server on Node 26 (build context: repo root)
+docker build -f apps/web/Dockerfile -t school-web:local .
+docker run --rm -p 3000:3000 \
+  -e API_ORIGIN=http://host.docker.internal:8080 \
+  school-web:local
+```
+
+| Image | Port | Required env | Optional env |
+|---|---|---|---|
+| `school-backend` | 8080 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | the variables in [Backend configuration](#backend-configuration), `JAVA_TOOL_OPTIONS` |
+| `school-web` | 3000 | `API_ORIGIN` (read at request time) | `PORT`, `HOSTNAME` |
+
+Both run as a non-root user. The Postgres started by
+`npm run infra:up` is reachable from a container at `host.docker.internal:5442`.
+
 ## Notes
 
 - `apps/backend` is a Maven project. Its `package.json` only wraps `./mvnw`

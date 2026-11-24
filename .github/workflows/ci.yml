@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+  TURBO_TELEMETRY_DISABLED: "1"
+  EXPO_NO_TELEMETRY: "1"
+
+jobs:
+  js:
+    name: js
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Turborepo local cache (.turbo/cache) plus the Next.js build cache.
+      # Entries are immutable, so each run saves under a unique key and restores
+      # the most recent one via the prefix.
+      - uses: actions/cache@v6
+        with:
+          path: |
+            .turbo/cache
+            apps/web/.next/cache
+          key: turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            turbo-${{ runner.os }}-
+
+      - name: Lint, typecheck, test, build
+        run: npx turbo run lint typecheck test build --filter='!school-backend'
+
+      - name: Generated files are up to date
+        run: |
+          npm run codegen:check -w @school/design-tokens
+          npm run codegen:check -w @school/api-client
+
+      # Needs network access (queries the React Native Directory and npm registry).
+      - name: expo-doctor
+        working-directory: apps/mobile
+        run: npx expo-doctor
+
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      # setup-java v6 registers the installed JDK in ~/.m2/toolchains.xml
+      # (type jdk, version 25, vendor temurin), which maven-toolchains-plugin
+      # picks up. No manual toolchains.xml needed.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      # Testcontainers uses the Docker daemon preinstalled on ubuntu-latest.
+      # The full repo is checked out because OpenApiSpecTest reads
+      # packages/api-client/openapi/openapi.json.
+      - name: Verify
+        working-directory: apps/backend
+        run: ./mvnw -B verify
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-test-reports
+          path: |
+            apps/backend/target/surefire-reports
+            apps/backend/target/failsafe-reports
+          if-no-files-found: ignore
+          retention-days: 7
+
+  migrations:
+    name: migrations
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Migrations are immutable and in order
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: scripts/ci/check-migrations-immutable.sh "$BASE_REF"
