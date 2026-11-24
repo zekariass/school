@@ -16,11 +16,28 @@ public class ApiException extends RuntimeException {
 
 	private final transient Object[] args;
 
+	private long retryAfterSeconds;
+
 	public ApiException(HttpStatus status, String code, Object... args) {
 		super(code);
 		this.status = status;
 		this.code = code;
 		this.args = args;
+	}
+
+	public static ApiException unauthorized(String code, Object... args) {
+		return new ApiException(HttpStatus.UNAUTHORIZED, code, args);
+	}
+
+	public static ApiException unprocessable(String code, Object... args) {
+		return new ApiException(HttpStatus.UNPROCESSABLE_CONTENT, code, args);
+	}
+
+	/** 429 with a {@code Retry-After} header (seconds, at least 1). */
+	public static ApiException tooManyRequests(String code, long retryAfterSeconds) {
+		ApiException ex = new ApiException(HttpStatus.TOO_MANY_REQUESTS, code);
+		ex.retryAfterSeconds = Math.max(1, retryAfterSeconds);
+		return ex;
 	}
 
 	public static ApiException badRequest(String code, Object... args) {
@@ -49,6 +66,11 @@ public class ApiException extends RuntimeException {
 
 	public Object[] args() {
 		return this.args.clone();
+	}
+
+	/** Seconds for the {@code Retry-After} header, or 0 when the response has none. */
+	public long retryAfterSeconds() {
+		return this.retryAfterSeconds;
 	}
 
 }

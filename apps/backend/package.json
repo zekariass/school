@@ -7,6 +7,7 @@
     "dev": "./mvnw spring-boot:run -Dspring-boot.run.profiles=local",
     "build": "./mvnw -B -DskipTests package",
     "test": "./mvnw -B test",
-    "openapi:export": "./mvnw -B -q test -Dtest=OpenApiSpecTest -Dsurefire.failIfNoSpecifiedTests=false -Dopenapi.write=true"
+    "openapi:export": "./mvnw -B -q test -Dtest=OpenApiSpecTest -Dsurefire.failIfNoSpecifiedTests=false -Dopenapi.write=true",
+    "jwk:generate": "node -e \"const c=require('node:crypto');const k=c.generateKeyPairSync('ec',{namedCurve:'P-256'}).privateKey.export({format:'jwk'});console.log(JSON.stringify({keys:[{...k,kid:c.randomUUID(),alg:'ES256',use:'sig'}]}))\""
   }
 }

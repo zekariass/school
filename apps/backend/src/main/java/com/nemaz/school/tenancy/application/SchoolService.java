@@ -11,9 +11,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.nemaz.school.audit.AuditEntry;
+import com.nemaz.school.audit.AuditLog;
+import com.nemaz.school.audit.AuditOutcome;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.common.pagination.CursorPage;
 import com.nemaz.school.common.pagination.KeysetPages;
+import com.nemaz.school.common.security.AccessibleScopes;
 import com.nemaz.school.reference.CountryInfo;
 import com.nemaz.school.reference.ReferenceData;
 import com.nemaz.school.tenancy.SchoolCreated;
@@ -51,13 +55,17 @@ public class SchoolService {
 
 	private final ApplicationEventPublisher events;
 
+	private final AuditLog audit;
+
 	SchoolService(SchoolRepository schools, SchoolLanguageRepository schoolLanguages,
-			OrganizationRepository organizations, ReferenceData reference, ApplicationEventPublisher events) {
+			OrganizationRepository organizations, ReferenceData reference, ApplicationEventPublisher events,
+			AuditLog audit) {
 		this.schools = schools;
 		this.schoolLanguages = schoolLanguages;
 		this.organizations = organizations;
 		this.reference = reference;
 		this.events = events;
+		this.audit = audit;
 	}
 
 	/**
@@ -126,6 +134,12 @@ public class SchoolService {
 			.map((code) -> new SchoolLanguage(schoolId, code, code.equals(defaultLanguage)))
 			.toList());
 		this.events.publishEvent(new SchoolCreated(schoolId, countryCode, school.getOrganizationId(), school.getSlug()));
+		this.audit.record(AuditEntry.of("school.create", AuditOutcome.SUCCESS)
+			.target("school", schoolId)
+			.school(schoolId)
+			.metadata("countryCode", countryCode)
+			.metadata("organizationId", (school.getOrganizationId() != null) ? school.getOrganizationId().toString() : null)
+			.metadata("slug", school.getSlug()));
 		return details(school);
 	}
 
@@ -147,14 +161,32 @@ public class SchoolService {
 		school.changeStatus(target);
 		school = this.schools.saveAndFlush(school);
 		this.events.publishEvent(new SchoolStatusChanged(id, previous.name(), target.name()));
+		this.audit.record(AuditEntry.of("school.status_change", AuditOutcome.SUCCESS)
+			.target("school", id)
+			.school(id)
+			.changes(Map.of("status", previous.name()), Map.of("status", target.name())));
 		return details(school);
 	}
 
+	/** Schools newest first, restricted to {@code visible} (the caller's accessible scopes). */
 	@Transactional(readOnly = true)
 	public CursorPage<SchoolDetails> list(String countryCode, UUID organizationId, SchoolStatus status, String cursor,
-			Integer limit) {
+			Integer limit, AccessibleScopes visible) {
 		Specification<School> filter = (root, query, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();
+			if (!visible.platform()) {
+				List<Predicate> any = new ArrayList<>();
+				if (!visible.countryCodes().isEmpty()) {
+					any.add(root.get("countryCode").in(visible.countryCodes()));
+				}
+				if (!visible.organizationIds().isEmpty()) {
+					any.add(root.get("organizationId").in(visible.organizationIds()));
+				}
+				if (!visible.schoolIds().isEmpty()) {
+					any.add(root.get("id").in(visible.schoolIds()));
+				}
+				predicates.add(any.isEmpty() ? cb.disjunction() : cb.or(any.toArray(Predicate[]::new)));
+			}
 			if (countryCode != null) {
 				predicates.add(cb.equal(root.get("countryCode"), countryCode.toUpperCase(Locale.ROOT)));
 			}

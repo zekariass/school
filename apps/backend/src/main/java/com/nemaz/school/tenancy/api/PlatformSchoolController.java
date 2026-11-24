@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.UUID;
 
 import com.nemaz.school.common.pagination.CursorPage;
-import com.nemaz.school.common.security.CurrentActor;
+import com.nemaz.school.common.security.AccessControl;
+import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
+import com.nemaz.school.common.web.Idempotent;
 import com.nemaz.school.subscriptions.AssignSubscription;
 import com.nemaz.school.subscriptions.SubscriptionStatus;
 import com.nemaz.school.subscriptions.SubscriptionView;
@@ -44,14 +46,26 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Platform-admin management of schools, their campuses and their (manual) subscription.
- * Platform-wide authority only for now; country- and organization-scoped administrators
- * arrive with role assignments in M1b.
+ * Management of schools, their campuses and their (manual) subscription. Scope-aware:
+ * <ul>
+ * <li>{@code school.read}: see a school and its campuses (lists are filtered to the schools the
+ * caller can read: country, organization, school or campus grants);</li>
+ * <li>{@code platform.schools.manage}: create schools and change their status, within the
+ * caller's country or organization;</li>
+ * <li>{@code school.manage}: add and edit campuses;</li>
+ * <li>{@code platform.subscriptions.manage}: assign a plan (platform administrators).</li>
+ * </ul>
  */
 @RestController
 @RequestMapping("/api/v1/platform/schools")
 @Tag(name = "platform-schools")
 public class PlatformSchoolController {
+
+	private static final String READ = "'" + Permissions.SCHOOL_READ + "'";
+
+	private static final String MANAGE = "'" + Permissions.SCHOOL_MANAGE + "'";
+
+	private static final String SCHOOLS_MANAGE = "'" + Permissions.PLATFORM_SCHOOLS_MANAGE + "'";
 
 	private final SchoolService schools;
 
@@ -59,24 +73,34 @@ public class PlatformSchoolController {
 
 	private final SchoolSubscriptionService subscriptions;
 
-	PlatformSchoolController(SchoolService schools, CampusService campuses, SchoolSubscriptionService subscriptions) {
+	private final AccessControl access;
+
+	PlatformSchoolController(SchoolService schools, CampusService campuses, SchoolSubscriptionService subscriptions,
+			AccessControl access) {
 		this.schools = schools;
 		this.campuses = campuses;
 		this.subscriptions = subscriptions;
+		this.access = access;
 	}
 
 	@GetMapping
-	@PreAuthorize(Permissions.CAN_MANAGE_SCHOOLS)
-	@Operation(operationId = "listSchools", summary = "List schools, newest first, filtered by country, organization, status")
+	@PreAuthorize("@authz.anywhere(" + READ + ")")
+	@Operation(operationId = "listSchools",
+			summary = "List the schools the caller can see, newest first, filtered by country, organization, status")
 	public CursorPage<SchoolResponse> list(@RequestParam(required = false) String countryCode,
 			@RequestParam(required = false) UUID organizationId, @RequestParam(required = false) SchoolStatus status,
 			@RequestParam(required = false) String cursor, @RequestParam(required = false) Integer limit) {
-		return this.schools.list(countryCode, organizationId, status, cursor, limit).map(SchoolResponse::from);
+		return this.schools
+			.list(countryCode, organizationId, status, cursor, limit,
+					this.access.accessible(CurrentUser.require(), Permissions.SCHOOL_READ))
+			.map(SchoolResponse::from);
 	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	@PreAuthorize(Permissions.CAN_MANAGE_SCHOOLS)
+	@Idempotent
+	@PreAuthorize("(#r.organizationId() != null) ? @authz.organization(" + SCHOOLS_MANAGE + ", #r.organizationId())"
+			+ " : @authz.country(" + SCHOOLS_MANAGE + ", #r.countryCode())")
 	@Operation(operationId = "createSchool",
 			summary = "Create a school (ONBOARDING) in an enabled country; unset fields inherit the country's defaults")
 	public SchoolResponse create(@Valid @RequestBody CreateSchoolRequest r) {
@@ -87,21 +111,21 @@ public class PlatformSchoolController {
 	}
 
 	@GetMapping("/{schoolId}")
-	@PreAuthorize(Permissions.CAN_MANAGE_SCHOOLS)
+	@PreAuthorize("@authz.school(" + READ + ", #schoolId)")
 	@Operation(operationId = "getSchool", summary = "Get a school")
 	public SchoolResponse get(@PathVariable UUID schoolId) {
 		return SchoolResponse.from(this.schools.get(schoolId));
 	}
 
 	@PutMapping("/{schoolId}/status")
-	@PreAuthorize(Permissions.CAN_MANAGE_SCHOOLS)
+	@PreAuthorize("@authz.school(" + SCHOOLS_MANAGE + ", #schoolId)")
 	@Operation(operationId = "updateSchoolStatus", summary = "Change a school's status")
 	public SchoolResponse updateStatus(@PathVariable UUID schoolId, @Valid @RequestBody UpdateSchoolStatusRequest r) {
 		return SchoolResponse.from(this.schools.changeStatus(schoolId, r.status()));
 	}
 
 	@GetMapping("/{schoolId}/campuses")
-	@PreAuthorize(Permissions.CAN_MANAGE_SCHOOLS)
+	@PreAuthorize("@authz.school(" + READ + ", #schoolId)")
 	@Operation(operationId = "listCampuses", summary = "List a school's campuses")
 	public CursorPage<CampusResponse> listCampuses(@PathVariable UUID schoolId,
 			@RequestParam(required = false) String cursor, @RequestParam(required = false) Integer limit) {
@@ -110,14 +134,15 @@ public class PlatformSchoolController {
 
 	@PostMapping("/{schoolId}/campuses")
 	@ResponseStatus(HttpStatus.CREATED)
-	@PreAuthorize(Permissions.CAN_MANAGE_SCHOOLS)
+	@Idempotent
+	@PreAuthorize("@authz.school(" + MANAGE + ", #schoolId)")
 	@Operation(operationId = "createCampus", summary = "Add a campus to a school")
 	public CampusResponse createCampus(@PathVariable UUID schoolId, @Valid @RequestBody CreateCampusRequest r) {
 		return CampusResponse.from(this.campuses.create(schoolId, r.name(), r.code(), r.timezone()));
 	}
 
 	@PutMapping("/{schoolId}/campuses/{campusId}")
-	@PreAuthorize(Permissions.CAN_MANAGE_SCHOOLS)
+	@PreAuthorize("@authz.school(" + MANAGE + ", #schoolId)")
 	@Operation(operationId = "updateCampus", summary = "Update a campus")
 	public CampusResponse updateCampus(@PathVariable UUID schoolId, @PathVariable UUID campusId,
 			@Valid @RequestBody UpdateCampusRequest r) {
@@ -125,14 +150,14 @@ public class PlatformSchoolController {
 	}
 
 	@PutMapping("/{schoolId}/subscription")
-	@PreAuthorize(Permissions.CAN_MANAGE_SUBSCRIPTIONS)
+	@PreAuthorize("@authz.school('" + Permissions.PLATFORM_SUBSCRIPTIONS_MANAGE + "', #schoolId)")
 	@Operation(operationId = "assignSchoolSubscription",
 			summary = "Manually assign a plan to a school, ending its current subscription")
 	public SubscriptionResponse assignSubscription(@PathVariable UUID schoolId,
 			@Valid @RequestBody AssignSubscriptionRequest r) {
 		SubscriptionView view = this.subscriptions.assign(schoolId,
 				new AssignSubscription(r.planCode(), r.status(), r.currentPeriodEnd()),
-				CurrentActor.id().orElse(null));
+				CurrentUser.currentId());
 		return SubscriptionResponse.from(view);
 	}
 

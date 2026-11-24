@@ -99,6 +99,21 @@ public class ReferenceService implements ReferenceData {
 		return this.calendars.existsById(calendarCode);
 	}
 
+	@Override
+	public Optional<String> countryName(String countryCode, String languageCode) {
+		return this.countries.findById(countryCode).map((country) -> {
+			java.util.Map<String, String> names = country.getNameI18n();
+			if (names == null) {
+				return country.getCode();
+			}
+			String name = (languageCode != null) ? names.get(languageCode) : null;
+			if (name == null) {
+				name = names.getOrDefault("en", country.getCode());
+			}
+			return name;
+		});
+	}
+
 	// --- API queries ------------------------------------------------------------------
 
 	/** Enabled countries with everything a client needs to render country-specific forms. */

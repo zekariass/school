@@ -59,7 +59,9 @@ Before declaring work done, run `npm run lint typecheck test` (or the filtered e
 - **Time and ids:** inject `Clock`; use `Ids.newId()` / Hibernate `@UuidGenerator(style = VERSION_7)`.
 - **Lists:** keyset pagination with `CursorPage` / `Cursors`, never offsets.
 - **API changes:** run `npm run openapi:export -w school-backend`, then `npm run codegen`, and commit both the spec and the generated types.
-- **Tests:** annotate integration tests with `@IntegrationTest` (shared context, Postgres 18 via Testcontainers). Keep its properties identical across classes so the context is reused.
+- **Authorization:** check permissions server-side with `@PreAuthorize("@authz.school('<permission>', #schoolId)")` (also `platform`, `country`, `organization`, `campus`, `anywhere`, `anyAt`) or `AccessControl` (`common.security`); filter lists with `AccessControl.accessible(...)`. Permission codes live in `common.security.Permissions` and `R__40_roles_permissions.sql` (kept equal by a test). Actors come from `CurrentUser` (never parse ids from requests).
+- **Audit and idempotency:** mutations call `AuditLog.record(...)` in their transaction (no secrets, mask phones/emails with `Masking`); create endpoints get `@Idempotent`.
+- **Tests:** annotate integration tests with `@IntegrationTest` (shared context, Postgres 18 via Testcontainers). Keep its properties identical across classes so the context is reused. Call endpoints as real users from `support.Personas` (`persona.bearer()`), add new endpoints to `AuthorizationMatrixTest`, and reset `MutableClock` after moving time.
 
 ## Product rules that apply everywhere
 

@@ -1,10 +1,19 @@
 package com.nemaz.school.common.security;
 
+import java.util.List;
+
 /**
- * Permission names used with {@code @PreAuthorize("hasAuthority(...)")}. Until the
- * authorization module (M1b) maps roles to permissions, authorities carry these names
- * directly; keeping them in one place makes that switch mechanical. Format:
- * {@code <area>.<resource>.<action>}.
+ * Permission codes: the single source of truth in code. The database seed
+ * ({@code R__40_roles_permissions.sql}) declares the same codes and maps them to roles;
+ * {@code RolesAndPermissionsSeedTest} keeps the two in step. Format:
+ * {@code <area>.<resource>.<action>} or {@code <resource>.<action>}.
+ *
+ * <p>
+ * A permission is held <em>at a scope</em> (platform, country, organization, school or
+ * campus) through a role assignment; checks go through {@link AccessControl} or the
+ * {@code @authz} bean in {@code @PreAuthorize}. Permissions held at platform scope are also
+ * exposed as Spring Security authorities, so {@code hasAuthority(...)} means "held
+ * platform-wide".
  */
 public final class Permissions {
 
@@ -18,20 +27,20 @@ public final class Permissions {
 
 	public static final String PLATFORM_SETTINGS_MANAGE = "platform.settings.manage";
 
-	/** SpEL for {@code @PreAuthorize}: constant expressions, so usable in annotations. */
-	public static final String CAN_MANAGE_ORGANIZATIONS = "hasAuthority('" + PLATFORM_ORGANIZATIONS_MANAGE + "')";
+	public static final String PLATFORM_ROLES_MANAGE = "platform.roles.manage";
 
-	public static final String CAN_MANAGE_SCHOOLS = "hasAuthority('" + PLATFORM_SCHOOLS_MANAGE + "')";
+	public static final String SCHOOL_READ = "school.read";
 
-	public static final String CAN_MANAGE_SUBSCRIPTIONS = "hasAuthority('" + PLATFORM_SUBSCRIPTIONS_MANAGE + "')";
+	public static final String SCHOOL_MANAGE = "school.manage";
 
-	public static final String CAN_MANAGE_FEATURES = "hasAuthority('" + PLATFORM_FEATURES_MANAGE + "')";
+	public static final String SCHOOL_SETTINGS_MANAGE = "school.settings.manage";
 
-	public static final String CAN_MANAGE_SETTINGS = "hasAuthority('" + PLATFORM_SETTINGS_MANAGE + "')";
+	public static final String AUDIT_READ = "audit.read";
 
-	/** Viewing a school's resolved configuration: anyone who can change part of it. */
-	public static final String CAN_VIEW_CONFIGURATION = "hasAnyAuthority('" + PLATFORM_SCHOOLS_MANAGE + "','"
-			+ PLATFORM_FEATURES_MANAGE + "','" + PLATFORM_SETTINGS_MANAGE + "')";
+	/** Every permission code, in seed order. */
+	public static final List<String> ALL = List.of(PLATFORM_ORGANIZATIONS_MANAGE, PLATFORM_SCHOOLS_MANAGE,
+			PLATFORM_SUBSCRIPTIONS_MANAGE, PLATFORM_FEATURES_MANAGE, PLATFORM_SETTINGS_MANAGE, PLATFORM_ROLES_MANAGE,
+			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ);
 
 	private Permissions() {
 	}

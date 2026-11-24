@@ -5,6 +5,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+import com.nemaz.school.audit.AuditEntry;
+import com.nemaz.school.audit.AuditLog;
+import com.nemaz.school.audit.AuditOutcome;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.tenancy.ConfigurationChanged;
 import com.nemaz.school.tenancy.SettingScope;
@@ -40,9 +43,12 @@ public class PlatformConfigurationService {
 
 	private final ApplicationEventPublisher events;
 
+	private final AuditLog audit;
+
 	PlatformConfigurationService(SettingRepository settings, FeatureOverrideRepository featureOverrides,
 			FeatureDefinitionRepository featureDefinitions, ConfigurationScopes scopes, SchoolConfigurationCache cache,
-			ApplicationEventPublisher events) {
+			ApplicationEventPublisher events, AuditLog audit) {
+		this.audit = audit;
 		this.settings = settings;
 		this.featureOverrides = featureOverrides;
 		this.featureDefinitions = featureDefinitions;
@@ -84,8 +90,9 @@ public class PlatformConfigurationService {
 		}
 		this.scopes.chain(scope);
 		FeatureOverride saved;
+		FeatureOverride existing = find(featureKey, scope);
+		Boolean before = (existing != null) ? existing.isEnabled() : null;
 		try {
-			FeatureOverride existing = find(featureKey, scope);
 			if (existing == null) {
 				saved = this.featureOverrides.saveAndFlush(new FeatureOverride(featureKey, scope, enabled, config, actorId));
 			}
@@ -98,6 +105,9 @@ public class PlatformConfigurationService {
 			throw ApiException.conflict("config.concurrent_update");
 		}
 		this.events.publishEvent(ConfigurationChanged.of(scope, ConfigurationChanged.FEATURE, featureKey));
+		this.audit.record(ConfigurationAudit.entry("feature_override.set", scope)
+			.metadata("featureKey", featureKey)
+			.changes(java.util.Collections.singletonMap("enabled", before), java.util.Map.of("enabled", enabled)));
 		return view(saved);
 	}
 
@@ -114,6 +124,9 @@ public class PlatformConfigurationService {
 		this.featureOverrides.delete(existing);
 		this.featureOverrides.flush();
 		this.events.publishEvent(ConfigurationChanged.of(scope, ConfigurationChanged.FEATURE, featureKey));
+		this.audit.record(ConfigurationAudit.entry("feature_override.clear", scope)
+			.metadata("featureKey", featureKey)
+			.changes(java.util.Map.of("enabled", existing.isEnabled()), null));
 	}
 
 	/** The resolved features and settings of a school, exactly as the runtime sees them (cached). */
