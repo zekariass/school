@@ -99,6 +99,7 @@ describe("filterResponseHeaders", () => {
         "x-request-id": "r-1",
         "cache-control": "no-store",
         "retry-after": "3",
+        "idempotent-replayed": "true",
         "set-cookie": "a=b",
         "content-encoding": "gzip",
         "content-length": "10",
@@ -108,6 +109,7 @@ describe("filterResponseHeaders", () => {
     expect([...out.keys()].sort()).toEqual([
       "cache-control",
       "content-type",
+      "idempotent-replayed",
       "retry-after",
       "x-request-id",
     ]);

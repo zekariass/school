@@ -29,8 +29,12 @@ public interface RoleAssignments {
 	 */
 	void grantAsSystem(UUID userId, String roleCode, AccessScope scope);
 
+	/**
+	 * {@code schoolSlug} and {@code schoolName} identify the school of a SCHOOL or CAMPUS scope
+	 * (null at the other levels), so clients can build school URLs.
+	 */
 	record AssignmentView(UUID id, String roleCode, String roleName, AccessScope scope, String scopeName,
-			List<String> permissions, Instant grantedAt) {
+			String schoolSlug, String schoolName, List<String> permissions, Instant grantedAt) {
 	}
 
 }

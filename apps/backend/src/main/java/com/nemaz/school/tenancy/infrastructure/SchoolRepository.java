@@ -14,6 +14,8 @@ public interface SchoolRepository extends JpaRepository<School, UUID>, JpaSpecif
 
 	boolean existsBySlug(String slug);
 
+	java.util.Optional<School> findBySlug(String slug);
+
 	@Query("select s.id from School s where s.organizationId = :organizationId")
 	List<UUID> findIdsByOrganizationId(@Param("organizationId") UUID organizationId);
 

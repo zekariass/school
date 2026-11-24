@@ -38,7 +38,9 @@ Before declaring work done, run `npm run lint typecheck test` (or the filtered e
 - Every page lives under `app/[locale]/`. Use next-intl's `Link`/`useRouter` from `@/i18n/navigation`, never `next/link` for internal routes. All text comes from `useTranslations` / `getTranslations`.
 - `cacheComponents` is on: never read `cookies()`, `headers()`, `params` or `searchParams` at the top of a layout. Read them inside a `<Suspense>` child. `npm run build -w school-web` fails on violations.
 - The browser calls the API only through the BFF (`/api/bff/api/v1/...`, via `lib/api-client.ts`). Server Components and Server Actions use `createServerApi()` from `lib/server/api.ts`. Tokens live in httpOnly cookies (`lib/server/session.ts`) and never reach client JavaScript.
-- `proxy.ts` auth checks are optimistic only. Every Server Action re-validates its input and relies on the API for authorization.
+- `proxy.ts` auth checks are optimistic only (it also renews the access token silently, see `lib/server/session-core.ts` and `refresh.ts`). Server Components get the user from `requireSession()` (`lib/server/dal.ts`, `GET /me`), inside `<Suspense>`; every Server Action re-validates its input and relies on the API for authorization.
+- Mutating Route Handlers under `/api/auth/*` and `/api/bff/*` call `guardOrigin()` (`lib/server/responses.ts`, rules in `lib/origin.ts`). Tokens are set only by Route Handlers and the proxy, never returned to the browser.
+- Console data comes from TanStack Query through the BFF; creates use `useSubmit` (`components/console/use-submit.ts`), which sends an `Idempotency-Key`. Show the API's localized `problem.detail` for failures.
 - UI primitives are shadcn/ui in `components/ui`, styled by `@school/design-tokens`. Don't add per-component colors.
 
 ## Mobile conventions (`apps/mobile`, Expo SDK 58)

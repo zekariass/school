@@ -455,6 +455,35 @@
         "tags" : [ "platform-audit" ]
       }
     },
+    "/api/v1/platform/definitions" : {
+      "get" : {
+        "operationId" : "getConfigurationDefinitions",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DefinitionsResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Every feature and setting definition (key, schema, default, allowed scopes), for override editors",
+        "tags" : [ "platform-configuration" ]
+      }
+    },
     "/api/v1/platform/feature-overrides" : {
       "delete" : {
         "operationId" : "deleteFeatureOverride",
@@ -794,6 +823,38 @@
         },
         "summary" : "Update name, legal name and status (the slug is fixed)",
         "tags" : [ "platform-organizations" ]
+      }
+    },
+    "/api/v1/platform/plans" : {
+      "get" : {
+        "operationId" : "listSchoolPlans",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PlanInfo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The plans a school can be given, with localized names",
+        "tags" : [ "platform-configuration" ]
       }
     },
     "/api/v1/platform/role-assignments" : {
@@ -1570,6 +1631,134 @@
         "tags" : [ "platform-configuration" ]
       }
     },
+    "/api/v1/platform/users" : {
+      "post" : {
+        "operationId" : "createUser",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateUserRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CreatedUserResponse"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Create an ACTIVE user whose phone or email is marked verified (the administrator vouches for it)",
+        "tags" : [ "platform-users" ]
+      }
+    },
+    "/api/v1/platform/users/lookup" : {
+      "get" : {
+        "operationId" : "lookupUser",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "phone",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "email",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "country",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserMatchResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Find a user by an exact phone or email (no listing or search); 404 when there is none",
+        "tags" : [ "platform-users" ]
+      }
+    },
+    "/api/v1/platform/users/{id}" : {
+      "get" : {
+        "operationId" : "getUser",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserMatchResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A user's display name and masked destination, by id",
+        "tags" : [ "platform-users" ]
+      }
+    },
     "/api/v1/reference/countries" : {
       "get" : {
         "operationId" : "listCountries",
@@ -1702,6 +1891,43 @@
         },
         "summary" : "Enabled languages",
         "tags" : [ "reference" ]
+      }
+    },
+    "/api/v1/schools/by-slug/{slug}" : {
+      "get" : {
+        "operationId" : "getSchoolBySlug",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "slug",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SchoolSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A school's id, name and status from its slug; 404 when unknown or when the caller cannot read it",
+        "tags" : [ "schools" ]
       }
     }
   },
@@ -2116,6 +2342,64 @@
         },
         "required" : [ "countryCode", "name", "slug" ]
       },
+      "CreateUserRequest" : {
+        "type" : "object",
+        "properties" : {
+          "country" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "displayName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "familyName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "givenName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "phone" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "preferredLanguage" : {
+            "type" : "string",
+            "pattern" : "^[a-z]{2,3}$"
+          }
+        },
+        "required" : [ "givenName" ]
+      },
+      "CreatedUserResponse" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "maskedEmail" : {
+            "type" : "string"
+          },
+          "maskedPhone" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayName", "id" ]
+      },
       "CurrencyResponse" : {
         "type" : "object",
         "properties" : {
@@ -2230,6 +2514,39 @@
           }
         },
         "required" : [ "items" ]
+      },
+      "DefinitionsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "features" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FeatureDefinitionResponse"
+            }
+          },
+          "settings" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SettingDefinitionResponse"
+            }
+          }
+        },
+        "required" : [ "features", "settings" ]
+      },
+      "FeatureDefinitionResponse" : {
+        "type" : "object",
+        "properties" : {
+          "defaultEnabled" : {
+            "type" : "boolean"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "key" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "defaultEnabled", "key" ]
       },
       "FeatureOverrideResponse" : {
         "type" : "object",
@@ -2529,6 +2846,18 @@
         },
         "required" : [ "identifier", "password" ]
       },
+      "PlanInfo" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "name" ]
+      },
       "ProblemDetail" : {
         "type" : "object",
         "description" : "RFC 9457 problem details returned by every failing endpoint.",
@@ -2689,6 +3018,14 @@
           "roleName" : {
             "type" : "string"
           },
+          "schoolName" : {
+            "type" : "string",
+            "description" : "Name of the school (SCHOOL and CAMPUS scopes)"
+          },
+          "schoolSlug" : {
+            "type" : "string",
+            "description" : "Slug of the school (SCHOOL and CAMPUS scopes), for /s/{slug} URLs"
+          },
           "scope" : {
             "$ref" : "#/components/schemas/UserScope"
           },
@@ -2847,6 +3184,32 @@
         },
         "required" : [ "countryCode", "createdAt", "currencyCode", "defaultCalendarCode", "defaultLanguageCode", "id", "languages", "name", "slug", "status", "timezone", "updatedAt", "version" ]
       },
+      "SchoolSummary" : {
+        "type" : "object",
+        "properties" : {
+          "countryCode" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "shortName" : {
+            "type" : "string"
+          },
+          "slug" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "ONBOARDING", "ACTIVE", "SUSPENDED", "ARCHIVED" ]
+          }
+        },
+        "required" : [ "countryCode", "id", "name", "slug", "status" ]
+      },
       "ScopePermissions" : {
         "type" : "object",
         "properties" : {
@@ -2861,6 +3224,12 @@
             "items" : {
               "type" : "string"
             }
+          },
+          "schoolName" : {
+            "type" : "string"
+          },
+          "schoolSlug" : {
+            "type" : "string"
           },
           "scope" : {
             "$ref" : "#/components/schemas/UserScope"
@@ -2892,6 +3261,35 @@
           }
         },
         "required" : [ "type" ]
+      },
+      "SettingDefinitionResponse" : {
+        "type" : "object",
+        "properties" : {
+          "allowedScopes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "defaultValue" : {
+            "$ref" : "#/components/schemas/JsonNode",
+            "description" : "Any JSON value"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "key" : {
+            "type" : "string"
+          },
+          "module" : {
+            "type" : "string"
+          },
+          "valueSchema" : {
+            "$ref" : "#/components/schemas/JsonNode",
+            "description" : "JSON Schema subset the value must satisfy"
+          }
+        },
+        "required" : [ "allowedScopes", "defaultValue", "key", "module", "valueSchema" ]
       },
       "SettingOverrideResponse" : {
         "type" : "object",
@@ -3078,6 +3476,25 @@
           }
         },
         "required" : [ "status" ]
+      },
+      "UserMatchResponse" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "maskedDestination" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayName", "id", "maskedDestination", "status" ]
       },
       "UserScope" : {
         "type" : "object",

@@ -3,7 +3,12 @@
 #   docker build -t school-backend:local apps/backend
 
 # ---- build: compile the jar and split it into Spring Boot layers ----
-FROM eclipse-temurin:25-jdk AS build
+# Official Maven image (Maven preinstalled) instead of the Maven wrapper: the wrapper
+# downloads Maven from repo.maven.apache.org on every uncached build, which GitHub
+# runners hit rate limits on (HTTP 429). The 3.10 tag is multi-arch (amd64 + arm64 for
+# Apple Silicon); keep its minor line in sync with
+# .mvn/wrapper/maven-wrapper.properties.
+FROM maven:3.10-eclipse-temurin-25 AS build
 WORKDIR /workspace
 
 # The pom selects JDK 25 through maven-toolchains-plugin; register this image's JDK.
@@ -17,12 +22,11 @@ RUN mkdir -p /root/.m2 && printf '%s\n' \
     '</toolchains>' > /root/.m2/toolchains.xml
 
 # Resolve dependencies first so this layer is reused until the pom changes.
-COPY mvnw pom.xml ./
-COPY .mvn .mvn
-RUN chmod +x mvnw && ./mvnw -B -ntp dependency:go-offline
+COPY pom.xml ./
+RUN mvn -B -ntp dependency:go-offline
 
 COPY src src
-RUN ./mvnw -B -ntp -o -DskipTests package \
+RUN mvn -B -ntp -o -DskipTests package \
     && java -Djarmode=tools -jar target/school-backend-*.jar extract \
         --layers --launcher --destination /workspace/layers
 

@@ -1,41 +1,27 @@
-import Constants from 'expo-constants';
-
 import { createApiClient } from '@school/api-client';
 
-import { resolveApiBaseUrl } from '@/lib/api-url';
+import { authFetch, getValidAccessToken } from '@/lib/auth/session-auth';
+import { API_BASE_URL, authApi } from '@/lib/http';
 import { getCurrentLocale } from '@/lib/i18n/locale';
-import { getAccessToken } from '@/lib/session/tokens';
 
-export const API_BASE_URL = resolveApiBaseUrl({
-  envUrl: process.env.EXPO_PUBLIC_API_URL,
-  hostUri: Constants.expoConfig?.hostUri,
-  isDev: __DEV__,
-});
+export { API_BASE_URL, authApi };
 
-const REQUEST_TIMEOUT_MS = 15_000;
-
-/** fetch with a timeout, so an unreachable host fails instead of hanging the UI. */
-const fetchWithTimeout: typeof fetch = async (input, init) => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    return await fetch(input, { ...init, signal: init?.signal ?? controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-};
-
+/**
+ * The authenticated client. The access token is renewed ahead of expiry and on a 401
+ * (single-flight, one retry); see `lib/auth/session-auth.ts`. Auth endpoints that need no
+ * token use `authApi`.
+ */
 export const api = createApiClient({
   baseUrl: API_BASE_URL,
-  getAccessToken,
+  getAccessToken: getValidAccessToken,
   getLocale: getCurrentLocale,
-  fetch: fetchWithTimeout,
+  fetch: authFetch,
 });
 
 /**
- * Minimal view of the client for endpoints that exist on the backend roadmap (M1)
- * but not yet in the generated OpenAPI types. Remove once `npm run codegen` knows
- * these paths and call `api.POST(...)` directly.
+ * Minimal view of the client for endpoints that exist on the backend roadmap but not yet
+ * in the generated OpenAPI types (`/api/v1/auth/login-code`, M3). Remove once
+ * `npm run codegen` knows the path and call `api.POST(...)` directly.
  */
 interface UntypedClient {
   POST(

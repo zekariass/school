@@ -4,6 +4,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -12,6 +14,7 @@ import java.util.UUID;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.subscriptions.AssignSubscription;
 import com.nemaz.school.subscriptions.Entitlement;
+import com.nemaz.school.subscriptions.PlanInfo;
 import com.nemaz.school.subscriptions.SchoolEntitlements;
 import com.nemaz.school.subscriptions.SubscriptionAssigned;
 import com.nemaz.school.subscriptions.SubscriptionService;
@@ -66,6 +69,17 @@ class DefaultSubscriptionService implements SubscriptionService {
 		this.entitlements.findByPlanId(plan.getId())
 			.forEach((e) -> byFeature.put(e.getFeatureKey(), new Entitlement(e.isEnabled(), e.getLimitValue())));
 		return new SchoolEntitlements(plan.getCode(), current.isEmpty(), byFeature);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<PlanInfo> schoolPlans(Locale locale) {
+		String language = (locale != null) ? locale.getLanguage() : "en";
+		return this.plans.findByAudienceAndActiveTrueOrderByCodeAsc(PlanAudience.SCHOOL)
+			.stream()
+			.map((p) -> new PlanInfo(p.getCode(),
+					p.getNameI18n().getOrDefault(language, p.getNameI18n().getOrDefault("en", p.getCode()))))
+			.toList();
 	}
 
 	@Override

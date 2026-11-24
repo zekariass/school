@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ApiRequestError, problemOf, request, shouldRetry, unwrap } from './api-error';
+import { ApiRequestError, parseRetryAfter, problemOf, request, shouldRetry, unwrap } from './api-error';
 
 const response = (status: number) => ({ status }) as Response;
 
@@ -52,5 +52,34 @@ describe('shouldRetry', () => {
     expect(shouldRetry(0, new ApiRequestError(undefined))).toBe(true);
     expect(shouldRetry(1, new ApiRequestError(503))).toBe(true);
     expect(shouldRetry(2, new ApiRequestError(503))).toBe(false);
+  });
+});
+
+describe('parseRetryAfter', () => {
+  it('reads delta-seconds', () => {
+    expect(parseRetryAfter('42')).toBe(42);
+    expect(parseRetryAfter('0')).toBe(1);
+  });
+
+  it('reads an HTTP date relative to now', () => {
+    const now = Date.parse('2026-11-24T10:00:00Z');
+    expect(parseRetryAfter('Tue, 24 Nov 2026 10:01:30 GMT', now)).toBe(90);
+    expect(parseRetryAfter('Tue, 24 Nov 2026 09:00:00 GMT', now)).toBe(1);
+  });
+
+  it('is undefined when absent or unreadable', () => {
+    expect(parseRetryAfter(null)).toBeUndefined();
+    expect(parseRetryAfter('')).toBeUndefined();
+    expect(parseRetryAfter('soon')).toBeUndefined();
+  });
+
+  it('is carried on the error by unwrap', () => {
+    const response = new Response('{}', { status: 429, headers: { 'Retry-After': '17' } });
+    try {
+      unwrap({ error: { code: 'auth.rate_limited', status: 429, title: 't', type: 'x' }, response });
+      expect.unreachable();
+    } catch (error) {
+      expect((error as ApiRequestError).retryAfterSeconds).toBe(17);
+    }
   });
 });

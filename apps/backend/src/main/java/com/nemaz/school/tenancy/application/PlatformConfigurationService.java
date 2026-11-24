@@ -11,11 +11,14 @@ import com.nemaz.school.audit.AuditOutcome;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.tenancy.ConfigurationChanged;
 import com.nemaz.school.tenancy.SettingScope;
+import com.nemaz.school.tenancy.domain.FeatureDefinition;
 import com.nemaz.school.tenancy.domain.FeatureOverride;
 import com.nemaz.school.tenancy.domain.Setting;
+import com.nemaz.school.tenancy.domain.SettingDefinition;
 import com.nemaz.school.tenancy.infrastructure.FeatureDefinitionRepository;
 import com.nemaz.school.tenancy.infrastructure.FeatureOverrideRepository;
 import com.nemaz.school.tenancy.infrastructure.ScopeSpecifications;
+import com.nemaz.school.tenancy.infrastructure.SettingDefinitionRepository;
 import com.nemaz.school.tenancy.infrastructure.SettingRepository;
 import tools.jackson.databind.JsonNode;
 
@@ -37,6 +40,8 @@ public class PlatformConfigurationService {
 
 	private final FeatureDefinitionRepository featureDefinitions;
 
+	private final SettingDefinitionRepository settingDefinitions;
+
 	private final ConfigurationScopes scopes;
 
 	private final SchoolConfigurationCache cache;
@@ -46,15 +51,32 @@ public class PlatformConfigurationService {
 	private final AuditLog audit;
 
 	PlatformConfigurationService(SettingRepository settings, FeatureOverrideRepository featureOverrides,
-			FeatureDefinitionRepository featureDefinitions, ConfigurationScopes scopes, SchoolConfigurationCache cache,
+			FeatureDefinitionRepository featureDefinitions, SettingDefinitionRepository settingDefinitions,
+			ConfigurationScopes scopes, SchoolConfigurationCache cache,
 			ApplicationEventPublisher events, AuditLog audit) {
 		this.audit = audit;
 		this.settings = settings;
 		this.featureOverrides = featureOverrides;
 		this.featureDefinitions = featureDefinitions;
+		this.settingDefinitions = settingDefinitions;
 		this.scopes = scopes;
 		this.cache = cache;
 		this.events = events;
+	}
+
+	/** Every feature definition, by key (bounded: code-owned). */
+	@Transactional(readOnly = true)
+	public List<FeatureDefinition> featureDefinitions() {
+		return this.featureDefinitions.findAll().stream().sorted(Comparator.comparing(
+				FeatureDefinition::getKey)).toList();
+	}
+
+	/** Every setting definition, by module and key (bounded: code-owned). */
+	@Transactional(readOnly = true)
+	public List<SettingDefinition> settingDefinitions() {
+		return this.settingDefinitions.findAll().stream().sorted(Comparator
+			.comparing(SettingDefinition::getModule)
+			.thenComparing(SettingDefinition::getKey)).toList();
 	}
 
 	/** Setting overrides at exactly {@code scope}, optionally for one key. Bounded by the number of definitions. */

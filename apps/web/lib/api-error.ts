@@ -40,3 +40,13 @@ export function shouldRetry(failureCount: number, error: unknown): boolean {
   }
   return failureCount < 2;
 }
+
+/** For endpoints answering 204 No Content: throws ApiRequestError unless the call succeeded. */
+export function ensureOk(result: { error?: unknown; response: Response }): void {
+  if (result.error !== undefined || !result.response.ok) {
+    throw new ApiRequestError(
+      result.response.status,
+      isProblemDetail(result.error) ? result.error : undefined,
+    );
+  }
+}

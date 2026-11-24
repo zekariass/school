@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { roleNamesForSchool } from "@/lib/roles";
+import { getSchoolBySlug, requireSession } from "@/lib/server/dal";
 
 export async function generateMetadata() {
   const t = await getTranslations("nav");
@@ -23,15 +25,23 @@ export default function SchoolDashboardPage({ params }: PageProps<"/[locale]/s/[
 }
 
 async function Welcome({ params }: { params: PageProps<"/[locale]/s/[school]">["params"] }) {
-  const { school } = await params;
+  const { school: slug } = await params;
   const t = await getTranslations("dashboard");
+  // Both are memoized per request: the layout already asked for them.
+  const [me, school] = await Promise.all([requireSession(), getSchoolBySlug(slug)]);
+  const roles = roleNamesForSchool(me.roleAssignments, school.slug);
   return (
     <Card className="bg-primary/10 shadow-none">
       <CardHeader>
         <CardTitle role="heading" aria-level={1} className="text-2xl">
           {t("welcomeTitle")}
         </CardTitle>
-        <CardDescription className="text-base">{t("welcomeBody", { school })}</CardDescription>
+        <CardDescription className="text-base">{t("welcomeBody", { school: school.name })}</CardDescription>
+        {roles.length ? (
+          <p className="text-sm font-semibold text-muted-foreground">
+            {t("yourRole", { roles: roles.join(", ") })}
+          </p>
+        ) : null}
       </CardHeader>
     </Card>
   );

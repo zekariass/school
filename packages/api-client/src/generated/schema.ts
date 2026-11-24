@@ -175,6 +175,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every feature and setting definition (key, schema, default, allowed scopes), for override editors */
+        get: operations["getConfigurationDefinitions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/feature-overrides": {
         parameters: {
             query?: never;
@@ -223,6 +240,23 @@ export interface paths {
         get: operations["getOrganization"];
         /** Update name, legal name and status (the slug is fixed) */
         put: operations["updateOrganization"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The plans a school can be given, with localized names */
+        get: operations["listSchoolPlans"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -405,6 +439,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create an ACTIVE user whose phone or email is marked verified (the administrator vouches for it) */
+        post: operations["createUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/users/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Find a user by an exact phone or email (no listing or search); 404 when there is none */
+        get: operations["lookupUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A user's display name and masked destination, by id */
+        get: operations["getUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reference/countries": {
         parameters: {
             query?: never;
@@ -448,6 +533,23 @@ export interface paths {
         };
         /** Enabled languages */
         get: operations["listLanguages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/by-slug/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A school's id, name and status from its slug; 404 when unknown or when the caller cannot read it */
+        get: operations["getSchoolBySlug"];
         put?: never;
         post?: never;
         delete?: never;
@@ -597,6 +699,22 @@ export interface components {
             timezone?: string;
             website?: string;
         };
+        CreateUserRequest: {
+            country?: string;
+            displayName?: string;
+            email?: string;
+            familyName?: string;
+            givenName: string;
+            phone?: string;
+            preferredLanguage?: string;
+        };
+        CreatedUserResponse: {
+            displayName: string;
+            /** Format: uuid */
+            id: string;
+            maskedEmail?: string;
+            maskedPhone?: string;
+        };
         CurrencyResponse: {
             code: string;
             /** Format: int32 */
@@ -633,6 +751,15 @@ export interface components {
             items: components["schemas"]["SchoolResponse"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
+        };
+        DefinitionsResponse: {
+            features: components["schemas"]["FeatureDefinitionResponse"][];
+            settings: components["schemas"]["SettingDefinitionResponse"][];
+        };
+        FeatureDefinitionResponse: {
+            defaultEnabled: boolean;
+            description?: string;
+            key: string;
         };
         FeatureOverrideResponse: {
             config?: components["schemas"]["JsonNode"];
@@ -745,6 +872,10 @@ export interface components {
             identifier: string;
             password: string;
         };
+        PlanInfo: {
+            code: string;
+            name: string;
+        };
         /** @description RFC 9457 problem details returned by every failing endpoint. */
         ProblemDetail: {
             /** @description Stable machine-readable error code */
@@ -805,6 +936,10 @@ export interface components {
             permissions: string[];
             roleCode: string;
             roleName: string;
+            /** @description Name of the school (SCHOOL and CAMPUS scopes) */
+            schoolName?: string;
+            /** @description Slug of the school (SCHOOL and CAMPUS scopes), for /s/{slug} URLs */
+            schoolSlug?: string;
             scope: components["schemas"]["UserScope"];
             /** @description Display name of the scope; absent for PLATFORM */
             scopeName?: string;
@@ -865,9 +1000,21 @@ export interface components {
             version: number;
             website?: string;
         };
+        SchoolSummary: {
+            countryCode: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            shortName?: string;
+            slug: string;
+            /** @enum {string} */
+            status: "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+        };
         ScopePermissions: {
             permissions: string[];
             roleCodes: string[];
+            schoolName?: string;
+            schoolSlug?: string;
             scope: components["schemas"]["UserScope"];
             scopeName?: string;
         };
@@ -880,6 +1027,16 @@ export interface components {
             schoolId?: string;
             /** @enum {string} */
             type: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL";
+        };
+        SettingDefinitionResponse: {
+            allowedScopes: string[];
+            /** @description Any JSON value */
+            defaultValue: components["schemas"]["JsonNode"];
+            description?: string;
+            key: string;
+            module: string;
+            /** @description JSON Schema subset the value must satisfy */
+            valueSchema: components["schemas"]["JsonNode"];
         };
         SettingOverrideResponse: {
             key: string;
@@ -955,6 +1112,13 @@ export interface components {
         UpdateSchoolStatusRequest: {
             /** @enum {string} */
             status: "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+        };
+        UserMatchResponse: {
+            displayName: string;
+            /** Format: uuid */
+            id: string;
+            maskedDestination: string;
+            status: string;
         };
         /** @description A level of the tenancy hierarchy; exactly the key of its type is set (a campus also has its school). */
         UserScope: {
@@ -1328,6 +1492,35 @@ export interface operations {
             };
         };
     };
+    getConfigurationDefinitions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DefinitionsResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listFeatureOverrides: {
         parameters: {
             query: {
@@ -1548,6 +1741,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listSchoolPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanInfo"][];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -2070,6 +2292,103 @@ export interface operations {
             };
         };
     };
+    createUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedUserResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    lookupUser: {
+        parameters: {
+            query?: {
+                phone?: string;
+                email?: string;
+                country?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserMatchResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserMatchResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listCountries: {
         parameters: {
             query?: never;
@@ -2153,6 +2472,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LanguageResponse"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getSchoolBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolSummary"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

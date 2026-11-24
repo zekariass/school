@@ -148,6 +148,12 @@ public class SchoolService {
 		return details(find(id));
 	}
 
+	/** The school with this slug (slugs are unique), if any. */
+	@Transactional(readOnly = true)
+	public java.util.Optional<School> findBySlug(String slug) {
+		return this.schools.findBySlug(slug);
+	}
+
 	/** ONBOARDING to ACTIVE/SUSPENDED/ARCHIVED, ACTIVE and SUSPENDED between themselves; ARCHIVED is final. */
 	public SchoolDetails changeStatus(UUID id, SchoolStatus target) {
 		School school = find(id);

@@ -119,9 +119,19 @@ npm run dev --workspace=school-web
   `http://localhost:8180` outside production and is required in production
   (see `apps/web/.env.example`). Browsers never call the API directly; they go
   through the BFF at `/api/bff/api/v1/...`.
+- `APP_ORIGIN` (server-only, optional) is the public origin of the web app
+  (for example `https://app.example.com`). Mutating requests to `/api/auth/*`
+  and `/api/bff/*` must come from this origin (`Origin` header, or
+  `Sec-Fetch-Site: same-origin`); it defaults to the origin of the request URL,
+  so set it only behind a proxy that rewrites the host.
+- Sessions live in httpOnly cookies (`sch_at`, `sch_rt`). `proxy.ts` renews
+  the access token before it expires; with several web instances use sticky
+  routing (see the M1c note in `docs/Implementation_Plan.md`).
 - Local pages: http://localhost:3100/en (landing), `/en/sign-in`,
-  `/en/status` (live API check through the BFF). `/en/s/<school>` and
-  `/en/platform` redirect to sign-in until the web sign-in screens land (M1c).
+  `/en/status` (live API check through the BFF), `/en/platform` (console for
+  platform, country and organization administrators), `/en/schools` (school
+  picker) and `/en/s/<school>` (workspace). Sign in locally as the dev admin
+  `0900000001` (see below); the code appears in the backend log.
 
 ## Backend configuration
 
@@ -149,6 +159,11 @@ curl -X POST localhost:8180/api/v1/auth/otp/verify -H 'Content-Type: application
   -d '{"phone":"+251900000001","code":"123456"}'      # -> accessToken, refreshToken
 curl localhost:8180/api/v1/me -H "Authorization: Bearer <accessToken>"
 ```
+
+On the web, open `/en/sign-in`, enter `0900000001` and the code from the backend
+log. To try a school administrator: in the console create a school, open its
+**Administrators** tab, look up a new phone number, create the user and assign
+them, then sign in with that number (the code is in the backend log again).
 
 Local endpoints (`npm run dev -- --filter=school-backend`):
 

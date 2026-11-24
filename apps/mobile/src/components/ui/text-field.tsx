@@ -1,3 +1,4 @@
+import type { ComponentRef, Ref } from 'react';
 import { TextInput, View, type TextInputProps } from 'react-native';
 
 import { useAppTheme } from '@/lib/theme/theme-provider';
@@ -9,6 +10,8 @@ export interface TextFieldProps extends TextInputProps {
   /** Already-translated error message. */
   error?: string | undefined;
   hint?: string | undefined;
+  /** Ref of the underlying input (React 19 passes `ref` as a prop). */
+  ref?: Ref<ComponentRef<typeof TextInput>>;
 }
 
 export function TextField({ label, error, hint, style, ...props }: TextFieldProps) {
