@@ -1,0 +1,55 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "School API",
+    "version": "0.0.1",
+    "description": "Bootstrap snapshot. Replaced by the springdoc export of apps/backend in Implementation Plan M0.3; CI then fails if this file drifts from the backend."
+  },
+  "paths": {
+    "/actuator/health": {
+      "get": {
+        "operationId": "health",
+        "tags": ["system"],
+        "summary": "Liveness/readiness of the backend",
+        "responses": {
+          "200": {
+            "description": "Backend is up",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Health" } }
+            }
+          },
+          "503": {
+            "description": "Backend is down or not ready",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Health" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Health": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "type": "string", "enum": ["UP", "DOWN", "OUT_OF_SERVICE", "UNKNOWN"] },
+          "groups": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ProblemDetail": {
+        "type": "object",
+        "description": "RFC 9457 error body returned by every failing endpoint.",
+        "properties": {
+          "type": { "type": "string", "format": "uri" },
+          "title": { "type": "string" },
+          "status": { "type": "integer" },
+          "detail": { "type": "string" },
+          "instance": { "type": "string" },
+          "code": { "type": "string", "description": "Stable machine-readable error code" }
+        }
+      }
+    }
+  }
+}

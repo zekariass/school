@@ -1,0 +1,47 @@
+{
+  "app": {
+    "name": "School"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "back": "Back",
+    "done": "Done",
+    "edit": "Edit",
+    "delete": "Delete",
+    "retry": "Try again",
+    "loading": "Loading…",
+    "offline": "You're offline. Changes will sync when you reconnect.",
+    "error": "Something went wrong. Please try again."
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "phoneNumber": "Phone number",
+    "email": "Email",
+    "password": "Password",
+    "sendCode": "Send code",
+    "enterCode": "Enter the {length}-digit code we sent to {destination}",
+    "scanClassCode": "Scan your class code"
+  },
+  "roles": {
+    "teacher": "Teacher",
+    "guardian": "Parent",
+    "student": "Student",
+    "schoolAdmin": "School admin",
+    "tutor": "Tutor"
+  },
+  "points": {
+    "awarded": "{count, plural, one {# point} other {# points}} for {skill}"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address.",
+    "phone": "Enter a valid phone number.",
+    "otp": "Enter the {length}-digit code.",
+    "passwordTooShort": "Use at least {min} characters.",
+    "passwordTooLong": "Use at most {max} characters.",
+    "nameTooLong": "Use at most {max} characters."
+  }
+}

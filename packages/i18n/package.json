@@ -1,0 +1,19 @@
+{
+  "name": "@school/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "UI message catalogs (ICU) and locale metadata shared by web and mobile.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./messages/*.json": "./messages/*.json"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@school/config": "*"
+  }
+}

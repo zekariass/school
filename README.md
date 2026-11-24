@@ -19,14 +19,25 @@ apps/
   backend    Spring Boot 4.2 API (Maven, Java 25)
   mobile     Expo SDK 58 / React Native app
   web        Next.js 16 app
-packages/    shared packages (added in Phase 0, M0.2)
+packages/
+  api-client      typed API client generated from the backend OpenAPI spec
+  calendar        Gregorian <-> Ethiopian conversion and formatting (display only)
+  config          shared tsconfig and ESLint presets
+  design-tokens   colors, radii, typography; generates Tailwind 4 theme CSS
+  i18n            UI message catalogs (en, am) and locale helpers
+  validation      shared zod form schemas (errors are i18n keys)
 infra/       local development infrastructure (Docker Compose)
 docs/        specification, review, database design, plan
 ```
 
+Shared packages are source-only TypeScript: both Next.js (Turbopack) and
+Expo (Metro) compile them directly, so there is no package build step.
+Generated files (API types, theme CSS) are committed; regenerate them with
+`npm run codegen`. See [CLAUDE.md](CLAUDE.md) for repository conventions.
+
 ## Prerequisites
 
-- **Node.js** ≥ 18 and npm 10
+- **Node.js** ≥ 22.18 (26 recommended, see `.nvmrc`) and npm 10
 - **Docker Desktop** (local Postgres, Redis, S3, mail)
 - **JDK 25**, registered in Maven Toolchains:
   ```bash
@@ -77,7 +88,9 @@ npm install                 # install all JS workspaces
 npm run dev                 # turbo: run all dev servers
 npm run build               # turbo: build all packages
 npm run lint                # turbo: lint all packages
+npm run typecheck           # turbo: type-check all packages and apps
 npm run test                # turbo: test all packages
+npm run codegen             # regenerate API client types and theme CSS
 ```
 
 Target a single app with `--filter`:

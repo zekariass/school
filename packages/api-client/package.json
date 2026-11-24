@@ -1,0 +1,25 @@
+{
+  "name": "@school/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Typed School API client generated from the backend OpenAPI spec.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "codegen": "openapi-typescript openapi/openapi.json -o src/generated/schema.ts",
+    "codegen:check": "openapi-typescript openapi/openapi.json -o src/generated/schema.ts --check"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "@school/config": "*",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5.9.3"
+  }
+}
