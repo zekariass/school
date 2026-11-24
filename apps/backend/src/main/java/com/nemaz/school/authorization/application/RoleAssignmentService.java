@@ -100,9 +100,11 @@ public class RoleAssignmentService implements RoleAssignments {
 		for (RoleAssignment a : this.assignments.findByUserIdAndStatusOrderByGrantedAtAsc(userId,
 				AssignmentStatus.ACTIVE)) {
 			Role role = this.roles.findById(a.getRoleCode()).orElseThrow();
+			TenantDirectory.SchoolRef school = schoolOf(a.scope());
 			views.add(new AssignmentView(a.getId(), role.getCode(), role.name(locale), a.scope(),
-					scopeName(a.scope(), locale), this.rolePermissions.of(role.getCode()).stream().sorted().toList(),
-					a.getGrantedAt()));
+					scopeName(a.scope(), locale), (school != null) ? school.slug() : null,
+					(school != null) ? school.name() : null,
+					this.rolePermissions.of(role.getCode()).stream().sorted().toList(), a.getGrantedAt()));
 		}
 		return views;
 	}
@@ -270,6 +272,17 @@ public class RoleAssignmentService implements RoleAssignments {
 				}
 				yield AccessScope.campus(campus.schoolId(), campus.id());
 			}
+		};
+	}
+
+	/** The school of a SCHOOL or CAMPUS scope, or null at other levels. */
+	private TenantDirectory.SchoolRef schoolOf(AccessScope scope) {
+		return switch (scope.level()) {
+			case SCHOOL -> this.directory.school(scope.schoolId()).orElse(null);
+			case CAMPUS -> this.directory.campus(scope.campusId())
+				.flatMap((c) -> this.directory.school(c.schoolId()))
+				.orElse(null);
+			default -> null;
 		};
 	}
 

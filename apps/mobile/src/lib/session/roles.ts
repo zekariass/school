@@ -14,6 +14,8 @@ export const ROLE_HOME_ROUTE = {
 } as const satisfies Record<Role, string>;
 
 export const SIGN_IN_ROUTE = '/(auth)/sign-in';
+/** Signed in, but the account has no role with a mobile shell (e.g. a web-only administrator). */
+export const NO_APP_ROLE_ROUTE = '/(account)/no-app-role';
 
 /** i18n key of each role's display name (existing `roles.*` catalog entries). */
 export const ROLE_LABEL_KEY = {
@@ -44,11 +46,19 @@ export function resolveActiveRole(roles: readonly Role[], preferred?: Role | nul
   return roles[0] ?? null;
 }
 
-export type SessionStatus = 'loading' | 'signedOut' | 'signedIn';
+/**
+ * `unreachable`: a refresh token is stored but the API cannot be reached, so we do not
+ * know yet who is signed in. The root layout shows a retry screen instead of the routes.
+ */
+export type SessionStatus = 'loading' | 'signedOut' | 'signedIn' | 'unreachable';
 
-/** Where the root `index` route sends the user. */
-export function entryRoute(status: SessionStatus, activeRole: Role | null): string | null {
-  if (status === 'loading') return null;
-  if (status === 'signedOut' || !activeRole) return SIGN_IN_ROUTE;
-  return ROLE_HOME_ROUTE[activeRole];
+/**
+ * Where the root `index` route sends the user. `hasProfile` is true for a real signed-in
+ * account, which may have no role shell to show.
+ */
+export function entryRoute(status: SessionStatus, activeRole: Role | null, hasProfile = false): string | null {
+  if (status === 'loading' || status === 'unreachable') return null;
+  if (status === 'signedOut') return SIGN_IN_ROUTE;
+  if (activeRole) return ROLE_HOME_ROUTE[activeRole];
+  return hasProfile ? NO_APP_ROLE_ROUTE : SIGN_IN_ROUTE;
 }

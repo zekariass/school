@@ -8,30 +8,37 @@ import { phoneSchema, toFieldErrors } from '@school/validation';
 
 import { ProblemBanner } from '@/components/problem-banner';
 import { Button, Screen, Text, TextField } from '@/components/ui';
-import { untypedApi } from '@/lib/api';
-import { assertOk, request } from '@/lib/api-error';
+import { requestOtp } from '@/lib/auth/auth-requests';
+import { endNoticeKey } from '@/lib/auth/auth-problems';
+import { nowMs } from '@/lib/auth/otp-timer';
+import { useSession } from '@/lib/session/session-provider';
 import { useAppTheme } from '@/lib/theme/theme-provider';
 
 const phoneValidator = phoneSchema('ET');
 
 export default function SignInScreen() {
   const t = useTranslations();
-  const { spacing } = useAppTheme();
+  const { colors, radii, spacing } = useAppTheme();
   const [phone, setPhone] = useState('');
   const [fieldError, setFieldError] = useState<string>();
 
-  // The OTP endpoint arrives with M1. Until then the backend answers with a problem,
-  // which we show as-is: no pretend success.
+  const { endReason, dismissEndReason } = useSession();
+
+  // The backend answers 202 whether or not the number has an account; the code step follows.
   const requestCode = useMutation({
     networkMode: 'always',
     retry: false,
-    mutationFn: async (e164: string) =>
-      request(async () => {
-        const result = await untypedApi.POST('/api/v1/auth/otp/request', { body: { phone: e164 } });
-        assertOk(result);
-        return e164;
-      }),
+    mutationFn: async (e164: string) => ({ phone: e164, ...(await requestOtp(e164)) }),
+    onSuccess: ({ phone: e164, codeLength, expiresIn }) => {
+      router.push({
+        pathname: '/(auth)/verify',
+        params: { phone: e164, codeLength: String(codeLength), expiresIn: String(expiresIn), sentAt: String(nowMs()) },
+      });
+      // Coming back shows the form again, not a stale success.
+      requestCode.reset();
+    },
   });
+
 
   function submit() {
     const parsed = phoneValidator.safeParse(phone);
@@ -50,6 +57,23 @@ export default function SignInScreen() {
         <Text variant="title">{t('auth.signInTitle')}</Text>
         <Text tone="muted">{t('auth.signInSubtitle')}</Text>
       </View>
+
+      {endReason ? (
+        <View
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          style={{
+            gap: spacing[2],
+            padding: spacing[4],
+            borderRadius: radii.xl,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.muted,
+          }}>
+          <Text>{t(endNoticeKey(endReason))}</Text>
+          <Button variant="ghost" fullWidth={false} label={t('common.done')} onPress={dismissEndReason} />
+        </View>
+      ) : null}
 
       <TextField
         label={t('auth.phoneNumber')}
@@ -75,9 +99,6 @@ export default function SignInScreen() {
           fallbackTitle={t('status.errorTitle')}
           fallbackBody={t('auth.requestFailed')}
         />
-      ) : null}
-      {requestCode.isSuccess ? (
-        <Text accessibilityLiveRegion="polite">{t('auth.codeRequested', { destination: requestCode.data })}</Text>
       ) : null}
 
       <Button label={t('auth.sendCode')} onPress={submit} loading={requestCode.isPending} />

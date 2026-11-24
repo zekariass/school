@@ -81,7 +81,14 @@ class AuthorizationMatrixTest {
 
 	/** An endpoint call and who may make it. */
 	record Case(String name, HttpMethod method, Function<Fixture, String> url, Function<Fixture, Object> body,
-			Map<Name, Integer> allowed) {
+			Map<Name, Integer> allowed, int denied) {
+
+		/** Personas not listed are answered 403. */
+		Case(String name, HttpMethod method, Function<Fixture, String> url, Function<Fixture, Object> body,
+				Map<Name, Integer> allowed) {
+			this(name, method, url, body, allowed, 403);
+		}
+
 	}
 
 	private static Map<Name, Integer> allow(int status, Name... names) {
@@ -202,6 +209,37 @@ class AuthorizationMatrixTest {
 			return PLATFORM + "/role-assignments/" + id;
 		}, null, allow(200, PLATFORM_ADMIN, COUNTRY_ADMIN_ET, ORG_ADMIN)));
 
+		// --- user provisioning: platform.roles.manage at any scope
+		Name[] roleManagers = { PLATFORM_ADMIN, COUNTRY_ADMIN_ET, COUNTRY_ADMIN_KE, ORG_ADMIN };
+		cases.add(new Case("POST user", HttpMethod.POST, (f) -> PLATFORM + "/users",
+				(f) -> Map.of("phone", Personas.newPhone(), "givenName", "Matrix", "familyName", "User"),
+				allow(201, roleManagers)));
+		// the national format keeps the '+' of E.164 out of the URL template
+		cases.add(new Case("GET user lookup", HttpMethod.GET,
+				(f) -> PLATFORM + "/users/lookup?phone=0" + this.jdbc
+					.queryForObject("select phone_e164 from users where id = ?", String.class,
+							this.personas.get(PLAIN_USER).userId())
+					.substring(4),
+				null, allow(200, roleManagers)));
+
+		cases.add(new Case("GET user by id", HttpMethod.GET,
+				(f) -> PLATFORM + "/users/" + this.personas.get(PLAIN_USER).userId(), null, allow(200, roleManagers)));
+
+		// --- school by slug: school.read on the school; everyone else gets 404, as for an unknown slug
+		cases.add(new Case("GET school A by slug", HttpMethod.GET,
+				(f) -> "/api/v1/schools/by-slug/" + this.jdbc.queryForObject("select slug from schools where id = ?",
+						String.class, f.schoolA()),
+				null, allow(200, READERS_OF_SCHOOL_A), 404));
+		cases.add(new Case("GET unknown school by slug", HttpMethod.GET, (f) -> "/api/v1/schools/by-slug/nope-nope",
+				null, allow(404, EVERY_ACTIVE_PERSONA), 404));
+
+		// --- catalogs for the console editors
+		cases.add(new Case("GET configuration definitions", HttpMethod.GET, (f) -> PLATFORM + "/definitions", null,
+				allow(200, PLATFORM_ADMIN, COUNTRY_ADMIN_ET, COUNTRY_ADMIN_KE, ORG_ADMIN, SCHOOL_ADMIN_A,
+						SCHOOL_ADMIN_B)));
+		cases.add(new Case("GET school plans", HttpMethod.GET, (f) -> PLATFORM + "/plans", null,
+				allow(200, PLATFORM_ADMIN)));
+
 		// --- audit log: platform only
 		cases.add(new Case("GET audit logs", HttpMethod.GET, (f) -> PLATFORM + "/audit-logs?limit=5", null,
 				allow(200, PLATFORM_ADMIN)));
@@ -215,7 +253,7 @@ class AuthorizationMatrixTest {
 			List<String> mismatches = new ArrayList<>();
 			Map<Name, Integer> actual = new HashMap<>();
 			for (Name name : Name.values()) {
-				int expected = (name == SUSPENDED_USER) ? 401 : c.allowed().getOrDefault(name, 403);
+				int expected = (name == SUSPENDED_USER) ? 401 : c.allowed().getOrDefault(name, c.denied());
 				int status = call(c, fixture, this.personas.get(name));
 				actual.put(name, status);
 				if (status != expected) {

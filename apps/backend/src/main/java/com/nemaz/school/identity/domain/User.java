@@ -82,6 +82,16 @@ public class User extends BaseEntity {
 		return user;
 	}
 
+	/** A STANDARD, ACTIVE account created by an administrator, with its names and language. */
+	public static User createByAdmin(String givenName, String familyName, String displayName, String email,
+			String phoneE164, String preferredLanguageCode) {
+		User user = create(displayName, email, phoneE164);
+		user.givenName = givenName;
+		user.familyName = familyName;
+		user.preferredLanguageCode = preferredLanguageCode;
+		return user;
+	}
+
 	public User verifyEmail(Instant at) {
 		this.emailVerifiedAt = at;
 		return this;

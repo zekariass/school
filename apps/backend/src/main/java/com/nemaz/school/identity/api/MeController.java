@@ -105,17 +105,19 @@ public class MeController {
 
 	public record RoleAssignmentSummary(@NotNull UUID id, @NotNull String roleCode, @NotNull String roleName,
 			@NotNull UserScope scope, @Schema(description = "Display name of the scope; absent for PLATFORM") String scopeName,
+			@Schema(description = "Slug of the school (SCHOOL and CAMPUS scopes), for /s/{slug} URLs") String schoolSlug,
+			@Schema(description = "Name of the school (SCHOOL and CAMPUS scopes)") String schoolName,
 			@NotNull List<String> permissions, @NotNull Instant grantedAt) {
 
 		static RoleAssignmentSummary from(AssignmentView v) {
 			return new RoleAssignmentSummary(v.id(), v.roleCode(), v.roleName(), UserScope.of(v.scope()), v.scopeName(),
-					v.permissions(), v.grantedAt());
+					v.schoolSlug(), v.schoolName(), v.permissions(), v.grantedAt());
 		}
 
 	}
 
-	public record ScopePermissions(@NotNull UserScope scope, String scopeName, @NotNull List<String> roleCodes,
-			@NotNull List<String> permissions) {
+	public record ScopePermissions(@NotNull UserScope scope, String scopeName, String schoolSlug, String schoolName,
+			@NotNull List<String> roleCodes, @NotNull List<String> permissions) {
 	}
 
 	public record MeResponse(@NotNull UUID id, @NotNull AccountType accountType, @NotNull String displayName,
@@ -129,13 +131,13 @@ public class MeController {
 			User u = me.user();
 			Map<AccessScope, ScopeAccumulator> byScope = new LinkedHashMap<>();
 			for (AssignmentView v : me.assignments()) {
-				ScopeAccumulator acc = byScope.computeIfAbsent(v.scope(), (s) -> new ScopeAccumulator(v.scopeName()));
+				ScopeAccumulator acc = byScope.computeIfAbsent(v.scope(), (s) -> new ScopeAccumulator(v));
 				acc.roles.add(v.roleCode());
 				acc.permissions.addAll(v.permissions());
 			}
 			List<ScopePermissions> scopes = new ArrayList<>();
 			byScope.forEach((scope, acc) -> scopes.add(new ScopePermissions(UserScope.of(scope), acc.name,
-					List.copyOf(acc.roles), List.copyOf(acc.permissions))));
+					acc.schoolSlug, acc.schoolName, List.copyOf(acc.roles), List.copyOf(acc.permissions))));
 			return new MeResponse(u.getId(), u.getAccountType(), u.getDisplayName(), u.getGivenName(), u.getMiddleName(),
 					u.getFamilyName(), u.getEmail(), u.getEmailVerifiedAt() != null, u.getPhoneE164(),
 					u.getPhoneVerifiedAt() != null, u.getUsername(), u.getPreferredLanguageCode(), u.getTimezone(),
@@ -149,12 +151,18 @@ public class MeController {
 
 		final String name;
 
+		final String schoolSlug;
+
+		final String schoolName;
+
 		final TreeSet<String> roles = new TreeSet<>();
 
 		final TreeSet<String> permissions = new TreeSet<>();
 
-		ScopeAccumulator(String name) {
-			this.name = name;
+		ScopeAccumulator(AssignmentView first) {
+			this.name = first.scopeName();
+			this.schoolSlug = first.schoolSlug();
+			this.schoolName = first.schoolName();
 		}
 
 	}

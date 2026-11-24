@@ -8,6 +8,8 @@ import com.nemaz.school.common.security.AccessControl;
 import com.nemaz.school.common.security.AccessScope;
 import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
+import com.nemaz.school.subscriptions.PlanInfo;
+import com.nemaz.school.subscriptions.SubscriptionService;
 import com.nemaz.school.tenancy.ConfigSource;
 import com.nemaz.school.tenancy.ScopeType;
 import com.nemaz.school.tenancy.SettingScope;
@@ -28,6 +30,7 @@ import jakarta.validation.constraints.Size;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -74,8 +77,11 @@ public class PlatformConfigurationController {
 
 	private final AccessControl access;
 
+	private final SubscriptionService subscriptionPlans;
+
 	PlatformConfigurationController(PlatformConfigurationService configuration, SettingsService settings,
-			SchoolService schools, JsonMapper json, AccessControl access) {
+			SchoolService schools, JsonMapper json, AccessControl access, SubscriptionService subscriptionPlans) {
+		this.subscriptionPlans = subscriptionPlans;
 		this.configuration = configuration;
 		this.settings = settings;
 		this.schools = schools;
@@ -108,6 +114,32 @@ public class PlatformConfigurationController {
 			case ORGANIZATION -> AccessScope.organization(scope.organizationId());
 			case SCHOOL -> AccessScope.school(scope.schoolId());
 		};
+	}
+
+	// --- catalog: what can be configured --------------------------------------------------
+
+	@GetMapping("/definitions")
+	@PreAuthorize("@authz.anywhere(" + FEATURES + ") or " + ANY_SETTINGS)
+	@Operation(operationId = "getConfigurationDefinitions",
+			summary = "Every feature and setting definition (key, schema, default, allowed scopes), for override editors")
+	public DefinitionsResponse definitions() {
+		return new DefinitionsResponse(
+				this.configuration.featureDefinitions()
+					.stream()
+					.map((f) -> new FeatureDefinitionResponse(f.getKey(), f.getDescription(), f.isDefaultEnabled()))
+					.toList(),
+				this.configuration.settingDefinitions()
+					.stream()
+					.map((d) -> new SettingDefinitionResponse(d.getKey(), d.getModule(), d.getDescription(),
+							d.getValueSchema(), d.getDefaultValue(), d.getAllowedScopes()))
+					.toList());
+	}
+
+	@GetMapping("/plans")
+	@PreAuthorize("@authz.anywhere('" + Permissions.PLATFORM_SUBSCRIPTIONS_MANAGE + "')")
+	@Operation(operationId = "listSchoolPlans", summary = "The plans a school can be given, with localized names")
+	public List<PlanInfo> plans() {
+		return this.subscriptionPlans.schoolPlans(LocaleContextHolder.getLocale());
 	}
 
 	// --- feature overrides ------------------------------------------------------------
@@ -208,6 +240,19 @@ public class PlatformConfigurationController {
 	}
 
 	// --- DTOs -------------------------------------------------------------------------
+
+	public record FeatureDefinitionResponse(@NotNull String key, String description, @NotNull boolean defaultEnabled) {
+	}
+
+	public record SettingDefinitionResponse(@NotNull String key, @NotNull String module, String description,
+			@NotNull @Schema(description = "JSON Schema subset the value must satisfy") JsonNode valueSchema,
+			@NotNull @Schema(description = "Any JSON value") JsonNode defaultValue,
+			@NotNull List<String> allowedScopes) {
+	}
+
+	public record DefinitionsResponse(@NotNull List<FeatureDefinitionResponse> features,
+			@NotNull List<SettingDefinitionResponse> settings) {
+	}
 
 	public record PutFeatureOverrideRequest(
 			@NotBlank(message = Validation.REQUIRED) @Size(max = 64, message = Validation.TOO_LONG) String featureKey,

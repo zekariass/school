@@ -42,7 +42,7 @@ class DefaultTenantDirectory implements TenantDirectory {
 			return Optional.empty();
 		}
 		return this.schools.findById(schoolId)
-			.map((s) -> new SchoolRef(s.getId(), s.getCountryCode(), s.getOrganizationId(), s.getName()));
+			.map((s) -> new SchoolRef(s.getId(), s.getCountryCode(), s.getOrganizationId(), s.getName(), s.getSlug()));
 	}
 
 	@Override

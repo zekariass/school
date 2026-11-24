@@ -64,6 +64,8 @@ describe('sessionReducer', () => {
       roles: [],
       activeRole: null,
       preview: false,
+      profile: null,
+      endReason: null,
     });
   });
 });

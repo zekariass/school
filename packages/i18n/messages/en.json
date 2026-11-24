@@ -28,7 +28,22 @@
     "signInSubtitle": "Enter your phone number and we'll send you a sign-in code.",
     "phoneHint": "For example 0911 23 45 67",
     "codeRequested": "We've asked for a sign-in code to be sent to {destination}.",
-    "requestFailed": "We couldn't send a code right now. Please try again."
+    "requestFailed": "We couldn't send a code right now. Please try again.",
+    "accountMenu": "Account menu",
+    "noAccessTitle": "No access yet",
+    "noAccessBody": "You're signed in, but you haven't been added to a school yet. Ask your school administrator to add you, then sign in again.",
+    "codeTitle": "Enter your code",
+    "codeLabel": "Sign-in code",
+    "verifyCode": "Sign in",
+    "signingIn": "Signing in…",
+    "resendCode": "Send a new code",
+    "resendIn": "Send a new code in {seconds}s",
+    "changeNumber": "Use a different number",
+    "codeExpiresIn": "The code expires in {time}.",
+    "codeExpired": "This code has expired. Send a new one.",
+    "codeResent": "We've sent a new code to {destination}.",
+    "signInFailed": "We couldn't sign you in right now. Please try again.",
+    "tryAgainIn": "Try again in {seconds}s"
   },
   "roles": {
     "teacher": "Teacher",
@@ -90,7 +105,8 @@
     "welcomeTitle": "Welcome to your school workspace",
     "welcomeBody": "You're viewing {school}. This is where your day at school will come together.",
     "emptyTitle": "Nothing here yet",
-    "emptyBody": "Classes, students and announcements will show up here once they've been set up."
+    "emptyBody": "Classes, students and announcements will show up here once they've been set up.",
+    "yourRole": "Your role: {roles}"
   },
   "platform": {
     "title": "Platform administration",
@@ -116,7 +132,9 @@
     "notFoundBody": "The page you're looking for doesn't exist or has moved.",
     "goHome": "Back to home",
     "bffNotFound": "Not found",
-    "bffUnavailable": "The service is temporarily unavailable. Please try again."
+    "bffUnavailable": "The service is temporarily unavailable. Please try again.",
+    "bffForbiddenOrigin": "This request was blocked because it didn't come from this site.",
+    "bffBadRequest": "The request wasn't understood. Please check it and try again."
   },
   "mobile": {
     "signIn": {
@@ -179,6 +197,266 @@
       "title": "Role preview",
       "warningTitle": "Development only",
       "warningBody": "Pick a role to look around the app without signing in. This screen does not exist in release builds."
+    },
+    "verify": {
+      "title": "Enter your code",
+      "codeLabel": "Sign-in code",
+      "expiresIn": "The code expires in {time}.",
+      "expired": "This code has expired. Ask for a new one.",
+      "resend": "Send a new code",
+      "resendIn": "Send a new code in {seconds} s",
+      "resent": "We've sent you a new code.",
+      "changeNumber": "Use a different number",
+      "errors": {
+        "invalidCode": "That code isn't right or has expired. Check it and try again, or ask for a new code.",
+        "rateLimited": "Too many attempts. Please try again in {seconds} s.",
+        "inactive": "This account is not active. Contact your school.",
+        "network": "We couldn't reach School. Check your connection and try again.",
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "session": {
+      "notice": {
+        "expired": "Your session has ended. Please sign in again.",
+        "revoked": "You were signed out of this device. Please sign in again.",
+        "inactive": "This account is not active, so you were signed out."
+      }
+    },
+    "offline": {
+      "title": "We can't reach School",
+      "body": "You're signed in, but we couldn't check your session. Check your connection and try again."
+    },
+    "noAppRole": {
+      "adminTitle": "Your tools are on the web",
+      "adminBody": "Your account has administrator access, which is managed on the School website. This app is for teachers, parents and students.",
+      "noneTitle": "Your account is not set up yet",
+      "noneBody": "Your account isn't linked to a school, class or child yet. Ask your school to add you, then sign in again.",
+      "signedInAs": "Signed in as {name}"
+    }
+  },
+  "schoolPicker": {
+    "title": "Choose a school",
+    "subtitle": "You work at more than one school. Pick the one you want to open.",
+    "empty": "You haven't been added to a school yet.",
+    "openConsole": "Open the platform console"
+  },
+  "console": {
+    "loading": "Loading…",
+    "loadMore": "Load more",
+    "loadFailed": "We couldn't load this. Please try again.",
+    "saveFailed": "We couldn't save your changes. Please try again.",
+    "saving": "Saving…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "no": "No",
+    "validation": {
+      "required": "This field is required."
+    },
+    "nav": {
+      "label": "Platform navigation",
+      "overview": "Overview",
+      "schools": "Schools",
+      "organizations": "Organizations",
+      "featureFlags": "Feature flags",
+      "settings": "Settings",
+      "audit": "Audit log"
+    },
+    "overview": {
+      "schools": "Create schools, set their plan and choose who administers them.",
+      "organizations": "Groups of schools that share an owner, such as a school network.",
+      "featureFlags": "Switch features on or off for the platform, a country, an organization or a school.",
+      "settings": "Change behaviour settings at any level of the hierarchy.",
+      "audit": "Review who changed what, and when."
+    },
+    "filters": {
+      "status": "Status",
+      "country": "Country",
+      "all": "All"
+    },
+    "status": {
+      "ONBOARDING": "Onboarding",
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended",
+      "ARCHIVED": "Archived"
+    },
+    "fields": {
+      "name": "Name",
+      "slug": "Web address name",
+      "country": "Country",
+      "status": "Status",
+      "created": "Created",
+      "organization": "Organization",
+      "language": "Language",
+      "calendar": "Calendar",
+      "timezone": "Time zone",
+      "currency": "Currency",
+      "code": "Code",
+      "legalName": "Legal name"
+    },
+    "schools": {
+      "title": "Schools",
+      "subtitle": "Every school on the platform that you can see.",
+      "create": "Create school",
+      "createSubtitle": "Language, time zone and calendar start from the country's defaults.",
+      "empty": "No schools match these filters.",
+      "created": "School created.",
+      "slugRule": "{min}-{max} characters: lowercase letters, numbers and single hyphens (for example sunrise-academy).",
+      "slugPreview": "The school will be at /s/{slug}",
+      "slugTaken": "This web address name is already taken.",
+      "organizationHint": "Leave as independent unless the school belongs to an organization.",
+      "independent": "Independent school",
+      "backToList": "All schools",
+      "statusChanged": "School status updated.",
+      "moveTo": {
+        "ONBOARDING": "Back to onboarding",
+        "ACTIVE": "Activate",
+        "SUSPENDED": "Suspend",
+        "ARCHIVED": "Archive"
+      },
+      "archivedFinal": "Archived schools can't change status again.",
+      "noStatusChange": "You can't change this school's status.",
+      "archiveTitle": "Archive this school?",
+      "archiveBody": "{name} will be archived and can't be reactivated. This can't be undone."
+    },
+    "schoolTabs": {
+      "overview": "Overview",
+      "campuses": "Campuses",
+      "subscription": "Subscription",
+      "configuration": "Configuration",
+      "admins": "Administrators"
+    },
+    "campuses": {
+      "add": "Add campus",
+      "edit": "Edit {name}",
+      "editTitle": "Edit campus",
+      "empty": "This school has no campuses yet.",
+      "saved": "Campus saved."
+    },
+    "subscription": {
+      "current": "Current plan",
+      "currentHint": "Schools without a live subscription use the free plan.",
+      "freeFallback": "No live subscription",
+      "assign": "Assign plan",
+      "assignHint": "The new plan replaces the current subscription straight away.",
+      "plan": "Plan",
+      "statusActive": "Active",
+      "statusTrialing": "Trial",
+      "periodEnd": "Ends on (optional)",
+      "periodEndHint": "Leave empty for no end date.",
+      "assigned": "Plan assigned."
+    },
+    "configuration": {
+      "features": "Features",
+      "featuresHint": "A feature is on only when its flag is on and the school's plan includes it.",
+      "settings": "Settings",
+      "key": "Key",
+      "enabled": "On",
+      "flag": "Flag",
+      "entitled": "In plan",
+      "limit": "Limit",
+      "source": "Set at",
+      "value": "Value"
+    },
+    "source": {
+      "SCHOOL": "School",
+      "ORGANIZATION": "Organization",
+      "COUNTRY": "Country",
+      "PLATFORM": "Platform",
+      "DEFAULT": "Default"
+    },
+    "admins": {
+      "title": "School administrators",
+      "hint": "Administrators can manage this school's campuses and settings.",
+      "add": "Add school admin",
+      "addHint": "Find the person by phone number to make them an administrator of {school}.",
+      "empty": "No administrators yet.",
+      "person": "Person",
+      "role": "Role",
+      "since": "Since",
+      "schoolAdmin": "School administrator",
+      "revoke": "Remove admin",
+      "revokeTitle": "Remove this administrator?",
+      "revokeBody": "{name} will no longer administer {school}.",
+      "revoked": "Administrator removed.",
+      "phone": "Phone number",
+      "phoneHint": "For example 0911 23 45 67",
+      "find": "Find",
+      "makeAdmin": "Make administrator of {school}",
+      "notFound": "Nobody has an account with this number yet. Create one so they can sign in.",
+      "givenName": "First name",
+      "familyName": "Last name",
+      "vouch": "By creating the account you confirm that this phone number belongs to this person.",
+      "createUser": "Create account",
+      "userCreated": "Account created.",
+      "phoneTaken": "Someone already has an account with this number. Search again.",
+      "assigned": "Administrator added."
+    },
+    "organizations": {
+      "title": "Organizations",
+      "subtitle": "Groups of schools with a shared owner.",
+      "create": "Create organization",
+      "empty": "No organizations yet.",
+      "edit": "Edit {name}",
+      "editTitle": "Edit organization",
+      "dialogHint": "The country and web address name can't be changed later.",
+      "saved": "Organization saved.",
+      "slugTaken": "This web address name is already taken."
+    },
+    "featureFlags": {
+      "title": "Feature flags",
+      "subtitle": "Override a feature's default at one level. Schools still need a plan that includes it.",
+      "feature": "Feature",
+      "default": "Default",
+      "override": "Override here",
+      "inherit": "Inherit",
+      "on": "On",
+      "off": "Off",
+      "overrideFor": "Override for {key}",
+      "saved": "Updated {key}."
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Values set lower in the hierarchy win: school, then organization, country, platform, default.",
+      "saved": "Saved {key}.",
+      "cleared": "Removed the override of {key}.",
+      "overridden": "Set here",
+      "inherited": "Inherited",
+      "override": "Set here",
+      "clear": "Remove override",
+      "default": "Default: {value}",
+      "invalidValue": "This value isn't valid for this setting."
+    },
+    "scope": {
+      "level": "Level",
+      "PLATFORM": "Platform",
+      "COUNTRY": "Country",
+      "ORGANIZATION": "Organization",
+      "SCHOOL": "School",
+      "target": {
+        "COUNTRY": "Country",
+        "ORGANIZATION": "Organization",
+        "SCHOOL": "School"
+      },
+      "choose": "Choose…",
+      "pickPrompt": "Choose where to apply changes."
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "Every change and sign-in event, newest first.",
+      "action": "Action",
+      "actionHint": "Starts with, e.g. school.",
+      "targetType": "Target type",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply filters",
+      "reset": "Reset",
+      "empty": "No entries match these filters.",
+      "when": "When",
+      "outcome": "Outcome",
+      "actor": "By",
+      "target": "Target",
+      "details": "Details"
     }
   }
 }

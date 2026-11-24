@@ -28,7 +28,22 @@
     "signInSubtitle": "ስልክ ቁጥርዎን ያስገቡ፤ የመግቢያ ኮድ እንልክልዎታለን።",
     "phoneHint": "ለምሳሌ 0911 23 45 67",
     "codeRequested": "የመግቢያ ኮድ ወደ {destination} እንዲላክ ጠይቀናል።",
-    "requestFailed": "አሁን ኮድ መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
+    "requestFailed": "አሁን ኮድ መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+    "accountMenu": "የመለያ ምናሌ",
+    "noAccessTitle": "እስካሁን መዳረሻ የለም",
+    "noAccessBody": "ገብተዋል፣ ግን እስካሁን ወደ ትምህርት ቤት አልተጨመሩም። የትምህርት ቤትዎን አስተዳዳሪ እንዲያክልዎ ይጠይቁ፣ ከዚያ እንደገና ይግቡ።",
+    "codeTitle": "ኮድዎን ያስገቡ",
+    "codeLabel": "የመግቢያ ኮድ",
+    "verifyCode": "ግባ",
+    "signingIn": "በመግባት ላይ…",
+    "resendCode": "አዲስ ኮድ ላክ",
+    "resendIn": "አዲስ ኮድ በ{seconds} ሰከንድ ውስጥ ላክ",
+    "changeNumber": "ሌላ ቁጥር ተጠቀም",
+    "codeExpiresIn": "ኮዱ በ{time} ውስጥ ያበቃል።",
+    "codeExpired": "ይህ ኮድ ጊዜው አልፎበታል። አዲስ ኮድ ይላኩ።",
+    "codeResent": "አዲስ ኮድ ወደ {destination} ልከናል።",
+    "signInFailed": "አሁን ልናስገባዎት አልቻልንም። እባክዎ እንደገና ይሞክሩ።",
+    "tryAgainIn": "በ{seconds} ሰከንድ ውስጥ እንደገና ይሞክሩ"
   },
   "roles": {
     "teacher": "መምህር",
@@ -90,7 +105,8 @@
     "welcomeTitle": "ወደ ትምህርት ቤትዎ የስራ ቦታ እንኳን ደህና መጡ",
     "welcomeBody": "{school}ን እያዩ ነው። በትምህርት ቤት የሚያሳልፉት ቀንዎ እዚህ ይሰባሰባል።",
     "emptyTitle": "እስካሁን ምንም የለም",
-    "emptyBody": "ክፍሎች፣ ተማሪዎችና ማስታወቂያዎች ከተዘጋጁ በኋላ እዚህ ይታያሉ።"
+    "emptyBody": "ክፍሎች፣ ተማሪዎችና ማስታወቂያዎች ከተዘጋጁ በኋላ እዚህ ይታያሉ።",
+    "yourRole": "የእርስዎ ሚና፦ {roles}"
   },
   "platform": {
     "title": "የመድረክ አስተዳደር",
@@ -116,7 +132,9 @@
     "notFoundBody": "የሚፈልጉት ገጽ የለም ወይም ተወስዷል።",
     "goHome": "ወደ መነሻ ተመለስ",
     "bffNotFound": "አልተገኘም",
-    "bffUnavailable": "አገልግሎቱ ለጊዜው አይገኝም። እባክዎ እንደገና ይሞክሩ።"
+    "bffUnavailable": "አገልግሎቱ ለጊዜው አይገኝም። እባክዎ እንደገና ይሞክሩ።",
+    "bffForbiddenOrigin": "ጥያቄው ከዚህ ጣቢያ ስላልመጣ ታግዷል።",
+    "bffBadRequest": "ጥያቄው አልተረዳም። እባክዎ ያረጋግጡና እንደገና ይሞክሩ።"
   },
   "mobile": {
     "signIn": {
@@ -179,6 +197,266 @@
       "title": "የሚና ቅድመ እይታ",
       "warningTitle": "ለልማት ብቻ",
       "warningBody": "ሳይገቡ መተግበሪያውን ለመጎብኘት ሚና ይምረጡ። ይህ ገጽ በመጨረሻው የተለቀቀ ስሪት ውስጥ የለም።"
+    },
+    "verify": {
+      "title": "ኮድዎን ያስገቡ",
+      "codeLabel": "የመግቢያ ኮድ",
+      "expiresIn": "ኮዱ በ{time} ውስጥ ያበቃል።",
+      "expired": "የዚህ ኮድ ጊዜ አብቅቷል። አዲስ ኮድ ይጠይቁ።",
+      "resend": "አዲስ ኮድ ላክ",
+      "resendIn": "አዲስ ኮድ በ{seconds} ሰከንድ ውስጥ ይላኩ",
+      "resent": "አዲስ ኮድ ልከንልዎታል።",
+      "changeNumber": "ሌላ ቁጥር ተጠቀም",
+      "errors": {
+        "invalidCode": "ኮዱ ትክክል አይደለም ወይም ጊዜው አብቅቷል። ያረጋግጡ እና እንደገና ይሞክሩ፤ ወይም አዲስ ኮድ ይጠይቁ።",
+        "rateLimited": "ብዙ ሙከራዎች ተደርገዋል። እባክዎ ከ{seconds} ሰከንድ በኋላ እንደገና ይሞክሩ።",
+        "inactive": "ይህ መለያ ንቁ አይደለም። ትምህርት ቤትዎን ያነጋግሩ።",
+        "network": "ወደ School መድረስ አልተቻለም። ግንኙነትዎን ያረጋግጡ እና እንደገና ይሞክሩ።",
+        "generic": "የሆነ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።"
+      }
+    },
+    "session": {
+      "notice": {
+        "expired": "የመግቢያ ጊዜዎ አብቅቷል። እባክዎ እንደገና ይግቡ።",
+        "revoked": "ከዚህ መሣሪያ ወጥተዋል። እባክዎ እንደገና ይግቡ።",
+        "inactive": "ይህ መለያ ንቁ ስላልሆነ ወጥተዋል።"
+      }
+    },
+    "offline": {
+      "title": "ወደ School መድረስ አልተቻለም",
+      "body": "ገብተዋል፤ ግን የመግቢያ ሁኔታዎን ማረጋገጥ አልቻልንም። ግንኙነትዎን ያረጋግጡ እና እንደገና ይሞክሩ።"
+    },
+    "noAppRole": {
+      "adminTitle": "መሣሪያዎችዎ በድር ጣቢያው ላይ ናቸው",
+      "adminBody": "መለያዎ የአስተዳዳሪ መዳረሻ አለው፤ ይህም በSchool ድር ጣቢያ ላይ ይተዳደራል። ይህ መተግበሪያ ለመምህራን፣ ለወላጆች እና ለተማሪዎች ነው።",
+      "noneTitle": "መለያዎ ገና አልተዘጋጀም",
+      "noneBody": "መለያዎ ገና ከትምህርት ቤት፣ ከክፍል ወይም ከልጅ ጋር አልተገናኘም። ትምህርት ቤትዎ እንዲያክልዎ ይጠይቁ፣ ከዚያ እንደገና ይግቡ።",
+      "signedInAs": "እንደ {name} ገብተዋል"
+    }
+  },
+  "schoolPicker": {
+    "title": "ትምህርት ቤት ይምረጡ",
+    "subtitle": "ከአንድ በላይ ትምህርት ቤት ውስጥ ይሰራሉ። ሊከፍቱት የሚፈልጉትን ይምረጡ።",
+    "empty": "እስካሁን ወደ ትምህርት ቤት አልተጨመሩም።",
+    "openConsole": "የመድረኩን አስተዳደር ክፈት"
+  },
+  "console": {
+    "loading": "በመጫን ላይ…",
+    "loadMore": "ተጨማሪ ጫን",
+    "loadFailed": "ይህን መጫን አልቻልንም። እባክዎ እንደገና ይሞክሩ።",
+    "saveFailed": "ለውጦችዎን ማስቀመጥ አልቻልንም። እባክዎ እንደገና ይሞክሩ።",
+    "saving": "በማስቀመጥ ላይ…",
+    "save": "አስቀምጥ",
+    "cancel": "ተወው",
+    "yes": "አዎ",
+    "no": "አይደለም",
+    "validation": {
+      "required": "ይህ መስክ ያስፈልጋል።"
+    },
+    "nav": {
+      "label": "የመድረክ ዳሰሳ",
+      "overview": "አጠቃላይ እይታ",
+      "schools": "ትምህርት ቤቶች",
+      "organizations": "ድርጅቶች",
+      "featureFlags": "የባህሪ ማብሪያዎች",
+      "settings": "ቅንብሮች",
+      "audit": "የኦዲት መዝገብ"
+    },
+    "overview": {
+      "schools": "ትምህርት ቤቶችን ይፍጠሩ፣ እቅዳቸውን ይወስኑ እና የሚያስተዳድሯቸውን ይምረጡ።",
+      "organizations": "የጋራ ባለቤት ያላቸው የትምህርት ቤቶች ቡድን፣ ለምሳሌ የትምህርት ቤት መረብ።",
+      "featureFlags": "ባህሪያትን ለመድረኩ፣ ለአገር፣ ለድርጅት ወይም ለትምህርት ቤት ያብሩ ወይም ያጥፉ።",
+      "settings": "የባህሪ ቅንብሮችን በማንኛውም የደረጃ ሰንሰለት ላይ ይለውጡ።",
+      "audit": "ማን ምን እና መቼ እንደለወጠ ይመልከቱ።"
+    },
+    "filters": {
+      "status": "ሁኔታ",
+      "country": "አገር",
+      "all": "ሁሉም"
+    },
+    "status": {
+      "ONBOARDING": "በመዘጋጀት ላይ",
+      "ACTIVE": "ንቁ",
+      "SUSPENDED": "ታግዷል",
+      "ARCHIVED": "ተቀምጧል"
+    },
+    "fields": {
+      "name": "ስም",
+      "slug": "የድር አድራሻ ስም",
+      "country": "አገር",
+      "status": "ሁኔታ",
+      "created": "የተፈጠረበት",
+      "organization": "ድርጅት",
+      "language": "ቋንቋ",
+      "calendar": "የቀን መቁጠሪያ",
+      "timezone": "የሰዓት ሰቅ",
+      "currency": "ገንዘብ",
+      "code": "ኮድ",
+      "legalName": "ሕጋዊ ስም"
+    },
+    "schools": {
+      "title": "ትምህርት ቤቶች",
+      "subtitle": "እርስዎ ማየት የሚችሉት በመድረኩ ላይ ያሉ ሁሉም ትምህርት ቤቶች።",
+      "create": "ትምህርት ቤት ፍጠር",
+      "createSubtitle": "ቋንቋ፣ የሰዓት ሰቅ እና የቀን መቁጠሪያ ከአገሩ ነባሪዎች ይጀምራሉ።",
+      "empty": "ከእነዚህ ማጣሪያዎች ጋር የሚስማማ ትምህርት ቤት የለም።",
+      "created": "ትምህርት ቤቱ ተፈጥሯል።",
+      "slugRule": "{min}-{max} ቁምፊዎች፦ ትናንሽ የላቲን ፊደላት፣ ቁጥሮች እና ነጠላ ሰረዞች (ለምሳሌ sunrise-academy)።",
+      "slugPreview": "ትምህርት ቤቱ በ/s/{slug} ላይ ይሆናል",
+      "slugTaken": "ይህ የድር አድራሻ ስም አስቀድሞ ተወስዷል።",
+      "organizationHint": "ትምህርት ቤቱ የድርጅት አባል ካልሆነ ራሱን የቻለ ብለው ይተዉ።",
+      "independent": "ራሱን የቻለ ትምህርት ቤት",
+      "backToList": "ሁሉም ትምህርት ቤቶች",
+      "statusChanged": "የትምህርት ቤቱ ሁኔታ ተዘምኗል።",
+      "moveTo": {
+        "ONBOARDING": "ወደ መዘጋጀት መልስ",
+        "ACTIVE": "አንቃ",
+        "SUSPENDED": "እገድ",
+        "ARCHIVED": "አስቀምጥ (አርካይቭ)"
+      },
+      "archivedFinal": "የተቀመጡ ትምህርት ቤቶች ሁኔታ እንደገና መቀየር አይችልም።",
+      "noStatusChange": "የዚህን ትምህርት ቤት ሁኔታ መቀየር አይችሉም።",
+      "archiveTitle": "ይህ ትምህርት ቤት ይቀመጥ?",
+      "archiveBody": "{name} ይቀመጣል፤ እንደገና ማንቃት አይቻልም። ይህ ሊመለስ አይችልም።"
+    },
+    "schoolTabs": {
+      "overview": "አጠቃላይ እይታ",
+      "campuses": "ግቢዎች",
+      "subscription": "ደንበኝነት",
+      "configuration": "ውቅር",
+      "admins": "አስተዳዳሪዎች"
+    },
+    "campuses": {
+      "add": "ግቢ ጨምር",
+      "edit": "{name}ን አርም",
+      "editTitle": "ግቢ አርም",
+      "empty": "ይህ ትምህርት ቤት እስካሁን ግቢ የለውም።",
+      "saved": "ግቢው ተቀምጧል።"
+    },
+    "subscription": {
+      "current": "የአሁኑ እቅድ",
+      "currentHint": "ንቁ ደንበኝነት የሌላቸው ትምህርት ቤቶች ነፃውን እቅድ ይጠቀማሉ።",
+      "freeFallback": "ንቁ ደንበኝነት የለም",
+      "assign": "እቅድ ስጥ",
+      "assignHint": "አዲሱ እቅድ የአሁኑን ደንበኝነት ወዲያውኑ ይተካል።",
+      "plan": "እቅድ",
+      "statusActive": "ንቁ",
+      "statusTrialing": "ሙከራ",
+      "periodEnd": "የሚያበቃበት ቀን (አማራጭ)",
+      "periodEndHint": "መጨረሻ ቀን ከሌለ ባዶ ይተዉት።",
+      "assigned": "እቅዱ ተሰጥቷል።"
+    },
+    "configuration": {
+      "features": "ባህሪያት",
+      "featuresHint": "ባህሪ የሚበራው ማብሪያው ሲበራ እና የትምህርት ቤቱ እቅድ ሲያካትተው ብቻ ነው።",
+      "settings": "ቅንብሮች",
+      "key": "ቁልፍ",
+      "enabled": "በርቷል",
+      "flag": "ማብሪያ",
+      "entitled": "በእቅዱ ውስጥ",
+      "limit": "ገደብ",
+      "source": "የተቀመጠበት",
+      "value": "እሴት"
+    },
+    "source": {
+      "SCHOOL": "ትምህርት ቤት",
+      "ORGANIZATION": "ድርጅት",
+      "COUNTRY": "አገር",
+      "PLATFORM": "መድረክ",
+      "DEFAULT": "ነባሪ"
+    },
+    "admins": {
+      "title": "የትምህርት ቤት አስተዳዳሪዎች",
+      "hint": "አስተዳዳሪዎች የዚህን ትምህርት ቤት ግቢዎች እና ቅንብሮች ማስተዳደር ይችላሉ።",
+      "add": "የትምህርት ቤት አስተዳዳሪ ጨምር",
+      "addHint": "ሰውየውን በስልክ ቁጥር ፈልገው የ{school} አስተዳዳሪ ያድርጉት።",
+      "empty": "እስካሁን አስተዳዳሪ የለም።",
+      "person": "ሰው",
+      "role": "ሚና",
+      "since": "ከ",
+      "schoolAdmin": "የትምህርት ቤት አስተዳዳሪ",
+      "revoke": "አስተዳዳሪውን አስወግድ",
+      "revokeTitle": "ይህ አስተዳዳሪ ይወገድ?",
+      "revokeBody": "{name} ከዚህ በኋላ {school}ን አያስተዳድርም።",
+      "revoked": "አስተዳዳሪው ተወግዷል።",
+      "phone": "ስልክ ቁጥር",
+      "phoneHint": "ለምሳሌ 0911 23 45 67",
+      "find": "ፈልግ",
+      "makeAdmin": "የ{school} አስተዳዳሪ አድርግ",
+      "notFound": "በዚህ ቁጥር የተመዘገበ ሰው እስካሁን የለም። እንዲገባ መለያ ይፍጠሩለት።",
+      "givenName": "የመጀመሪያ ስም",
+      "familyName": "የአባት ስም",
+      "vouch": "መለያውን በመፍጠር ይህ ስልክ ቁጥር የዚህ ሰው መሆኑን ያረጋግጣሉ።",
+      "createUser": "መለያ ፍጠር",
+      "userCreated": "መለያው ተፈጥሯል።",
+      "phoneTaken": "በዚህ ቁጥር የተመዘገበ ሰው አስቀድሞ አለ። እንደገና ይፈልጉ።",
+      "assigned": "አስተዳዳሪው ተጨምሯል።"
+    },
+    "organizations": {
+      "title": "ድርጅቶች",
+      "subtitle": "የጋራ ባለቤት ያላቸው የትምህርት ቤቶች ቡድኖች።",
+      "create": "ድርጅት ፍጠር",
+      "empty": "እስካሁን ድርጅት የለም።",
+      "edit": "{name}ን አርም",
+      "editTitle": "ድርጅት አርም",
+      "dialogHint": "አገሩ እና የድር አድራሻ ስሙ በኋላ መቀየር አይችሉም።",
+      "saved": "ድርጅቱ ተቀምጧል።",
+      "slugTaken": "ይህ የድር አድራሻ ስም አስቀድሞ ተወስዷል።"
+    },
+    "featureFlags": {
+      "title": "የባህሪ ማብሪያዎች",
+      "subtitle": "የባህሪን ነባሪ በአንድ ደረጃ ይሽሩ። ትምህርት ቤቶች ባህሪውን የሚያካትት እቅድ ያስፈልጋቸዋል።",
+      "feature": "ባህሪ",
+      "default": "ነባሪ",
+      "override": "እዚህ ሻር",
+      "inherit": "ውረስ",
+      "on": "በርቷል",
+      "off": "ጠፍቷል",
+      "overrideFor": "የ{key} መሻሪያ",
+      "saved": "{key} ተዘምኗል።"
+    },
+    "settings": {
+      "title": "ቅንብሮች",
+      "subtitle": "ዝቅተኛ ደረጃ ላይ የተቀመጠ እሴት ያሸንፋል፦ ትምህርት ቤት፣ ከዚያ ድርጅት፣ አገር፣ መድረክ፣ ነባሪ።",
+      "saved": "{key} ተቀምጧል።",
+      "cleared": "የ{key} መሻሪያ ተወግዷል።",
+      "overridden": "እዚህ ተቀምጧል",
+      "inherited": "የተወረሰ",
+      "override": "እዚህ አስቀምጥ",
+      "clear": "መሻሪያውን አስወግድ",
+      "default": "ነባሪ፦ {value}",
+      "invalidValue": "ይህ እሴት ለዚህ ቅንብር ትክክል አይደለም።"
+    },
+    "scope": {
+      "level": "ደረጃ",
+      "PLATFORM": "መድረክ",
+      "COUNTRY": "አገር",
+      "ORGANIZATION": "ድርጅት",
+      "SCHOOL": "ትምህርት ቤት",
+      "target": {
+        "COUNTRY": "አገር",
+        "ORGANIZATION": "ድርጅት",
+        "SCHOOL": "ትምህርት ቤት"
+      },
+      "choose": "ይምረጡ…",
+      "pickPrompt": "ለውጦቹ የሚተገበሩበትን ይምረጡ።"
+    },
+    "audit": {
+      "title": "የኦዲት መዝገብ",
+      "subtitle": "እያንዳንዱ ለውጥ እና የመግቢያ ክስተት፣ አዲሱ በመጀመሪያ።",
+      "action": "ድርጊት",
+      "actionHint": "በዚህ የሚጀምር፣ ለምሳሌ school.",
+      "targetType": "የዒላማ ዓይነት",
+      "from": "ከ",
+      "to": "እስከ",
+      "apply": "ማጣሪያ ተግብር",
+      "reset": "ዳግም አስጀምር",
+      "empty": "ከእነዚህ ማጣሪያዎች ጋር የሚስማማ መዝገብ የለም።",
+      "when": "መቼ",
+      "outcome": "ውጤት",
+      "actor": "በ",
+      "target": "ዒላማ",
+      "details": "ዝርዝር"
     }
   }
 }

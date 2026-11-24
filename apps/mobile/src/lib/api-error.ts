@@ -1,15 +1,39 @@
 import { isProblemDetail, type ProblemDetail } from '@school/api-client';
 
+/**
+ * `Retry-After` as whole seconds (at least 1): either delta-seconds or an HTTP date.
+ * Undefined when absent or unreadable.
+ */
+export function parseRetryAfter(header: string | null | undefined, nowMs: number = Date.now()): number | undefined {
+  const value = header?.trim();
+  if (!value) return undefined;
+  if (/^\d+$/.test(value)) return Math.max(1, Number(value));
+  const date = Date.parse(value);
+  if (Number.isNaN(date)) return undefined;
+  return Math.max(1, Math.ceil((date - nowMs) / 1000));
+}
+
+function retryAfterOf(response: Response): number | undefined {
+  return parseRetryAfter(response.headers?.get('Retry-After'));
+}
+
 /** A failed API call, carrying the RFC 9457 problem when the server sent one. */
 export class ApiRequestError extends Error {
   readonly status: number | undefined;
   readonly problem: ProblemDetail | undefined;
+  /** Seconds to wait before retrying (`Retry-After`, sent with 429), when the server said so. */
+  readonly retryAfterSeconds: number | undefined;
 
-  constructor(status: number | undefined, problem?: ProblemDetail, options?: { cause?: unknown }) {
+  constructor(
+    status: number | undefined,
+    problem?: ProblemDetail,
+    options?: { cause?: unknown; retryAfterSeconds?: number | undefined },
+  ) {
     super(problem?.title ?? `Request failed${status ? ` (${status})` : ''}`, options);
     this.name = 'ApiRequestError';
     this.status = status;
     this.problem = problem;
+    this.retryAfterSeconds = options?.retryAfterSeconds;
   }
 }
 
@@ -19,6 +43,7 @@ export function unwrap<T>(result: { data?: T; error?: unknown; response: Respons
     throw new ApiRequestError(
       result.response.status,
       isProblemDetail(result.error) ? result.error : undefined,
+      { retryAfterSeconds: retryAfterOf(result.response) },
     );
   }
   return result.data;
@@ -30,6 +55,7 @@ export function assertOk(result: { error?: unknown; response: Response }): void 
     throw new ApiRequestError(
       result.response.status,
       isProblemDetail(result.error) ? result.error : undefined,
+      { retryAfterSeconds: retryAfterOf(result.response) },
     );
   }
 }

@@ -1,9 +1,10 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { RestoreOfflineScreen } from '@/components/restore-offline-screen';
 import { bootstrap, type BootstrapResult } from '@/lib/bootstrap';
 import { AppIntlProvider } from '@/lib/i18n/intl-provider';
 import { PreferencesProvider } from '@/lib/preferences/preferences-provider';
@@ -44,12 +45,25 @@ function RootNavigator() {
   const t = useTranslations();
   const { colors, scheme, text } = useAppTheme();
   const { status, activeRole } = useSession();
+  const previousStatus = useRef(status);
 
   useEffect(() => {
     if (status !== 'loading') SplashScreen.hide();
   }, [status]);
 
+  // Signing in or out (also when the server ends the session) re-enters through the index
+  // route, which sends the user to the right place. Launch and the offline screen are
+  // handled by the index route itself.
+  useEffect(() => {
+    const previous = previousStatus.current;
+    previousStatus.current = status;
+    if ((previous === 'signedIn' && status === 'signedOut') || (previous === 'signedOut' && status === 'signedIn')) {
+      router.replace('/');
+    }
+  }, [status]);
+
   if (status === 'loading') return null;
+  if (status === 'unreachable') return <RestoreOfflineScreen />;
 
   const signedIn = status === 'signedIn';
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
@@ -81,6 +95,9 @@ function RootNavigator() {
 
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="(auth)" />
+        </Stack.Protected>
+        <Stack.Protected guard={signedIn && activeRole === null}>
+          <Stack.Screen name="(account)" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && activeRole === 'teacher'}>
           <Stack.Screen name="(teacher)" />

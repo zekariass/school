@@ -3,7 +3,17 @@ import { Brand } from "@/components/brand";
 import { HeaderControls } from "@/components/header-controls";
 import { SidebarNav } from "./sidebar-nav";
 
-export function SchoolShell({ school, children }: { school: string; children: React.ReactNode }) {
+export function SchoolShell({
+  slug,
+  schoolName,
+  user,
+  children,
+}: {
+  slug: string;
+  schoolName: string;
+  user: { name: string; detail?: string };
+  children: React.ReactNode;
+}) {
   const t = useTranslations("nav");
   return (
     <div className="flex min-h-dvh">
@@ -15,7 +25,7 @@ export function SchoolShell({ school, children }: { school: string; children: Re
       </a>
       <aside className="hidden w-64 shrink-0 flex-col gap-6 border-e bg-card p-4 md:flex">
         <Brand />
-        <SidebarNav school={school} orientation="vertical" />
+        <SidebarNav school={slug} orientation="vertical" />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur">
@@ -24,12 +34,12 @@ export function SchoolShell({ school, children }: { school: string; children: Re
               <Brand />
             </div>
             <p className="hidden truncate text-sm font-semibold text-muted-foreground md:block">
-              {school}
+              {schoolName}
             </p>
-            <HeaderControls />
+            <HeaderControls user={user} />
           </div>
           <div className="border-t md:hidden">
-            <SidebarNav school={school} orientation="horizontal" />
+            <SidebarNav school={slug} orientation="horizontal" />
           </div>
         </header>
         <main id="main" className="flex-1 p-4 md:p-8">

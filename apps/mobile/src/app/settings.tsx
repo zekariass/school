@@ -24,13 +24,16 @@ export default function SettingsScreen() {
 
   function switchRole(role: Role) {
     setActiveRole(role);
-    router.dismissAll();
+    if (router.canDismiss()) router.dismissAll();
     router.replace(homeRouteFor(role));
   }
 
+
   async function onSignOut() {
     await signOut();
-    router.dismissAll();
+    // The root layout returns to the entry route when the session ends; this covers a settings
+    // screen that is the only route left.
+    if (router.canDismiss()) router.dismissAll();
     router.replace('/');
   }
 

@@ -21,7 +21,7 @@ public interface TenantDirectory {
 	}
 
 	/** {@code organizationId} is null for an independent school. */
-	record SchoolRef(UUID id, String countryCode, UUID organizationId, String name) {
+	record SchoolRef(UUID id, String countryCode, UUID organizationId, String name, String slug) {
 	}
 
 	record CampusRef(UUID id, UUID schoolId, String name) {

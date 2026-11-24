@@ -19,6 +19,7 @@ const RESPONSE_HEADER_ALLOWLIST = [
   "x-request-id",
   "cache-control",
   "retry-after",
+  "idempotent-replayed",
 ] as const;
 
 /** Only the versioned public API is reachable (never actuator, docs, etc.). */

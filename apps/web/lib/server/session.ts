@@ -1,41 +1,39 @@
 import "server-only";
 import { cookies } from "next/headers";
+import {
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+  buildSessionCookieOptions,
+  isSecureEnvironment,
+  type SessionTokens,
+} from "./session-core";
 
-export const ACCESS_TOKEN_COOKIE = "sch_at";
-export const REFRESH_TOKEN_COOKIE = "sch_rt";
-
-const baseOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  path: "/",
-} as const;
+export { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE, type SessionTokens } from "./session-core";
 
 export async function getAccessToken(): Promise<string | null> {
   const store = await cookies();
   return store.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
 }
 
-export interface SessionTokens {
-  accessToken: string;
-  /** Seconds. */
-  accessTokenMaxAge: number;
-  refreshToken: string;
-  /** Seconds. */
-  refreshTokenMaxAge: number;
+export async function getRefreshToken(): Promise<string | null> {
+  const store = await cookies();
+  return store.get(REFRESH_TOKEN_COOKIE)?.value ?? null;
 }
 
 /** Server Actions and Route Handlers only: cookies can't be set while rendering. */
 export async function setSessionCookies(tokens: SessionTokens): Promise<void> {
   const store = await cookies();
-  store.set(ACCESS_TOKEN_COOKIE, tokens.accessToken, {
-    ...baseOptions,
-    maxAge: tokens.accessTokenMaxAge,
-  });
-  store.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, {
-    ...baseOptions,
-    maxAge: tokens.refreshTokenMaxAge,
-  });
+  const secure = isSecureEnvironment();
+  store.set(
+    ACCESS_TOKEN_COOKIE,
+    tokens.accessToken,
+    buildSessionCookieOptions(tokens.accessTokenMaxAge, secure),
+  );
+  store.set(
+    REFRESH_TOKEN_COOKIE,
+    tokens.refreshToken,
+    buildSessionCookieOptions(tokens.refreshTokenMaxAge, secure),
+  );
 }
 
 /** Server Actions and Route Handlers only. */
