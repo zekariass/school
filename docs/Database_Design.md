@@ -300,7 +300,7 @@ create table campuses (
   code            text,
   address_id      uuid references addresses,
   timezone        text,                          -- null = school timezone
-  status          text not null default 'ACTIVE',
+  status          text not null default 'ACTIVE', -- ACTIVE|ARCHIVED (values added in M1a; the design left them open)
   unique (id, school_id),
   unique (school_id, code)
   -- + std
@@ -335,7 +335,7 @@ create unique index ux_settings_scope on settings
   (key, scope_type, coalesce(country_code,''), coalesce(organization_id, '00000000-0000-0000-0000-000000000000'), coalesce(school_id, '00000000-0000-0000-0000-000000000000'));
 
 create table feature_definitions (
-  key             text primary key,              -- attendance, points, feed, messaging, library, courses, marketplace, tutoring, payments, ai_copilot, ai_student_tutor
+  key             text primary key,              -- attendance, points, feed, messaging, library, courses, marketplace, tutoring, payments, ai_copilot, ai_student_tutor; plus the capacity keys max_students and storage_bytes, which exist only so plan_entitlements.limit_value has a key to attach to (M1a)
   description     text,
   default_enabled boolean not null default false
 );
@@ -1848,6 +1848,10 @@ create table subscriptions (
   external_ref        text
   -- + std
 );
+-- M1a additions: CHECK that exactly the subscriber's own FK is set (the TUTOR arm is completed when
+-- tutor_id is added in P4), and partial unique indexes allowing one live (TRIALING|ACTIVE)
+-- subscription per school and per organization. Assigning a plan cancels the previous one first.
+-- A school with no live subscription gets the SCHOOL_FREE plan's entitlements.
 ```
 
 ### 4.21 Curriculum & learning standards (P2)

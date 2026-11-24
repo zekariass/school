@@ -149,6 +149,7 @@ Deployed environments configure, besides the database:
 
 | Variable | Purpose |
 |---|---|
+| `REDIS_URL` | **Required** in deployed environments, e.g. `rediss://user:pass@host:6379` (configuration cache). If unset, Spring falls back to `localhost:6379`. |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the API |
 | `API_DOCS_ENABLED` | `true` to serve the OpenAPI spec / Swagger UI (off by default) |
 | `LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs` | JSON logs for log aggregation |

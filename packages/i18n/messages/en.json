@@ -47,7 +47,11 @@
     "otp": "Enter the {length}-digit code.",
     "passwordTooShort": "Use at least {min} characters.",
     "passwordTooLong": "Use at most {max} characters.",
-    "nameTooLong": "Use at most {max} characters."
+    "nameTooLong": "Use at most {max} characters.",
+    "slug": "Use lowercase letters, numbers and single hyphens (e.g. sunrise-academy).",
+    "tooLong": "This is too long.",
+    "invalid": "This value is not valid.",
+    "color": "Enter a color like #10B98A."
   },
   "marketing": {
     "headline": "A friendly home for your whole school",

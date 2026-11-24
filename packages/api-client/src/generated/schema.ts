@@ -21,10 +21,419 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/feature-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feature overrides at exactly one scope */
+        get: operations["listFeatureOverrides"];
+        /** Enable or disable a feature at a scope */
+        put: operations["putFeatureOverride"];
+        post?: never;
+        /** Remove a feature override so the next level applies */
+        delete: operations["deleteFeatureOverride"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List organizations, newest first */
+        get: operations["listOrganizations"];
+        put?: never;
+        /** Create an organization in an enabled country */
+        post: operations["createOrganization"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/organizations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an organization */
+        get: operations["getOrganization"];
+        /** Update name, legal name and status (the slug is fixed) */
+        put: operations["updateOrganization"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List schools, newest first, filtered by country, organization, status */
+        get: operations["listSchools"];
+        put?: never;
+        /** Create a school (ONBOARDING) in an enabled country; unset fields inherit the country's defaults */
+        post: operations["createSchool"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{schoolId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a school */
+        get: operations["getSchool"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{schoolId}/campuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a school's campuses */
+        get: operations["listCampuses"];
+        put?: never;
+        /** Add a campus to a school */
+        post: operations["createCampus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{schoolId}/campuses/{campusId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update a campus */
+        put: operations["updateCampus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{schoolId}/configuration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A school's effective features and settings, with the level each value comes from */
+        get: operations["getSchoolConfiguration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{schoolId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change a school's status */
+        put: operations["updateSchoolStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{schoolId}/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Manually assign a plan to a school, ending its current subscription */
+        put: operations["assignSchoolSubscription"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Setting overrides at exactly one scope, optionally one key */
+        get: operations["listSettingOverrides"];
+        /** Set a setting at a scope; the value is validated against the definition's schema */
+        put: operations["putSetting"];
+        post?: never;
+        /** Remove a setting override so the next level applies */
+        delete: operations["deleteSetting"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reference/countries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Enabled countries with languages, calendars, currency, address and name formats */
+        get: operations["listCountries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reference/countries/{code}/administrative-areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Administrative areas of a country (region, zone, woreda ...), by level and parent */
+        get: operations["listAdministrativeAreas"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reference/languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Enabled languages */
+        get: operations["listLanguages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AdministrativeAreaResponse: {
+            code?: string;
+            countryCode: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            level: number;
+            nameI18n: {
+                [key: string]: string;
+            };
+            /** Format: uuid */
+            parentId?: string;
+        };
+        AssignSubscriptionRequest: {
+            /** Format: date-time */
+            currentPeriodEnd?: string;
+            planCode: string;
+            /** @enum {string} */
+            status?: "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELLED" | "EXPIRED";
+        };
+        CampusResponse: {
+            code?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            schoolId: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "ARCHIVED";
+            timezone?: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int32 */
+            version: number;
+        };
+        CountryCalendarResponse: {
+            code: string;
+            isDefault: boolean;
+            name: string;
+        };
+        CountryLanguageResponse: {
+            code: string;
+            direction: string;
+            isDefault: boolean;
+            isOfficial: boolean;
+            name: string;
+            nativeName: string;
+            script?: string;
+        };
+        CountryResponse: {
+            /** @description Labels per administrative level and language, required levels, postal rules */
+            addressFormat: components["schemas"]["JsonNode"];
+            calendars: components["schemas"]["CountryCalendarResponse"][];
+            code: string;
+            currency: components["schemas"]["CurrencyResponse"];
+            defaultCalendarCode: string;
+            defaultLanguageCode: string;
+            defaultTimezone: string;
+            languages: components["schemas"]["CountryLanguageResponse"][];
+            /** @description Labels for given_name / middle_name / family_name per language */
+            nameFormat?: components["schemas"]["JsonNode"];
+            /** @description Country name by language code */
+            nameI18n: {
+                [key: string]: string;
+            };
+            phoneCountryCode: string;
+        };
+        CreateCampusRequest: {
+            code?: string;
+            name: string;
+            timezone?: string;
+        };
+        CreateOrganizationRequest: {
+            countryCode: string;
+            legalName?: string;
+            name: string;
+            slug: string;
+        };
+        CreateSchoolRequest: {
+            brandColor?: string;
+            countryCode: string;
+            currencyCode?: string;
+            defaultCalendarCode?: string;
+            defaultLanguageCode?: string;
+            /** Format: email */
+            email?: string;
+            languageCodes?: string[];
+            name: string;
+            /** Format: uuid */
+            organizationId?: string;
+            /** @enum {string} */
+            ownershipType?: "PUBLIC" | "PRIVATE" | "FAITH" | "NGO" | "INTERNATIONAL";
+            phoneE164?: string;
+            /** @enum {string} */
+            schoolType?: "PRE_PRIMARY" | "PRIMARY" | "SECONDARY" | "K12" | "OTHER";
+            shortName?: string;
+            slug: string;
+            timezone?: string;
+            website?: string;
+        };
+        CurrencyResponse: {
+            code: string;
+            /** Format: int32 */
+            minorUnits: number;
+            name: string;
+            symbol?: string;
+        };
+        CursorPageAdministrativeAreaResponse: {
+            items: components["schemas"]["AdministrativeAreaResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageCampusResponse: {
+            items: components["schemas"]["CampusResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageOrganizationResponse: {
+            items: components["schemas"]["OrganizationResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageSchoolResponse: {
+            items: components["schemas"]["SchoolResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        FeatureOverrideResponse: {
+            config?: components["schemas"]["JsonNode"];
+            enabled: boolean;
+            featureKey: string;
+            scope: components["schemas"]["ScopeRef"];
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: uuid */
+            updatedBy?: string;
+        };
+        FeatureStateResponse: {
+            config?: components["schemas"]["JsonNode"];
+            /** @description Flag enabled AND entitled by the plan */
+            enabled: boolean;
+            entitled: boolean;
+            flagEnabled: boolean;
+            /** @enum {string} */
+            flagSource: "SCHOOL" | "ORGANIZATION" | "COUNTRY" | "PLATFORM" | "DEFAULT";
+            key: string;
+            /**
+             * Format: int64
+             * @description The plan's numeric limit; absent = unlimited
+             */
+            limit?: number;
+        };
+        JsonNode: unknown;
+        LanguageResponse: {
+            code: string;
+            /** @enum {string} */
+            direction: "LTR" | "RTL";
+            name: string;
+            nativeName: string;
+            script?: string;
+        };
         MetaResponse: {
             apiVersion: string;
             buildVersion: string;
@@ -32,6 +441,22 @@ export interface components {
             serverTime: string;
             service: string;
             supportedLocales: string[];
+        };
+        OrganizationResponse: {
+            countryCode: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            legalName?: string;
+            name: string;
+            slug: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int32 */
+            version: number;
         };
         /** @description RFC 9457 problem details returned by every failing endpoint. */
         ProblemDetail: {
@@ -52,6 +477,125 @@ export interface components {
             title: string;
             /** Format: uri */
             type: string;
+        };
+        PutFeatureOverrideRequest: {
+            /** @description Optional feature-specific configuration (a JSON object) */
+            config?: components["schemas"]["JsonNode"];
+            enabled: boolean;
+            featureKey: string;
+            scope: components["schemas"]["ScopeRef"];
+        };
+        PutSettingRequest: {
+            key: string;
+            scope: components["schemas"]["ScopeRef"];
+            /** @description Any JSON value valid for the setting */
+            value: components["schemas"]["JsonNode"];
+        };
+        SchoolConfigurationResponse: {
+            features: components["schemas"]["FeatureStateResponse"][];
+            planCode: string;
+            /** @description True when the school has no live subscription and gets SCHOOL_FREE */
+            planIsFreeFallback: boolean;
+            /** Format: uuid */
+            schoolId: string;
+            settings: components["schemas"]["SettingStateResponse"][];
+        };
+        SchoolLanguageResponse: {
+            code: string;
+            isDefault: boolean;
+        };
+        SchoolResponse: {
+            brandColor?: string;
+            countryCode: string;
+            /** Format: date-time */
+            createdAt: string;
+            currencyCode: string;
+            defaultCalendarCode: string;
+            defaultLanguageCode: string;
+            email?: string;
+            /** Format: uuid */
+            id: string;
+            languages: components["schemas"]["SchoolLanguageResponse"][];
+            name: string;
+            /** Format: uuid */
+            organizationId?: string;
+            /** @enum {string} */
+            ownershipType?: "PUBLIC" | "PRIVATE" | "FAITH" | "NGO" | "INTERNATIONAL";
+            phoneE164?: string;
+            /** @enum {string} */
+            schoolType?: "PRE_PRIMARY" | "PRIMARY" | "SECONDARY" | "K12" | "OTHER";
+            shortName?: string;
+            slug: string;
+            /** @enum {string} */
+            status: "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+            timezone: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int32 */
+            version: number;
+            website?: string;
+        };
+        /** @description A configuration scope. PLATFORM sets no key, COUNTRY sets countryCode, ORGANIZATION sets organizationId, SCHOOL sets schoolId. */
+        ScopeRef: {
+            countryCode?: string;
+            /** Format: uuid */
+            organizationId?: string;
+            /** Format: uuid */
+            schoolId?: string;
+            /** @enum {string} */
+            type: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL";
+        };
+        SettingOverrideResponse: {
+            key: string;
+            scope: components["schemas"]["ScopeRef"];
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: uuid */
+            updatedBy?: string;
+            /** @description Any JSON value */
+            value: components["schemas"]["JsonNode"];
+        };
+        SettingStateResponse: {
+            key: string;
+            module: string;
+            /** @enum {string} */
+            source: "SCHOOL" | "ORGANIZATION" | "COUNTRY" | "PLATFORM" | "DEFAULT";
+            /** @description Any JSON value */
+            value: components["schemas"]["JsonNode"];
+        };
+        SubscriptionResponse: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            currentPeriodEnd?: string;
+            /** Format: date-time */
+            currentPeriodStart?: string;
+            /** Format: uuid */
+            id: string;
+            planCode: string;
+            /** Format: uuid */
+            schoolId: string;
+            /** @enum {string} */
+            status: "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELLED" | "EXPIRED";
+            /** Format: date-time */
+            trialEndsAt?: string;
+        };
+        UpdateCampusRequest: {
+            code?: string;
+            name: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "ARCHIVED";
+            timezone?: string;
+        };
+        UpdateOrganizationRequest: {
+            legalName?: string;
+            name: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+        };
+        UpdateSchoolStatusRequest: {
+            /** @enum {string} */
+            status: "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
         };
     };
     responses: never;
@@ -78,6 +622,741 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetaResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listFeatureOverrides: {
+        parameters: {
+            query: {
+                scopeType: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL";
+                countryCode?: string;
+                organizationId?: string;
+                schoolId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureOverrideResponse"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    putFeatureOverride: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PutFeatureOverrideRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureOverrideResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteFeatureOverride: {
+        parameters: {
+            query: {
+                featureKey: string;
+                scopeType: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL";
+                countryCode?: string;
+                organizationId?: string;
+                schoolId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listOrganizations: {
+        parameters: {
+            query?: {
+                countryCode?: string;
+                status?: "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageOrganizationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOrganizationRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateOrganizationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listSchools: {
+        parameters: {
+            query?: {
+                countryCode?: string;
+                organizationId?: string;
+                status?: "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageSchoolResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createSchool: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSchoolRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getSchool: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listCampuses: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageCampusResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createCampus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCampusRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampusResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateCampus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                campusId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCampusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampusResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getSchoolConfiguration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolConfigurationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateSchoolStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSchoolStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    assignSchoolSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignSubscriptionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listSettingOverrides: {
+        parameters: {
+            query: {
+                scopeType: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL";
+                countryCode?: string;
+                organizationId?: string;
+                schoolId?: string;
+                key?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingOverrideResponse"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    putSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PutSettingRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingOverrideResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteSetting: {
+        parameters: {
+            query: {
+                key: string;
+                scopeType: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL";
+                countryCode?: string;
+                organizationId?: string;
+                schoolId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listCountries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CountryResponse"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listAdministrativeAreas: {
+        parameters: {
+            query?: {
+                /** @description Administrative level, 1 (top) to 5 */
+                level?: number;
+                /** @description Only children of this area */
+                parent?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAdministrativeAreaResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listLanguages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LanguageResponse"][];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

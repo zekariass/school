@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,9 +20,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 /**
  * Baseline API security: stateless, deny-by-default, problem-details errors.
  * Token authentication (JWT resource server) is added in Implementation Plan M1; until
- * then every non-public endpoint answers 401.
+ * then every non-public endpoint answers 401. Method security ({@code @PreAuthorize}) checks
+ * permission authorities per endpoint; common.security.Permissions lists the names.
  */
 @Configuration(proxyBeanMethods = false)
+@EnableMethodSecurity
 public class SecurityConfig {
 
 	@Bean

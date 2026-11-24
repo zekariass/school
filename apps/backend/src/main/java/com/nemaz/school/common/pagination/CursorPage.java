@@ -3,12 +3,15 @@ package com.nemaz.school.common.pagination;
 import java.util.List;
 import java.util.function.Function;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * One page of a keyset-paginated list. {@code nextCursor} is opaque to clients and null
  * on the last page. Offset pagination is not used: feeds and inboxes change while being
  * read, and offsets skip or repeat items.
  */
-public record CursorPage<T>(List<T> items, String nextCursor) {
+public record CursorPage<T>(@Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<T> items,
+		@Schema(description = "Opaque cursor of the next page; absent on the last page") String nextCursor) {
 
 	public CursorPage {
 		items = List.copyOf(items);

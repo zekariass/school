@@ -10,6 +10,9 @@ spring:
     url: jdbc:postgresql://localhost:5442/school
     username: school
     password: school
+  data:
+    redis:
+      url: redis://localhost:6390
 
 school:
   cors:
