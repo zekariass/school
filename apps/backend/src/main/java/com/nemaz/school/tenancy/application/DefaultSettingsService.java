@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.nemaz.school.audit.AuditLog;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.tenancy.ConfigSource;
 import com.nemaz.school.tenancy.ConfigurationChanged;
@@ -43,9 +44,12 @@ class DefaultSettingsService implements SettingsService {
 
 	private final JsonMapper json;
 
+	private final AuditLog audit;
+
 	DefaultSettingsService(SettingDefinitionRepository definitions, SettingRepository settings,
 			SchoolConfigurationCache cache, SchoolConfigurationLoader loader, ConfigurationScopes scopes,
-			ApplicationEventPublisher events, JsonMapper json) {
+			ApplicationEventPublisher events, JsonMapper json, AuditLog audit) {
+		this.audit = audit;
 		this.definitions = definitions;
 		this.settings = settings;
 		this.cache = cache;
@@ -136,8 +140,9 @@ class DefaultSettingsService implements SettingsService {
 		}
 		this.scopes.chain(scope); // the school / organization / country must exist
 
+		Setting existing = find(key, scope).orElse(null);
+		JsonNode before = (existing != null) ? existing.getValue() : null;
 		try {
-			Setting existing = find(key, scope).orElse(null);
 			if (existing == null) {
 				this.settings.saveAndFlush(new Setting(key, scope, checked, actorId));
 			}
@@ -150,6 +155,7 @@ class DefaultSettingsService implements SettingsService {
 			throw ApiException.conflict("config.concurrent_update");
 		}
 		this.events.publishEvent(ConfigurationChanged.of(scope, ConfigurationChanged.SETTING, key));
+		this.audit.record(ConfigurationAudit.entry("setting.set", scope).metadata("key", key).changes(before, checked));
 		return new SettingValue(key, checked, ConfigSource.of(scope.type()));
 	}
 
@@ -162,6 +168,9 @@ class DefaultSettingsService implements SettingsService {
 		this.settings.delete(existing);
 		this.settings.flush();
 		this.events.publishEvent(ConfigurationChanged.of(scope, ConfigurationChanged.SETTING, key));
+		this.audit.record(ConfigurationAudit.entry("setting.clear", scope)
+			.metadata("key", key)
+			.changes(existing.getValue(), null));
 	}
 
 	private Optional<Setting> find(String key, SettingScope scope) {

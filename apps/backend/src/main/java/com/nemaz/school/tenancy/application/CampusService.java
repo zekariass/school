@@ -2,6 +2,9 @@ package com.nemaz.school.tenancy.application;
 
 import java.util.UUID;
 
+import com.nemaz.school.audit.AuditEntry;
+import com.nemaz.school.audit.AuditLog;
+import com.nemaz.school.audit.AuditOutcome;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.common.pagination.CursorPage;
 import com.nemaz.school.common.pagination.KeysetPages;
@@ -23,9 +26,12 @@ public class CampusService {
 
 	private final SchoolRepository schools;
 
-	CampusService(CampusRepository campuses, SchoolRepository schools) {
+	private final AuditLog audit;
+
+	CampusService(CampusRepository campuses, SchoolRepository schools, AuditLog audit) {
 		this.campuses = campuses;
 		this.schools = schools;
+		this.audit = audit;
 	}
 
 	@Transactional(readOnly = true)
@@ -43,12 +49,18 @@ public class CampusService {
 		if (code != null && this.campuses.existsBySchoolIdAndCode(schoolId, code)) {
 			throw ApiException.conflict("campus.code_taken");
 		}
+		Campus saved;
 		try {
-			return this.campuses.saveAndFlush(new Campus(schoolId, name, code, timezone));
+			saved = this.campuses.saveAndFlush(new Campus(schoolId, name, code, timezone));
 		}
 		catch (DataIntegrityViolationException ex) {
 			throw ApiException.conflict("campus.code_taken");
 		}
+		this.audit.record(AuditEntry.of("campus.create", AuditOutcome.SUCCESS)
+			.target("campus", saved.getId())
+			.school(schoolId)
+			.metadata("code", code));
+		return saved;
 	}
 
 	public Campus update(UUID schoolId, UUID campusId, String name, String code, String timezone,
@@ -62,13 +74,29 @@ public class CampusService {
 		if (code != null && this.campuses.existsBySchoolIdAndCodeAndIdNot(schoolId, code, campusId)) {
 			throw ApiException.conflict("campus.code_taken");
 		}
+		java.util.Map<String, Object> before = snapshot(campus);
 		campus.update(name, code, timezone, status);
+		Campus saved;
 		try {
-			return this.campuses.saveAndFlush(campus);
+			saved = this.campuses.saveAndFlush(campus);
 		}
 		catch (DataIntegrityViolationException ex) {
 			throw ApiException.conflict("campus.code_taken");
 		}
+		this.audit.record(AuditEntry.of("campus.update", AuditOutcome.SUCCESS)
+			.target("campus", campusId)
+			.school(schoolId)
+			.changes(before, snapshot(saved)));
+		return saved;
+	}
+
+	private static java.util.Map<String, Object> snapshot(Campus c) {
+		java.util.Map<String, Object> values = new java.util.LinkedHashMap<>();
+		values.put("name", c.getName());
+		values.put("code", c.getCode());
+		values.put("timezone", c.getTimezone());
+		values.put("status", c.getStatus().name());
+		return values;
 	}
 
 	private void requireSchool(UUID schoolId) {

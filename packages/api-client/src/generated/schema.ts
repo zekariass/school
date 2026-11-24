@@ -4,6 +4,143 @@
  */
 
 export interface paths {
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign out this device: revokes the refresh token's session */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign out everywhere: revokes every session of the signed-in user */
+        post: operations["logoutAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/otp/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a one-time sign-in code to a phone (SMS) or email; the answer is the same whether or not an account exists */
+        post: operations["requestOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/otp/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange a one-time code for tokens */
+        post: operations["verifyOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign in with email, phone or username and a password */
+        post: operations["signInWithPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange a refresh token for a new pair; the old refresh token stops working */
+        post: operations["refreshTokens"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in user, their roles and permissions per scope */
+        get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change display name, preferred language, timezone or calendar; absent fields stay unchanged */
+        patch: operations["updateMe"];
+        trace?: never;
+    };
+    "/api/v1/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set or change the password; other sessions are signed out. A first password needs a recent sign-in */
+        put: operations["changeMyPassword"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/meta": {
         parameters: {
             query?: never;
@@ -13,6 +150,23 @@ export interface paths {
         };
         /** Service metadata and server time */
         get: operations["getMeta"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audit entries, newest first; filter by action prefix, actor, target, school and time range */
+        get: operations["listAuditLogs"];
         put?: never;
         post?: never;
         delete?: never;
@@ -47,7 +201,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List organizations, newest first */
+        /** List organizations the caller may manage, newest first */
         get: operations["listOrganizations"];
         put?: never;
         /** Create an organization in an enabled country */
@@ -76,6 +230,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/role-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Role assignments of a user, or at exactly one scope; only those the caller may manage */
+        get: operations["listRoleAssignments"];
+        put?: never;
+        /** Grant a role to a user at a scope (at or below the caller's own scope, never more than the caller holds) */
+        post: operations["createRoleAssignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/role-assignments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke a role assignment (it stays listed as REVOKED) */
+        delete: operations["revokeRoleAssignment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/schools": {
         parameters: {
             query?: never;
@@ -83,7 +272,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List schools, newest first, filtered by country, organization, status */
+        /** List the schools the caller can see, newest first, filtered by country, organization, status */
         get: operations["listSchools"];
         put?: never;
         /** Create a school (ONBOARDING) in an enabled country; unset fields inherit the country's defaults */
@@ -291,6 +480,31 @@ export interface components {
             /** @enum {string} */
             status?: "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELLED" | "EXPIRED";
         };
+        AuditLogResponse: {
+            action: string;
+            actorRoles?: string[];
+            /** Format: uuid */
+            actorUserId?: string;
+            /** @description {before, after} of a mutation */
+            changes?: components["schemas"]["JsonNode"];
+            /** Format: int64 */
+            id: number;
+            /** Format: uuid */
+            impersonatorUserId?: string;
+            ip?: string;
+            metadata?: components["schemas"]["JsonNode"];
+            /** Format: date-time */
+            occurredAt: string;
+            /** @enum {string} */
+            outcome: "SUCCESS" | "DENIED" | "FAILURE";
+            requestId?: string;
+            /** Format: uuid */
+            schoolId?: string;
+            /** Format: uuid */
+            targetId?: string;
+            targetType?: string;
+            userAgent?: string;
+        };
         CampusResponse: {
             code?: string;
             /** Format: date-time */
@@ -307,6 +521,10 @@ export interface components {
             updatedAt: string;
             /** Format: int32 */
             version: number;
+        };
+        ChangePasswordRequest: {
+            currentPassword?: string;
+            newPassword: string;
         };
         CountryCalendarResponse: {
             code: string;
@@ -351,6 +569,12 @@ export interface components {
             name: string;
             slug: string;
         };
+        CreateRoleAssignmentRequest: {
+            roleCode: string;
+            scope: components["schemas"]["RoleScope"];
+            /** Format: uuid */
+            userId: string;
+        };
         CreateSchoolRequest: {
             brandColor?: string;
             countryCode: string;
@@ -385,6 +609,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageAuditLogResponse: {
+            items: components["schemas"]["AuditLogResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageCampusResponse: {
             items: components["schemas"]["CampusResponse"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -392,6 +621,11 @@ export interface components {
         };
         CursorPageOrganizationResponse: {
             items: components["schemas"]["OrganizationResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageRoleAssignmentResponse: {
+            items: components["schemas"]["RoleAssignmentResponse"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -434,6 +668,32 @@ export interface components {
             nativeName: string;
             script?: string;
         };
+        MeResponse: {
+            /** @enum {string} */
+            accountType: "STANDARD" | "MANAGED";
+            calendarPreference?: string;
+            displayName: string;
+            email?: string;
+            emailVerified: boolean;
+            familyName?: string;
+            givenName: string;
+            hasPassword: boolean;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            lastLoginAt?: string;
+            middleName?: string;
+            phone?: string;
+            phoneVerified: boolean;
+            preferredLanguageCode?: string;
+            roleAssignments: components["schemas"]["RoleAssignmentSummary"][];
+            /** @description Permissions merged per scope, from all roles held there */
+            scopes: components["schemas"]["ScopePermissions"][];
+            /** @enum {string} */
+            status: "PENDING" | "ACTIVE" | "LOCKED" | "SUSPENDED" | "DEACTIVATED";
+            timezone?: string;
+            username?: string;
+        };
         MetaResponse: {
             apiVersion: string;
             buildVersion: string;
@@ -457,6 +717,33 @@ export interface components {
             updatedAt: string;
             /** Format: int32 */
             version: number;
+        };
+        /** @description Set exactly one of phone or email. National phone formats are read in `country` (default ET). */
+        OtpRequest: {
+            country?: string;
+            email?: string;
+            phone?: string;
+        };
+        OtpRequestAccepted: {
+            /** Format: int32 */
+            codeLength: number;
+            /**
+             * Format: int64
+             * @description Seconds a code stays valid
+             */
+            expiresIn: number;
+        };
+        OtpVerifyRequest: {
+            code: string;
+            country?: string;
+            email?: string;
+            phone?: string;
+        };
+        PasswordSignInRequest: {
+            country?: string;
+            /** @description Email, phone or username */
+            identifier: string;
+            password: string;
         };
         /** @description RFC 9457 problem details returned by every failing endpoint. */
         ProblemDetail: {
@@ -490,6 +777,49 @@ export interface components {
             scope: components["schemas"]["ScopeRef"];
             /** @description Any JSON value valid for the setting */
             value: components["schemas"]["JsonNode"];
+        };
+        RefreshRequest: {
+            refreshToken: string;
+        };
+        RoleAssignmentResponse: {
+            /** Format: date-time */
+            grantedAt: string;
+            /** Format: uuid */
+            grantedBy?: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            revokedAt?: string;
+            roleCode: string;
+            scope: components["schemas"]["RoleScope"];
+            /** @enum {string} */
+            status: "ACTIVE" | "REVOKED";
+            /** Format: uuid */
+            userId: string;
+        };
+        RoleAssignmentSummary: {
+            /** Format: date-time */
+            grantedAt: string;
+            /** Format: uuid */
+            id: string;
+            permissions: string[];
+            roleCode: string;
+            roleName: string;
+            scope: components["schemas"]["UserScope"];
+            /** @description Display name of the scope; absent for PLATFORM */
+            scopeName?: string;
+        };
+        /** @description A role scope. PLATFORM sets no key, COUNTRY sets countryCode, ORGANIZATION sets organizationId, SCHOOL sets schoolId, CAMPUS sets campusId (and optionally its schoolId). */
+        RoleScope: {
+            /** Format: uuid */
+            campusId?: string;
+            countryCode?: string;
+            /** Format: uuid */
+            organizationId?: string;
+            /** Format: uuid */
+            schoolId?: string;
+            /** @enum {string} */
+            type: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL" | "CAMPUS";
         };
         SchoolConfigurationResponse: {
             features: components["schemas"]["FeatureStateResponse"][];
@@ -534,6 +864,12 @@ export interface components {
             /** Format: int32 */
             version: number;
             website?: string;
+        };
+        ScopePermissions: {
+            permissions: string[];
+            roleCodes: string[];
+            scope: components["schemas"]["UserScope"];
+            scopeName?: string;
         };
         /** @description A configuration scope. PLATFORM sets no key, COUNTRY sets countryCode, ORGANIZATION sets organizationId, SCHOOL sets schoolId. */
         ScopeRef: {
@@ -580,11 +916,34 @@ export interface components {
             /** Format: date-time */
             trialEndsAt?: string;
         };
+        TokenResponse: {
+            accessToken: string;
+            /**
+             * Format: int64
+             * @description Seconds until the access token expires
+             */
+            accessTokenExpiresIn: number;
+            /** @description Shown once; store it securely */
+            refreshToken: string;
+            /**
+             * Format: int64
+             * @description Seconds until the refresh token expires if unused
+             */
+            refreshTokenExpiresIn: number;
+            /** @enum {string} */
+            tokenType: "Bearer";
+        };
         UpdateCampusRequest: {
             code?: string;
             name: string;
             /** @enum {string} */
             status: "ACTIVE" | "ARCHIVED";
+            timezone?: string;
+        };
+        UpdateMeRequest: {
+            calendarPreference?: string;
+            displayName?: string;
+            preferredLanguageCode?: string;
             timezone?: string;
         };
         UpdateOrganizationRequest: {
@@ -597,6 +956,18 @@ export interface components {
             /** @enum {string} */
             status: "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
         };
+        /** @description A level of the tenancy hierarchy; exactly the key of its type is set (a campus also has its school). */
+        UserScope: {
+            /** Format: uuid */
+            campusId?: string;
+            countryCode?: string;
+            /** Format: uuid */
+            organizationId?: string;
+            /** Format: uuid */
+            schoolId?: string;
+            /** @enum {string} */
+            type: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL" | "CAMPUS";
+        };
     };
     responses: never;
     parameters: never;
@@ -606,6 +977,289 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    logoutAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    requestOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OtpRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OtpRequestAccepted"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    verifyOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OtpVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    signInWithPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordSignInRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    refreshTokens: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    changeMyPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getMeta: {
         parameters: {
             query?: never;
@@ -622,6 +1276,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetaResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listAuditLogs: {
+        parameters: {
+            query?: {
+                actionPrefix?: string;
+                actorUserId?: string;
+                targetType?: string;
+                targetId?: string;
+                schoolId?: string;
+                from?: string;
+                to?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAuditLogResponse"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -855,6 +1548,109 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listRoleAssignments: {
+        parameters: {
+            query?: {
+                userId?: string;
+                scopeType?: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL" | "CAMPUS";
+                countryCode?: string;
+                organizationId?: string;
+                schoolId?: string;
+                campusId?: string;
+                status?: "ACTIVE" | "REVOKED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageRoleAssignmentResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createRoleAssignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRoleAssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleAssignmentResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    revokeRoleAssignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleAssignmentResponse"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

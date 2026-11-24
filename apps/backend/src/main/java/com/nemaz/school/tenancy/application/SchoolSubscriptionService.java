@@ -2,6 +2,9 @@ package com.nemaz.school.tenancy.application;
 
 import java.util.UUID;
 
+import com.nemaz.school.audit.AuditEntry;
+import com.nemaz.school.audit.AuditLog;
+import com.nemaz.school.audit.AuditOutcome;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.subscriptions.AssignSubscription;
 import com.nemaz.school.subscriptions.SubscriptionService;
@@ -23,9 +26,12 @@ public class SchoolSubscriptionService {
 
 	private final SubscriptionService subscriptions;
 
-	SchoolSubscriptionService(SchoolRepository schools, SubscriptionService subscriptions) {
+	private final AuditLog audit;
+
+	SchoolSubscriptionService(SchoolRepository schools, SubscriptionService subscriptions, AuditLog audit) {
 		this.schools = schools;
 		this.subscriptions = subscriptions;
+		this.audit = audit;
 	}
 
 	@Transactional
@@ -33,7 +39,14 @@ public class SchoolSubscriptionService {
 		if (!this.schools.existsById(schoolId)) {
 			throw ApiException.notFound("school.not_found");
 		}
-		return this.subscriptions.assignToSchool(schoolId, command, actorId);
+		SubscriptionView view = this.subscriptions.assignToSchool(schoolId, command, actorId);
+		this.audit.record(AuditEntry.of("subscription.assign", AuditOutcome.SUCCESS)
+			.target("subscription", view.id())
+			.school(schoolId)
+			.metadata("planCode", view.planCode())
+			.metadata("status", view.status().name())
+			.metadata("currentPeriodEnd", (view.currentPeriodEnd() != null) ? view.currentPeriodEnd().toString() : null));
+		return view;
 	}
 
 }

@@ -9,7 +9,323 @@
     "description" : "Same origin",
     "url" : "/"
   } ],
+  "security" : [ {
+    "bearer" : [ ]
+  } ],
   "paths" : {
+    "/api/v1/auth/logout" : {
+      "post" : {
+        "operationId" : "logout",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Sign out this device: revokes the refresh token's session",
+        "tags" : [ "auth" ]
+      }
+    },
+    "/api/v1/auth/logout-all" : {
+      "post" : {
+        "operationId" : "logoutAll",
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Sign out everywhere: revokes every session of the signed-in user",
+        "tags" : [ "auth" ]
+      }
+    },
+    "/api/v1/auth/otp/request" : {
+      "post" : {
+        "operationId" : "requestOtp",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OtpRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OtpRequestAccepted"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Send a one-time sign-in code to a phone (SMS) or email; the answer is the same whether or not an account exists",
+        "tags" : [ "auth" ]
+      }
+    },
+    "/api/v1/auth/otp/verify" : {
+      "post" : {
+        "operationId" : "verifyOtp",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OtpVerifyRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Exchange a one-time code for tokens",
+        "tags" : [ "auth" ]
+      }
+    },
+    "/api/v1/auth/password" : {
+      "post" : {
+        "operationId" : "signInWithPassword",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PasswordSignInRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Sign in with email, phone or username and a password",
+        "tags" : [ "auth" ]
+      }
+    },
+    "/api/v1/auth/refresh" : {
+      "post" : {
+        "operationId" : "refreshTokens",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Exchange a refresh token for a new pair; the old refresh token stops working",
+        "tags" : [ "auth" ]
+      }
+    },
+    "/api/v1/me" : {
+      "get" : {
+        "operationId" : "getMe",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The signed-in user, their roles and permissions per scope",
+        "tags" : [ "me" ]
+      },
+      "patch" : {
+        "operationId" : "updateMe",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateMeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change display name, preferred language, timezone or calendar; absent fields stay unchanged",
+        "tags" : [ "me" ]
+      }
+    },
+    "/api/v1/me/password" : {
+      "put" : {
+        "operationId" : "changeMyPassword",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Set or change the password; other sessions are signed out. A first password needs a recent sign-in",
+        "tags" : [ "me" ]
+      }
+    },
     "/api/v1/meta" : {
       "get" : {
         "operationId" : "getMeta",
@@ -35,8 +351,108 @@
             "description" : "Error (RFC 9457 problem details)"
           }
         },
+        "security" : [ ],
         "summary" : "Service metadata and server time",
         "tags" : [ "system" ]
+      }
+    },
+    "/api/v1/platform/audit-logs" : {
+      "get" : {
+        "operationId" : "listAuditLogs",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "actionPrefix",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "actorUserId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "targetType",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "targetId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "schoolId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAuditLogResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Audit entries, newest first; filter by action prefix, actor, target, school and time range",
+        "tags" : [ "platform-audit" ]
       }
     },
     "/api/v1/platform/feature-overrides" : {
@@ -255,7 +671,7 @@
             "description" : "Error (RFC 9457 problem details)"
           }
         },
-        "summary" : "List organizations, newest first",
+        "summary" : "List organizations the caller may manage, newest first",
         "tags" : [ "platform-organizations" ]
       },
       "post" : {
@@ -380,6 +796,181 @@
         "tags" : [ "platform-organizations" ]
       }
     },
+    "/api/v1/platform/role-assignments" : {
+      "get" : {
+        "operationId" : "listRoleAssignments",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "userId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "scopeType",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PLATFORM", "COUNTRY", "ORGANIZATION", "SCHOOL", "CAMPUS" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "countryCode",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "organizationId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "schoolId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "campusId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "REVOKED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageRoleAssignmentResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Role assignments of a user, or at exactly one scope; only those the caller may manage",
+        "tags" : [ "platform-roles" ]
+      },
+      "post" : {
+        "operationId" : "createRoleAssignment",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateRoleAssignmentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RoleAssignmentResponse"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Grant a role to a user at a scope (at or below the caller's own scope, never more than the caller holds)",
+        "tags" : [ "platform-roles" ]
+      }
+    },
+    "/api/v1/platform/role-assignments/{id}" : {
+      "delete" : {
+        "operationId" : "revokeRoleAssignment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RoleAssignmentResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Revoke a role assignment (it stays listed as REVOKED)",
+        "tags" : [ "platform-roles" ]
+      }
+    },
     "/api/v1/platform/schools" : {
       "get" : {
         "operationId" : "listSchools",
@@ -444,7 +1035,7 @@
             "description" : "Error (RFC 9457 problem details)"
           }
         },
-        "summary" : "List schools, newest first, filtered by country, organization, status",
+        "summary" : "List the schools the caller can see, newest first, filtered by country, organization, status",
         "tags" : [ "platform-schools" ]
       },
       "post" : {
@@ -1164,6 +1755,68 @@
         },
         "required" : [ "planCode" ]
       },
+      "AuditLogResponse" : {
+        "type" : "object",
+        "properties" : {
+          "action" : {
+            "type" : "string"
+          },
+          "actorRoles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "actorUserId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "changes" : {
+            "$ref" : "#/components/schemas/JsonNode",
+            "description" : "{before, after} of a mutation"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "impersonatorUserId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "ip" : {
+            "type" : "string"
+          },
+          "metadata" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          },
+          "occurredAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "outcome" : {
+            "type" : "string",
+            "enum" : [ "SUCCESS", "DENIED", "FAILURE" ]
+          },
+          "requestId" : {
+            "type" : "string"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "targetId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "targetType" : {
+            "type" : "string"
+          },
+          "userAgent" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "action", "id", "occurredAt", "outcome" ]
+      },
       "CampusResponse" : {
         "type" : "object",
         "properties" : {
@@ -1202,6 +1855,22 @@
           }
         },
         "required" : [ "createdAt", "id", "name", "schoolId", "status", "updatedAt", "version" ]
+      },
+      "ChangePasswordRequest" : {
+        "type" : "object",
+        "properties" : {
+          "currentPassword" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "newPassword" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "newPassword" ]
       },
       "CountryCalendarResponse" : {
         "type" : "object",
@@ -1344,6 +2013,24 @@
         },
         "required" : [ "countryCode", "name", "slug" ]
       },
+      "CreateRoleAssignmentRequest" : {
+        "type" : "object",
+        "properties" : {
+          "roleCode" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "scope" : {
+            "$ref" : "#/components/schemas/RoleScope"
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "roleCode", "scope", "userId" ]
+      },
       "CreateSchoolRequest" : {
         "type" : "object",
         "properties" : {
@@ -1464,6 +2151,22 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageAuditLogResponse" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AuditLogResponse"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageCampusResponse" : {
         "type" : "object",
         "properties" : {
@@ -1487,6 +2190,22 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/OrganizationResponse"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageRoleAssignmentResponse" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RoleAssignmentResponse"
             }
           },
           "nextCursor" : {
@@ -1592,6 +2311,80 @@
         },
         "required" : [ "code", "direction", "name", "nativeName" ]
       },
+      "MeResponse" : {
+        "type" : "object",
+        "properties" : {
+          "accountType" : {
+            "type" : "string",
+            "enum" : [ "STANDARD", "MANAGED" ]
+          },
+          "calendarPreference" : {
+            "type" : "string"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "emailVerified" : {
+            "type" : "boolean"
+          },
+          "familyName" : {
+            "type" : "string"
+          },
+          "givenName" : {
+            "type" : "string"
+          },
+          "hasPassword" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lastLoginAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "middleName" : {
+            "type" : "string"
+          },
+          "phone" : {
+            "type" : "string"
+          },
+          "phoneVerified" : {
+            "type" : "boolean"
+          },
+          "preferredLanguageCode" : {
+            "type" : "string"
+          },
+          "roleAssignments" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RoleAssignmentSummary"
+            }
+          },
+          "scopes" : {
+            "type" : "array",
+            "description" : "Permissions merged per scope, from all roles held there",
+            "items" : {
+              "$ref" : "#/components/schemas/ScopePermissions"
+            }
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "ACTIVE", "LOCKED", "SUSPENDED", "DEACTIVATED" ]
+          },
+          "timezone" : {
+            "type" : "string"
+          },
+          "username" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "accountType", "displayName", "emailVerified", "givenName", "hasPassword", "id", "phoneVerified", "roleAssignments", "scopes", "status" ]
+      },
       "MetaResponse" : {
         "type" : "object",
         "properties" : {
@@ -1654,6 +2447,87 @@
           }
         },
         "required" : [ "countryCode", "createdAt", "id", "name", "slug", "status", "updatedAt", "version" ]
+      },
+      "OtpRequest" : {
+        "type" : "object",
+        "description" : "Set exactly one of phone or email. National phone formats are read in `country` (default ET).",
+        "properties" : {
+          "country" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "phone" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          }
+        }
+      },
+      "OtpRequestAccepted" : {
+        "type" : "object",
+        "properties" : {
+          "codeLength" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "expiresIn" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Seconds a code stays valid"
+          }
+        },
+        "required" : [ "codeLength", "expiresIn" ]
+      },
+      "OtpVerifyRequest" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "country" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "phone" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "code" ]
+      },
+      "PasswordSignInRequest" : {
+        "type" : "object",
+        "properties" : {
+          "country" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "identifier" : {
+            "type" : "string",
+            "description" : "Email, phone or username",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "password" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "identifier", "password" ]
       },
       "ProblemDetail" : {
         "type" : "object",
@@ -1744,6 +2618,113 @@
           }
         },
         "required" : [ "key", "scope", "value" ]
+      },
+      "RefreshRequest" : {
+        "type" : "object",
+        "properties" : {
+          "refreshToken" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "refreshToken" ]
+      },
+      "RoleAssignmentResponse" : {
+        "type" : "object",
+        "properties" : {
+          "grantedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "grantedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "revokedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "roleCode" : {
+            "type" : "string"
+          },
+          "scope" : {
+            "$ref" : "#/components/schemas/RoleScope"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "REVOKED" ]
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "grantedAt", "id", "roleCode", "scope", "status", "userId" ]
+      },
+      "RoleAssignmentSummary" : {
+        "type" : "object",
+        "properties" : {
+          "grantedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "permissions" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "roleCode" : {
+            "type" : "string"
+          },
+          "roleName" : {
+            "type" : "string"
+          },
+          "scope" : {
+            "$ref" : "#/components/schemas/UserScope"
+          },
+          "scopeName" : {
+            "type" : "string",
+            "description" : "Display name of the scope; absent for PLATFORM"
+          }
+        },
+        "required" : [ "grantedAt", "id", "permissions", "roleCode", "roleName", "scope" ]
+      },
+      "RoleScope" : {
+        "type" : "object",
+        "description" : "A role scope. PLATFORM sets no key, COUNTRY sets countryCode, ORGANIZATION sets organizationId, SCHOOL sets schoolId, CAMPUS sets campusId (and optionally its schoolId).",
+        "properties" : {
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "countryCode" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "organizationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "PLATFORM", "COUNTRY", "ORGANIZATION", "SCHOOL", "CAMPUS" ]
+          }
+        },
+        "required" : [ "type" ]
       },
       "SchoolConfigurationResponse" : {
         "type" : "object",
@@ -1866,6 +2847,30 @@
         },
         "required" : [ "countryCode", "createdAt", "currencyCode", "defaultCalendarCode", "defaultLanguageCode", "id", "languages", "name", "slug", "status", "timezone", "updatedAt", "version" ]
       },
+      "ScopePermissions" : {
+        "type" : "object",
+        "properties" : {
+          "permissions" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "roleCodes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "scope" : {
+            "$ref" : "#/components/schemas/UserScope"
+          },
+          "scopeName" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "permissions", "roleCodes", "scope" ]
+      },
       "ScopeRef" : {
         "type" : "object",
         "description" : "A configuration scope. PLATFORM sets no key, COUNTRY sets countryCode, ORGANIZATION sets organizationId, SCHOOL sets schoolId.",
@@ -1969,6 +2974,33 @@
         },
         "required" : [ "createdAt", "id", "planCode", "schoolId", "status" ]
       },
+      "TokenResponse" : {
+        "type" : "object",
+        "properties" : {
+          "accessToken" : {
+            "type" : "string"
+          },
+          "accessTokenExpiresIn" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Seconds until the access token expires"
+          },
+          "refreshToken" : {
+            "type" : "string",
+            "description" : "Shown once; store it securely"
+          },
+          "refreshTokenExpiresIn" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Seconds until the refresh token expires if unused"
+          },
+          "tokenType" : {
+            "type" : "string",
+            "enum" : [ "Bearer" ]
+          }
+        },
+        "required" : [ "accessToken", "accessTokenExpiresIn", "refreshToken", "refreshTokenExpiresIn", "tokenType" ]
+      },
       "UpdateCampusRequest" : {
         "type" : "object",
         "properties" : {
@@ -1993,6 +3025,29 @@
           }
         },
         "required" : [ "name", "status" ]
+      },
+      "UpdateMeRequest" : {
+        "type" : "object",
+        "properties" : {
+          "calendarPreference" : {
+            "type" : "string",
+            "pattern" : "^[A-Z0-9_]{1,32}$"
+          },
+          "displayName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 1
+          },
+          "preferredLanguageCode" : {
+            "type" : "string",
+            "pattern" : "^[a-z]{2,3}$"
+          },
+          "timezone" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          }
+        }
       },
       "UpdateOrganizationRequest" : {
         "type" : "object",
@@ -2023,6 +3078,40 @@
           }
         },
         "required" : [ "status" ]
+      },
+      "UserScope" : {
+        "type" : "object",
+        "description" : "A level of the tenancy hierarchy; exactly the key of its type is set (a campus also has its school).",
+        "properties" : {
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "countryCode" : {
+            "type" : "string"
+          },
+          "organizationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "PLATFORM", "COUNTRY", "ORGANIZATION", "SCHOOL", "CAMPUS" ]
+          }
+        },
+        "required" : [ "type" ]
+      }
+    },
+    "securitySchemes" : {
+      "bearer" : {
+        "bearerFormat" : "JWT",
+        "description" : "Access token from /api/v1/auth/* (15 minutes; renew with /api/v1/auth/refresh)",
+        "scheme" : "bearer",
+        "type" : "http"
       }
     }
   }

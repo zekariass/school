@@ -13,10 +13,25 @@ spring:
   data:
     redis:
       url: redis://localhost:6390
+  mail:
+    host: localhost
+    port: 1035   # Mailpit (UI on http://localhost:8035)
 
 school:
   cors:
     allowed-origins: http://localhost:3100,http://localhost:8081
+  auth:
+    jwt:
+      keys: ""                    # no key: an ephemeral one is generated (tokens end with the process)
+      allow-ephemeral-key: true
+    otp:
+      pepper: local-development-pepper-not-a-secret-0123456789
+  sms:
+    provider: console             # one-time codes are printed in the backend log
+  bootstrap:
+    admin:
+      phone: "+251900000001"      # sign in locally with this phone; the code is in the log
+      name: Dev Admin
   security:
     public-api-docs: true
     public-metrics: true

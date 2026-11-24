@@ -4,7 +4,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.nemaz.school.common.pagination.CursorPage;
+import com.nemaz.school.common.security.AccessControl;
+import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
+import com.nemaz.school.common.web.Idempotent;
 import com.nemaz.school.tenancy.application.OrganizationService;
 import com.nemaz.school.tenancy.application.OrganizationService.CreateOrganization;
 import com.nemaz.school.tenancy.domain.Organization;
@@ -29,29 +32,42 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Platform-admin management of organizations (groups of schools). */
+/**
+ * Management of organizations (groups of schools) with {@code platform.organizations.manage}:
+ * platform-wide, or within the countries where the caller holds it (country administrators).
+ */
 @RestController
 @RequestMapping("/api/v1/platform/organizations")
-@PreAuthorize(Permissions.CAN_MANAGE_ORGANIZATIONS)
 @Tag(name = "platform-organizations")
 public class PlatformOrganizationController {
 
+	private static final String MANAGE = Permissions.PLATFORM_ORGANIZATIONS_MANAGE;
+
 	private final OrganizationService organizations;
 
-	PlatformOrganizationController(OrganizationService organizations) {
+	private final AccessControl access;
+
+	PlatformOrganizationController(OrganizationService organizations, AccessControl access) {
 		this.organizations = organizations;
+		this.access = access;
 	}
 
 	@GetMapping
-	@Operation(operationId = "listOrganizations", summary = "List organizations, newest first")
+	@PreAuthorize("@authz.anywhere('" + MANAGE + "')")
+	@Operation(operationId = "listOrganizations",
+			summary = "List organizations the caller may manage, newest first")
 	public CursorPage<OrganizationResponse> list(@RequestParam(required = false) String countryCode,
 			@RequestParam(required = false) OrganizationStatus status, @RequestParam(required = false) String cursor,
 			@RequestParam(required = false) Integer limit) {
-		return this.organizations.list(countryCode, status, cursor, limit).map(OrganizationResponse::from);
+		return this.organizations
+			.list(countryCode, status, cursor, limit, this.access.accessible(CurrentUser.require(), MANAGE))
+			.map(OrganizationResponse::from);
 	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
+	@Idempotent
+	@PreAuthorize("@authz.country('" + MANAGE + "', #request.countryCode())")
 	@Operation(operationId = "createOrganization", summary = "Create an organization in an enabled country")
 	public OrganizationResponse create(@Valid @RequestBody CreateOrganizationRequest request) {
 		return OrganizationResponse.from(this.organizations.create(
@@ -59,12 +75,14 @@ public class PlatformOrganizationController {
 	}
 
 	@GetMapping("/{id}")
+	@PreAuthorize("@authz.organization('" + MANAGE + "', #id)")
 	@Operation(operationId = "getOrganization", summary = "Get an organization")
 	public OrganizationResponse get(@PathVariable UUID id) {
 		return OrganizationResponse.from(this.organizations.get(id));
 	}
 
 	@PutMapping("/{id}")
+	@PreAuthorize("@authz.organization('" + MANAGE + "', #id)")
 	@Operation(operationId = "updateOrganization", summary = "Update name, legal name and status (the slug is fixed)")
 	public OrganizationResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateOrganizationRequest request) {
 		return OrganizationResponse.from(

@@ -16,4 +16,7 @@ public interface ReferenceData {
 
 	boolean calendarExists(String calendarCode);
 
+	/** The country's name in {@code languageCode}, falling back to English. */
+	Optional<String> countryName(String countryCode, String languageCode);
+
 }

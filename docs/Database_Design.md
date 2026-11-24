@@ -495,6 +495,8 @@ create unique index ux_role_assignment_active on role_assignments
   where status = 'ACTIVE';
 ```
 
+*As built (M1b, `V1_05`/`V1_06`):* `student_login_codes` is created with students and classes in M3, `users.avatar_media_id` with media in M2. Added CHECKs for the commented enumerations, `auth_sessions.revoked_reason` (ROTATED, LOGOUT, LOGOUT_ALL, REUSE_DETECTED, EXPIRED, USER_INACTIVE, PASSWORD_CHANGED; set together with `revoked_at`), `role_assignments` (`status = 'REVOKED'` exactly when `revoked_at` is set; a CAMPUS assignment stores `campus_id` and its `school_id`). Emails are stored lower-cased, phones in E.164. Seeded permissions include `school.read` besides those listed (see `R__40_roles_permissions.sql`).
+
 ### 4.4 People & relationships (P1; tutor_profiles P4)
 
 ```sql
@@ -1803,6 +1805,8 @@ create table report_jobs (                       -- async report generation (§9
   completed_at        timestamptz
 );
 ```
+
+*As built (M1b, `V1_07`):* `audit_logs` has monthly partitions `audit_logs_yYYYYmMM` (current month and three ahead, kept by a daily ShedLock job) plus a default partition `audit_logs_default` so a row outside every month never fails a business transaction; it should stay empty. `outcome` has a CHECK. UPDATE/DELETE are not revoked yet (single database role); no code path updates or deletes rows.
 
 ### 4.20 Subscriptions (P1 manual, P5 billing)
 

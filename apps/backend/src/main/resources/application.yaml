@@ -2,8 +2,7 @@ spring:
   application:
     name: school-backend
   autoconfigure:
-    # No username/password login exists; avoids Boot's generated default user.
-    # Token authentication (JWT resource server) replaces this in Implementation Plan M1.
+    # Authentication is by bearer token only (identity module); no generated default user.
     exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   # Connection settings come from the environment in every deployed environment.
   # For local development use the "local" profile (application-local.yaml),
@@ -23,7 +22,8 @@ spring:
         enabled: false   # Redis is a cache here, not a Spring Data repository store
   cache:
     type: redis
-    cache-names: school-configuration
+    # role-grants and auth-users have their own TTLs (authorization / identity modules).
+    cache-names: school-configuration,role-grants,auth-users
     redis:
       # Safety net only; writes evict explicitly (tenancy.application.ConfigurationCacheEvictor).
       time-to-live: 5m
@@ -53,6 +53,28 @@ spring:
 school:
   i18n:
     supported-locales: en,am
+  auth:
+    jwt:
+      issuer: ${SCHOOL_AUTH_JWT_ISSUER:school-api}
+      audience: ${SCHOOL_AUTH_JWT_AUDIENCE:school-apps}
+      # JWK Set ({"keys":[...]}) of EC P-256 keys with private parts; the first signs.
+      # Required: no default, startup fails without it (generate: npm run jwk:generate -w school-backend).
+      keys: ${SCHOOL_AUTH_JWT_KEYS}
+    otp:
+      # HMAC key of stored one-time-code hashes, >= 32 characters. Required, no default.
+      pepper: ${SCHOOL_AUTH_OTP_PEPPER}
+  sms:
+    # Only "console" exists so far (log output); refused outside local/test unless allow-console.
+    provider: ${SCHOOL_SMS_PROVIDER:}
+    allow-console: ${SCHOOL_SMS_ALLOW_CONSOLE:false}
+  mail:
+    from: ${SCHOOL_MAIL_FROM:School <no-reply@school.local>}
+  bootstrap:
+    admin:
+      # First platform administrator, created at startup when none exists (see README).
+      phone: ${SCHOOL_BOOTSTRAP_ADMIN_PHONE:}
+      email: ${SCHOOL_BOOTSTRAP_ADMIN_EMAIL:}
+      name: ${SCHOOL_BOOTSTRAP_ADMIN_NAME:Platform administrator}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:}
   security:

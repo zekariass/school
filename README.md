@@ -121,7 +121,7 @@ npm run dev --workspace=school-web
   through the BFF at `/api/bff/api/v1/...`.
 - Local pages: http://localhost:3100/en (landing), `/en/sign-in`,
   `/en/status` (live API check through the BFF). `/en/s/<school>` and
-  `/en/platform` redirect to sign-in until auth lands in M1.
+  `/en/platform` redirect to sign-in until the web sign-in screens land (M1c).
 
 ## Backend configuration
 
@@ -134,6 +134,21 @@ npm run dev --workspace=school-web
   for `npm run test`.
 - Flyway owns the schema (`ddl-auto: validate`). Migrations go in
   `apps/backend/src/main/resources/db/migration`.
+
+**Signing in locally.** The `local` profile creates a platform administrator
+"Dev Admin" with phone `+251900000001` at startup, prints one-time codes in the
+backend log (console SMS provider) and sends email codes to Mailpit. The JWT
+signing key is generated per process, so tokens stop working when the backend
+restarts.
+
+```bash
+curl -X POST localhost:8180/api/v1/auth/otp/request -H 'Content-Type: application/json' \
+  -d '{"phone":"0900000001"}'
+# log: [console SMS] to +2519****001: 123456 is your School sign-in code ...
+curl -X POST localhost:8180/api/v1/auth/otp/verify -H 'Content-Type: application/json' \
+  -d '{"phone":"+251900000001","code":"123456"}'      # -> accessToken, refreshToken
+curl localhost:8180/api/v1/me -H "Authorization: Bearer <accessToken>"
+```
 
 Local endpoints (`npm run dev -- --filter=school-backend`):
 
@@ -156,6 +171,13 @@ Deployed environments configure, besides the database:
 | `MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT` | Enables trace export (e.g. `http://collector:4318/v1/traces`) |
 | `TRACING_SAMPLING_PROBABILITY` | Trace sampling ratio (default 0.1) |
 | `OTLP_METRICS_EXPORT_ENABLED` | `true` to push metrics over OTLP (default: scrape Prometheus) |
+| `SCHOOL_AUTH_JWT_KEYS` | **Required.** JWK Set (`{"keys":[...]}`) of EC P-256 keys with private parts. The first key signs access tokens, all keys verify (put a new key first to rotate; drop the old one after 15 minutes). Generate one with `npm run jwk:generate -w school-backend`. Secret. |
+| `SCHOOL_AUTH_OTP_PEPPER` | **Required.** HMAC key (≥ 32 characters) of stored one-time-code hashes. Secret; changing it invalidates codes in flight only. |
+| `SCHOOL_AUTH_JWT_ISSUER` / `SCHOOL_AUTH_JWT_AUDIENCE` | Token `iss` / `aud` (default `school-api` / `school-apps`) |
+| `SCHOOL_SMS_PROVIDER` | **Required.** SMS provider; only `console` (log output) exists yet, which is refused unless `SCHOOL_SMS_ALLOW_CONSOLE=true` (staging only, never production) |
+| `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | SMTP for email sign-in codes; without a host, emails are dropped with a warning. `SCHOOL_MAIL_FROM` sets the sender |
+| `SCHOOL_BOOTSTRAP_ADMIN_PHONE` / `SCHOOL_BOOTSTRAP_ADMIN_EMAIL` / `SCHOOL_BOOTSTRAP_ADMIN_NAME` | First platform administrator, created at startup only while no active platform administrator exists |
+| `SERVER_FORWARD_HEADERS_STRATEGY` | Set to `native`/`framework` only behind a trusted proxy; otherwise rate limits and audit see the proxy's address (`X-Forwarded-For` is ignored) |
 
 **Changing the API:** after editing controllers or DTOs, run
 `npm run openapi:export -w school-backend` (writes
@@ -177,6 +199,9 @@ docker build -t school-backend:local apps/backend
 docker run --rm -p 8080:8080 \
   -e DB_URL=jdbc:postgresql://host.docker.internal:5442/school \
   -e DB_USERNAME=school -e DB_PASSWORD=school \
+  -e SCHOOL_AUTH_JWT_KEYS="$(npm run -s jwk:generate -w school-backend)" \
+  -e SCHOOL_AUTH_OTP_PEPPER=change-me-to-a-long-random-secret-0123456789 \
+  -e SCHOOL_SMS_PROVIDER=console -e SCHOOL_SMS_ALLOW_CONSOLE=true \
   school-backend:local
 
 # Web: Next.js standalone server on Node 26 (build context: repo root)
@@ -188,7 +213,7 @@ docker run --rm -p 3000:3000 \
 
 | Image | Port | Required env | Optional env |
 |---|---|---|---|
-| `school-backend` | 8080 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | the variables in [Backend configuration](#backend-configuration), `JAVA_TOOL_OPTIONS` |
+| `school-backend` | 8080 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SCHOOL_AUTH_JWT_KEYS`, `SCHOOL_AUTH_OTP_PEPPER`, `SCHOOL_SMS_PROVIDER` | the variables in [Backend configuration](#backend-configuration), `JAVA_TOOL_OPTIONS` |
 | `school-web` | 3000 | `API_ORIGIN` (read at request time) | `PORT`, `HOSTNAME` |
 
 Both run as a non-root user. The Postgres started by

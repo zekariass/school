@@ -14,7 +14,10 @@ import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import com.nemaz.school.system.security.SecurityConfig;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 
 import org.springframework.context.annotation.Bean;
@@ -30,6 +33,13 @@ public class OpenApiConfig {
 
 	static final String PROBLEM_SCHEMA = "ProblemDetail";
 
+	static final String BEARER_SCHEME = "bearer";
+
+	/** Operations that need no access token (as configured in SecurityConfig). */
+	static final List<String> PUBLIC_PATHS = java.util.stream.Stream
+		.concat(java.util.stream.Stream.of("/api/v1/meta"), java.util.Arrays.stream(SecurityConfig.PUBLIC_AUTH_ENDPOINTS))
+		.toList();
+
 	@Bean
 	OpenAPI schoolOpenApi() {
 		return new OpenAPI()
@@ -37,7 +47,13 @@ public class OpenApiConfig {
 				.version("v1")
 				.description("Multi-tenant school, family, learning and tutoring platform API. "
 						+ "Errors are RFC 9457 problem details (application/problem+json) with a stable `code`."))
-			.servers(List.of(new Server().url("/").description("Same origin")));
+			.servers(List.of(new Server().url("/").description("Same origin")))
+			.components(new Components().addSecuritySchemes(BEARER_SCHEME,
+					new SecurityScheme().type(SecurityScheme.Type.HTTP)
+						.scheme("bearer")
+						.bearerFormat("JWT")
+						.description("Access token from /api/v1/auth/* (15 minutes; renew with /api/v1/auth/refresh)")))
+			.addSecurityItem(new SecurityRequirement().addList(BEARER_SCHEME));
 	}
 
 	/**
@@ -53,7 +69,17 @@ public class OpenApiConfig {
 			}
 			openApi.getComponents().addSchemas(PROBLEM_SCHEMA, problemDetailSchema());
 			addDefaultErrorResponses(openApi);
+			markPublicOperations(openApi);
 		};
+	}
+
+	/** Public operations override the global bearer requirement with an empty one. */
+	private static void markPublicOperations(OpenAPI openApi) {
+		openApi.getPaths().forEach((path, item) -> {
+			if (PUBLIC_PATHS.contains(path)) {
+				item.readOperations().forEach((operation) -> operation.setSecurity(List.of()));
+			}
+		});
 	}
 
 	private static void addDefaultErrorResponses(OpenAPI openApi) {

@@ -4,7 +4,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import com.nemaz.school.common.security.CurrentActor;
+import com.nemaz.school.common.security.AccessControl;
+import com.nemaz.school.common.security.AccessScope;
+import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
 import com.nemaz.school.tenancy.ConfigSource;
 import com.nemaz.school.tenancy.ScopeType;
@@ -39,14 +41,28 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Platform-admin configuration: feature overrides, setting overrides at any scope, and a
- * school's resolved ("effective") configuration. Override lists are bounded by the number
- * of definitions, so they are not paginated.
+ * Configuration: feature overrides, setting overrides at any scope, and a school's resolved
+ * ("effective") configuration. Override lists are bounded by the number of definitions, so
+ * they are not paginated. Scope-aware:
+ * <ul>
+ * <li>feature overrides: {@code platform.features.manage} at a scope covering the override's
+ * scope (platform administrators);</li>
+ * <li>settings: {@code platform.settings.manage} covering the scope (platform or country
+ * administrators), or {@code school.settings.manage} for a school-level setting (school and
+ * organization administrators);</li>
+ * <li>a school's resolved configuration: anyone who can read the school or change part of
+ * its configuration.</li>
+ * </ul>
  */
 @RestController
 @RequestMapping("/api/v1/platform")
 @Tag(name = "platform-configuration")
 public class PlatformConfigurationController {
+
+	private static final String FEATURES = "'" + Permissions.PLATFORM_FEATURES_MANAGE + "'";
+
+	private static final String ANY_SETTINGS = "@authz.anywhere('" + Permissions.PLATFORM_SETTINGS_MANAGE
+			+ "') or @authz.anywhere('" + Permissions.SCHOOL_SETTINGS_MANAGE + "')";
 
 	private final PlatformConfigurationService configuration;
 
@@ -56,82 +72,121 @@ public class PlatformConfigurationController {
 
 	private final JsonMapper json;
 
+	private final AccessControl access;
+
 	PlatformConfigurationController(PlatformConfigurationService configuration, SettingsService settings,
-			SchoolService schools, JsonMapper json) {
+			SchoolService schools, JsonMapper json, AccessControl access) {
 		this.configuration = configuration;
 		this.settings = settings;
 		this.schools = schools;
 		this.json = json;
+		this.access = access;
+	}
+
+	/** 403 unless the caller holds {@code platform.features.manage} at a scope covering {@code scope}. */
+	private void requireFeatures(SettingScope scope) {
+		this.access.require(CurrentUser.require(), Permissions.PLATFORM_FEATURES_MANAGE, accessScope(scope));
+	}
+
+	/** 403 unless the caller may change settings at exactly {@code scope}. */
+	private void requireSettings(SettingScope scope) {
+		CurrentUser user = CurrentUser.require();
+		AccessScope target = accessScope(scope);
+		if (this.access.can(user, Permissions.PLATFORM_SETTINGS_MANAGE, target)) {
+			return;
+		}
+		if (scope.type() == ScopeType.SCHOOL && this.access.can(user, Permissions.SCHOOL_SETTINGS_MANAGE, target)) {
+			return;
+		}
+		throw new org.springframework.security.access.AccessDeniedException("Missing settings permission");
+	}
+
+	static AccessScope accessScope(SettingScope scope) {
+		return switch (scope.type()) {
+			case PLATFORM -> AccessScope.platform();
+			case COUNTRY -> AccessScope.country(scope.countryCode());
+			case ORGANIZATION -> AccessScope.organization(scope.organizationId());
+			case SCHOOL -> AccessScope.school(scope.schoolId());
+		};
 	}
 
 	// --- feature overrides ------------------------------------------------------------
 
 	@GetMapping("/feature-overrides")
-	@PreAuthorize(Permissions.CAN_MANAGE_FEATURES)
+	@PreAuthorize("@authz.anywhere(" + FEATURES + ")")
 	@Operation(operationId = "listFeatureOverrides", summary = "Feature overrides at exactly one scope")
 	public List<FeatureOverrideResponse> listFeatureOverrides(@RequestParam ScopeType scopeType,
 			@RequestParam(required = false) String countryCode, @RequestParam(required = false) UUID organizationId,
 			@RequestParam(required = false) UUID schoolId) {
 		SettingScope scope = new ScopeRef(scopeType, countryCode, organizationId, schoolId).toScope();
+		requireFeatures(scope);
 		return this.configuration.featureOverrides(scope).stream().map(FeatureOverrideResponse::from).toList();
 	}
 
 	@PutMapping("/feature-overrides")
-	@PreAuthorize(Permissions.CAN_MANAGE_FEATURES)
+	@PreAuthorize("@authz.anywhere(" + FEATURES + ")")
 	@Operation(operationId = "putFeatureOverride", summary = "Enable or disable a feature at a scope")
 	public FeatureOverrideResponse putFeatureOverride(@Valid @RequestBody PutFeatureOverrideRequest r) {
-		return FeatureOverrideResponse.from(this.configuration.setFeatureOverride(r.featureKey(), r.scope().toScope(),
-				r.enabled(), r.config(), CurrentActor.id().orElse(null)));
+		SettingScope scope = r.scope().toScope();
+		requireFeatures(scope);
+		return FeatureOverrideResponse.from(this.configuration.setFeatureOverride(r.featureKey(), scope, r.enabled(),
+				r.config(), CurrentUser.currentId()));
 	}
 
 	@DeleteMapping("/feature-overrides")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@PreAuthorize(Permissions.CAN_MANAGE_FEATURES)
+	@PreAuthorize("@authz.anywhere(" + FEATURES + ")")
 	@Operation(operationId = "deleteFeatureOverride", summary = "Remove a feature override so the next level applies")
 	public void deleteFeatureOverride(@RequestParam String featureKey, @RequestParam ScopeType scopeType,
 			@RequestParam(required = false) String countryCode, @RequestParam(required = false) UUID organizationId,
 			@RequestParam(required = false) UUID schoolId) {
 		SettingScope scope = new ScopeRef(scopeType, countryCode, organizationId, schoolId).toScope();
-		this.configuration.clearFeatureOverride(featureKey, scope, CurrentActor.id().orElse(null));
+		requireFeatures(scope);
+		this.configuration.clearFeatureOverride(featureKey, scope, CurrentUser.currentId());
 	}
 
 	// --- settings ---------------------------------------------------------------------
 
 	@GetMapping("/settings")
-	@PreAuthorize(Permissions.CAN_MANAGE_SETTINGS)
+	@PreAuthorize(ANY_SETTINGS)
 	@Operation(operationId = "listSettingOverrides", summary = "Setting overrides at exactly one scope, optionally one key")
 	public List<SettingOverrideResponse> listSettings(@RequestParam ScopeType scopeType,
 			@RequestParam(required = false) String countryCode, @RequestParam(required = false) UUID organizationId,
 			@RequestParam(required = false) UUID schoolId, @RequestParam(required = false) String key) {
 		SettingScope scope = new ScopeRef(scopeType, countryCode, organizationId, schoolId).toScope();
+		requireSettings(scope);
 		return this.configuration.settingOverrides(scope, key).stream().map(SettingOverrideResponse::from).toList();
 	}
 
 	@PutMapping("/settings")
-	@PreAuthorize(Permissions.CAN_MANAGE_SETTINGS)
+	@PreAuthorize(ANY_SETTINGS)
 	@Operation(operationId = "putSetting",
 			summary = "Set a setting at a scope; the value is validated against the definition's schema")
 	public SettingOverrideResponse putSetting(@Valid @RequestBody PutSettingRequest r) {
 		SettingScope scope = r.scope().toScope();
-		SettingValue saved = this.settings.set(r.key(), scope, r.value(), CurrentActor.id().orElse(null));
+		requireSettings(scope);
+		SettingValue saved = this.settings.set(r.key(), scope, r.value(), CurrentUser.currentId());
 		return new SettingOverrideResponse(saved.key(), ScopeRef.of(scope), saved.value(), null, null);
 	}
 
 	@DeleteMapping("/settings")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@PreAuthorize(Permissions.CAN_MANAGE_SETTINGS)
+	@PreAuthorize(ANY_SETTINGS)
 	@Operation(operationId = "deleteSetting", summary = "Remove a setting override so the next level applies")
 	public void deleteSetting(@RequestParam String key, @RequestParam ScopeType scopeType,
 			@RequestParam(required = false) String countryCode, @RequestParam(required = false) UUID organizationId,
 			@RequestParam(required = false) UUID schoolId) {
 		SettingScope scope = new ScopeRef(scopeType, countryCode, organizationId, schoolId).toScope();
-		this.settings.clear(key, scope, CurrentActor.id().orElse(null));
+		requireSettings(scope);
+		this.settings.clear(key, scope, CurrentUser.currentId());
 	}
 
 	// --- resolved view ----------------------------------------------------------------
 
 	@GetMapping("/schools/{schoolId}/configuration")
-	@PreAuthorize(Permissions.CAN_VIEW_CONFIGURATION)
+	@PreAuthorize("@authz.anyAt(T(com.nemaz.school.common.security.AccessScope).school(#schoolId), '"
+			+ Permissions.SCHOOL_READ + "', '" + Permissions.PLATFORM_FEATURES_MANAGE + "', '"
+			+ Permissions.PLATFORM_SETTINGS_MANAGE + "', '" + Permissions.SCHOOL_SETTINGS_MANAGE + "')")
 	@Operation(operationId = "getSchoolConfiguration",
 			summary = "A school's effective features and settings, with the level each value comes from")
 	public SchoolConfigurationResponse schoolConfiguration(@PathVariable UUID schoolId) {

@@ -1,0 +1,10 @@
+# Test profile (activated by @IntegrationTest). Development-only secrets.
+school:
+  auth:
+    jwt:
+      keys: ""
+      allow-ephemeral-key: true
+    otp:
+      pepper: test-pepper-not-a-secret-0123456789abcdef
+  sms:
+    provider: console
