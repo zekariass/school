@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "School internal library (source-only, consumed by Next.js and Expo bundlers)",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM"],
+    "allowImportingTsExtensions": true
+  }
+}

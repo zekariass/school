@@ -1,0 +1,47 @@
+{
+  "app": {
+    "name": "School"
+  },
+  "common": {
+    "save": "አስቀምጥ",
+    "cancel": "ሰርዝ",
+    "continue": "ቀጥል",
+    "back": "ተመለስ",
+    "done": "ተጠናቋል",
+    "edit": "አስተካክል",
+    "delete": "አጥፋ",
+    "retry": "እንደገና ሞክር",
+    "loading": "በመጫን ላይ…",
+    "offline": "ከመስመር ውጭ ነዎት። ሲገናኙ ለውጦቹ ይመሳሰላሉ።",
+    "error": "የሆነ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።"
+  },
+  "auth": {
+    "signIn": "ግባ",
+    "signOut": "ውጣ",
+    "phoneNumber": "ስልክ ቁጥር",
+    "email": "ኢሜይል",
+    "password": "የይለፍ ቃል",
+    "sendCode": "ኮድ ላክ",
+    "enterCode": "ወደ {destination} የላክነውን ባለ {length} አሃዝ ኮድ ያስገቡ",
+    "scanClassCode": "የክፍልዎን ኮድ ይቃኙ"
+  },
+  "roles": {
+    "teacher": "መምህር",
+    "guardian": "ወላጅ",
+    "student": "ተማሪ",
+    "schoolAdmin": "የትምህርት ቤት አስተዳዳሪ",
+    "tutor": "አስጠኚ"
+  },
+  "points": {
+    "awarded": "ለ{skill} {count, plural, one {# ነጥብ} other {# ነጥቦች}}"
+  },
+  "validation": {
+    "required": "ይህ መስክ ያስፈልጋል።",
+    "email": "ትክክለኛ የኢሜይል አድራሻ ያስገቡ።",
+    "phone": "ትክክለኛ ስልክ ቁጥር ያስገቡ።",
+    "otp": "ባለ {length} አሃዝ ኮዱን ያስገቡ።",
+    "passwordTooShort": "ቢያንስ {min} ቁምፊዎች ይጠቀሙ።",
+    "passwordTooLong": "ቢበዛ {max} ቁምፊዎች ይጠቀሙ።",
+    "nameTooLong": "ቢበዛ {max} ቁምፊዎች ይጠቀሙ።"
+  }
+}

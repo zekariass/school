@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "./mvnw spring-boot:run -Dspring-boot.run.profiles=local",
     "build": "./mvnw -B -DskipTests package",
-    "test": "./mvnw -B test"
+    "test": "./mvnw -B test",
+    "openapi:export": "./mvnw -B -q test -Dtest=OpenApiSpecTest -Dsurefire.failIfNoSpecifiedTests=false -Dopenapi.write=true"
   }
 }

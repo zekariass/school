@@ -1,0 +1,13 @@
+{
+  "extends": "@school/config/tsconfig/library.json",
+  "include": [
+    "src",
+    "scripts",
+    "messages"
+  ],
+  "compilerOptions": {
+    "types": [
+      "node"
+    ]
+  }
+}

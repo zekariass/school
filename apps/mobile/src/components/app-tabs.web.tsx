@@ -33,9 +33,15 @@ export default function AppTabs() {
   );
 }
 
-export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+export function TabButton({ children, isFocused, ref, ...props }: TabTriggerSlotProps) {
   return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
+    <Pressable
+      {...props}
+      // expo-router 58 types this slot ref as RefAttributes<View>, which under React Native
+      // 0.88 typings means a ref to the component rather than the host element. At runtime it
+      // receives the host element, so narrow it to Pressable's ref type.
+      ref={ref as React.Ref<React.ComponentRef<typeof Pressable>>}
+      style={({ pressed }) => pressed && styles.pressed}>
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={styles.tabButtonView}>

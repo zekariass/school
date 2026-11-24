@@ -1,0 +1,23 @@
+{
+  "name": "@school/validation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared zod form schemas; errors are @school/i18n message keys.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "libphonenumber-js": "^1.13.17",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@school/config": "*",
+    "@school/i18n": "*"
+  }
+}

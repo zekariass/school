@@ -1,0 +1,22 @@
+{
+  "name": "@school/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Design tokens: TS source of truth, generated Tailwind 4 theme CSS for web.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./theme.css": "./generated/theme.css"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "codegen": "node scripts/build-css.ts",
+    "codegen:check": "node scripts/build-css.ts --check"
+  },
+  "devDependencies": {
+    "@school/config": "*",
+    "@types/node": "^24"
+  }
+}
