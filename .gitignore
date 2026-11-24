@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# turbo
+.turbo/
+
+# builds
+dist/
+build/
+target/
+.next/
+out/
+.expo/
+web-build/
+
+# env
+.env
+.env*.local
+
+# logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.pnpm-debug.*
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+*.tsbuildinfo
+.vercel

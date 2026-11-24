@@ -1,0 +1,11 @@
+{
+  "name": "school-backend",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Spring Boot backend (Maven). This package.json lets Turborepo orchestrate it alongside the JS apps.",
+  "scripts": {
+    "dev": "mvnw spring-boot:run",
+    "build": "mvnw -DskipTests package",
+    "test": "mvnw test"
+  }
+}
