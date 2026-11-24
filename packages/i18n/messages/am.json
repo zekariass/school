@@ -47,7 +47,11 @@
     "otp": "ባለ {length} አሃዝ ኮዱን ያስገቡ።",
     "passwordTooShort": "ቢያንስ {min} ቁምፊዎች ይጠቀሙ።",
     "passwordTooLong": "ቢበዛ {max} ቁምፊዎች ይጠቀሙ።",
-    "nameTooLong": "ቢበዛ {max} ቁምፊዎች ይጠቀሙ።"
+    "nameTooLong": "ቢበዛ {max} ቁምፊዎች ይጠቀሙ።",
+    "slug": "ትንሽ ፊደላትን፣ ቁጥሮችን እና ነጠላ ሰረዞችን ይጠቀሙ (ለምሳሌ sunrise-academy)።",
+    "tooLong": "ይህ በጣም ረጅም ነው።",
+    "invalid": "ይህ እሴት ትክክል አይደለም።",
+    "color": "እንደ #10B98A ያለ ቀለም ያስገቡ።"
   },
   "marketing": {
     "headline": "ለመላው ትምህርት ቤትዎ ወዳጃዊ መኖሪያ",

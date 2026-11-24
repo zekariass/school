@@ -1,0 +1,111 @@
+-- Code-owned definitions (repeatable, idempotent). Unlike reference data, these are
+-- owned by the codebase: ON CONFLICT DO UPDATE keeps the database in step with the code
+-- on every deploy. Operators change behaviour through settings / feature_overrides rows,
+-- never by editing definitions.
+
+-- Feature flags (§80). default_enabled is the bottom of the precedence chain
+-- school > organization > country > platform > default; a feature is only on when the
+-- school's plan also entitles it (R-33, see R__30_subscription_plans.sql).
+-- max_students and storage_bytes are capacity entitlements, not switchable features: they
+-- exist so plan_entitlements.limit_value has a feature key to hang on (§105).
+insert into feature_definitions (key, description, default_enabled) values
+  ('attendance',      'Daily and per-period attendance (offline capable)', true),
+  ('points',          'Classroom points and badges', true),
+  ('feed',            'Class Story, School Story and feed', true),
+  ('messaging',       'Direct, group and class conversations', true),
+  ('announcements',   'School communications centre', true),
+  ('calendar',        'School and class calendar', true),
+  ('portfolio',       'Student portfolios', true),
+  ('library',         'Digital library (P2)', false),
+  ('assignments',     'Assignments, assessment and grading (P2)', false),
+  ('courses',         'Courses and video (P3)', false),
+  ('marketplace',     'Tutor marketplace (P4)', false),
+  ('tutoring',        'Tutoring sessions and bookings (P4)', false),
+  ('payments',        'Payments and school fees (P3, P5)', false),
+  ('ai_copilot',      'AI Tutor Copilot (P6)', false),
+  ('ai_student_tutor','Student AI Tutor (P6)', false),
+  ('max_students',    'Capacity entitlement: maximum active students (limit_value)', true),
+  ('storage_bytes',   'Capacity entitlement: media storage in bytes (limit_value)', true)
+on conflict (key) do update
+  set description = excluded.description,
+      default_enabled = excluded.default_enabled;
+
+-- Behaviour settings (R-33). value_schema uses the JSON Schema subset understood by
+-- tenancy.application.ValueSchemaValidator: type (incl. "null" unions), enum, minimum,
+-- maximum, minLength, maxLength, pattern, minItems, maxItems, items, properties,
+-- required, additionalProperties (boolean).
+insert into setting_definitions (key, module, value_schema, default_value, allowed_scopes, description)
+select d.key, d.module, d.value_schema::jsonb, d.default_value::jsonb,
+       array['PLATFORM', 'COUNTRY', 'ORGANIZATION', 'SCHOOL'], d.description
+from (values
+  ('engagement.badges.enabled', 'engagement',
+   '{"type": "boolean"}', 'true',
+   'Badges are awarded and shown'),
+  ('engagement.leaderboard.enabled', 'engagement',
+   '{"type": "boolean"}', 'false',
+   'Class leaderboards are shown (off by default: rankings are not right for every school)'),
+  ('engagement.public_rankings.enabled', 'engagement',
+   '{"type": "boolean"}', 'false',
+   'Rankings are visible beyond the class and teachers'),
+  ('engagement.needs_work.enabled', 'engagement',
+   '{"type": "boolean"}', 'true',
+   'Teachers may award needs-work points (decision D2: on by default, schools can switch it off)'),
+  ('guardians.auto_verify_invite', 'guardians',
+   '{"type": "boolean"}', 'false',
+   'A guardian accepting a school invite counts as verification (otherwise school staff verify)'),
+  ('classes.former_member_history_access', 'classes',
+   '{"type": "boolean"}', 'false',
+   'FORMER class members keep read access to content from their membership period'),
+  ('feed.parent_contributions.enabled', 'feed',
+   '{"type": "boolean"}', 'false',
+   'Parents may contribute photos and videos to the class feed'),
+  ('feed.parent_contributions.approval_required', 'feed',
+   '{"type": "boolean"}', 'true',
+   'Parent contributions need teacher approval before publishing'),
+  ('feed.parent_contributions.allowed_media', 'feed',
+   '{"type": "array", "items": {"type": "string", "enum": ["IMAGE", "VIDEO"]}, "minItems": 1, "maxItems": 2}',
+   '["IMAGE"]',
+   'Media kinds parents may contribute'),
+  ('notifications.quiet_hours', 'notifications',
+   '{"type": "object", "properties": {"start": {"type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"}, "end": {"type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"}}, "required": ["start", "end"], "additionalProperties": false}',
+   '{"start": "21:00", "end": "06:00"}',
+   'School-local window in which non-urgent notifications are held back'),
+  ('messaging.parent_teacher.enabled', 'messaging',
+   '{"type": "boolean"}', 'true',
+   'Guardians can message teachers of their child''s classes'),
+  ('messaging.parent_parent.enabled', 'messaging',
+   '{"type": "boolean"}', 'false',
+   'Guardians can message other guardians directly'),
+  ('messaging.student.enabled', 'messaging',
+   '{"type": "boolean"}', 'true',
+   'Students can use messaging at all (class and group conversations)'),
+  ('messaging.student.min_age', 'messaging',
+   '{"type": ["integer", "null"], "minimum": 0, "maximum": 25}', 'null',
+   'Minimum age for student messaging; null means no minimum'),
+  ('messaging.student.teacher_direct.enabled', 'messaging',
+   '{"type": "boolean"}', 'false',
+   'Teacher to student direct messages are allowed'),
+  ('messaging.student.teacher_direct.initiator', 'messaging',
+   '{"type": "string", "enum": ["TEACHER_ONLY", "EITHER"]}', '"TEACHER_ONLY"',
+   'Who may start a teacher to student direct conversation'),
+  ('messaging.student.student_direct.enabled', 'messaging',
+   '{"type": "boolean"}', 'false',
+   'Student to student direct messages are allowed'),
+  ('messaging.student.group_create', 'messaging',
+   '{"type": "string", "enum": ["TEACHER_ONLY", "STUDENTS_WITH_APPROVAL"]}', '"TEACHER_ONLY"',
+   'Who can create student groups'),
+  ('messaging.group_create.roles', 'messaging',
+   '{"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 64}, "minItems": 0, "maxItems": 20}',
+   '["TEACHER", "SCHOOL_ADMIN"]',
+   'Role codes that may create groups'),
+  ('messaging.teacher_hours', 'messaging',
+   '{"type": ["object", "null"], "properties": {"days": {"type": "array", "items": {"type": "integer", "minimum": 1, "maximum": 7}, "minItems": 1, "maxItems": 7}, "start": {"type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"}, "end": {"type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"}}, "required": ["days", "start", "end"], "additionalProperties": false}',
+   'null',
+   'Optional office hours (ISO weekdays 1-7, school-local times); messages outside them are delivered silently')
+) as d(key, module, value_schema, default_value, description)
+on conflict (key) do update
+  set module = excluded.module,
+      value_schema = excluded.value_schema,
+      default_value = excluded.default_value,
+      allowed_scopes = excluded.allowed_scopes,
+      description = excluded.description;

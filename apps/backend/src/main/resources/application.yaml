@@ -12,6 +12,24 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+  # Redis: configuration cache now, rate limits and WebSocket fan-out later (M1, M2).
+  # Deployed environments set REDIS_URL (redis://host:6379); the "local" profile points at
+  # infra/docker-compose.yml. The empty default must stay empty: a literal "${REDIS_URL}"
+  # would fail URL parsing even when tests supply the connection through Testcontainers.
+  data:
+    redis:
+      url: ${REDIS_URL:}
+      repositories:
+        enabled: false   # Redis is a cache here, not a Spring Data repository store
+  cache:
+    type: redis
+    cache-names: school-configuration
+    redis:
+      # Safety net only; writes evict explicitly (tenancy.application.ConfigurationCacheEvictor).
+      time-to-live: 5m
+  jackson:
+    # Absent instead of null: matches the optional properties of the generated TypeScript types.
+    default-property-inclusion: non_null
   jpa:
     open-in-view: false
     hibernate:
