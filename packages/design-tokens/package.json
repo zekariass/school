@@ -17,6 +17,6 @@
   },
   "devDependencies": {
     "@school/config": "*",
-    "@types/node": "^24"
+    "@types/node": "^26"
   }
 }
