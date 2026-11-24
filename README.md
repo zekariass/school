@@ -43,7 +43,9 @@ npm run dev --workspace=school-web
 ## Notes
 
 - `apps/backend` is a Maven project; its `package.json` only wraps `mvnw`
-  so Turborepo can schedule it. It requires a JDK matching `pom.xml`
-  (`java.version`).
+  so Turborepo can schedule it. The pom requires JDK 25 via Maven
+  Toolchains (`maven-toolchains-plugin`), so it builds even when
+  `JAVA_HOME` points at another JDK — it just needs a matching entry in
+  `~/.m2/toolchains.xml` (already configured on this machine).
 - `apps/mobile` needs no Metro config changes — Expo SDK 52+ auto-detects
   the workspace root.
