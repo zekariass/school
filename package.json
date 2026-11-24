@@ -11,7 +11,10 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "start": "turbo run start"
+    "start": "turbo run start",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "infra:ps": "docker compose -f infra/docker-compose.yml ps"
   },
   "devDependencies": {
     "turbo": "2.11.12"

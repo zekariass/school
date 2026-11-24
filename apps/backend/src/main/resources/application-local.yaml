@@ -1,0 +1,7 @@
+# Local development profile, matching infra/docker-compose.yml.
+# Dev-only credentials; never use this profile in a deployed environment.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5442/school
+    username: school
+    password: school

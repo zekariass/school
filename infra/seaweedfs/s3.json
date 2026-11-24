@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "school-dev",
+      "credentials": [{ "accessKey": "school-dev", "secretKey": "school-dev-secret" }],
+      "actions": ["Admin", "Read", "List", "Tagging", "Write"]
+    }
+  ]
+}
