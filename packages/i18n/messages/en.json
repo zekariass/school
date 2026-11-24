@@ -64,7 +64,9 @@
     "messages": "Messages",
     "calendar": "Calendar",
     "settings": "Settings",
-    "home": "Home"
+    "home": "Home",
+    "profile": "Profile",
+    "portfolio": "Portfolio"
   },
   "locale": {
     "label": "Language"
@@ -111,5 +113,68 @@
     "goHome": "Back to home",
     "bffNotFound": "Not found",
     "bffUnavailable": "The service is temporarily unavailable. Please try again."
+  },
+  "mobile": {
+    "signIn": {
+      "studentLink": "I'm a student: scan my class code",
+      "settingsLink": "Language and appearance",
+      "devLink": "Developer: preview app as a role"
+    },
+    "studentCode": {
+      "title": "Student sign-in",
+      "subtitle": "Scan the QR code your teacher showed you, or type your class code.",
+      "permissionBody": "We use the camera only to read your class QR code. Nothing is recorded or saved.",
+      "allowCamera": "Allow camera",
+      "permissionDenied": "Camera access is turned off. You can turn it on in Settings, or type your class code below.",
+      "openSettings": "Open phone settings",
+      "cameraUnavailable": "The camera isn't available on this device. Type your class code below instead.",
+      "manualLabel": "Class code",
+      "manualHint": "Ask your teacher if you don't have one."
+    },
+    "empty": {
+      "teacherClasses": {
+        "title": "Your classes will appear here",
+        "body": "Once your school sets up your classes, you'll see them here and can start giving points."
+      },
+      "guardianHome": {
+        "title": "Your child's day, at a glance",
+        "body": "Updates, points and moments from your child's classes will show up here."
+      },
+      "studentHome": {
+        "title": "Your class is waiting",
+        "body": "Your points and class updates will show up here."
+      },
+      "portfolio": {
+        "title": "Your portfolio is empty",
+        "body": "Photos and work you share with your class will be collected here."
+      },
+      "messages": {
+        "title": "No messages yet",
+        "body": "Conversations with teachers and families will show up here."
+      },
+      "calendar": {
+        "title": "Nothing scheduled",
+        "body": "School events and reminders will show up here."
+      },
+      "profile": {
+        "body": "Your profile and preferences live here."
+      }
+    },
+    "settings": {
+      "switchRole": "Switch role",
+      "switchRoleHint": "You have more than one role at this school.",
+      "about": "About",
+      "appVersion": "App version",
+      "unknown": "Unknown",
+      "previewNote": "This is a developer preview session. No account is signed in."
+    },
+    "status": {
+      "description": "Live details from the School API, fetched from this device. Pull down to refresh."
+    },
+    "dev": {
+      "title": "Role preview",
+      "warningTitle": "Development only",
+      "warningBody": "Pick a role to look around the app without signing in. This screen does not exist in release builds."
+    }
   }
 }
