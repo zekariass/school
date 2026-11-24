@@ -19,7 +19,7 @@
     "infra:ps": "docker compose -f infra/docker-compose.yml ps"
   },
   "devDependencies": {
-    "eslint": "^9.39.5",
+    "eslint": "^10.15.0",
     "turbo": "2.11.12",
     "typescript": "~6.0.3",
     "vitest": "^5.1.1"
