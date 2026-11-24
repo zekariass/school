@@ -64,5 +64,6 @@ Before declaring work done, run `npm run lint typecheck test` (or the filtered e
 
 ## Git
 
-- Branch from `main`; never commit straight to `main`.
+- `main` is protected: every change goes through a PR, and the `js`, `backend` and `migrations` checks must pass. Branch from `main` and open a PR.
+- Dependencies: Expo-managed packages (React, React Native, `expo-*`, `react-native-*`) only move together via `npx expo install --fix` during an Expo SDK upgrade, and Dependabot ignores them. Majors of Next, ESLint and TypeScript are upgraded deliberately, not by Dependabot.
 - Don't commit secrets or `.env` files. Dev-only credentials live in `infra/` and `application-local.yaml` and are documented as such.

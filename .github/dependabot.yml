@@ -11,20 +11,27 @@ updates:
       npm-minor-patch:
         update-types: [minor, patch]
     ignore:
-      # Framework and toolchain majors must move together (expo: `npx expo install --fix`).
+      # Expo-managed packages: Expo SDK 58 pins exact versions of React, React Native
+      # and their native modules. They move together via `npx expo install --fix`
+      # (an SDK upgrade), never one by one -- expo-doctor fails CI otherwise.
+      # React is shared with apps/web and must stay a single copy in the monorepo.
+      - dependency-name: react
+      - dependency-name: react-dom
+      - dependency-name: "@types/react"
+      - dependency-name: react-native
+      - dependency-name: "react-native-*"
+      - dependency-name: "@react-native/*"
+      - dependency-name: expo
+      - dependency-name: "expo-*"
+      - dependency-name: "@expo/*"
+      # Majors that must move with their framework presets / toolchain.
       - dependency-name: next
         update-types: ["version-update:semver-major"]
-      - dependency-name: react
+      - dependency-name: eslint-config-next
         update-types: ["version-update:semver-major"]
-      - dependency-name: react-dom
-        update-types: ["version-update:semver-major"]
-      - dependency-name: expo
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "expo-*"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@expo/*"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: react-native
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]   # eslint-config-next/-expo target ESLint 9
+      - dependency-name: "@eslint/js"
         update-types: ["version-update:semver-major"]
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
