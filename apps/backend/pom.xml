@@ -20,6 +20,10 @@
 		<shedlock.version>7.12.0</shedlock.version>
 		<libphonenumber.version>9.0.44</libphonenumber.version>
 		<bouncycastle.version>1.87</bouncycastle.version>
+		<awssdk.version>2.59.9</awssdk.version>
+		<twelvemonkeys.version>3.15.3</twelvemonkeys.version>
+		<pdfbox.version>3.0.8</pdfbox.version>
+		<commons-imaging.version>1.0.0-alpha6</commons-imaging.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -27,6 +31,13 @@
 				<groupId>org.springframework.modulith</groupId>
 				<artifactId>spring-modulith-bom</artifactId>
 				<version>${spring-modulith.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>bom</artifactId>
+				<version>${awssdk.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -133,6 +144,34 @@
 			<version>${bouncycastle.version}</version>
 		</dependency>
 
+		<!-- Media: S3-compatible object storage (Cloudflare R2, SeaweedFS), image and PDF processing -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>software.amazon.awssdk</groupId>
+					<artifactId>netty-nio-client</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- ImageIO plugins: robust JPEG (CMYK, odd profiles), WebP reading, and EXIF reading for orientation -->
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-jpeg</artifactId>
+			<version>${twelvemonkeys.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-webp</artifactId>
+			<version>${twelvemonkeys.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>${pdfbox.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -196,6 +235,13 @@
 		<dependency>
 			<groupId>org.springframework.modulith</groupId>
 			<artifactId>spring-modulith-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Test fixtures: writes JPEGs with GPS EXIF to prove metadata stripping -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-imaging</artifactId>
+			<version>${commons-imaging.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

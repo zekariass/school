@@ -9,6 +9,7 @@ import com.nemaz.school.common.security.AccessControl;
 import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
 import com.nemaz.school.common.web.Idempotent;
+import com.nemaz.school.media.MediaSummary;
 import com.nemaz.school.subscriptions.AssignSubscription;
 import com.nemaz.school.subscriptions.SubscriptionStatus;
 import com.nemaz.school.subscriptions.SubscriptionView;
@@ -16,6 +17,7 @@ import com.nemaz.school.tenancy.application.CampusService;
 import com.nemaz.school.tenancy.application.SchoolService;
 import com.nemaz.school.tenancy.application.SchoolService.CreateSchool;
 import com.nemaz.school.tenancy.application.SchoolService.SchoolDetails;
+import com.nemaz.school.tenancy.application.SchoolService.SchoolImage;
 import com.nemaz.school.tenancy.application.SchoolSubscriptionService;
 import com.nemaz.school.tenancy.domain.Campus;
 import com.nemaz.school.tenancy.domain.CampusStatus;
@@ -35,6 +37,7 @@ import jakarta.validation.constraints.Size;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -124,6 +127,36 @@ public class PlatformSchoolController {
 		return SchoolResponse.from(this.schools.changeStatus(schoolId, r.status()));
 	}
 
+	@PutMapping("/{schoolId}/logo")
+	@PreAuthorize("@authz.school(" + MANAGE + ", #schoolId)")
+	@Operation(operationId = "setSchoolLogo",
+			summary = "Use a READY BRANDING upload made for this school as its logo (the previous file is deleted)")
+	public SchoolResponse setLogo(@PathVariable UUID schoolId, @Valid @RequestBody SetMediaRequest r) {
+		return SchoolResponse.from(this.schools.setImage(schoolId, SchoolImage.LOGO, r.mediaId(), CurrentUser.require()));
+	}
+
+	@DeleteMapping("/{schoolId}/logo")
+	@PreAuthorize("@authz.school(" + MANAGE + ", #schoolId)")
+	@Operation(operationId = "clearSchoolLogo", summary = "Remove the school's logo and delete its file")
+	public SchoolResponse clearLogo(@PathVariable UUID schoolId) {
+		return SchoolResponse.from(this.schools.clearImage(schoolId, SchoolImage.LOGO));
+	}
+
+	@PutMapping("/{schoolId}/cover")
+	@PreAuthorize("@authz.school(" + MANAGE + ", #schoolId)")
+	@Operation(operationId = "setSchoolCover",
+			summary = "Use a READY BRANDING upload made for this school as its cover image")
+	public SchoolResponse setCover(@PathVariable UUID schoolId, @Valid @RequestBody SetMediaRequest r) {
+		return SchoolResponse.from(this.schools.setImage(schoolId, SchoolImage.COVER, r.mediaId(), CurrentUser.require()));
+	}
+
+	@DeleteMapping("/{schoolId}/cover")
+	@PreAuthorize("@authz.school(" + MANAGE + ", #schoolId)")
+	@Operation(operationId = "clearSchoolCover", summary = "Remove the school's cover image and delete its file")
+	public SchoolResponse clearCover(@PathVariable UUID schoolId) {
+		return SchoolResponse.from(this.schools.clearImage(schoolId, SchoolImage.COVER));
+	}
+
 	@GetMapping("/{schoolId}/campuses")
 	@PreAuthorize("@authz.school(" + READ + ", #schoolId)")
 	@Operation(operationId = "listCampuses", summary = "List a school's campuses")
@@ -185,6 +218,9 @@ public class PlatformSchoolController {
 					message = Validation.INVALID) String> languageCodes) {
 	}
 
+	public record SetMediaRequest(@NotNull(message = Validation.REQUIRED) UUID mediaId) {
+	}
+
 	public record UpdateSchoolStatusRequest(@NotNull(message = Validation.REQUIRED) SchoolStatus status) {
 	}
 
@@ -220,8 +256,8 @@ public class PlatformSchoolController {
 			OwnershipType ownershipType, @NotNull String defaultLanguageCode, @NotNull String timezone,
 			@NotNull String defaultCalendarCode, @NotNull String currencyCode, String phoneE164, String email,
 			String website, String brandColor, @NotNull SchoolStatus status,
-			@NotNull List<SchoolLanguageResponse> languages, @NotNull int version, @NotNull Instant createdAt,
-			@NotNull Instant updatedAt) {
+			@NotNull List<SchoolLanguageResponse> languages, MediaSummary logo, MediaSummary cover,
+			@NotNull int version, @NotNull Instant createdAt, @NotNull Instant updatedAt) {
 
 		static SchoolResponse from(SchoolDetails d) {
 			School s = d.school();
@@ -229,8 +265,8 @@ public class PlatformSchoolController {
 					s.getShortName(), s.getSlug(), s.getSchoolType(), s.getOwnershipType(), s.getDefaultLanguageCode(),
 					s.getTimezone(), s.getDefaultCalendarCode(), s.getCurrencyCode(), s.getPhoneE164(), s.getEmail(),
 					s.getWebsite(), s.getBrandColor(), s.getStatus(),
-					d.languages().stream().map(SchoolLanguageResponse::from).toList(), s.getVersion(), s.getCreatedAt(),
-					s.getUpdatedAt());
+					d.languages().stream().map(SchoolLanguageResponse::from).toList(), d.logo(), d.cover(), s.getVersion(),
+					s.getCreatedAt(), s.getUpdatedAt());
 		}
 
 	}

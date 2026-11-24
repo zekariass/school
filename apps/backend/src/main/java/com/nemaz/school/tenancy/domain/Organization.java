@@ -29,6 +29,8 @@ public class Organization extends BaseEntity {
 
 	private UUID addressId;
 
+	private UUID logoMediaId;
+
 	@Enumerated(EnumType.STRING)
 	private OrganizationStatus status;
 
@@ -47,6 +49,14 @@ public class Organization extends BaseEntity {
 		this.name = name;
 		this.legalName = legalName;
 		this.status = status;
+	}
+
+	public void setLogoMediaId(UUID mediaId) {
+		this.logoMediaId = mediaId;
+	}
+
+	public UUID getLogoMediaId() {
+		return this.logoMediaId;
 	}
 
 	public String getCountryCode() {

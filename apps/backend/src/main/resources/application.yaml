@@ -77,6 +77,16 @@ school:
       name: ${SCHOOL_BOOTSTRAP_ADMIN_NAME:Platform administrator}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+  storage:
+    # S3-compatible object storage (Cloudflare R2 deployed, SeaweedFS locally). Required, no defaults:
+    # a deploy without them fails at startup. SCHOOL_STORAGE_PUBLIC_ENDPOINT (optional) is the host clients
+    # use in presigned URLs; it defaults to the endpoint (set it when the backend reaches the store on a
+    # private address).
+    endpoint: ${SCHOOL_STORAGE_ENDPOINT}
+    region: ${SCHOOL_STORAGE_REGION:auto}       # R2 uses "auto"
+    bucket: ${SCHOOL_STORAGE_BUCKET}
+    access-key: ${SCHOOL_STORAGE_ACCESS_KEY}
+    secret-key: ${SCHOOL_STORAGE_SECRET_KEY}
   security:
     public-api-docs: false
     public-metrics: false

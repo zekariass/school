@@ -124,6 +124,24 @@ export interface paths {
         patch: operations["updateMe"];
         trace?: never;
     };
+    "/api/v1/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Use a READY AVATAR upload of mine as my avatar (the previous file is deleted) */
+        put: operations["setMyAvatar"];
+        post?: never;
+        /** Remove my avatar and delete its file */
+        delete: operations["clearMyAvatar"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/password": {
         parameters: {
             query?: never;
@@ -134,6 +152,92 @@ export interface paths {
         get?: never;
         /** Set or change the password; other sessions are signed out. A first password needs a recent sign-in */
         put: operations["changeMyPassword"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The purposes that accept uploads, with allowed types and size limits */
+        get: operations["listMediaPolicies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start an upload: validates purpose, type and size, and returns a presigned PUT URL (10 minutes) */
+        post: operations["requestMediaUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status and metadata of a media file */
+        get: operations["getMedia"];
+        put?: never;
+        post?: never;
+        /** Delete a media file (uploader or manager of its context) */
+        delete: operations["deleteMedia"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify the uploaded object (size, type, magic bytes) and queue processing */
+        post: operations["completeMediaUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{id}/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A signed GET link (5 minutes) for a variant; images need THUMB, SMALL or MEDIUM */
+        get: operations["getMediaUrl"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -242,6 +346,24 @@ export interface paths {
         put: operations["updateOrganization"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/organizations/{id}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Use a READY BRANDING upload made for this organization as its logo (the previous file is deleted) */
+        put: operations["setOrganizationLogo"];
+        post?: never;
+        /** Remove the organization's logo and delete its file */
+        delete: operations["clearOrganizationLogo"];
         options?: never;
         head?: never;
         patch?: never;
@@ -381,6 +503,42 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{schoolId}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Use a READY BRANDING upload made for this school as its cover image */
+        put: operations["setSchoolCover"];
+        post?: never;
+        /** Remove the school's cover image and delete its file */
+        delete: operations["clearSchoolCover"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{schoolId}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Use a READY BRANDING upload made for this school as its logo (the previous file is deleted) */
+        put: operations["setSchoolLogo"];
+        post?: never;
+        /** Remove the school's logo and delete its file */
+        delete: operations["clearSchoolLogo"];
         options?: never;
         head?: never;
         patch?: never;
@@ -628,6 +786,12 @@ export interface components {
             currentPassword?: string;
             newPassword: string;
         };
+        ContextRef: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "USER" | "SCHOOL" | "ORGANIZATION";
+        };
         CountryCalendarResponse: {
             code: string;
             isDefault: boolean;
@@ -798,6 +962,8 @@ export interface components {
         MeResponse: {
             /** @enum {string} */
             accountType: "STANDARD" | "MANAGED";
+            /** @description READY avatar; ask /media/{id}/url for a signed link */
+            avatar?: components["schemas"]["MediaSummary"];
             calendarPreference?: string;
             displayName: string;
             email?: string;
@@ -821,6 +987,44 @@ export interface components {
             timezone?: string;
             username?: string;
         };
+        MediaResponse: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: int32 */
+            durationMs?: number;
+            /** @description Why FAILED or QUARANTINED */
+            failureReason?: string;
+            /** Format: int32 */
+            height?: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "OTHER";
+            mimeType: string;
+            /** Format: int32 */
+            pageCount?: number;
+            /** @enum {string} */
+            purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING";
+            /** Format: int64 */
+            sizeBytes?: number;
+            /** @enum {string} */
+            status: "PENDING_UPLOAD" | "UPLOADED" | "PROCESSING" | "READY" | "FAILED" | "QUARANTINED" | "DELETED";
+            variants: ("THUMB" | "SMALL" | "MEDIUM" | "LARGE" | "HLS_MASTER" | "POSTER" | "PDF_PREVIEW")[];
+            /** Format: int32 */
+            width?: number;
+        };
+        MediaSummary: {
+            /** Format: int32 */
+            height?: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "OTHER";
+            mimeType: string;
+            variants: ("THUMB" | "SMALL" | "MEDIUM" | "LARGE" | "HLS_MASTER" | "POSTER" | "PDF_PREVIEW")[];
+            /** Format: int32 */
+            width?: number;
+        };
         MetaResponse: {
             apiVersion: string;
             buildVersion: string;
@@ -836,6 +1040,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             legalName?: string;
+            logo?: components["schemas"]["MediaSummary"];
             name: string;
             slug: string;
             /** @enum {string} */
@@ -876,6 +1081,9 @@ export interface components {
             code: string;
             name: string;
         };
+        PoliciesResponse: {
+            purposes: components["schemas"]["PurposePolicy"][];
+        };
         /** @description RFC 9457 problem details returned by every failing endpoint. */
         ProblemDetail: {
             /** @description Stable machine-readable error code */
@@ -895,6 +1103,15 @@ export interface components {
             title: string;
             /** Format: uri */
             type: string;
+        };
+        PurposePolicy: {
+            contextTypes: ("USER" | "SCHOOL" | "ORGANIZATION")[];
+            /** @description Allowed MIME types with their maximum size in bytes */
+            maxBytesByMimeType: {
+                [key: string]: number;
+            };
+            /** @enum {string} */
+            purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING";
         };
         PutFeatureOverrideRequest: {
             /** @description Optional feature-specific configuration (a JSON object) */
@@ -972,6 +1189,7 @@ export interface components {
         SchoolResponse: {
             brandColor?: string;
             countryCode: string;
+            cover?: components["schemas"]["MediaSummary"];
             /** Format: date-time */
             createdAt: string;
             currencyCode: string;
@@ -981,6 +1199,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             languages: components["schemas"]["SchoolLanguageResponse"][];
+            logo?: components["schemas"]["MediaSummary"];
             name: string;
             /** Format: uuid */
             organizationId?: string;
@@ -1004,6 +1223,7 @@ export interface components {
             countryCode: string;
             /** Format: uuid */
             id: string;
+            logo?: components["schemas"]["MediaSummary"];
             name: string;
             shortName?: string;
             slug: string;
@@ -1027,6 +1247,18 @@ export interface components {
             schoolId?: string;
             /** @enum {string} */
             type: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL";
+        };
+        SetAvatarRequest: {
+            /** Format: uuid */
+            mediaId: string;
+        };
+        SetLogoRequest: {
+            /** Format: uuid */
+            mediaId: string;
+        };
+        SetMediaRequest: {
+            /** Format: uuid */
+            mediaId: string;
         };
         SettingDefinitionResponse: {
             allowedScopes: string[];
@@ -1112,6 +1344,45 @@ export interface components {
         UpdateSchoolStatusRequest: {
             /** @enum {string} */
             status: "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+        };
+        UploadRequestBody: {
+            /** @description What the media belongs to; optional for AVATAR (the caller) */
+            context?: components["schemas"]["ContextRef"];
+            filename: string;
+            mimeType: string;
+            /** @enum {string} */
+            purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING";
+            /** @description Lower-case hex SHA-256 of the file; verified during processing */
+            sha256?: string;
+            /**
+             * Format: int64
+             * @description Exact size of the file in bytes
+             */
+            sizeBytes: number;
+        };
+        UploadResponse: {
+            /** Format: uuid */
+            mediaId: string;
+            upload: components["schemas"]["UploadTarget"];
+        };
+        UploadTarget: {
+            /** Format: date-time */
+            expiresAt: string;
+            /** @description Headers the PUT must carry */
+            headers: {
+                [key: string]: string;
+            };
+            method: string;
+            /** Format: uri */
+            url: string;
+        };
+        UrlResponse: {
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uri */
+            url: string;
+            /** @enum {string} */
+            variant: "ORIGINAL" | "THUMB" | "SMALL" | "MEDIUM" | "LARGE" | "POSTER" | "PDF_PREVIEW";
         };
         UserMatchResponse: {
             displayName: string;
@@ -1393,6 +1664,68 @@ export interface operations {
             };
         };
     };
+    setMyAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetAvatarRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    clearMyAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     changeMyPassword: {
         parameters: {
             query?: never;
@@ -1412,6 +1745,192 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMediaPolicies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PoliciesResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    requestMediaUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadRequestBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MediaResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    completeMediaUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MediaResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getMediaUrl: {
+        parameters: {
+            query?: {
+                variant?: "ORIGINAL" | "THUMB" | "SMALL" | "MEDIUM" | "LARGE" | "POSTER" | "PDF_PREVIEW";
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UrlResponse"];
+                };
             };
             /** @description Error (RFC 9457 problem details) */
             default: {
@@ -1733,6 +2252,72 @@ export interface operations {
                 "application/json": components["schemas"]["UpdateOrganizationRequest"];
             };
         };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    setOrganizationLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetLogoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    clearOrganizationLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -2108,6 +2693,138 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SchoolConfigurationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    setSchoolCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    clearSchoolCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    setSchoolLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    clearSchoolLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolResponse"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

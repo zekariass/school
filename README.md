@@ -77,7 +77,7 @@ npm run infra:down    # stop (data volumes are kept)
 |---|---|---|
 | PostgreSQL 18 | 5442 | DB `school`, user/password `school` |
 | Redis | 6390 | |
-| S3 (SeaweedFS, stand-in for Cloudflare R2) | 8343 | key `school-dev` / `school-dev-secret` |
+| S3 (SeaweedFS, stand-in for Cloudflare R2) | 8343 | key `school-dev` / `school-dev-secret`; the backend creates bucket `school-media-dev` and its CORS rule for `http://localhost:3100` |
 | Mailpit | 1035 (SMTP), [8035 (UI)](http://localhost:8035) | |
 
 Ports are non-default on purpose so this stack runs alongside other local
@@ -124,6 +124,11 @@ npm run dev --workspace=school-web
   and `/api/bff/*` must come from this origin (`Origin` header, or
   `Sec-Fetch-Site: same-origin`); it defaults to the origin of the request URL,
   so set it only behind a proxy that rewrites the host.
+- `NEXT_PUBLIC_UPLOAD_MODE` (build-time, `direct` by default): `direct` PUTs files from the
+  browser straight to the presigned storage URL (the bucket needs a CORS rule for the web
+  origin); `proxy` streams them through `PUT /api/bff/uploads/{mediaId}` instead, for buckets
+  that cannot allow the origin. In proxy mode set `UPLOAD_PROXY_ORIGINS` (server-only,
+  comma-separated storage origins; defaults to `http://localhost:8343` outside production).
 - Sessions live in httpOnly cookies (`sch_at`, `sch_rt`). `proxy.ts` renews
   the access token before it expires; with several web instances use sticky
   routing (see the M1c note in `docs/Implementation_Plan.md`).
@@ -192,7 +197,34 @@ Deployed environments configure, besides the database:
 | `SCHOOL_SMS_PROVIDER` | **Required.** SMS provider; only `console` (log output) exists yet, which is refused unless `SCHOOL_SMS_ALLOW_CONSOLE=true` (staging only, never production) |
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | SMTP for email sign-in codes; without a host, emails are dropped with a warning. `SCHOOL_MAIL_FROM` sets the sender |
 | `SCHOOL_BOOTSTRAP_ADMIN_PHONE` / `SCHOOL_BOOTSTRAP_ADMIN_EMAIL` / `SCHOOL_BOOTSTRAP_ADMIN_NAME` | First platform administrator, created at startup only while no active platform administrator exists |
+| `SCHOOL_STORAGE_ENDPOINT` | **Required.** S3 API endpoint the backend uses (R2: `https://<account>.r2.cloudflarestorage.com`). |
+| `SCHOOL_STORAGE_PUBLIC_ENDPOINT` | Host that clients put in presigned URLs (default: `SCHOOL_STORAGE_ENDPOINT`). Set it when the backend reaches the store on a private address. For uploads from a physical phone locally, see [Media storage](#media-storage). |
+| `SCHOOL_STORAGE_BUCKET`, `SCHOOL_STORAGE_ACCESS_KEY`, `SCHOOL_STORAGE_SECRET_KEY` | **Required.** Bucket name and its S3 credentials (secret). The bucket and its CORS rule (allow `PUT`/`GET` from the web origin) are provisioned with the platform; the application only creates them locally. |
+| `SCHOOL_STORAGE_REGION` | Signing region (default `auto`, which is what R2 uses). |
 | `SERVER_FORWARD_HEADERS_STRATEGY` | Set to `native`/`framework` only behind a trusted proxy; otherwise rate limits and audit see the proxy's address (`X-Forwarded-For` is ignored) |
+
+### Media storage
+
+Uploads go straight from the client to S3-compatible storage with a presigned `PUT`
+(`POST /api/v1/media/uploads`, then `POST /api/v1/media/{id}/complete`); the backend
+checks size, type and the file's first bytes, and processes images (JPEG renditions with
+all metadata, including GPS, removed) and PDFs (first-page preview). Reads are signed
+links that expire in 5 minutes. Locally the backend (`local` profile) creates the bucket
+`school-media-dev` in SeaweedFS and a CORS rule for `http://localhost:3100`, so the web
+app uploads directly from the browser (`NEXT_PUBLIC_UPLOAD_MODE=direct`, the default).
+
+**Uploading from a phone or the Android emulator.** Presigned URLs carry the host from
+`SCHOOL_STORAGE_PUBLIC_ENDPOINT`, so a phone on Wi-Fi cannot use `localhost`. Expose the
+store on the LAN and name that address:
+
+```bash
+S3_BIND_ADDRESS=0.0.0.0 npm run infra:up          # SeaweedFS listens on all interfaces
+SCHOOL_STORAGE_PUBLIC_ENDPOINT=http://192.168.1.20:8343 npm run dev -- --filter=school-backend
+```
+
+(The iOS Simulator reaches `localhost` itself, so it needs neither; the Android emulator
+needs `http://10.0.2.2:8343`.) PDF previews render text with PDFBox, so a stripped-down
+backend base image without `fontconfig` can make them fail; the default Temurin image has it.
 
 **Changing the API:** after editing controllers or DTOs, run
 `npm run openapi:export -w school-backend` (writes

@@ -18,6 +18,7 @@ import { getBrowserApi } from "@/lib/api-client";
 import { P } from "@/lib/console/permissions";
 import { queryKeys, type School, type SchoolStatus } from "@/lib/console/queries";
 import { useCan } from "./console-context";
+import { SchoolBranding } from "./school-branding";
 import { StatusBadge } from "./status-badge";
 import { useSubmit } from "./use-submit";
 
@@ -105,6 +106,8 @@ export function SchoolOverview({ school }: { school: School }) {
           )}
         </CardContent>
       </Card>
+
+      <SchoolBranding school={school} />
 
       <Dialog open={confirm !== null} onOpenChange={(open) => !open && setConfirm(null)}>
         <DialogContent>

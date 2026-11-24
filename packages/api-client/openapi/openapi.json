@@ -294,6 +294,72 @@
         "tags" : [ "me" ]
       }
     },
+    "/api/v1/me/avatar" : {
+      "delete" : {
+        "operationId" : "clearMyAvatar",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Remove my avatar and delete its file",
+        "tags" : [ "me" ]
+      },
+      "put" : {
+        "operationId" : "setMyAvatar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SetAvatarRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Use a READY AVATAR upload of mine as my avatar (the previous file is deleted)",
+        "tags" : [ "me" ]
+      }
+    },
     "/api/v1/me/password" : {
       "put" : {
         "operationId" : "changeMyPassword",
@@ -324,6 +390,225 @@
         },
         "summary" : "Set or change the password; other sessions are signed out. A first password needs a recent sign-in",
         "tags" : [ "me" ]
+      }
+    },
+    "/api/v1/media/policies" : {
+      "get" : {
+        "operationId" : "listMediaPolicies",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PoliciesResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The purposes that accept uploads, with allowed types and size limits",
+        "tags" : [ "media" ]
+      }
+    },
+    "/api/v1/media/uploads" : {
+      "post" : {
+        "operationId" : "requestMediaUpload",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UploadRequestBody"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UploadResponse"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Start an upload: validates purpose, type and size, and returns a presigned PUT URL (10 minutes)",
+        "tags" : [ "media" ]
+      }
+    },
+    "/api/v1/media/{id}" : {
+      "delete" : {
+        "operationId" : "deleteMedia",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a media file (uploader or manager of its context)",
+        "tags" : [ "media" ]
+      },
+      "get" : {
+        "operationId" : "getMedia",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MediaResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Status and metadata of a media file",
+        "tags" : [ "media" ]
+      }
+    },
+    "/api/v1/media/{id}/complete" : {
+      "post" : {
+        "operationId" : "completeMediaUpload",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MediaResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Verify the uploaded object (size, type, magic bytes) and queue processing",
+        "tags" : [ "media" ]
+      }
+    },
+    "/api/v1/media/{id}/url" : {
+      "get" : {
+        "operationId" : "getMediaUrl",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "variant",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ORIGINAL", "THUMB", "SMALL", "MEDIUM", "LARGE", "POSTER", "PDF_PREVIEW" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UrlResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A signed GET link (5 minutes) for a variant; images need THUMB, SMALL or MEDIUM",
+        "tags" : [ "media" ]
       }
     },
     "/api/v1/meta" : {
@@ -822,6 +1107,90 @@
           }
         },
         "summary" : "Update name, legal name and status (the slug is fixed)",
+        "tags" : [ "platform-organizations" ]
+      }
+    },
+    "/api/v1/platform/organizations/{id}/logo" : {
+      "delete" : {
+        "operationId" : "clearOrganizationLogo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OrganizationResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Remove the organization's logo and delete its file",
+        "tags" : [ "platform-organizations" ]
+      },
+      "put" : {
+        "operationId" : "setOrganizationLogo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SetLogoRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OrganizationResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Use a READY BRANDING upload made for this organization as its logo (the previous file is deleted)",
         "tags" : [ "platform-organizations" ]
       }
     },
@@ -1366,6 +1735,174 @@
         },
         "summary" : "A school's effective features and settings, with the level each value comes from",
         "tags" : [ "platform-configuration" ]
+      }
+    },
+    "/api/v1/platform/schools/{schoolId}/cover" : {
+      "delete" : {
+        "operationId" : "clearSchoolCover",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SchoolResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Remove the school's cover image and delete its file",
+        "tags" : [ "platform-schools" ]
+      },
+      "put" : {
+        "operationId" : "setSchoolCover",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SetMediaRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SchoolResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Use a READY BRANDING upload made for this school as its cover image",
+        "tags" : [ "platform-schools" ]
+      }
+    },
+    "/api/v1/platform/schools/{schoolId}/logo" : {
+      "delete" : {
+        "operationId" : "clearSchoolLogo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SchoolResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Remove the school's logo and delete its file",
+        "tags" : [ "platform-schools" ]
+      },
+      "put" : {
+        "operationId" : "setSchoolLogo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SetMediaRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SchoolResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Use a READY BRANDING upload made for this school as its logo (the previous file is deleted)",
+        "tags" : [ "platform-schools" ]
       }
     },
     "/api/v1/platform/schools/{schoolId}/status" : {
@@ -2098,6 +2635,20 @@
         },
         "required" : [ "newPassword" ]
       },
+      "ContextRef" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "USER", "SCHOOL", "ORGANIZATION" ]
+          }
+        },
+        "required" : [ "id", "type" ]
+      },
       "CountryCalendarResponse" : {
         "type" : "object",
         "properties" : {
@@ -2635,6 +3186,10 @@
             "type" : "string",
             "enum" : [ "STANDARD", "MANAGED" ]
           },
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary",
+            "description" : "READY avatar; ask /media/{id}/url for a signed link"
+          },
           "calendarPreference" : {
             "type" : "string"
           },
@@ -2702,6 +3257,98 @@
         },
         "required" : [ "accountType", "displayName", "emailVerified", "givenName", "hasPassword", "id", "phoneVerified", "roleAssignments", "scopes", "status" ]
       },
+      "MediaResponse" : {
+        "type" : "object",
+        "properties" : {
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "durationMs" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "failureReason" : {
+            "type" : "string",
+            "description" : "Why FAILED or QUARANTINED"
+          },
+          "height" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "OTHER" ]
+          },
+          "mimeType" : {
+            "type" : "string"
+          },
+          "pageCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "purpose" : {
+            "type" : "string",
+            "enum" : [ "AVATAR", "POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "ASSIGNMENT", "LIBRARY", "COURSE", "RECORDING", "TRANSCRIPT", "VERIFICATION_DOC", "IMPORT_FILE", "REPORT", "BRANDING" ]
+          },
+          "sizeBytes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING_UPLOAD", "UPLOADED", "PROCESSING", "READY", "FAILED", "QUARANTINED", "DELETED" ]
+          },
+          "variants" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "THUMB", "SMALL", "MEDIUM", "LARGE", "HLS_MASTER", "POSTER", "PDF_PREVIEW" ]
+            }
+          },
+          "width" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "createdAt", "id", "kind", "mimeType", "purpose", "status", "variants" ]
+      },
+      "MediaSummary" : {
+        "type" : "object",
+        "properties" : {
+          "height" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "OTHER" ]
+          },
+          "mimeType" : {
+            "type" : "string"
+          },
+          "variants" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "THUMB", "SMALL", "MEDIUM", "LARGE", "HLS_MASTER", "POSTER", "PDF_PREVIEW" ]
+            }
+          },
+          "width" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "id", "kind", "mimeType", "variants" ]
+      },
       "MetaResponse" : {
         "type" : "object",
         "properties" : {
@@ -2743,6 +3390,9 @@
           },
           "legalName" : {
             "type" : "string"
+          },
+          "logo" : {
+            "$ref" : "#/components/schemas/MediaSummary"
           },
           "name" : {
             "type" : "string"
@@ -2858,6 +3508,18 @@
         },
         "required" : [ "code", "name" ]
       },
+      "PoliciesResponse" : {
+        "type" : "object",
+        "properties" : {
+          "purposes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PurposePolicy"
+            }
+          }
+        },
+        "required" : [ "purposes" ]
+      },
       "ProblemDetail" : {
         "type" : "object",
         "description" : "RFC 9457 problem details returned by every failing endpoint.",
@@ -2908,6 +3570,31 @@
           }
         },
         "required" : [ "code", "status", "title", "type" ]
+      },
+      "PurposePolicy" : {
+        "type" : "object",
+        "properties" : {
+          "contextTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "USER", "SCHOOL", "ORGANIZATION" ]
+            }
+          },
+          "maxBytesByMimeType" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int64"
+            },
+            "description" : "Allowed MIME types with their maximum size in bytes"
+          },
+          "purpose" : {
+            "type" : "string",
+            "enum" : [ "AVATAR", "POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "ASSIGNMENT", "LIBRARY", "COURSE", "RECORDING", "TRANSCRIPT", "VERIFICATION_DOC", "IMPORT_FILE", "REPORT", "BRANDING" ]
+          }
+        },
+        "required" : [ "contextTypes", "maxBytesByMimeType", "purpose" ]
       },
       "PutFeatureOverrideRequest" : {
         "type" : "object",
@@ -3113,6 +3800,9 @@
           "countryCode" : {
             "type" : "string"
           },
+          "cover" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
           "createdAt" : {
             "type" : "string",
             "format" : "date-time"
@@ -3138,6 +3828,9 @@
             "items" : {
               "$ref" : "#/components/schemas/SchoolLanguageResponse"
             }
+          },
+          "logo" : {
+            "$ref" : "#/components/schemas/MediaSummary"
           },
           "name" : {
             "type" : "string"
@@ -3193,6 +3886,9 @@
           "id" : {
             "type" : "string",
             "format" : "uuid"
+          },
+          "logo" : {
+            "$ref" : "#/components/schemas/MediaSummary"
           },
           "name" : {
             "type" : "string"
@@ -3261,6 +3957,36 @@
           }
         },
         "required" : [ "type" ]
+      },
+      "SetAvatarRequest" : {
+        "type" : "object",
+        "properties" : {
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "mediaId" ]
+      },
+      "SetLogoRequest" : {
+        "type" : "object",
+        "properties" : {
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "mediaId" ]
+      },
+      "SetMediaRequest" : {
+        "type" : "object",
+        "properties" : {
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "mediaId" ]
       },
       "SettingDefinitionResponse" : {
         "type" : "object",
@@ -3476,6 +4202,96 @@
           }
         },
         "required" : [ "status" ]
+      },
+      "UploadRequestBody" : {
+        "type" : "object",
+        "properties" : {
+          "context" : {
+            "$ref" : "#/components/schemas/ContextRef",
+            "description" : "What the media belongs to; optional for AVATAR (the caller)"
+          },
+          "filename" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "mimeType" : {
+            "type" : "string",
+            "maxLength" : 127,
+            "minLength" : 0
+          },
+          "purpose" : {
+            "type" : "string",
+            "enum" : [ "AVATAR", "POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "ASSIGNMENT", "LIBRARY", "COURSE", "RECORDING", "TRANSCRIPT", "VERIFICATION_DOC", "IMPORT_FILE", "REPORT", "BRANDING" ]
+          },
+          "sha256" : {
+            "type" : "string",
+            "description" : "Lower-case hex SHA-256 of the file; verified during processing",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "sizeBytes" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Exact size of the file in bytes"
+          }
+        },
+        "required" : [ "filename", "mimeType", "purpose", "sizeBytes" ]
+      },
+      "UploadResponse" : {
+        "type" : "object",
+        "properties" : {
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "upload" : {
+            "$ref" : "#/components/schemas/UploadTarget"
+          }
+        },
+        "required" : [ "mediaId", "upload" ]
+      },
+      "UploadTarget" : {
+        "type" : "object",
+        "properties" : {
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "headers" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Headers the PUT must carry"
+          },
+          "method" : {
+            "type" : "string"
+          },
+          "url" : {
+            "type" : "string",
+            "format" : "uri"
+          }
+        },
+        "required" : [ "expiresAt", "headers", "method", "url" ]
+      },
+      "UrlResponse" : {
+        "type" : "object",
+        "properties" : {
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "url" : {
+            "type" : "string",
+            "format" : "uri"
+          },
+          "variant" : {
+            "type" : "string",
+            "enum" : [ "ORIGINAL", "THUMB", "SMALL", "MEDIUM", "LARGE", "POSTER", "PDF_PREVIEW" ]
+          }
+        },
+        "required" : [ "expiresAt", "url", "variant" ]
       },
       "UserMatchResponse" : {
         "type" : "object",

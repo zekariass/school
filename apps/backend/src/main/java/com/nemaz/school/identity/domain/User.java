@@ -2,6 +2,7 @@ package com.nemaz.school.identity.domain;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import com.nemaz.school.common.persistence.BaseEntity;
 import jakarta.persistence.Column;
@@ -65,6 +66,8 @@ public class User extends BaseEntity {
 
 	private Instant lastLoginAt;
 
+	private UUID avatarMediaId;
+
 	private Instant deletedAt;
 
 	protected User() {
@@ -124,6 +127,11 @@ public class User extends BaseEntity {
 		if (calendarPreference != null) {
 			this.calendarPreference = calendarPreference;
 		}
+	}
+
+	/** The READY AVATAR media shown for this user, or null. */
+	public void setAvatarMediaId(UUID mediaId) {
+		this.avatarMediaId = mediaId;
 	}
 
 	public boolean isActive() {
@@ -192,6 +200,10 @@ public class User extends BaseEntity {
 
 	public Instant getLastLoginAt() {
 		return this.lastLoginAt;
+	}
+
+	public UUID getAvatarMediaId() {
+		return this.avatarMediaId;
 	}
 
 	public Instant getDeletedAt() {

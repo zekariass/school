@@ -1002,6 +1002,13 @@ create table media_variants (                    -- thumbnails, compressed, HLS 
 ```
 There is no `media_access` ACL (R-30). Media is read only through its owning object. The API authorizes that object, then returns signed URLs that expire in minutes.
 
+**As built (M2a):** deviations from the DDL above, in `V2_01__media`:
+- `context_type` (`USER`, `SCHOOL`, `ORGANIZATION`; more arrive with classes and posts) and `context_id` name the owning object, which is what read authorization derives from; they are required. `school_id` is set only for school-owned media.
+- `failure_reason text` explains `FAILED` and `QUARANTINED` rows.
+- `storage_provider` defaults to `S3` (any S3-compatible store), `status` and `purpose` have CHECK constraints, `checksum_sha256` must be 64 lower-case hex characters.
+- `media_variants.variant` has a CHECK on the listed values; only `THUMB`, `SMALL`, `MEDIUM` and `PDF_PREVIEW` are produced so far. Variant keys are `.../{mediaId}/{variant}` with the variant lower-cased and no extension.
+- The deferred columns exist now: `users.avatar_media_id`, `schools.logo_media_id`, `schools.cover_media_id`, `organizations.logo_media_id` (FK to `media`, `ON DELETE SET NULL`, partial indexes). Media rows are soft-deleted (`status = DELETED`), so the FKs matter only for manual clean-up.
+
 ### 4.10 Social: feed & stories (P1)
 
 ```sql
