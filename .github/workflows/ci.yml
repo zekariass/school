@@ -74,6 +74,14 @@ jobs:
           java-version: "25"
           cache: maven
 
+      # The Maven wrapper downloads its Maven distribution on every run; cache it
+      # (setup-java's cache covers ~/.m2/repository only). A transient download
+      # failure from repo.maven.apache.org broke a run on PR #10.
+      - uses: actions/cache@v6
+        with:
+          path: ~/.m2/wrapper
+          key: maven-wrapper-${{ hashFiles('apps/backend/.mvn/wrapper/maven-wrapper.properties') }}
+
       # Testcontainers uses the Docker daemon preinstalled on ubuntu-latest.
       # The full repo is checked out because OpenApiSpecTest reads
       # packages/api-client/openapi/openapi.json.

@@ -59,6 +59,11 @@ Generated files (API types, theme CSS) are committed; regenerate them with
   tests and `spring-boot:run` use JDK 25 even when the `java` on your `PATH`
   is another version. Running the packaged jar directly (`java -jar`) does
   need a JDK 25 `java`.
+- **Mobile (optional):** Xcode with an iOS simulator for `npm run ios -w school-mobile`
+  (a development build); Android Studio with an emulator for Android. See
+  `apps/mobile/README.md`. Keep the repository **outside iCloud-synced folders**
+  (Desktop/Documents with iCloud Drive): iCloud adds extended attributes that make
+  the iOS code-signing step fail.
 
 ## Local infrastructure
 

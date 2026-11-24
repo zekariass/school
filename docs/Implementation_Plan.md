@@ -175,6 +175,22 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 3. Wire up the generated client, TanStack Query (with persistence for low-data), design tokens and i18n.
 4. Set up the EAS project with `development`, `preview` and `production` profiles. Native modules need a development build.
 
+**As built (24 Nov 2026):**
+- **Platforms:** iOS and Android only. The Expo web target is removed; the Next.js app is the web client.
+- **Routing:** Expo Router with `(auth)`, `(teacher)`, `(guardian)` and `(student)` groups, using `NativeTabs`. Access is guarded with `Stack.Protected`, and a role switcher handles users with several roles. A dev-only role previewer (`/dev`, `__DEV__` only) shows the role shells before M1 sign-in exists.
+- **Session:** the refresh token is stored in `expo-secure-store` and the access token is held in memory only.
+- **i18n:** `use-intl`, the core of next-intl, so web and mobile share the ICU engine and the `@school/i18n` catalogs. The initial locale comes from the saved preference, then `expo-localization`.
+- **Look and feel:** a design-token theme with light/dark/system modes. Nunito and Noto Sans Ethiopic are embedded with the expo-font plugin. React Native can't stack font families, so Amharic UI uses Noto Sans Ethiopic.
+- **Data:** TanStack Query persisted to `expo-sqlite/kv-store` with offline-first defaults.
+- **Offline store foundation:** an `expo-sqlite` migration runner, a `sync_outbox` table mirroring the backend `sync_operations` ledger, and a per-install device id.
+- **API address:** taken from `EXPO_PUBLIC_API_URL`. In development it is derived from the Metro host, so phones on the same Wi-Fi reach the local backend.
+- **Builds:** `eas.json` defines development, preview and production profiles. EAS is not linked to an account yet.
+- **Verification:**
+  - checked in the iOS simulator against the live backend (screenshots reviewed)
+  - Android bundles but has not been run, because there is no Android SDK on the dev machine
+  - camera QR scanning is untested, because the simulator has no camera
+- **Known local issue:** a checkout under an iCloud-synced folder (Desktop or Documents) breaks the iOS code signing step, because iCloud adds `com.apple.FinderInfo` extended attributes to files. Keep the repo outside iCloud folders.
+
 ### M0.7 CI & container images
 1. Set up GitHub Actions:
    - **backend:** JDK 25, `mvnw verify`, Testcontainers
