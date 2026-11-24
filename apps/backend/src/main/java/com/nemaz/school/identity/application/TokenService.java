@@ -15,6 +15,7 @@ import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.common.id.Ids;
 import com.nemaz.school.common.tx.AfterCommit;
 import com.nemaz.school.common.web.ClientRequests;
+import com.nemaz.school.identity.SessionsRevoked;
 import com.nemaz.school.identity.domain.AuthMethod;
 import com.nemaz.school.identity.domain.UserStatus;
 import com.nemaz.school.identity.infrastructure.AccessTokenKeys;
@@ -24,6 +25,7 @@ import com.nemaz.school.identity.infrastructure.SessionDenyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -78,8 +80,11 @@ public class TokenService {
 
 	private final TransactionTemplate tx;
 
+	private final ApplicationEventPublisher events;
+
 	TokenService(JwtEncoder encoder, AccessTokenKeys keys, AuthSessionStore sessions, SessionDenyList denyList,
-			UserSnapshotCache users, AuditLog audit, IdentityProperties props, Clock clock, TransactionTemplate tx) {
+			UserSnapshotCache users, AuditLog audit, IdentityProperties props, Clock clock, TransactionTemplate tx,
+			ApplicationEventPublisher events) {
 		this.encoder = encoder;
 		this.keys = keys;
 		this.sessions = sessions;
@@ -89,6 +94,7 @@ public class TokenService {
 		this.props = props;
 		this.clock = clock;
 		this.tx = tx;
+		this.events = events;
 	}
 
 	/** Starts a new session family for a user who just signed in (joins the caller's transaction). */
@@ -129,7 +135,7 @@ public class TokenService {
 			}
 			Instant now = this.clock.instant();
 			int revoked = this.sessions.revokeFamily(session.familyId(), "LOGOUT", now);
-			denyAfterCommit(List.of(session.familyId()));
+			revokedFamilies(session.userId(), List.of(session.familyId()));
 			if (revoked > 0) {
 				this.audit.record(AuditEntry.of("auth.logout", AuditOutcome.SUCCESS)
 					.actor(session.userId())
@@ -146,14 +152,14 @@ public class TokenService {
 	@Transactional
 	public List<UUID> revokeAll(UUID userId, UUID keepFamilyId, String reason) {
 		List<UUID> families = this.sessions.revokeAllOfUser(userId, keepFamilyId, reason, this.clock.instant());
-		denyAfterCommit(families);
+		revokedFamilies(userId, families);
 		return families;
 	}
 
 	@Transactional
 	public void logoutAll(UUID userId, UUID currentFamilyId) {
 		List<UUID> families = this.sessions.revokeAllOfUser(userId, null, "LOGOUT_ALL", this.clock.instant());
-		denyAfterCommit(withCurrent(families, currentFamilyId));
+		revokedFamilies(userId, withCurrent(families, currentFamilyId));
 		this.audit.record(AuditEntry.of("auth.logout_all", AuditOutcome.SUCCESS)
 			.target("user", userId)
 			.metadata("sessions", families.size()));
@@ -167,7 +173,7 @@ public class TokenService {
 		Instant now = this.clock.instant();
 		if (session.isRevoked()) {
 			int revoked = this.sessions.revokeFamily(session.familyId(), "REUSE_DETECTED", now);
-			denyAfterCommit(List.of(session.familyId()));
+			revokedFamilies(session.userId(), List.of(session.familyId()));
 			if ("ROTATED".equals(session.revokedReason()) || revoked > 0) {
 				log.warn("Refresh token reuse detected: session family {} of user {} revoked", session.familyId(),
 						session.userId());
@@ -189,7 +195,7 @@ public class TokenService {
 		UserSnapshotCache.UserSnapshot user = this.users.get(session.userId());
 		if (user == null || user.status() != UserStatus.ACTIVE) {
 			this.sessions.revokeFamily(session.familyId(), "USER_INACTIVE", now);
-			denyAfterCommit(List.of(session.familyId()));
+			revokedFamilies(session.userId(), List.of(session.familyId()));
 			return RefreshResult.of(Outcome.INVALID);
 		}
 		this.sessions.revoke(session.id(), "ROTATED", now);
@@ -222,6 +228,18 @@ public class TokenService {
 		byte[] bytes = new byte[REFRESH_TOKEN_BYTES];
 		this.random.nextBytes(bytes);
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+	}
+
+	/**
+	 * Deny-lists the families' access tokens after commit and publishes {@link SessionsRevoked}
+	 * in the transaction, so what hangs off a session (WebSocket connections, push devices) ends
+	 * with it.
+	 */
+	private void revokedFamilies(UUID userId, List<UUID> families) {
+		denyAfterCommit(families);
+		if (!families.isEmpty()) {
+			this.events.publishEvent(new SessionsRevoked(userId, families));
+		}
 	}
 
 	private void denyAfterCommit(List<UUID> families) {

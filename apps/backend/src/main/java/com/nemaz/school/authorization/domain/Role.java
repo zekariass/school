@@ -52,6 +52,11 @@ public class Role {
 		return this.description;
 	}
 
+	/** The name per language code (empty when none). */
+	public Map<String, String> names() {
+		return (this.nameI18n != null) ? Map.copyOf(this.nameI18n) : Map.of();
+	}
+
 	/** The name in {@code locale}'s language, else English, else the code. */
 	public String name(Locale locale) {
 		if (this.nameI18n == null) {

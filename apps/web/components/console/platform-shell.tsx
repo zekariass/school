@@ -1,5 +1,6 @@
 import { Brand } from "@/components/brand";
 import { HeaderControls } from "@/components/header-controls";
+import { RealtimeMount } from "@/components/notifications/realtime-mount";
 import { ConsoleProvider } from "./console-context";
 import { PlatformNav } from "./platform-nav";
 
@@ -16,6 +17,7 @@ export function PlatformShell({
 }) {
   return (
     <ConsoleProvider permissions={permissions}>
+      <RealtimeMount />
       <div className="flex min-h-dvh">
         <a
           href="#main"

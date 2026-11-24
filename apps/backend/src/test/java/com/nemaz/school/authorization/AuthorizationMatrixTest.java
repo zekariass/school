@@ -294,6 +294,38 @@ class AuthorizationMatrixTest {
 				(f) -> PLATFORM + "/organizations/" + f.organization() + "/logo", null,
 				allow(200, PLATFORM_ADMIN, COUNTRY_ADMIN_ET)));
 
+		// --- notifications, preferences, push devices and real-time tickets: any signed-in user, own data only
+		cases.add(new Case("GET notifications", HttpMethod.GET, (f) -> "/api/v1/notifications?limit=5", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET unread notification count", HttpMethod.GET, (f) -> "/api/v1/notifications/unread-count",
+				null, allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("POST mark a (somebody else's) notification read", HttpMethod.POST,
+				(f) -> "/api/v1/notifications/" + UUID.randomUUID() + "/read", null, allow(404, EVERY_ACTIVE_PERSONA), 404));
+		cases.add(new Case("POST mark all notifications read", HttpMethod.POST, (f) -> "/api/v1/notifications/read-all",
+				null, allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("POST archive a (somebody else's) notification", HttpMethod.POST,
+				(f) -> "/api/v1/notifications/" + UUID.randomUUID() + "/archive", null, allow(404, EVERY_ACTIVE_PERSONA),
+				404));
+		cases.add(new Case("POST test notification", HttpMethod.POST, (f) -> "/api/v1/notifications/test", null,
+				allow(200, PLATFORM_ADMIN)));
+		cases.add(new Case("GET notification preferences", HttpMethod.GET, (f) -> "/api/v1/me/notification-preferences",
+				null, allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("PUT notification preferences", HttpMethod.PUT, (f) -> "/api/v1/me/notification-preferences",
+				(f) -> Map.of("changes", List.of(Map.of("typeCode", "NEW_POST", "channel", "PUSH", "enabled", true))),
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET notification settings", HttpMethod.GET, (f) -> "/api/v1/me/notification-settings", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("PUT notification settings", HttpMethod.PUT, (f) -> "/api/v1/me/notification-settings",
+				(f) -> Map.of("quietHoursStart", "22:00", "quietHoursEnd", "06:00"), allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("POST push device", HttpMethod.POST, (f) -> "/api/v1/me/push-devices",
+				(f) -> Map.of("platform", "ANDROID", "provider", "EXPO", "token",
+						"ExponentPushToken[" + Ids.newId().toString().replace("-", "") + "]"),
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("DELETE a (somebody else's) push device", HttpMethod.DELETE,
+				(f) -> "/api/v1/me/push-devices/" + UUID.randomUUID(), null, allow(404, EVERY_ACTIVE_PERSONA), 404));
+		cases.add(new Case("POST realtime ticket", HttpMethod.POST, (f) -> "/api/v1/realtime/tickets", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+
 		// --- audit log: platform only
 		cases.add(new Case("GET audit logs", HttpMethod.GET, (f) -> PLATFORM + "/audit-logs?limit=5", null,
 				allow(200, PLATFORM_ADMIN)));

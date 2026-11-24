@@ -360,6 +360,138 @@
         "tags" : [ "me" ]
       }
     },
+    "/api/v1/me/notification-preferences" : {
+      "get" : {
+        "operationId" : "getNotificationPreferences",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Preferences"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Every notification type by category with its channels: enabled (stored choice, else the type's default) and locked (the user cannot change it)",
+        "tags" : [ "notifications" ]
+      },
+      "put" : {
+        "operationId" : "updateNotificationPreferences",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdatePreferencesRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Preferences"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Switch PUSH on or off per type; locked types and IN_APP cannot be switched off (400 notification.preference_locked)",
+        "tags" : [ "notifications" ]
+      }
+    },
+    "/api/v1/me/notification-settings" : {
+      "get" : {
+        "operationId" : "getNotificationSettings",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SettingsResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Quiet hours (in my timezone) and digest mode",
+        "tags" : [ "notifications" ]
+      },
+      "put" : {
+        "operationId" : "updateNotificationSettings",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateSettingsRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SettingsResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Set quiet hours (both times or neither); only digest mode OFF exists so far",
+        "tags" : [ "notifications" ]
+      }
+    },
     "/api/v1/me/password" : {
       "put" : {
         "operationId" : "changeMyPassword",
@@ -390,6 +522,76 @@
         },
         "summary" : "Set or change the password; other sessions are signed out. A first password needs a recent sign-in",
         "tags" : [ "me" ]
+      }
+    },
+    "/api/v1/me/push-devices" : {
+      "post" : {
+        "operationId" : "registerPushDevice",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RegisterPushDeviceRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PushDeviceResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Register (or refresh) this device's push token for my current session; a token already registered to someone else moves to me",
+        "tags" : [ "notifications" ]
+      }
+    },
+    "/api/v1/me/push-devices/{id}" : {
+      "delete" : {
+        "operationId" : "deletePushDevice",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Stop pushes to one of my devices (idempotent)",
+        "tags" : [ "notifications" ]
       }
     },
     "/api/v1/media/policies" : {
@@ -639,6 +841,208 @@
         "security" : [ ],
         "summary" : "Service metadata and server time",
         "tags" : [ "system" ]
+      }
+    },
+    "/api/v1/notifications" : {
+      "get" : {
+        "operationId" : "listNotifications",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "in" : "query",
+          "name" : "unreadOnly",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageNotificationView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "My notifications, newest first (archived ones excluded)",
+        "tags" : [ "notifications" ]
+      }
+    },
+    "/api/v1/notifications/read-all" : {
+      "post" : {
+        "operationId" : "markAllNotificationsRead",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MarkedRead"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Mark every unread notification read",
+        "tags" : [ "notifications" ]
+      }
+    },
+    "/api/v1/notifications/test" : {
+      "post" : {
+        "operationId" : "sendTestNotification",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TestNotificationResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Send myself a test notification (platform administrators): inbox, real-time and push",
+        "tags" : [ "notifications" ]
+      }
+    },
+    "/api/v1/notifications/unread-count" : {
+      "get" : {
+        "operationId" : "getUnreadNotificationCount",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UnreadCount"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "How many unread notifications I have",
+        "tags" : [ "notifications" ]
+      }
+    },
+    "/api/v1/notifications/{id}/archive" : {
+      "post" : {
+        "operationId" : "archiveNotification",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Remove a notification from the inbox (idempotent)",
+        "tags" : [ "notifications" ]
+      }
+    },
+    "/api/v1/notifications/{id}/read" : {
+      "post" : {
+        "operationId" : "markNotificationRead",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Mark one notification read (idempotent)",
+        "tags" : [ "notifications" ]
       }
     },
     "/api/v1/platform/audit-logs" : {
@@ -2296,6 +2700,35 @@
         "tags" : [ "platform-users" ]
       }
     },
+    "/api/v1/realtime/tickets" : {
+      "post" : {
+        "operationId" : "createRealtimeTicket",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TicketResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A single-use ticket (60 seconds) to open the WebSocket at /ws from a browser, sent as the STOMP CONNECT header 'ticket'",
+        "tags" : [ "realtime" ]
+      }
+    },
     "/api/v1/reference/countries" : {
       "get" : {
         "operationId" : "listCountries",
@@ -2619,6 +3052,24 @@
         },
         "required" : [ "createdAt", "id", "name", "schoolId", "status", "updatedAt", "version" ]
       },
+      "CategoryView" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "types" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TypeView"
+            }
+          }
+        },
+        "required" : [ "code", "label", "types" ]
+      },
       "ChangePasswordRequest" : {
         "type" : "object",
         "properties" : {
@@ -2634,6 +3085,22 @@
           }
         },
         "required" : [ "newPassword" ]
+      },
+      "ChannelView" : {
+        "type" : "object",
+        "properties" : {
+          "channel" : {
+            "type" : "string",
+            "enum" : [ "IN_APP", "PUSH" ]
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "locked" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "channel", "enabled", "locked" ]
       },
       "ContextRef" : {
         "type" : "object",
@@ -3018,6 +3485,22 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageNotificationView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageOrganizationResponse" : {
         "type" : "object",
         "properties" : {
@@ -3178,6 +3661,16 @@
           }
         },
         "required" : [ "code", "direction", "name", "nativeName" ]
+      },
+      "MarkedRead" : {
+        "type" : "object",
+        "properties" : {
+          "updated" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "updated" ]
       },
       "MeResponse" : {
         "type" : "object",
@@ -3374,6 +3867,53 @@
         },
         "required" : [ "apiVersion", "buildVersion", "serverTime", "service", "supportedLocales" ]
       },
+      "NotificationView" : {
+        "type" : "object",
+        "properties" : {
+          "body" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "data" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "Routing data; 'path' is a relative in-app path"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "priority" : {
+            "type" : "string",
+            "enum" : [ "NORMAL", "URGENT" ]
+          },
+          "readAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "sourceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "sourceType" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "typeCode" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "createdAt", "data", "id", "priority", "title", "typeCode" ]
+      },
       "OrganizationResponse" : {
         "type" : "object",
         "properties" : {
@@ -3520,6 +4060,37 @@
         },
         "required" : [ "purposes" ]
       },
+      "PreferenceChange" : {
+        "type" : "object",
+        "properties" : {
+          "channel" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "typeCode" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "channel", "enabled", "typeCode" ]
+      },
+      "Preferences" : {
+        "type" : "object",
+        "properties" : {
+          "categories" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CategoryView"
+            }
+          }
+        },
+        "required" : [ "categories" ]
+      },
       "ProblemDetail" : {
         "type" : "object",
         "description" : "RFC 9457 problem details returned by every failing endpoint.",
@@ -3596,6 +4167,41 @@
         },
         "required" : [ "contextTypes", "maxBytesByMimeType", "purpose" ]
       },
+      "PushDeviceResponse" : {
+        "type" : "object",
+        "properties" : {
+          "appVersion" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "deviceModel" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lastSeenAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "locale" : {
+            "type" : "string"
+          },
+          "platform" : {
+            "type" : "string",
+            "enum" : [ "IOS", "ANDROID", "WEB" ]
+          },
+          "provider" : {
+            "type" : "string",
+            "enum" : [ "EXPO", "FCM", "APNS", "WEBPUSH" ]
+          }
+        },
+        "required" : [ "createdAt", "id", "platform", "provider" ]
+      },
       "PutFeatureOverrideRequest" : {
         "type" : "object",
         "properties" : {
@@ -3645,6 +4251,40 @@
           }
         },
         "required" : [ "refreshToken" ]
+      },
+      "RegisterPushDeviceRequest" : {
+        "type" : "object",
+        "properties" : {
+          "appVersion" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "deviceModel" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "locale" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "platform" : {
+            "type" : "string",
+            "enum" : [ "IOS", "ANDROID", "WEB" ]
+          },
+          "provider" : {
+            "type" : "string",
+            "enum" : [ "EXPO", "FCM", "APNS", "WEBPUSH" ]
+          },
+          "token" : {
+            "type" : "string",
+            "maxLength" : 4096,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "platform", "provider", "token" ]
       },
       "RoleAssignmentResponse" : {
         "type" : "object",
@@ -4061,6 +4701,25 @@
         },
         "required" : [ "key", "module", "source", "value" ]
       },
+      "SettingsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "digestMode" : {
+            "type" : "string"
+          },
+          "quietHoursEnd" : {
+            "type" : "string"
+          },
+          "quietHoursStart" : {
+            "type" : "string"
+          },
+          "timezone" : {
+            "type" : "string",
+            "description" : "The timezone quiet hours are evaluated in"
+          }
+        },
+        "required" : [ "digestMode", "timezone" ]
+      },
       "SubscriptionResponse" : {
         "type" : "object",
         "properties" : {
@@ -4098,6 +4757,30 @@
         },
         "required" : [ "createdAt", "id", "planCode", "schoolId", "status" ]
       },
+      "TestNotificationResponse" : {
+        "type" : "object",
+        "properties" : {
+          "notificationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "notificationId" ]
+      },
+      "TicketResponse" : {
+        "type" : "object",
+        "properties" : {
+          "expiresIn" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Seconds the ticket stays valid"
+          },
+          "ticket" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "expiresIn", "ticket" ]
+      },
       "TokenResponse" : {
         "type" : "object",
         "properties" : {
@@ -4124,6 +4807,40 @@
           }
         },
         "required" : [ "accessToken", "accessTokenExpiresIn", "refreshToken", "refreshTokenExpiresIn", "tokenType" ]
+      },
+      "TypeView" : {
+        "type" : "object",
+        "properties" : {
+          "canBeUrgent" : {
+            "type" : "boolean"
+          },
+          "channels" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ChannelView"
+            }
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "userCanDisable" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "canBeUrgent", "channels", "code", "label", "userCanDisable" ]
+      },
+      "UnreadCount" : {
+        "type" : "object",
+        "properties" : {
+          "count" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "count" ]
       },
       "UpdateCampusRequest" : {
         "type" : "object",
@@ -4193,6 +4910,20 @@
         },
         "required" : [ "name", "status" ]
       },
+      "UpdatePreferencesRequest" : {
+        "type" : "object",
+        "properties" : {
+          "changes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PreferenceChange"
+            },
+            "maxItems" : 200,
+            "minItems" : 1
+          }
+        },
+        "required" : [ "changes" ]
+      },
       "UpdateSchoolStatusRequest" : {
         "type" : "object",
         "properties" : {
@@ -4202,6 +4933,26 @@
           }
         },
         "required" : [ "status" ]
+      },
+      "UpdateSettingsRequest" : {
+        "type" : "object",
+        "properties" : {
+          "digestMode" : {
+            "type" : "string",
+            "enum" : [ "OFF" ],
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "quietHoursEnd" : {
+            "type" : "string",
+            "pattern" : "^([01]\\d|2[0-3]):[0-5]\\d$"
+          },
+          "quietHoursStart" : {
+            "type" : "string",
+            "description" : "HH:mm in my timezone, or absent for no quiet hours",
+            "pattern" : "^([01]\\d|2[0-3]):[0-5]\\d$"
+          }
+        }
       },
       "UploadRequestBody" : {
         "type" : "object",

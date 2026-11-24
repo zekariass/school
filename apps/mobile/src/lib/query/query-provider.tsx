@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import type { ReactNode } from 'react';
 
 import { shouldPersistQuery } from '@/lib/media/url-cache';
+import { isPersistableNotificationQuery } from '@/lib/notifications/keys';
 
 import { QUERY_CACHE_MAX_AGE_MS, queryClient, queryPersister } from './query-client';
 
@@ -19,9 +20,13 @@ export function AppQueryProvider({ children }: { children: ReactNode }) {
         persister: queryPersister,
         maxAge: QUERY_CACHE_MAX_AGE_MS,
         buster: Constants.expoConfig?.version ?? '0',
-        // Signed media links are dead after a restart: keep them out of the persisted cache.
+        // Signed media links are dead after a restart, and notification texts and counts are cheap to
+        // refetch and describe children's school life: keep both out of the persisted cache.
         dehydrateOptions: {
-          shouldDehydrateQuery: (query) => defaultShouldDehydrateQuery(query) && shouldPersistQuery(query.queryKey),
+          shouldDehydrateQuery: (query) =>
+            defaultShouldDehydrateQuery(query) &&
+            shouldPersistQuery(query.queryKey) &&
+            isPersistableNotificationQuery(query.queryKey),
         },
       }}>
       {children}

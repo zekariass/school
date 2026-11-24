@@ -16,7 +16,8 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * Full-context integration test against PostgreSQL 18 (Testcontainers). All classes using
  * this annotation share one cached Spring context and one database container, so keep the
- * properties identical here rather than per test class.
+ * properties identical here rather than per test class. The server listens on a random port
+ * (WebSocket tests connect to it; MockMvc still drives the HTTP tests).
  *
  * <p>
  * The "test" profile (application-test.yaml) supplies development secrets (ephemeral JWT key,
@@ -26,7 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@SpringBootTest(properties = {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
 		// OpenApiSpecTest reads /v3/api-docs
 		"springdoc.api-docs.enabled=true",
 		// scheduled jobs are invoked explicitly by tests, never in the background

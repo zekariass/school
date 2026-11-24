@@ -34,6 +34,11 @@ public class MutableClock extends Clock {
 		this.offset = this.offset.plus(duration);
 	}
 
+	/** Moves the clock to {@code target} (time keeps running from there). */
+	public void moveTo(Instant target) {
+		this.offset = Duration.between(Instant.now(), target);
+	}
+
 	public void reset() {
 		this.offset = Duration.ZERO;
 	}

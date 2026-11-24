@@ -37,6 +37,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * <li>Sign-in, refresh and logout are public: they authenticate with a code, a password or
  * a refresh token instead. Bearer headers are ignored on them, so a stale access token
  * cannot block a refresh.</li>
+ * <li>The WebSocket handshake at {@code /ws} is open at HTTP level: the real-time gateway
+ * authenticates the STOMP CONNECT frame (bearer token or single-use ticket) and checks the
+ * Origin header against {@code school.cors.allowed-origins}.</li>
  * <li>Method security ({@code @PreAuthorize}) checks permissions per endpoint, usually through
  * the {@code @authz} bean (scope-aware).</li>
  * <li>CSRF protection is off: no cookies are read, and the web app's BFF adds an Origin check
@@ -69,6 +72,8 @@ public class SecurityConfig {
 			.authorizeHttpRequests((auth) -> {
 				auth.requestMatchers(HttpMethod.GET, "/api/v1/meta").permitAll();
 				auth.requestMatchers(HttpMethod.POST, PUBLIC_AUTH_ENDPOINTS).permitAll();
+				// WebSocket handshake: the credential is checked at STOMP CONNECT (realtime module)
+				auth.requestMatchers(HttpMethod.GET, "/ws", "/ws/**").permitAll();
 				auth.requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll();
 				if (props.security().publicApiDocs()) {
 					auth.requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**")

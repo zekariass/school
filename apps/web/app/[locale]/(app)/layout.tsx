@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { RealtimeMount } from "@/components/notifications/realtime-mount";
 import { Skeleton } from "@/components/ui/skeleton";
 import { requireSession } from "@/lib/server/dal";
 
@@ -17,7 +18,13 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
 
 async function SessionGate({ children }: { children: React.ReactNode }) {
   await requireSession();
-  return children;
+  return (
+    <>
+      {/* live notifications for everything signed-in under (app) */}
+      <RealtimeMount />
+      {children}
+    </>
+  );
 }
 
 function PageSkeleton() {

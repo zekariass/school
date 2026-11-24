@@ -129,6 +129,10 @@ npm run dev --workspace=school-web
   origin); `proxy` streams them through `PUT /api/bff/uploads/{mediaId}` instead, for buckets
   that cannot allow the origin. In proxy mode set `UPLOAD_PROXY_ORIGINS` (server-only,
   comma-separated storage origins; defaults to `http://localhost:8343` outside production).
+- `NEXT_PUBLIC_REALTIME_URL` (build-time, default `ws://localhost:8180/ws`): the API's WebSocket
+  gateway for live notifications. Browsers connect to it directly with a single-use ticket from
+  `POST /api/bff/api/v1/realtime/tickets`; deployed it is `wss://<api host>/ws` and the web origin
+  must be in the API's `CORS_ALLOWED_ORIGINS`.
 - Sessions live in httpOnly cookies (`sch_at`, `sch_rt`). `proxy.ts` renews
   the access token before it expires; with several web instances use sticky
   routing (see the M1c note in `docs/Implementation_Plan.md`).
@@ -195,6 +199,8 @@ Deployed environments configure, besides the database:
 | `SCHOOL_AUTH_OTP_PEPPER` | **Required.** HMAC key (≥ 32 characters) of stored one-time-code hashes. Secret; changing it invalidates codes in flight only. |
 | `SCHOOL_AUTH_JWT_ISSUER` / `SCHOOL_AUTH_JWT_AUDIENCE` | Token `iss` / `aud` (default `school-api` / `school-apps`) |
 | `SCHOOL_SMS_PROVIDER` | **Required.** SMS provider; only `console` (log output) exists yet, which is refused unless `SCHOOL_SMS_ALLOW_CONSOLE=true` (staging only, never production) |
+| `SCHOOL_PUSH_PROVIDER` | **Required.** Push provider: `expo` (Expo push service, `https://exp.host`) or `log` (writes a masked line per push; refused outside local/test unless `SCHOOL_PUSH_ALLOW_LOG=true`). |
+| `EXPO_ACCESS_TOKEN` | Optional bearer token for the Expo push API (enhanced push security). Secret. |
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | SMTP for email sign-in codes; without a host, emails are dropped with a warning. `SCHOOL_MAIL_FROM` sets the sender |
 | `SCHOOL_BOOTSTRAP_ADMIN_PHONE` / `SCHOOL_BOOTSTRAP_ADMIN_EMAIL` / `SCHOOL_BOOTSTRAP_ADMIN_NAME` | First platform administrator, created at startup only while no active platform administrator exists |
 | `SCHOOL_STORAGE_ENDPOINT` | **Required.** S3 API endpoint the backend uses (R2: `https://<account>.r2.cloudflarestorage.com`). |
@@ -226,6 +232,23 @@ SCHOOL_STORAGE_PUBLIC_ENDPOINT=http://192.168.1.20:8343 npm run dev -- --filter=
 needs `http://10.0.2.2:8343`.) PDF previews render text with PDFBox, so a stripped-down
 backend base image without `fontconfig` can make them fail; the default Temurin image has it.
 
+### Notifications and real-time
+
+`NotificationService.notify(...)` (Java API of the `notifications` module) writes one inbox row per
+recipient in the recipient's language, then, after commit, pushes the item to their open apps over
+the WebSocket gateway and, where the user's preference allows PUSH, to their push devices
+(quiet hours are held back unless the notification is URGENT and its type may be urgent). Devices
+are registered with `POST /api/v1/me/push-devices`; they stop receiving pushes when their session
+is signed out. Locally `SCHOOL_PUSH_PROVIDER` defaults to `log` (pushes appear in the backend log);
+set `SCHOOL_PUSH_PROVIDER=expo` to send real ones (needs an EAS project id in the mobile app).
+
+The gateway is STOMP over a plain WebSocket at `ws://localhost:8180/ws` (`wss://<api host>/ws`
+deployed; `CORS_ALLOWED_ORIGINS` is also its allowed-origin list). Apps connect with
+`Authorization: Bearer <access token>` (mobile) or a single-use `ticket` from
+`POST /api/v1/realtime/tickets` (browsers), then subscribe to `/user/queue/notifications`. Behind a
+load balancer the WebSocket path needs upgrade support and idle timeouts above 30 seconds (the
+heartbeat is 10 seconds); instances share events through Redis pub/sub (`rt:user-events`).
+
 **Changing the API:** after editing controllers or DTOs, run
 `npm run openapi:export -w school-backend` (writes
 `packages/api-client/openapi/openapi.json`) and then `npm run codegen`
@@ -249,6 +272,7 @@ docker run --rm -p 8080:8080 \
   -e SCHOOL_AUTH_JWT_KEYS="$(npm run -s jwk:generate -w school-backend)" \
   -e SCHOOL_AUTH_OTP_PEPPER=change-me-to-a-long-random-secret-0123456789 \
   -e SCHOOL_SMS_PROVIDER=console -e SCHOOL_SMS_ALLOW_CONSOLE=true \
+  -e SCHOOL_PUSH_PROVIDER=log -e SCHOOL_PUSH_ALLOW_LOG=true \
   school-backend:local
 
 # Web: Next.js standalone server on Node 26 (build context: repo root)
@@ -260,7 +284,7 @@ docker run --rm -p 3000:3000 \
 
 | Image | Port | Required env | Optional env |
 |---|---|---|---|
-| `school-backend` | 8080 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SCHOOL_AUTH_JWT_KEYS`, `SCHOOL_AUTH_OTP_PEPPER`, `SCHOOL_SMS_PROVIDER` | the variables in [Backend configuration](#backend-configuration), `JAVA_TOOL_OPTIONS` |
+| `school-backend` | 8080 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SCHOOL_AUTH_JWT_KEYS`, `SCHOOL_AUTH_OTP_PEPPER`, `SCHOOL_SMS_PROVIDER`, `SCHOOL_PUSH_PROVIDER` | the variables in [Backend configuration](#backend-configuration), `JAVA_TOOL_OPTIONS` |
 | `school-web` | 3000 | `API_ORIGIN` (read at request time) | `PORT`, `HOSTNAME` |
 
 Both run as a non-root user. The Postgres started by

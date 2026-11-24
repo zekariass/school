@@ -69,6 +69,13 @@ school:
     allow-console: ${SCHOOL_SMS_ALLOW_CONSOLE:false}
   mail:
     from: ${SCHOOL_MAIL_FROM:School <no-reply@school.local>}
+  push:
+    # expo | log. Required, no default: a deploy without it fails at startup. "log" only writes a masked line
+    # per push and is refused outside local/test unless allow-log. EXPO_ACCESS_TOKEN is optional.
+    provider: ${SCHOOL_PUSH_PROVIDER:}
+    allow-log: ${SCHOOL_PUSH_ALLOW_LOG:false}
+    expo:
+      access-token: ${EXPO_ACCESS_TOKEN:}
   bootstrap:
     admin:
       # First platform administrator, created at startup when none exists (see README).

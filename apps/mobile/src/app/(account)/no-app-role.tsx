@@ -1,6 +1,8 @@
 import { router } from 'expo-router';
 import { useTranslations } from 'use-intl';
 
+import { PushPromptCard } from '@/components/push-prompt-card';
+import { TabHeader } from '@/components/tab-header';
 import { Button, EmptyState, Screen, Text } from '@/components/ui';
 import { useSession } from '@/lib/session/session-provider';
 
@@ -15,6 +17,8 @@ export default function NoAppRoleScreen() {
 
   return (
     <Screen scroll edges={['top', 'bottom']} contentStyle={{ justifyContent: 'center' }}>
+      <TabHeader />
+      <PushPromptCard />
       <EmptyState
         icon={{ ios: admin ? 'desktopcomputer' : 'person.crop.circle.badge.questionmark', android: admin ? 'computer' : 'help' }}
         title={t(admin ? 'mobile.noAppRole.adminTitle' : 'mobile.noAppRole.noneTitle')}
