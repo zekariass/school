@@ -1,0 +1,36 @@
+# Root build context is used by apps/web/Dockerfile (docker build -f apps/web/Dockerfile .).
+# Keep every workspace package.json (turbo prune reads the whole workspace graph).
+
+# VCS / editor / OS
+.git
+.gitignore
+.idea
+.vscode
+.DS_Store
+**/*.log
+
+# Dependencies and build output (rebuilt inside the image)
+**/node_modules
+**/.next
+**/.turbo
+**/.expo
+**/dist
+**/web-build
+**/target
+**/*.tsbuildinfo
+out
+
+# Secrets and local env (apps/web/.env.example is not needed by the build)
+**/.env
+**/.env.*
+
+# Not part of the web image
+docs
+infra
+.github
+apps/mobile/*
+!apps/mobile/package.json
+apps/backend/*
+!apps/backend/package.json
+**/Dockerfile
+**/.dockerignore
