@@ -175,23 +175,26 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 3. Wire up the generated client, TanStack Query (with persistence for low-data), design tokens and i18n.
 4. Set up the EAS project with `development`, `preview` and `production` profiles. Native modules need a development build.
 
-### M0.7 CI/CD & environments
+### M0.7 CI & container images
 1. Set up GitHub Actions:
    - **backend:** JDK 25, `mvnw verify`, Testcontainers
    - **web:** lint, typecheck, build
    - **mobile:** lint, `tsc --noEmit`, `expo-doctor`
    - **contract:** an OpenAPI drift check
    - **migrations:** apply to an empty database, then to the previous release
-2. Create `dev`, `staging` and `prod` environments:
-   - managed Postgres 18
-   - container hosting for the backend
-   - web host for Next
-   - Cloudflare R2, CDN and WAF
-   - secrets in the platform secret store
-3. Write the deploy pipeline (main → staging, tag → prod) and the EAS build and OTA update channels.
-4. Set up nightly backups and run a restore drill, documented in a runbook.
+2. Build container images for the backend and web, and publish them to GHCR from `main` and version tags.
+3. Protect `main`: merging requires a PR and green `js`, `backend` and `migrations` checks.
 
-**Phase 0 exit:** a health endpoint is deployed to staging. Web and mobile apps sign into a stub endpoint through the generated client. CI is green.
+**As built (24 Nov 2026):**
+- **`ci.yml` jobs:**
+  - `js`: turbo lint/typecheck/test/build, `codegen:check` and `expo-doctor`
+  - `backend`: `./mvnw verify` with Testcontainers; it also covers the OpenAPI drift check through `OpenApiSpecTest`
+  - `migrations`: applied migrations stay immutable and new ones are in order, enforced by `scripts/ci/check-migrations-immutable.sh`. Migrations are also applied to an empty database in every backend test run.
+- **`images.yml`:** builds both images on PRs and publishes them to public GHCR packages on `main` and on `v*.*.*` tags.
+- **Dependabot** covers npm, maven, actions and docker.
+- **Deployment environments moved to M1.5** (decided 24 Nov 2026): hosting isn't needed until there is something to show and test outside a laptop.
+
+**Phase 0 exit:** CI is green on `main`. Web and mobile apps call the API through the generated client. Images are published. The staging deployment follows in M1.5.
 
 ---
 
@@ -236,6 +239,29 @@ Tables: DB §4.1–4.3, §4.19, settings and features in §4.2, plans in §4.20.
 9. **Mobile:** sign-in screens, role routing, session persistence.
 
 **Exit:** a platform admin creates a school, and a school admin signs in on web and mobile. The authorization harness runs in CI.
+
+### M1.5 Staging environment (≈ 1–2 weeks, moved from M0.7)
+Do this once sign-in works (end of M1), so there is something worth showing and real-environment issues surface early: HTTPS, `Secure` cookies, CORS and domains.
+
+Prerequisites (owner decisions):
+- hosting provider
+- region, checked with counsel against Ethiopia's Personal Data Protection Proclamation No. 1321/2024 before any real personal data is stored
+- domain name
+
+Steps:
+1. Create the `staging` environment, then repeat it for `prod` before the pilot (M15):
+   - managed Postgres 18
+   - container hosting for the backend and web images from GHCR
+   - Redis
+   - Cloudflare in front (DNS, TLS, CDN, WAF)
+   - Cloudflare R2 for media
+   - secrets in the platform's secret store or GitHub environments
+2. Deploy pipeline: `main` deploys to staging automatically; a `v*.*.*` tag deploys to prod, gated by GitHub environment approval. Migrations run once per deploy, before the new version takes traffic.
+3. Mobile: EAS build profiles and OTA update channels pointing at staging.
+4. Error tracking (Sentry or an equivalent), uptime checks, log shipping, plus the OTLP endpoints for traces and metrics.
+5. Nightly backups, a restore drill and a runbook.
+
+**Exit:** staging URL is live, deploys are automatic from `main`, and a restore drill has been documented.
 
 ### M2 Media, notifications & real-time infrastructure (≈ 3 weeks, parallel with late M1)
 Tables: DB §4.9 and §4.13.
@@ -683,7 +709,7 @@ Scope: §117 and §129–§131. Tables: DB §4.29, plus `session_transcripts`. T
 
 | Decision | Needed by | Recommendation |
 |---|---|---|
-| Cloud and hosting region | M0.7 | Managed Postgres plus containers, in a region with low latency to Ethiopia. Cloudflare in front |
+| Cloud and hosting region | M1.5 | A managed platform (e.g. DigitalOcean App Platform + Managed Postgres, Render, Fly.io) for the pilot; region checked against Ethiopian data-protection law. Cloudflare in front |
 | SMS / OTP provider (Ethiopia) | M1 | Evaluate local aggregators on delivery rate and price. Keep it behind the adapter |
 | Push | M2 | FCM HTTP v1 (covers iOS through APNs) |
 | Machine translation (D5) | M8 | Run a blind quality test for am, om, ti and so on real school messages, then enable the winner with a flag |
