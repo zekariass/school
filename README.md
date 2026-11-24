@@ -108,6 +108,16 @@ Or run workspace scripts directly:
 npm run dev --workspace=school-web
 ```
 
+## Web configuration
+
+- `API_ORIGIN` (server-only) is the School API origin. It defaults to
+  `http://localhost:8180` outside production and is required in production
+  (see `apps/web/.env.example`). Browsers never call the API directly; they go
+  through the BFF at `/api/bff/api/v1/...`.
+- Local pages: http://localhost:3100/en (landing), `/en/sign-in`,
+  `/en/status` (live API check through the BFF). `/en/s/<school>` and
+  `/en/platform` redirect to sign-in until auth lands in M1.
+
 ## Backend configuration
 
 - Deployed environments supply `DB_URL`, `DB_USERNAME` and `DB_PASSWORD`.

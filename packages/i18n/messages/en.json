@@ -23,7 +23,12 @@
     "password": "Password",
     "sendCode": "Send code",
     "enterCode": "Enter the {length}-digit code we sent to {destination}",
-    "scanClassCode": "Scan your class code"
+    "scanClassCode": "Scan your class code",
+    "signInTitle": "Welcome back",
+    "signInSubtitle": "Enter your phone number and we'll send you a sign-in code.",
+    "phoneHint": "For example 0911 23 45 67",
+    "codeRequested": "We've asked for a sign-in code to be sent to {destination}.",
+    "requestFailed": "We couldn't send a code right now. Please try again."
   },
   "roles": {
     "teacher": "Teacher",
@@ -43,5 +48,68 @@
     "passwordTooShort": "Use at least {min} characters.",
     "passwordTooLong": "Use at most {max} characters.",
     "nameTooLong": "Use at most {max} characters."
+  },
+  "marketing": {
+    "headline": "A friendly home for your whole school",
+    "valueProposition": "Classes, teachers, students and parents, together in one place, in English and Amharic.",
+    "statusLink": "Service status"
+  },
+  "nav": {
+    "primary": "Main navigation",
+    "skipToContent": "Skip to content",
+    "dashboard": "Dashboard",
+    "classes": "Classes",
+    "students": "Students",
+    "teachers": "Teachers",
+    "messages": "Messages",
+    "calendar": "Calendar",
+    "settings": "Settings",
+    "home": "Home"
+  },
+  "locale": {
+    "label": "Language"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "calendar": {
+    "label": "Calendar display",
+    "gregorian": "Gregorian",
+    "ethiopian": "Ethiopian"
+  },
+  "dashboard": {
+    "welcomeTitle": "Welcome to your school workspace",
+    "welcomeBody": "You're viewing {school}. This is where your day at school will come together.",
+    "emptyTitle": "Nothing here yet",
+    "emptyBody": "Classes, students and announcements will show up here once they've been set up."
+  },
+  "platform": {
+    "title": "Platform administration",
+    "body": "Tools for managing schools across the platform will appear here."
+  },
+  "status": {
+    "title": "Service status",
+    "description": "Live details from the School API, fetched from your browser.",
+    "service": "Service",
+    "apiVersion": "API version",
+    "buildVersion": "Build version",
+    "serverTime": "Server time",
+    "clockSkew": "Clock difference",
+    "clockSkewValue": "{seconds} s (server minus this device)",
+    "errorTitle": "Can't reach the service",
+    "errorBody": "We couldn't load the service status. Check your connection and try again.",
+    "errorCode": "Error code: {code}"
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "body": "An unexpected error occurred. You can try again, or head back home.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you're looking for doesn't exist or has moved.",
+    "goHome": "Back to home",
+    "bffNotFound": "Not found",
+    "bffUnavailable": "The service is temporarily unavailable. Please try again."
   }
 }

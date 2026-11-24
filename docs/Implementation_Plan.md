@@ -143,6 +143,14 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 4. Set up i18n routing with the `packages/i18n` catalogs (next-intl or an equivalent that supports Next 16), RTL-safe layout primitives, and an Ethiopian calendar display toggle.
 5. Add TanStack Query with the generated client, an error boundary, and toast and empty-state components.
 
+**As built (24 Nov 2026):**
+- **Locale in the URL path** (`/en/…`, `/am/…`) under a single root layout `app/[locale]/layout.tsx`, using next-intl 4 with `next/root-params`. This is the only setup Next 16 can prerender under `cacheComponents`; a cookie-only locale would make every page dynamic. `proxy.ts` (Next 16's renamed middleware) negotiates the locale, then runs an optimistic auth gate for `/{locale}/s/**` and `/{locale}/platform/**`. The API remains the authority.
+- **School workspace:** lives at `/{locale}/s/[school]`, so school slugs can never collide with pages such as `/sign-in`.
+- **BFF:** `app/api/bff/[...path]` forwards only `api/v1/*`, with header allowlists in both directions and the bearer token taken from the httpOnly `sch_at` cookie. Token issuance and refresh arrive in M1, which should also add an Origin check on mutating BFF requests (defense in depth beyond `SameSite=Lax`).
+- **UI kit:** shadcn/ui (Radix, new-york) styled by `@school/design-tokens`. The theme toggle is hand-rolled (next-themes has open `cacheComponents` bugs). A calendar-display toggle switches between Gregorian and Ethiopian dates.
+- **Status page:** `/{locale}/status` calls the API from the browser through the BFF and shows clock skew.
+- **Local setup:** the web app runs on port 3100 and reads the API origin from `API_ORIGIN` (default `http://localhost:8180` outside production).
+
 ### M0.5 Design system & brand (designer, parallel)
 1. Build a token set inspired by the benchmark: bright primary, soft secondary palette, 12–20 px rounded radii, generous touch targets of 44 px or more, playful but legible typography in both Ethiopic and Latin scripts.
 2. Create **original** student avatar characters and an avatar builder (`student_profiles.avatar_config`).

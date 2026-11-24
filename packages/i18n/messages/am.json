@@ -23,7 +23,12 @@
     "password": "የይለፍ ቃል",
     "sendCode": "ኮድ ላክ",
     "enterCode": "ወደ {destination} የላክነውን ባለ {length} አሃዝ ኮድ ያስገቡ",
-    "scanClassCode": "የክፍልዎን ኮድ ይቃኙ"
+    "scanClassCode": "የክፍልዎን ኮድ ይቃኙ",
+    "signInTitle": "እንኳን በደህና መጡ",
+    "signInSubtitle": "ስልክ ቁጥርዎን ያስገቡ፤ የመግቢያ ኮድ እንልክልዎታለን።",
+    "phoneHint": "ለምሳሌ 0911 23 45 67",
+    "codeRequested": "የመግቢያ ኮድ ወደ {destination} እንዲላክ ጠይቀናል።",
+    "requestFailed": "አሁን ኮድ መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
   },
   "roles": {
     "teacher": "መምህር",
@@ -43,5 +48,68 @@
     "passwordTooShort": "ቢያንስ {min} ቁምፊዎች ይጠቀሙ።",
     "passwordTooLong": "ቢበዛ {max} ቁምፊዎች ይጠቀሙ።",
     "nameTooLong": "ቢበዛ {max} ቁምፊዎች ይጠቀሙ።"
+  },
+  "marketing": {
+    "headline": "ለመላው ትምህርት ቤትዎ ወዳጃዊ መኖሪያ",
+    "valueProposition": "ክፍሎች፣ መምህራን፣ ተማሪዎችና ወላጆች በአንድ ቦታ፣ በአማርኛና በእንግሊዝኛ።",
+    "statusLink": "የአገልግሎት ሁኔታ"
+  },
+  "nav": {
+    "primary": "ዋና ዝርዝር",
+    "skipToContent": "ወደ ይዘቱ ዝለል",
+    "dashboard": "ዳሽቦርድ",
+    "classes": "ክፍሎች",
+    "students": "ተማሪዎች",
+    "teachers": "መምህራን",
+    "messages": "መልዕክቶች",
+    "calendar": "የቀን መቁጠሪያ",
+    "settings": "ቅንብሮች",
+    "home": "መነሻ"
+  },
+  "locale": {
+    "label": "ቋንቋ"
+  },
+  "theme": {
+    "label": "ገጽታ",
+    "light": "ብርሃን",
+    "dark": "ጨለማ",
+    "system": "የስርዓት"
+  },
+  "calendar": {
+    "label": "የቀን አቆጣጠር",
+    "gregorian": "ግሪጎሪያን",
+    "ethiopian": "ኢትዮጵያዊ"
+  },
+  "dashboard": {
+    "welcomeTitle": "ወደ ትምህርት ቤትዎ የስራ ቦታ እንኳን ደህና መጡ",
+    "welcomeBody": "{school}ን እያዩ ነው። በትምህርት ቤት የሚያሳልፉት ቀንዎ እዚህ ይሰባሰባል።",
+    "emptyTitle": "እስካሁን ምንም የለም",
+    "emptyBody": "ክፍሎች፣ ተማሪዎችና ማስታወቂያዎች ከተዘጋጁ በኋላ እዚህ ይታያሉ።"
+  },
+  "platform": {
+    "title": "የመድረክ አስተዳደር",
+    "body": "በመድረኩ ላይ ያሉ ትምህርት ቤቶችን ለማስተዳደር የሚያስችሉ መሳሪያዎች እዚህ ይታያሉ።"
+  },
+  "status": {
+    "title": "የአገልግሎት ሁኔታ",
+    "description": "ከትምህርት ቤት ኤፒአይ የተገኘ ወቅታዊ መረጃ፣ ከአሳሽዎ የተጠየቀ።",
+    "service": "አገልግሎት",
+    "apiVersion": "የኤፒአይ ስሪት",
+    "buildVersion": "የግንባታ ስሪት",
+    "serverTime": "የአገልጋይ ሰዓት",
+    "clockSkew": "የሰዓት ልዩነት",
+    "clockSkewValue": "{seconds} ሰከንድ (አገልጋይ ሲቀነስ ይህ መሳሪያ)",
+    "errorTitle": "አገልግሎቱን ማግኘት አልተቻለም",
+    "errorBody": "የአገልግሎቱን ሁኔታ መጫን አልተቻለም። ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
+    "errorCode": "የስህተት ኮድ፦ {code}"
+  },
+  "errors": {
+    "title": "የሆነ ችግር ተፈጥሯል",
+    "body": "ያልተጠበቀ ስህተት ተከስቷል። እንደገና መሞከር ወይም ወደ መነሻ መመለስ ይችላሉ።",
+    "notFoundTitle": "ገጹ አልተገኘም",
+    "notFoundBody": "የሚፈልጉት ገጽ የለም ወይም ተወስዷል።",
+    "goHome": "ወደ መነሻ ተመለስ",
+    "bffNotFound": "አልተገኘም",
+    "bffUnavailable": "አገልግሎቱ ለጊዜው አይገኝም። እባክዎ እንደገና ይሞክሩ።"
   }
 }
