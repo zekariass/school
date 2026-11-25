@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
  * {@link ClassAccess} in SQL: one predicate decides view access for single classes and for lists alike, so
  * the two can never disagree. Branches (any one grants): ACTIVE student; ACTIVE teacher; {@code class.manage}
  * over the class's school, campus, organization, country or the whole platform; contributed
- * {@link ClassAccessRule}s.
+ * {@link ClassAccessRule}s (view only: the roster predicate leaves them out).
  */
 @Component
 @Transactional(readOnly = true)
@@ -56,6 +56,19 @@ class DefaultClassAccess implements ClassAccess {
 			return false;
 		}
 		SqlFragment visible = visibleClasses(user, "c");
+		return this.jdbc.sql("select exists (select 1 from classes c where c.id = :ca_class and (" + visible.sql() + "))")
+			.param("ca_class", classId)
+			.params(visible.params())
+			.query(Boolean.class)
+			.single();
+	}
+
+	@Override
+	public boolean canViewRoster(CurrentUser user, UUID classId) {
+		if (user == null || classId == null) {
+			return false;
+		}
+		SqlFragment visible = rosterVisibleClasses(user, "c");
 		return this.jdbc.sql("select exists (select 1 from classes c where c.id = :ca_class and (" + visible.sql() + "))")
 			.param("ca_class", classId)
 			.params(visible.params())
@@ -123,6 +136,16 @@ class DefaultClassAccess implements ClassAccess {
 
 	@Override
 	public SqlFragment visibleClasses(CurrentUser user, String a) {
+		return predicate(user, a, true);
+	}
+
+	@Override
+	public SqlFragment rosterVisibleClasses(CurrentUser user, String a) {
+		return predicate(user, a, false);
+	}
+
+	/** Members and managers; plus the contributed rules when {@code withRules} (view, not roster). */
+	private SqlFragment predicate(CurrentUser user, String a, boolean withRules) {
 		if (user == null) {
 			return SqlFragment.never();
 		}
@@ -153,7 +176,7 @@ class DefaultClassAccess implements ClassAccess {
 			any.add(a + ".school_id in (select ca_s2.id from schools ca_s2 where ca_s2.country_code in (:ca_countries))");
 			params.put("ca_countries", managed.countryCodes());
 		}
-		for (ClassAccessRule rule : this.rules) {
+		for (ClassAccessRule rule : withRules ? this.rules : List.<ClassAccessRule>of()) {
 			rule.visibleClasses(user, a).ifPresent((fragment) -> {
 				any.add("(" + fragment.sql() + ")");
 				params.putAll(fragment.params());

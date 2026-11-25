@@ -52,7 +52,9 @@ import org.springframework.transaction.annotation.Transactional;
  * in one transaction, both classes locked.</li>
  * <li><b>Teachers:</b> the class's LEAD or a manager adds and removes teachers; any teacher may leave
  * herself unless she is the LEAD. The last LEAD cannot be removed (409 {@code class.last_lead}).</li>
- * <li><b>Privacy:</b> date of birth, gender and username are shown only to teachers of the class and holders of
+ * <li><b>Privacy:</b> the roster is shown only to the class's ACTIVE students and teachers and to managers
+ * ({@link ClassAccess#canViewRoster}); guardians of a student see the class and its teachers but get 404 for the
+ * roster. Date of birth, gender and username are shown only to teachers of the class and holders of
  * {@code school.students.manage}; everybody else who can see the roster gets name and avatar.</li>
  * <li>Rosters of archived classes cannot change.</li>
  * </ul>
@@ -99,7 +101,8 @@ public class ClassRosterService {
 	/** ACTIVE students ordered by name (at most {@value #MAX_ROSTER}: a class is small, so there is no paging). */
 	@Transactional(readOnly = true)
 	public List<RosterStudent> students(CurrentUser user, UUID schoolId, UUID classId) {
-		ClassRef ref = this.lookups.viewable(user, schoolId, classId);
+		// The roster check, not the view check: guardians may see the class but never the other children (M5).
+		ClassRef ref = this.lookups.rosterViewable(user, schoolId, classId);
 		boolean full = seesStudentDetails(user, ref);
 		List<StudentRow> rows = this.jdbc.sql("""
 				select student_id, joined_at from class_students where class_id = :c and status = 'ACTIVE'

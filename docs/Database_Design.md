@@ -631,6 +631,8 @@ create table invitations (
 ```
 Accepting a GUARDIAN_LINK invitation creates `student_guardians` with status PENDING. It becomes ACTIVE only after school verification, unless the school's setting `guardians.auto_verify_invite` allows the invite itself to count as verification.
 
+*As built (M5a, `V5_01`):* `guardian_profiles`, `student_guardians` and `invitations` exist now. `invitations` omits `course_id` (P3) and `import_job_id` (added by the M4 import module), replaces `destination`/`short_code` with `destination_e164`, `destination_email`, `code_hash` (HMAC with the `parent-code:` namespace) and adds `guardian_name`, `max_uses`, `use_count`, `revoked_at`, `revoked_by`; EXPIRED is derived from `expires_at`. `student_guardians` adds `requested_via` (INVITE_LINK|PARENT_CODE|ADMIN), `invitation_id`, `decided_by`/`decided_at`/`decision_note`, the std columns and one live primary guardian per student (partial unique index).
+
 *As built (M3a, `V3_02`, `V3_03`):* `guardian_profiles`, `student_guardians` and `invitations` are not created yet (M5); `tutor_profiles` waits for P4. `school_students` also has `unique (id, school_id)`. Enumerations carry CHECK constraints. Staff are provisioned directly (no `INVITED` rows yet). Managed students (`users.account_type = MANAGED`) have a `student_profiles` row (`avatar_config` is a jsonb object) and a `school_students` row per enrollment; API paths use the student's user id, and the latest live enrollment of the school is "the" enrollment.
 
 ### 4.5 Academic structure (P1)
@@ -1765,6 +1767,8 @@ create table data_subject_requests (             -- export / deletion (§131)
   -- + std
 );
 ```
+
+*As built (M5a, `V5_02`, `R__60_policies`):* `policy_documents` has exactly one of `country_code`/`school_id` and one document per (type, country) and (type, school); `policy_versions` gains `created_at` and the named unique constraint `ux_policy_versions_label`, versions are immutable once published (code). `consent_records.granted_by_user_id` is nullable with `granted_by_name` for paper consent from a guardian without an account (one is required), `student_guardian_id` names the guardian link of a decision, the table is append-only (a trigger refuses UPDATE). Seeded ET texts are draft placeholders pending legal review.
 
 ### 4.19 Audit & platform infrastructure (P1)
 

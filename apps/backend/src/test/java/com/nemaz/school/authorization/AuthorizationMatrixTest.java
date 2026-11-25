@@ -32,6 +32,12 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import static com.nemaz.school.support.Personas.Name.CAMPUS_ADMIN_A;
 import static com.nemaz.school.support.Personas.Name.COUNTRY_ADMIN_ET;
 import static com.nemaz.school.support.Personas.Name.COUNTRY_ADMIN_KE;
+import static com.nemaz.school.support.Personas.Name.GUARDIAN_A1;
+import static com.nemaz.school.support.Personas.Name.GUARDIAN_OF_A2;
+import static com.nemaz.school.support.Personas.Name.GUARDIAN_PENDING_A1;
+import static com.nemaz.school.support.Personas.Name.GUARDIAN_RESTRICTED_A1;
+import static com.nemaz.school.support.Personas.Name.GUARDIAN_REVOKED_A1;
+import static com.nemaz.school.support.Personas.Name.UNRELATED_ADULT;
 import static com.nemaz.school.support.Personas.Name.ORG_ADMIN;
 import static com.nemaz.school.support.Personas.Name.PLAIN_USER;
 import static com.nemaz.school.support.Personas.Name.STUDENT_A1;
@@ -89,7 +95,13 @@ class AuthorizationMatrixTest {
 
 	/** An endpoint call and who may make it. */
 	record Case(String name, HttpMethod method, Function<Fixture, String> url, Function<Fixture, Object> body,
-			Map<Name, Integer> allowed, int denied) {
+			Map<Name, Integer> allowed, int denied, int anonymous) {
+
+		/** Personas not listed are answered {@code denied}; anonymous callers (and the suspended user) 401. */
+		Case(String name, HttpMethod method, Function<Fixture, String> url, Function<Fixture, Object> body,
+				Map<Name, Integer> allowed, int denied) {
+			this(name, method, url, body, allowed, denied, 401);
+		}
 
 		/** Personas not listed are answered 403. */
 		Case(String name, HttpMethod method, Function<Fixture, String> url, Function<Fixture, Object> body,
@@ -109,7 +121,8 @@ class AuthorizationMatrixTest {
 
 	private static final Name[] EVERY_ACTIVE_PERSONA = { PLATFORM_ADMIN, COUNTRY_ADMIN_ET, COUNTRY_ADMIN_KE, ORG_ADMIN,
 			SCHOOL_ADMIN_A, SCHOOL_ADMIN_B, CAMPUS_ADMIN_A, PLAIN_USER, TEACHER_LEAD_A, TEACHER_SUBJECT_A,
-			TEACHER_OTHER_A, STUDENT_A1, STUDENT_A2, STUDENT_FORMER_A, STUDENT_B1 };
+			TEACHER_OTHER_A, STUDENT_A1, STUDENT_A2, STUDENT_FORMER_A, STUDENT_B1, GUARDIAN_A1, GUARDIAN_PENDING_A1,
+			GUARDIAN_RESTRICTED_A1, GUARDIAN_REVOKED_A1, GUARDIAN_OF_A2, UNRELATED_ADULT };
 
 	private static final Name[] READERS_OF_SCHOOL_A = { PLATFORM_ADMIN, COUNTRY_ADMIN_ET, ORG_ADMIN, SCHOOL_ADMIN_A,
 			CAMPUS_ADMIN_A };
@@ -451,17 +464,19 @@ class AuthorizationMatrixTest {
 		cases.add(school("POST class", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/classes",
 				(f) -> Map.of("name", "Matrix class"), 201, concat(classAdmins, SCHOOL_A_TEACHERS),
 				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		// M5: guardian A1 sees the class (metadata, teachers) through the link, never the roster
+		Name[] classMetadataViewers8A = concat(classViewers8A, new Name[] { GUARDIAN_A1 });
 		cases.add(school("GET class 8A", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A(), null,
-				200, classViewers8A));
+				200, classMetadataViewers8A));
 		cases.add(school("PATCH class 8A", HttpMethod.PATCH, (f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A(),
 				(f) -> Map.of("name", "8A"), 200, concat(classAdmins, new Name[] { TEACHER_LEAD_A }),
-				new Name[] { TEACHER_SUBJECT_A, STUDENT_A1 }));
+				new Name[] { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("POST archive class", HttpMethod.POST,
 				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/archive", null, 200,
-				concat(classAdmins, new Name[] { TEACHER_LEAD_A }), new Name[] { TEACHER_SUBJECT_A, STUDENT_A1 }));
+				concat(classAdmins, new Name[] { TEACHER_LEAD_A }), new Name[] { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("POST restore class", HttpMethod.POST,
 				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/restore", null, 200,
-				concat(classAdmins, new Name[] { TEACHER_LEAD_A }), new Name[] { TEACHER_SUBJECT_A, STUDENT_A1 }));
+				concat(classAdmins, new Name[] { TEACHER_LEAD_A }), new Name[] { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("DELETE empty class", HttpMethod.DELETE, (f) -> {
 			UUID id = Ids.newId();
 			this.jdbc.update("insert into classes (id, school_id, academic_year_id, name) values (?, ?, ?, 'Empty')", id,
@@ -476,44 +491,44 @@ class AuthorizationMatrixTest {
 		cases.add(school("POST class students", HttpMethod.POST,
 				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/students",
 				(f) -> Map.of("studentIds", List.of(this.personas.newStudent(f.schoolA(), "matrix-new"))), 200,
-				classTeachers, new Name[] { STUDENT_A1 }));
+				classTeachers, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("DELETE class student", HttpMethod.DELETE,
 				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/students/" + userOf(STUDENT_A1), null, 204,
-				classTeachers, new Name[] { STUDENT_A1 }));
+				classTeachers, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("POST move class student", HttpMethod.POST,
 				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/students/" + userOf(STUDENT_A1) + "/move",
 				(f) -> Map.of("toClassId", freshClassWithoutStudents(f)), 204, classTeachers,
-				new Name[] { STUDENT_A1 }));
+				new Name[] { STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("GET class teachers", HttpMethod.GET,
-				(f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A() + "/teachers", null, 200, classViewers8A));
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A() + "/teachers", null, 200, classMetadataViewers8A));
 		cases.add(school("POST class teacher", HttpMethod.POST,
 				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/teachers",
 				(f) -> Map.of("teacherId", this.personas.newTeacher(f.schoolA(), "matrix-co-teacher"), "role", "CO_TEACHER"),
 				200,
-				concat(classAdmins, new Name[] { TEACHER_LEAD_A }), new Name[] { TEACHER_SUBJECT_A, STUDENT_A1 }));
+				concat(classAdmins, new Name[] { TEACHER_LEAD_A }), new Name[] { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("DELETE class teacher (the subject teacher's own row)", HttpMethod.DELETE, (f) -> {
 			UUID id = freshClass(f);
 			UUID row = this.jdbc.queryForObject(
 					"select id from class_teachers where class_id = ? and role = 'SUBJECT_TEACHER'", UUID.class, id);
 			return SCHOOLS + f.schoolA() + "/classes/" + id + "/teachers/" + row;
-		}, null, 204, concat(classAdmins, teachingMembers), new Name[] { STUDENT_A1 }));
+		}, null, 204, concat(classAdmins, teachingMembers), new Name[] { STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("GET class groups", HttpMethod.GET,
 				(f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A() + "/groups", null, 200, classTeachers,
-				new Name[] { STUDENT_A1 }));
+				new Name[] { STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("POST class group", HttpMethod.POST,
 				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/groups",
 				(f) -> Map.of("name", "Group", "studentIds", List.of(userOf(STUDENT_A1))), 201, classTeachers,
-				new Name[] { STUDENT_A1 }));
+				new Name[] { STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("DELETE class group", HttpMethod.DELETE, (f) -> {
 			UUID id = freshClass(f);
 			UUID group = Ids.newId();
 			this.jdbc.update("insert into student_groups (id, class_id, school_id, name, created_by) values (?, ?, ?, 'G', ?)",
 					group, id, f.schoolA(), userOf(TEACHER_LEAD_A));
 			return SCHOOLS + f.schoolA() + "/classes/" + id + "/groups/" + group;
-		}, null, 204, classTeachers, new Name[] { STUDENT_A1 }));
+		}, null, 204, classTeachers, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("POST class login codes", HttpMethod.POST,
 				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/login-codes", (f) -> Map.of("type", "TEXT"),
-				200, classTeachers, new Name[] { STUDENT_A1 }));
+				200, classTeachers, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(school("DELETE class login code", HttpMethod.DELETE, (f) -> {
 			UUID id = freshClass(f);
 			UUID code = Ids.newId();
@@ -522,7 +537,7 @@ class AuthorizationMatrixTest {
 					values (?, ?, ?, ?, 'TEXT', ?, ?)""", code, userOf(STUDENT_A1), f.schoolA(), id, "matrix-" + code,
 					userOf(TEACHER_LEAD_A));
 			return SCHOOLS + f.schoolA() + "/classes/" + id + "/login-codes/" + code;
-		}, null, 204, classTeachers, new Name[] { STUDENT_A1 }));
+		}, null, 204, classTeachers, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
 		cases.add(new Case("GET my classes", HttpMethod.GET, (f) -> "/api/v1/me/classes", null,
 				allow(200, EVERY_ACTIVE_PERSONA)));
 
@@ -620,7 +635,7 @@ class AuthorizationMatrixTest {
 				concat(SCHOOL_A_MANAGERS, colleagues), SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
 		cases.add(school("GET student A1", HttpMethod.GET,
 				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1), null, 200,
-				concat(studentsOf8A, new Name[] { STUDENT_A1 })));
+				concat(studentsOf8A, new Name[] { STUDENT_A1, GUARDIAN_A1 })));
 		cases.add(school("PATCH student A1", HttpMethod.PATCH,
 				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1),
 				(f) -> Map.of("studentNumber", "M-" + Ids.newId()), 200, SCHOOL_A_MANAGERS,
@@ -642,7 +657,207 @@ class AuthorizationMatrixTest {
 		cases.add(school("POST revoke student login codes", HttpMethod.POST,
 				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/login-codes/revoke", null, 200,
 				studentsOf8A, new Name[] { STUDENT_A1 }));
+		cases.addAll(guardianCases());
 		return cases;
+	}
+
+	// ---- guardians and consent (M5a) ---------------------------------------------------------------
+
+	private static final Name[] SCHOOL_A_STUDENTS_AND_ADMIN_VISITORS = concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS);
+
+	/** Every active persona with a STANDARD account (not a school-managed student). */
+	private static final Name[] ADULTS = java.util.Arrays.stream(EVERY_ACTIVE_PERSONA)
+		.filter((n) -> !java.util.List.of(STUDENT_A1, STUDENT_A2, STUDENT_FORMER_A, STUDENT_B1).contains(n))
+		.toArray(Name[]::new);
+
+	List<Case> guardianCases() {
+		List<Case> cases = new ArrayList<>();
+		Name[] inviters = concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A });
+		Name[] verifiers = concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_LEAD_A });
+
+		// --- roster privacy: guardians see their child's classes and record, never the roster or other children
+		cases.add(school("GET class 7B", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class7B(), null,
+				200, concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_OTHER_A, STUDENT_A2, GUARDIAN_OF_A2 })));
+		cases.add(school("GET class 7B students", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class7B() + "/students", null, 200,
+				concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_OTHER_A, STUDENT_A2 })));
+		cases.add(school("GET student A2", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A2),
+				null, 200, concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_OTHER_A, STUDENT_A2, GUARDIAN_OF_A2 })));
+
+		// --- invitations
+		cases.add(school("POST guardian invitation", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + freshChild(f) + "/guardian-invitations",
+				(f) -> Map.of("phone", Personas.newPhone(), "relationshipType", "MOTHER"), 201, inviters));
+		cases.add(school("GET guardian invitations", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + freshChild(f) + "/guardian-invitations", null, 200, inviters));
+		cases.add(school("POST revoke guardian invitation", HttpMethod.POST, (f) -> {
+			UUID child = freshChild(f);
+			return SCHOOLS + f.schoolA() + "/guardian-invitations/" + invitation(f, child, "matrix-" + Ids.newId())
+					+ "/revoke";
+		}, null, 200, inviters));
+		cases.add(school("POST parent codes", HttpMethod.POST, (f) -> {
+			UUID classId = freshClass(f);
+			UUID child = this.personas.newStudent(f.schoolA(), "matrix-coded");
+			this.personas.addStudentToClass(f.schoolA(), classId, child);
+			this.lastChild = child;
+			return SCHOOLS + f.schoolA() + "/classes/" + classId + "/parent-codes";
+		}, (f) -> Map.of("studentIds", List.of(this.lastChild)), 200, inviters, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(new Case("POST invitation preview (public)", HttpMethod.POST, (f) -> "/api/v1/invitations/preview",
+				(f) -> Map.of("token", freshToken(f)), allow(200, EVERY_ACTIVE_PERSONA), 200, 200));
+		cases.add(new Case("POST redeem an invitation while signed in", HttpMethod.POST,
+				(f) -> "/api/v1/me/guardian-links", (f) -> Map.of("token", freshToken(f)), allow(200, ADULTS), 403));
+		cases.add(new Case("GET my children", HttpMethod.GET, (f) -> "/api/v1/me/children", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+
+		// --- verification and management
+		// Lead teachers of any class of the school see the queue (filtered). "POST class" (and other tests) make the
+		// subject teacher the lead of classes they create: end those rows first so the subject teacher is no lead.
+		cases.add(school("GET guardian link queue", HttpMethod.GET, (f) -> {
+			this.jdbc.update("""
+					update class_teachers set status = 'REMOVED', left_at = now()
+					where teacher_id = ? and role = 'LEAD' and status = 'ACTIVE'""", userOf(TEACHER_SUBJECT_A));
+			return SCHOOLS + f.schoolA() + "/guardian-links";
+		}, null, 200, concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_LEAD_A, TEACHER_OTHER_A }),
+				new Name[] { TEACHER_SUBJECT_A, CAMPUS_ADMIN_A, STUDENT_A1, STUDENT_A2, STUDENT_FORMER_A }));
+		cases.add(school("POST approve guardian link", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/guardian-links/" + freshLink(f, "PENDING") + "/approve", null, 200,
+				verifiers, new Name[] { TEACHER_SUBJECT_A }));
+		cases.add(school("POST reject guardian link", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/guardian-links/" + freshLink(f, "PENDING") + "/reject",
+				(f) -> Map.of("note", "Unknown to the school"), 200, verifiers, new Name[] { TEACHER_SUBJECT_A }));
+		cases.add(school("PATCH guardian link", HttpMethod.PATCH,
+				(f) -> SCHOOLS + f.schoolA() + "/guardian-links/" + freshLink(f, "ACTIVE"),
+				(f) -> Map.of("permissions", Map.of("canAwardPoints", false)), 200, SCHOOL_A_MANAGERS,
+				new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A }));
+		cases.add(school("POST revoke guardian link", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/guardian-links/" + freshLink(f, "ACTIVE") + "/revoke", null, 200,
+				SCHOOL_A_MANAGERS, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A }));
+		cases.add(school("GET student A1 guardians", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/guardians", null, 200, inviters));
+		cases.add(school("POST student guardian (created by the school)", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + freshChild(f) + "/guardians",
+				(f) -> Map.of("phone", Personas.newPhone(), "name", "Matrix parent", "relationshipType", "FATHER"), 201,
+				SCHOOL_A_MANAGERS, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A }));
+
+		// --- policies
+		cases.add(new Case("GET policy text (public)", HttpMethod.GET,
+				(f) -> "/api/v1/policies/MEDIA_PUBLICATION?schoolId=" + f.schoolA() + "&lang=am", null,
+				allow(200, EVERY_ACTIVE_PERSONA), 200, 200));
+		cases.add(school("GET school policies", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/policies", null, 200,
+				SCHOOL_A_MANAGERS, SCHOOL_A_STUDENTS_AND_ADMIN_VISITORS));
+		cases.add(school("POST school policy", HttpMethod.POST, (f) -> {
+			removeSchoolPolicy(f);
+			return SCHOOLS + f.schoolA() + "/policies";
+		}, (f) -> Map.of("policyType", "ACCOUNT_PARTICIPATION", "title", "Matrix policy"), 201, SCHOOL_A_MANAGERS,
+				SCHOOL_A_STUDENTS_AND_ADMIN_VISITORS));
+		cases.add(school("PUT school policy", HttpMethod.PUT,
+				(f) -> SCHOOLS + f.schoolA() + "/policies/" + freshSchoolPolicy(f), (f) -> Map.of("title", "Renamed"), 200,
+				SCHOOL_A_MANAGERS, SCHOOL_A_STUDENTS_AND_ADMIN_VISITORS));
+		cases.add(school("POST school policy version", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/policies/" + freshSchoolPolicy(f) + "/versions",
+				(f) -> Map.of("versionLabel", "v1", "languageCode", "en", "content", "Matrix text"), 201,
+				SCHOOL_A_MANAGERS, SCHOOL_A_STUDENTS_AND_ADMIN_VISITORS));
+		cases.add(school("PUT school policy version", HttpMethod.PUT, (f) -> {
+			UUID doc = freshSchoolPolicy(f);
+			return SCHOOLS + f.schoolA() + "/policies/" + doc + "/versions/" + draftVersion(doc);
+		}, (f) -> Map.of("content", "Changed text"), 200, SCHOOL_A_MANAGERS, SCHOOL_A_STUDENTS_AND_ADMIN_VISITORS));
+		cases.add(school("POST publish school policy version", HttpMethod.POST, (f) -> {
+			UUID doc = freshSchoolPolicy(f);
+			return SCHOOLS + f.schoolA() + "/policies/" + doc + "/versions/" + draftVersion(doc) + "/publish";
+		}, null, 200, SCHOOL_A_MANAGERS, SCHOOL_A_STUDENTS_AND_ADMIN_VISITORS));
+
+		// --- consent
+		cases.add(new Case("GET my consents", HttpMethod.GET, (f) -> "/api/v1/me/consents", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("POST my own TERMS acceptance", HttpMethod.POST, (f) -> "/api/v1/me/consents",
+				(f) -> Map.of("consentType", "TERMS", "policyVersionId", countryVersion("TERMS"), "decision", "GRANTED"),
+				allow(201, ADULTS)));
+		cases.add(new Case("POST consent for child A1 (guardians who may give consent)", HttpMethod.POST,
+				(f) -> "/api/v1/me/consents",
+				(f) -> Map.of("studentId", userOf(STUDENT_A1), "consentType", "MEDIA_PUBLICATION", "policyVersionId",
+						countryVersion("MEDIA_PUBLICATION"), "decision", "GRANTED"),
+				allow(201, GUARDIAN_A1), 404));
+		cases.add(school("POST paper consent", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + this.personas.newStudent(f.schoolA(), "matrix-paper")
+						+ "/consents",
+				(f) -> Map.of("consentType", "MEDIA_PUBLICATION", "policyVersionId", countryVersion("MEDIA_PUBLICATION"),
+						"decision", "DENIED", "guardianName", "Matrix grandmother", "method", "PAPER_RECORDED_BY_SCHOOL"),
+				201, SCHOOL_A_MANAGERS, SCHOOL_A_STUDENTS_AND_ADMIN_VISITORS));
+		cases.add(school("GET student A1 consents", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/consents", null, 200,
+				SCHOOL_A_MANAGERS, SCHOOL_A_STUDENTS_AND_ADMIN_VISITORS));
+		cases.add(school("GET class 8A consent summary", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A() + "/consent-summary", null, 200, inviters,
+				new Name[] { STUDENT_A1, GUARDIAN_A1 }));
+		return cases;
+	}
+
+	/** The child created by the last {@code url} function (for a body function of the same call). */
+	private UUID lastChild;
+
+	/** A new student of school A in a fresh class (lead TEACHER_LEAD_A, subject teacher TEACHER_SUBJECT_A). */
+	private UUID freshChild(Fixture f) {
+		UUID classId = freshClass(f);
+		UUID child = this.personas.newStudent(f.schoolA(), "matrix-child");
+		this.personas.addStudentToClass(f.schoolA(), classId, child);
+		return child;
+	}
+
+	/** A live SMS invitation of school A for the child under a known token; returns the invitation id. */
+	private UUID invitation(Fixture f, UUID child, String token) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into invitations (id, invitation_type, school_id, student_id, relationship_type, channel,
+				                         destination_e164, token_hash, status, max_uses, invited_by, expires_at)
+				values (?, 'GUARDIAN_LINK', ?, ?, 'MOTHER', 'SMS', ?, encode(sha256(convert_to(?, 'UTF8')), 'hex'), 'SENT', 1,
+				        ?, now() + interval '1 day')""", id, f.schoolA(), child, Personas.newPhone(), token,
+				userOf(SCHOOL_ADMIN_A));
+		return id;
+	}
+
+	/** A token (43 base64url characters) of a fresh live invitation for a new student of school A. */
+	private String freshToken(Fixture f) {
+		String token = (Ids.newId().toString() + Ids.newId().toString()).replace("-", "").substring(0, 43);
+		invitation(f, this.personas.newStudent(f.schoolA(), "matrix-invited"), token);
+		return token;
+	}
+
+	private UUID freshLink(Fixture f, String status) {
+		return this.personas.linkGuardian(freshChild(f), this.personas.newUser("matrix-parent").userId(), status, false);
+	}
+
+	/** Removes school A's own ACCOUNT_PARTICIPATION wording (matrix data only). */
+	private void removeSchoolPolicy(Fixture f) {
+		this.jdbc.update("""
+				delete from policy_versions where policy_document_id in (select id from policy_documents
+				  where school_id = ? and policy_type = 'ACCOUNT_PARTICIPATION')""", f.schoolA());
+		this.jdbc.update("delete from policy_documents where school_id = ? and policy_type = 'ACCOUNT_PARTICIPATION'",
+				f.schoolA());
+	}
+
+	private UUID freshSchoolPolicy(Fixture f) {
+		removeSchoolPolicy(f);
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into policy_documents (id, policy_type, school_id, title) values (?, 'ACCOUNT_PARTICIPATION', ?, 'Matrix')""",
+				id, f.schoolA());
+		return id;
+	}
+
+	private UUID draftVersion(UUID documentId) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into policy_versions (id, policy_document_id, version_label, language_code, content, effective_from)
+				values (?, ?, 'draft', 'en', 'Draft text', now())""", id, documentId);
+		return id;
+	}
+
+	/** The seeded Ethiopian English version of a policy type. */
+	private UUID countryVersion(String type) {
+		return this.jdbc.queryForObject("""
+				select v.id from policy_versions v join policy_documents d on d.id = v.policy_document_id
+				where d.policy_type = ? and d.country_code = 'ET' and d.school_id is null and v.language_code = 'en'
+				  and v.version_label = '2026-11-draft'""", UUID.class, type);
 	}
 
 	/** An empty class of school A (a move target); the lead is the teacher of the fresh source class. */
@@ -722,7 +937,7 @@ class AuthorizationMatrixTest {
 			List<String> mismatches = new ArrayList<>();
 			Map<Name, Integer> actual = new HashMap<>();
 			for (Name name : Name.values()) {
-				int expected = (name == SUSPENDED_USER) ? 401 : c.allowed().getOrDefault(name, c.denied());
+				int expected = (name == SUSPENDED_USER) ? c.anonymous() : c.allowed().getOrDefault(name, c.denied());
 				int status = call(c, fixture, this.personas.get(name));
 				actual.put(name, status);
 				if (status != expected) {
@@ -730,8 +945,8 @@ class AuthorizationMatrixTest {
 				}
 			}
 			int anonymous = call(c, fixture, null);
-			if (anonymous != 401) {
-				mismatches.add("anonymous: expected 401 but was " + anonymous);
+			if (anonymous != c.anonymous()) {
+				mismatches.add("anonymous: expected " + c.anonymous() + " but was " + anonymous);
 			}
 			assertThat(mismatches).as(c.name() + " " + actual).isEmpty();
 		}));

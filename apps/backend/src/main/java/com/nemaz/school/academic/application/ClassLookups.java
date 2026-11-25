@@ -35,6 +35,18 @@ class ClassLookups {
 		return ref;
 	}
 
+	/**
+	 * The roster of a class: like {@link #viewable} but for {@link ClassAccess#canViewRoster}, so a caller who may only
+	 * see the class's metadata (a guardian of one of its students) gets 404, as if the roster did not exist.
+	 */
+	ClassRef rosterViewable(CurrentUser user, UUID schoolId, UUID classId) {
+		ClassRef ref = this.access.find(classId).filter((c) -> c.schoolId().equals(schoolId)).orElse(null);
+		if (ref == null || !this.access.canViewRoster(user, classId)) {
+			throw ApiException.notFound("class.not_found");
+		}
+		return ref;
+	}
+
 	ClassRef teachable(CurrentUser user, UUID schoolId, UUID classId) {
 		ClassRef ref = viewable(user, schoolId, classId);
 		if (!this.access.canTeach(user, classId)) {

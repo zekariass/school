@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.nemaz.school.academic.ClassMemberships;
 import com.nemaz.school.common.persistence.Rows;
 import com.nemaz.school.common.security.SchoolMemberships;
+import com.nemaz.school.guardians.GuardianAccess;
 import com.nemaz.school.identity.AccountMemberships;
 import com.nemaz.school.identity.ManagedAccountPolicy;
 import com.nemaz.school.tenancy.SettingScope;
@@ -35,11 +36,15 @@ class PeopleMembershipPorts implements SchoolMemberships, AccountMemberships, Ma
 
 	private final ClassMemberships classes;
 
-	PeopleMembershipPorts(JdbcClient jdbc, TenantDirectory directory, SettingsService settings, ClassMemberships classes) {
+	private final GuardianAccess guardians;
+
+	PeopleMembershipPorts(JdbcClient jdbc, TenantDirectory directory, SettingsService settings, ClassMemberships classes,
+			GuardianAccess guardians) {
 		this.jdbc = jdbc;
 		this.directory = directory;
 		this.settings = settings;
 		this.classes = classes;
+		this.guardians = guardians;
 	}
 
 	// --- SchoolMemberships ------------------------------------------------------------------
@@ -60,8 +65,12 @@ class PeopleMembershipPorts implements SchoolMemberships, AccountMemberships, Ma
 			.single();
 	}
 
+	/** ... and, since M5, a guardian sees their own children's avatars (ACTIVE link without custody restriction). */
 	@Override
 	public boolean mayViewAvatar(UUID readerUserId, UUID subjectUserId) {
+		if (this.guardians.isActiveGuardian(readerUserId, subjectUserId)) {
+			return true;
+		}
 		// Schools in which the subject is an ACTIVE member, and whether as a student.
 		record Membership(UUID schoolId, boolean student) {
 		}

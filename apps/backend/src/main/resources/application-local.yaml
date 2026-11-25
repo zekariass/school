@@ -39,6 +39,8 @@ school:
     cors-origins: http://localhost:3100
   sms:
     provider: console             # one-time codes are printed in the backend log
+  guardians:
+    invite-base-url: ${SCHOOL_GUARDIANS_INVITE_BASE_URL:http://localhost:3100}
   push:
     provider: ${SCHOOL_PUSH_PROVIDER:log}   # "log" prints pushes; SCHOOL_PUSH_PROVIDER=expo sends real ones
   bootstrap:

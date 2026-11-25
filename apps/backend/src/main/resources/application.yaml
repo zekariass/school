@@ -76,6 +76,10 @@ school:
     allow-log: ${SCHOOL_PUSH_ALLOW_LOG:false}
     expo:
       access-token: ${EXPO_ACCESS_TOKEN:}
+  guardians:
+    # Web app origin used in guardian invitation links ({base}/{locale}/invite/{token}). Required, no default:
+    # a deploy without it fails at startup.
+    invite-base-url: ${SCHOOL_GUARDIANS_INVITE_BASE_URL:}
   bootstrap:
     admin:
       # First platform administrator, created at startup when none exists (see README).

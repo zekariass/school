@@ -35,6 +35,22 @@ public class AuthRateLimits {
 		this.limiter.consume("otp-verify-destination", destination, 10, Duration.ofMinutes(15), CODE);
 	}
 
+	/**
+	 * Invitation codes go to destinations that may have no account (the only place that happens): 3 per destination
+	 * and 20 per client address per hour.
+	 */
+	void inviteOtpRequest(String destination, String ip) {
+		this.limiter.consume("invite-otp-destination", destination, 3, Duration.ofHours(1), CODE);
+		if (ip != null) {
+			this.limiter.consume("invite-otp-ip", ip, 20, Duration.ofHours(1), CODE);
+		}
+	}
+
+	/** 10 invitation-code checks per destination per 15 minutes. */
+	void inviteOtpVerify(String destination) {
+		this.limiter.consume("invite-otp-verify-destination", destination, 10, Duration.ofMinutes(15), CODE);
+	}
+
 	/** 30 per administrator per 15 minutes: user lookups must not become an enumeration tool. */
 	void userLookup(java.util.UUID actorId) {
 		this.limiter.consume("user-lookup-actor", actorId.toString(), 30, Duration.ofMinutes(15), CODE);

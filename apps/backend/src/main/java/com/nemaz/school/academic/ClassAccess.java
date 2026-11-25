@@ -13,6 +13,9 @@ import com.nemaz.school.common.security.CurrentUser;
  * <li><b>View:</b> a student who is ACTIVE in {@code class_students}; a teacher who is ACTIVE in
  * {@code class_teachers} (any role); an administrator holding {@code class.manage} at a scope covering the
  * class's school or campus; and whatever registered {@link ClassAccessRule}s add (guardians, M5).</li>
+ * <li><b>View the roster</b> (the other children: names, avatars, records): an ACTIVE student, an ACTIVE teacher
+ * or a manager, never a contributed rule. Guardians see their child's classes (name, grade, teachers) but not the
+ * other children in them (M5).</li>
  * <li><b>Teach:</b> an ACTIVE class teacher or a manager.</li>
  * <li><b>Manage:</b> {@code class.manage} covering the class: school-wide for a school administrator,
  * the campus for a campus administrator (a class without campus needs a school-wide grant).</li>
@@ -27,6 +30,12 @@ import com.nemaz.school.common.security.CurrentUser;
 public interface ClassAccess {
 
 	boolean canView(CurrentUser user, UUID classId);
+
+	/**
+	 * May the user see who is in the class (the roster and classmates' records)? ACTIVE students, ACTIVE teachers and
+	 * managers only: {@link ClassAccessRule}s (guardians) never widen this.
+	 */
+	boolean canViewRoster(CurrentUser user, UUID classId);
 
 	boolean canTeach(CurrentUser user, UUID classId);
 
@@ -47,6 +56,9 @@ public interface ClassAccess {
 	 * {@code NamedParameterJdbcTemplate} or {@code JdbcClient}.
 	 */
 	SqlFragment visibleClasses(CurrentUser user, String classAlias);
+
+	/** Like {@link #visibleClasses} but for {@link #canViewRoster}: members and managers, without contributed rules. */
+	SqlFragment rosterVisibleClasses(CurrentUser user, String classAlias);
 
 	/** The class's school, campus and status regardless of who asks (callers authorize); empty when unknown. */
 	Optional<ClassRef> find(UUID classId);
