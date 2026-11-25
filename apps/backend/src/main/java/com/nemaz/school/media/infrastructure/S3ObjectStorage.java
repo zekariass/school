@@ -46,12 +46,18 @@ public class S3ObjectStorage implements ObjectStorage, AutoCloseable {
 			.create(AwsBasicCredentials.create(props.accessKey(), props.secretKey()));
 		Region region = Region.of(props.region());
 		S3Configuration pathStyle = S3Configuration.builder().pathStyleAccessEnabled(true).build();
+		// R2 answers 403 SignatureDoesNotMatch to the SDK's default aws-chunked uploads (docs/research/
+		// R2_Compatibility.md); a plain signed PUT works on R2 and SeaweedFS alike.
+		S3Configuration serverSide = S3Configuration.builder()
+			.pathStyleAccessEnabled(true)
+			.chunkedEncodingEnabled(false)
+			.build();
 		// R2 and SeaweedFS reject the default CRC checksum trailers of newer SDKs: only when required.
 		this.client = S3Client.builder()
 			.endpointOverride(props.endpoint())
 			.region(region)
 			.credentialsProvider(credentials)
-			.serviceConfiguration(pathStyle)
+			.serviceConfiguration(serverSide)
 			.requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
 			.responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
 			.build();

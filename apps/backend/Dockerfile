@@ -41,7 +41,13 @@ COPY --from=build --chown=app:app /workspace/layers/spring-boot-loader/ ./
 COPY --from=build --chown=app:app /workspace/layers/snapshot-dependencies/ ./
 COPY --from=build --chown=app:app /workspace/layers/application/ ./
 
+# The commit this image was built from (GET /actuator/info -> app.commit), passed by images.yml.
+ARG GIT_SHA=unknown
+ENV SCHOOL_BUILD_COMMIT=${GIT_SHA}
+
 USER app
 EXPOSE 8080
+# Modes: no argument starts the API; `--migrate` runs the database migrations and exits (0 ok, 1 failed,
+# 2 bad configuration) without starting a web server. See docs/ops/Runbook.md.
 # Container-aware heap sizing; extra flags can still be added via JAVA_TOOL_OPTIONS.
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "org.springframework.boot.loader.launch.JarLauncher"]

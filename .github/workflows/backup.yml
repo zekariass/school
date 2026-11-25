@@ -1,0 +1,75 @@
+name: Backup
+
+# Nightly encrypted PostgreSQL backup to the backup bucket (scripts/ops/backup-postgres.sh), for a database that a
+# GitHub runner can reach (for example a managed Postgres with an allow-list that accepts the runner, or a
+# VM exposing 5432 over TLS to the runner's addresses). A database that is only reachable inside its own network
+# is backed up by cron on a host there instead: docs/ops/Runbook.md, section 8.
+#
+# Off until the owner sets the repository variable BACKUP_WORKFLOW_ENABLED=true and the secrets of the
+# "backup" environment below; with no secrets it ends green with a notice. Weekly restore drills are NOT run
+# here (they need the private key, which must never be stored in GitHub).
+
+on:
+  schedule:
+    - cron: "30 1 * * *" # 01:30 UTC = 04:30 in Addis Ababa
+  workflow_dispatch:
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: Backup PostgreSQL
+    if: vars.BACKUP_WORKFLOW_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: backup
+    env:
+      PGHOST: ${{ secrets.BACKUP_PGHOST }}
+      PGPORT: ${{ secrets.BACKUP_PGPORT }}
+      PGUSER: ${{ secrets.BACKUP_PGUSER }}
+      PGPASSWORD: ${{ secrets.BACKUP_PGPASSWORD }}
+      PGDATABASE: ${{ secrets.BACKUP_PGDATABASE }}
+      PGSSLMODE: require
+      PG_CLIENT_IMAGE: postgres:18
+      BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+      BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+      BACKUP_S3_ACCESS_KEY: ${{ secrets.BACKUP_S3_ACCESS_KEY }}
+      BACKUP_S3_SECRET_KEY: ${{ secrets.BACKUP_S3_SECRET_KEY }}
+      BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+      BACKUP_ENV: ${{ vars.BACKUP_ENV }}
+      BACKUP_HEARTBEAT_URL: ${{ secrets.BACKUP_HEARTBEAT_URL }}
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          missing=()
+          for name in PGHOST PGUSER PGPASSWORD PGDATABASE BACKUP_S3_ENDPOINT BACKUP_S3_BUCKET BACKUP_S3_ACCESS_KEY BACKUP_S3_SECRET_KEY BACKUP_AGE_RECIPIENT; do
+            [ -n "${!name}" ] || missing+=("$name")
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::notice title=Backup skipped::The 'backup' environment lacks: ${missing[*]} (see docs/ops/Runbook.md, section 8)."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.config.outputs.configured == 'true'
+        with:
+          persist-credentials: false
+
+      - name: Install age
+        if: steps.config.outputs.configured == 'true'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq age
+
+      - name: Back up (encrypted, no plaintext on disk)
+        if: steps.config.outputs.configured == 'true'
+        env:
+          PG_CLIENT_NETWORK: host
+          BACKUP_ENV: ${{ vars.BACKUP_ENV || 'prod' }}
+        run: scripts/ops/backup-postgres.sh

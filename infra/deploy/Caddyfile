@@ -1,0 +1,77 @@
+# Reverse proxy for the single-host deployment. Plain HTTP inside the Docker network: TLS is terminated by
+# Cloudflare at the edge, and the cloudflared tunnel (profile "tunnel") carries it to this proxy over an
+# encrypted outbound connection, so nothing here needs a certificate.
+# Not behind a tunnel? Use Caddyfile.origin-tls (CADDYFILE=Caddyfile.origin-tls in .env).
+
+{
+	# We are not an ACME client here: Cloudflare owns the public certificates.
+	auto_https off
+	admin 127.0.0.1:2019
+	servers {
+		# cloudflared (and any other proxy in front) is on a private address; trust the client IP header
+		# only from there. Cloudflare sets Cf-Connecting-Ip.
+		trusted_proxies static private_ranges
+		client_ip_headers Cf-Connecting-Ip X-Forwarded-For
+	}
+}
+
+(security_headers) {
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+# ---- web app (Next.js) ----
+http://{$APP_HOST} {
+	import security_headers
+	request_body {
+		max_size 64MB
+	}
+	reverse_proxy {
+		# Re-resolve the container address through Docker's DNS: a recreated container gets a new IP.
+		dynamic a {
+			name web
+			port 3000
+			refresh 3s
+		}
+		header_up X-Forwarded-For {client_ip}
+		health_uri /en/sign-in
+		health_interval 30s
+	}
+}
+
+# ---- API (Spring Boot): REST and the WebSocket gateway (/ws) ----
+http://{$API_HOST} {
+	import security_headers
+	request_body {
+		max_size 16MB
+	}
+
+	# Only liveness/readiness and build info are public; Prometheus metrics and everything else under /actuator
+	# stay on the private network (scrape http://backend:8080/actuator/prometheus from inside the host).
+	@actuator_private {
+		path /actuator /actuator/*
+		not path /actuator/health /actuator/health/* /actuator/info
+	}
+	respond @actuator_private 404
+
+	reverse_proxy {
+		dynamic a {
+			name backend
+			port 8080
+			refresh 3s
+		}
+		header_up X-Forwarded-For {client_ip}
+		header_up X-Forwarded-Proto https
+		# WebSocket connections idle for long periods; keep them open (heartbeat is 10 s).
+		stream_timeout 24h
+		stream_close_delay 5s
+	}
+}
+
+# Anything else (unknown Host header) gets nothing.
+http:// {
+	respond 404
+}

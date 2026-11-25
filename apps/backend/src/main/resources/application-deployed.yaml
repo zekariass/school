@@ -1,0 +1,30 @@
+# Shared by the "staging" and "prod" profiles (profile group in application.yaml).
+# Everything that must be supplied (database, Redis, keys, storage, providers) comes from the environment and is
+# verified at startup by DeploymentConfigValidator; there are no development defaults here.
+
+school:
+  migrations:
+    # Schema changes are applied by the one-shot migrate job (image argument --migrate), not by every instance.
+    mode: ${SCHOOL_MIGRATIONS_MODE:validate}
+
+server:
+  # Let in-flight requests finish when a container is replaced during a deploy.
+  shutdown: graceful
+  # Behind our reverse proxy (and Cloudflare): set SERVER_FORWARD_HEADERS_STRATEGY=framework so rate limits and
+  # audit see the client address. Only ever behind a trusted proxy that overwrites X-Forwarded-For.
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+logging:
+  structured:
+    format:
+      # One JSON object per line (Elastic Common Schema) for log shipping. Override with
+      # LOGGING_STRUCTURED_FORMAT_CONSOLE=logstash or empty for plain text.
+      console: ${LOGGING_STRUCTURED_FORMAT_CONSOLE:ecs}
+    ecs:
+      service:
+        name: school-backend
+        environment: ${SCHOOL_ENVIRONMENT:deployed}
+        version: ${SCHOOL_BUILD_COMMIT:unknown}

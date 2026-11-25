@@ -1,6 +1,12 @@
 spring:
   application:
     name: school-backend
+  profiles:
+    group:
+      # "staging" and "prod" share application-deployed.yaml. At startup DeploymentConfigPostProcessor
+      # fails them with one message listing every missing or unsafe setting (system.startup).
+      staging: deployed
+      prod: deployed
   autoconfigure:
     # Authentication is by bearer token only (identity module); no generated default user.
     exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
@@ -11,10 +17,12 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-  # Redis: configuration cache now, rate limits and WebSocket fan-out later (M1, M2).
+  # Redis: configuration cache, rate limits and WebSocket fan-out.
   # Deployed environments set REDIS_URL (redis://host:6379); the "local" profile points at
   # infra/docker-compose.yml. The empty default must stay empty: a literal "${REDIS_URL}"
   # would fail URL parsing even when tests supply the connection through Testcontainers.
+  # An empty value would make Spring fall back to localhost:6379, so DeploymentConfigValidator refuses to
+  # start in every profile except local and test.
   data:
     redis:
       url: ${REDIS_URL:}
@@ -53,6 +61,11 @@ spring:
 school:
   i18n:
     supported-locales: en,am
+  migrations:
+    # migrate: Flyway applies pending migrations at startup (local, tests). validate: the application only checks
+    # that the schema is fully migrated and fails otherwise; staging/prod use it and run `--migrate` once per
+    # deploy before the new version starts (system.startup.DatabaseMigrator, docs/ops/Runbook.md).
+    mode: migrate
   auth:
     jwt:
       issuer: ${SCHOOL_AUTH_JWT_ISSUER:school-api}
@@ -121,6 +134,19 @@ management:
     health:
       probes:
         enabled: true
+      # Public (no authentication) and status only: never component details.
+      show-details: never
+      show-components: never
+      group:
+        # Liveness: the process is up (a failing dependency must not restart the container).
+        liveness:
+          include: livenessState
+        # Readiness: ready for traffic only with the database and Redis reachable.
+        readiness:
+          include: readinessState,db,redis
+  info:
+    env:
+      enabled: true
   tracing:
     sampling:
       probability: ${TRACING_SAMPLING_PROBABILITY:0.1}
@@ -132,6 +158,25 @@ management:
         # Metrics are scraped from /actuator/prometheus; OTLP push is opt-in
         # (otherwise it pushes to localhost:4318 by default).
         enabled: ${OTLP_METRICS_EXPORT_ENABLED:false}
+
+# Error tracking (Sentry or a compatible server such as GlitchTip): off unless SENTRY_DSN is set. Request data, users,
+# breadcrumbs and personal data never leave the process (system.observability.SentryScrubber).
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:}
+  release: ${SCHOOL_BUILD_COMMIT:unknown}
+  send-default-pii: false
+  max-request-body-size: none
+  attach-server-name: false
+  traces-sample-rate: 0.0
+  in-app-includes: com.nemaz.school
+
+# Returned by GET /actuator/info together with the build (version, time). The commit comes from the image build
+# (Dockerfile ARG GIT_SHA); deploy smoke tests compare it with the commit that was deployed.
+info:
+  app:
+    name: school-backend
+    commit: ${SCHOOL_BUILD_COMMIT:unknown}
 
 logging:
   # Request id and trace ids on every log line. Deployed environments switch to JSON

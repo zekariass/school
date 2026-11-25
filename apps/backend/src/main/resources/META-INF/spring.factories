@@ -1,0 +1,5 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+com.nemaz.school.system.startup.DeploymentConfigPostProcessor
+
+org.springframework.boot.diagnostics.FailureAnalyzer=\
+com.nemaz.school.system.startup.DeploymentConfigFailureAnalyzer
