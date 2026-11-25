@@ -8,8 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@/i18n/navigation";
 import { errorMessage } from "@/lib/console/errors";
+import { classPointsAbilities } from "@/lib/points/access";
 import { classAbilities, toClassCard } from "@/lib/school/class-view";
 import { fetchClass, sk } from "@/lib/school/queries";
+import { ClassPointsTab } from "@/components/points/class-points-tab";
+import { ClassToolkitTab } from "@/components/points/toolkit/class-toolkit-tab";
 import { ClassCodesTab } from "./class-codes";
 import { ClassConsentTab } from "./consent-views";
 import { ClassGroupsTab } from "./class-groups";
@@ -35,6 +38,7 @@ export function ClassDetail({ classId }: { classId: string }) {
   const data = cls.data;
   const card = toClassCard(data);
   const abilities = classAbilities(data, permissions);
+  const points = classPointsAbilities(data, permissions);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
@@ -63,35 +67,55 @@ export function ClassDetail({ classId }: { classId: string }) {
         </p>
       ) : null}
 
-      <Tabs defaultValue="roster">
-        <TabsList className="h-auto flex-wrap">
-          <TabsTrigger value="roster" className="min-h-10 px-4">
+      <Tabs defaultValue={points.canUse ? "points" : "roster"}>
+        <TabsList className="w-full justify-start overflow-x-auto group-data-[orientation=horizontal]/tabs:h-11">
+          {points.canUse ? (
+            <TabsTrigger value="points" className="min-h-10 flex-none px-4" data-testid="tab-points">
+              {t("tabs.points")}
+            </TabsTrigger>
+          ) : null}
+          {points.canUse ? (
+            <TabsTrigger value="toolkit" className="min-h-10 flex-none px-4" data-testid="tab-toolkit">
+              {t("tabs.toolkit")}
+            </TabsTrigger>
+          ) : null}
+          <TabsTrigger value="roster" className="min-h-10 flex-none px-4">
             {t("tabs.roster")}
           </TabsTrigger>
-          <TabsTrigger value="teachers" className="min-h-10 px-4">
+          <TabsTrigger value="teachers" className="min-h-10 flex-none px-4">
             {t("tabs.teachers")}
           </TabsTrigger>
           {abilities.canTeach ? (
-            <TabsTrigger value="groups" className="min-h-10 px-4">
+            <TabsTrigger value="groups" className="min-h-10 flex-none px-4">
               {t("tabs.groups")}
             </TabsTrigger>
           ) : null}
           {abilities.canTeach ? (
-            <TabsTrigger value="codes" className="min-h-10 px-4">
+            <TabsTrigger value="codes" className="min-h-10 flex-none px-4">
               {t("tabs.codes")}
             </TabsTrigger>
           ) : null}
           {abilities.canTeach ? (
-            <TabsTrigger value="consent" className="min-h-10 px-4">
+            <TabsTrigger value="consent" className="min-h-10 flex-none px-4">
               {t("tabs.consent")}
             </TabsTrigger>
           ) : null}
           {abilities.canLead ? (
-            <TabsTrigger value="settings" className="min-h-10 px-4">
+            <TabsTrigger value="settings" className="min-h-10 flex-none px-4">
               {t("tabs.settings")}
             </TabsTrigger>
           ) : null}
         </TabsList>
+        {points.canUse ? (
+          <TabsContent value="points" className="pt-4">
+            <ClassPointsTab cls={data} />
+          </TabsContent>
+        ) : null}
+        {points.canUse ? (
+          <TabsContent value="toolkit" className="pt-4">
+            <ClassToolkitTab cls={data} />
+          </TabsContent>
+        ) : null}
         <TabsContent value="roster" className="pt-4">
           <ClassRosterTab cls={data} abilities={abilities} />
         </TabsContent>

@@ -48,7 +48,7 @@ describe("navItems", () => {
   });
 
   it("gives teachers the dashboard, their classes and the families queue", () => {
-    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families"]);
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "points"]);
   });
 
   it("shows Policies only with the policies permission", () => {
@@ -77,7 +77,7 @@ describe("navItems", () => {
       scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["class.manage"] }],
       memberships: [{ type: "TEACHER", schoolSlug: "sunrise" }],
     };
-    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families"]);
+    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "points"]);
   });
 });
 

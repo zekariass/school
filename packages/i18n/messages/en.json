@@ -92,7 +92,8 @@
     "features": "Features",
     "families": "Families",
     "policies": "Policies",
-    "family": "My children"
+    "family": "My children",
+    "points": "Points & badges"
   },
   "locale": {
     "label": "Language"
@@ -1384,7 +1385,9 @@
         "groups": "Groups",
         "codes": "Login codes",
         "settings": "Settings",
-        "consent": "Consent"
+        "consent": "Consent",
+        "points": "Points",
+        "toolkit": "Toolkit"
       }
     },
     "roster": {
@@ -2131,6 +2134,340 @@
         "failed": "We couldn't make the parent codes.",
         "sheetTitle": "Parent codes for {class}"
       }
+    },
+    "points": {
+      "notForYou": "Only the teachers of this class can use the points screen.",
+      "loadFailed": "We couldn't load the class points.",
+      "classTotal": "Class total: {total, plural, one {# point} other {# points}} · {count, plural, one {# student} other {# students}}",
+      "wholeClass": "Whole class",
+      "awardSelected": "Award {count, plural, one {# student} other {# students}}",
+      "select": "Select students",
+      "cancelSelect": "Cancel",
+      "manageSkills": "Skills",
+      "mute": "Mute sounds",
+      "unmute": "Turn sounds on",
+      "archivedNote": "This class is archived, so points can't be awarded.",
+      "selectHint": "Tap students to select them, then choose Award.",
+      "noStudents": "There are no students in this class yet.",
+      "gridLabel": "Students and their points",
+      "studentLabel": "{name}, {total, plural, one {# point} other {# points}}. Tap to award.",
+      "announce": {
+        "awarded": "{who} got {points, plural, one {# point} other {# points}} for {skill}.",
+        "needsWork": "{who} needs to work on {skill}: minus {points, plural, one {# point} other {# points}}."
+      },
+      "award": {
+        "failed": "We couldn't award the points.",
+        "networkFailed": "The connection dropped. Tap the skill again: it will not be awarded twice."
+      },
+      "undo": {
+        "region": "Recent awards you can undo",
+        "label": "{skill} {points} · {who}",
+        "undone": "Undone: {label}",
+        "failed": "We couldn't undo this.",
+        "timeLeft": "{class} · undo within {time}",
+        "button": "Undo"
+      },
+      "sheet": {
+        "loadFailed": "We couldn't load the skills.",
+        "noSkills": "There are no skills to award yet. Use Skills to add some.",
+        "skills": "Skills",
+        "more": "More options",
+        "pointsLabel": "Points to award",
+        "pointsDefault": "Default",
+        "note": "Note (optional)",
+        "notePlaceholder": "A short note",
+        "noteHint": "Only people who may see this award can read it.",
+        "awarding": "Awarding…",
+        "whoMany": "{count, plural, one {# student} other {# students}}",
+        "titleClass": "Whole class",
+        "titleMany": "{count, plural, one {# student} other {# students}} selected",
+        "descriptionOne": "Total: {total, plural, one {# point} other {# points}}. Tap a skill to award it.",
+        "descriptionMany": "Tap a skill to award it to everyone chosen.",
+        "tabSkills": "Skills",
+        "tabBadges": "Badges",
+        "tileLabel": "{skill}, {points} for {who}",
+        "badgeAwarded": "Badge given.",
+        "badgesFailed": "We couldn't load the badges.",
+        "noBadges": "There are no hand-given badges yet. A school administrator can add them.",
+        "giveBadge": "Give",
+        "badgeFailed": "We couldn't give this badge."
+      },
+      "leaderboard": {
+        "title": "Top of the class",
+        "failed": "We couldn't load the leaderboard.",
+        "empty": "No points yet.",
+        "points": "{count, plural, one {# point} other {# points}}"
+      },
+      "skills": {
+        "dialogTitle": "Skills of this class",
+        "dialogIntro": "The skills you tap to award points. School skills are shared by every class; you can add your own for this class.",
+        "introClass": "School skills can't be changed here. Add your own skills for this class.",
+        "introSchool": "Skills every class can use. Deactivating one hides it; points already given stay.",
+        "add": "Add skill",
+        "loadFailed": "We couldn't load the skills.",
+        "empty": "No skills yet.",
+        "listLabel": "Skills",
+        "polarity": {
+          "POSITIVE": "Positive",
+          "NEEDS_WORK": "Needs work"
+        },
+        "scope": {
+          "class": "This class",
+          "home": "Home",
+          "school": "School"
+        },
+        "inactive": "Inactive",
+        "defaultPoints": "{count, plural, one {# point} other {# points}} by default",
+        "edit": "Edit {name}",
+        "deactivate": "Deactivate {name}",
+        "activate": "Activate {name}",
+        "readOnly": "School skill",
+        "failed": "We couldn't change this skill.",
+        "form": {
+          "addTitle": "Add a skill",
+          "editTitle": "Edit skill",
+          "nameEn": "Name (English)",
+          "nameAm": "Name (አማርኛ)",
+          "nameHint": "Fill in at least one language.",
+          "points": "Default points (1 to 10)",
+          "pointsInvalid": "Enter a whole number from 1 to 10.",
+          "polarity": "Kind",
+          "positive": "Positive",
+          "needsWork": "Needs work (takes points away)",
+          "context": "Used by",
+          "contextClass": "Classes",
+          "contextHome": "Guardians at home",
+          "contextHomeHint": "Home skills are for guardians and always positive. Home points are not part of class results.",
+          "icon": "Icon",
+          "color": "Color",
+          "colorN": "Color {n}",
+          "saved": "Skill saved.",
+          "failed": "We couldn't save the skill.",
+          "iconN": "Icon {n}"
+        }
+      },
+      "report": {
+        "class": "Class",
+        "allClasses": "All classes",
+        "chooseClass": "Choose a class",
+        "category": "Skill",
+        "allCategories": "All skills",
+        "from": "From",
+        "to": "To",
+        "homeNote": "Home points are never part of this report.",
+        "export": "Download CSV",
+        "exported": "The report was downloaded.",
+        "exportFailed": "We couldn't download the report.",
+        "badRange": "The start date can't be after the end date.",
+        "needClass": "Choose a class to see its report.",
+        "loadFailed": "We couldn't load the report.",
+        "empty": "No points in this selection.",
+        "caption": "Points per student and skill",
+        "student": "Student",
+        "categoryColumn": "Skill",
+        "points": "Points",
+        "awards": "Awards",
+        "reversals": "Undone",
+        "needsWork": "Needs work",
+        "sum": "{rows, plural, one {# row} other {# rows}} shown · {points, plural, one {# point} other {# points}} net"
+      },
+      "page": {
+        "title": "Points & badges",
+        "subtitle": "Reports, skills and badges for this school.",
+        "tabs": {
+          "report": "Report",
+          "skills": "Skills",
+          "badges": "Badges"
+        }
+      },
+      "chart": {
+        "empty": "No points to show yet.",
+        "summary": "Points by skill: {parts}"
+      },
+      "settings": {
+        "module": "Classroom engagement",
+        "needsWork": {
+          "title": "Needs-work skills",
+          "description": "Lets teachers record skills that take points away (for example, “Needs to focus”). Turn off to show only positive skills."
+        },
+        "badges": {
+          "title": "Badges",
+          "description": "Students earn badges for points milestones, and teachers can give badges by hand."
+        },
+        "leaderboard": {
+          "title": "Class leaderboard",
+          "description": "Shows the top ten students of a class to its teachers and students. Off by default."
+        },
+        "undoWindow": {
+          "title": "Undo window (seconds)",
+          "description": "How long the person who gave points may undo them. 0 turns the quick undo off."
+        }
+      }
+    },
+    "toolkit": {
+      "notForYou": "Only the teachers of this class can use the toolkit.",
+      "tabs": {
+        "timer": "Timer",
+        "picker": "Random student",
+        "groups": "Groups",
+        "routines": "Routines"
+      },
+      "timer": {
+        "finished": "Time's up!",
+        "pause": "Pause",
+        "resume": "Resume",
+        "start": "Start",
+        "reset": "Reset",
+        "addMinute": "+1 min",
+        "clockLabelCountdown": "Countdown",
+        "clockLabelStopwatch": "Stopwatch",
+        "bigClock": "Big clock",
+        "exitBig": "Exit big clock",
+        "mode": "Mode",
+        "countdown": "Countdown",
+        "stopwatch": "Stopwatch",
+        "presets": "Countdown length",
+        "minutes": "{count} min",
+        "custom": "Custom minutes",
+        "customPlaceholder": "Minutes",
+        "set": "Set",
+        "customInvalid": "Enter minutes between 0.1 and 180.",
+        "chime": "Play a sound when time is up"
+      },
+      "picker": {
+        "loadFailed": "We couldn't load the students.",
+        "empty": "There are no students in this class.",
+        "picked": "{name} was picked.",
+        "prompt": "Who's next?",
+        "pickAgain": "Pick another",
+        "pick": "Pick a student",
+        "startOver": "Start over",
+        "progress": "Picked {picked} of {total} · round {round}"
+      },
+      "groups": {
+        "loadFailed": "We couldn't load the students.",
+        "empty": "There are no students in this class.",
+        "groupName": "Group {n}",
+        "by": "Make groups",
+        "byCount": "By number of groups",
+        "bySize": "By group size",
+        "countLabel": "Number of groups",
+        "sizeLabel": "Students per group",
+        "make": "Make groups",
+        "again": "Shuffle again",
+        "invalid": "Enter a whole number, 1 or more.",
+        "result": "Groups",
+        "members": "{count, plural, one {# student} other {# students}}",
+        "save": "Save these groups",
+        "savedButton": "Saved",
+        "saved": "Groups saved.",
+        "saveFailed": "We couldn't save the groups.",
+        "saveHint": "Saved groups appear in the Groups tab."
+      },
+      "routines": {
+        "intro": "Routines and checklists to run in class. Keep them for yourself, share them with this class, or with the whole school.",
+        "new": "New routine",
+        "loadFailed": "We couldn't load the routines.",
+        "empty": "No routines yet. Create one, like “Start of lesson”.",
+        "listLabel": "Routines and checklists",
+        "type": {
+          "ROUTINE": "Routine",
+          "CHECKLIST": "Checklist",
+          "ACTIVITY": "Activity",
+          "LESSON_PREP": "Lesson prep"
+        },
+        "visibility": {
+          "PRIVATE": "Only me",
+          "CLASS": "This class",
+          "SCHOOL": "Whole school"
+        },
+        "items": "{count, plural, one {# step} other {# steps}}",
+        "minutes": "{count} min",
+        "by": "By {name}",
+        "use": "Use",
+        "edit": "Edit",
+        "delete": "Delete {title}",
+        "deleted": "Routine deleted.",
+        "failed": "We couldn't complete this.",
+        "deleteTitle": "Delete {title}?",
+        "deleteBody": "This removes it for everyone who can use it.",
+        "deleteConfirm": "Delete",
+        "tickIntro": "Tick each step as the class does it.",
+        "progress": "{done} of {total} done",
+        "allDone": "All done. Well done!",
+        "clearTicks": "Clear ticks",
+        "close": "Close",
+        "form": {
+          "newTitle": "New routine",
+          "editTitle": "Edit routine",
+          "title": "Title",
+          "type": "Kind",
+          "visibility": "Who can use it",
+          "visibilityClassHint": "Teachers of {name} can use it.",
+          "visibilitySchoolHint": "Every teacher at the school can use it.",
+          "instructions": "Instructions (optional)",
+          "items": "Steps",
+          "itemText": "Step {n}",
+          "itemMinutes": "Minutes for step {n}",
+          "minutesShort": "min",
+          "moveUp": "Move step {n} up",
+          "moveDown": "Move step {n} down",
+          "removeItem": "Remove step {n}",
+          "addItem": "Add a step",
+          "needItems": "Add at least one step.",
+          "saved": "Routine saved.",
+          "failed": "We couldn't save the routine."
+        }
+      }
+    },
+    "badges": {
+      "intro": "Badges students can earn. Some are earned automatically at a milestone, others are given by teachers.",
+      "add": "Add badge",
+      "loadFailed": "We couldn't load the badges.",
+      "empty": "No badges yet.",
+      "listLabel": "Badges",
+      "type": {
+        "MANUAL": "Given by a teacher",
+        "POINTS_TOTAL": "Points total",
+        "CATEGORY_TOTAL": "Points in one skill",
+        "ATTENDANCE_STREAK": "Attendance streak"
+      },
+      "inactive": "Inactive",
+      "threshold": "{count, plural, one {# point} other {# points}}",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "edit": "Edit {name}",
+      "deactivate": "Deactivate {name}",
+      "activate": "Activate {name}",
+      "failed": "We couldn't change this badge.",
+      "form": {
+        "addTitle": "Add a badge",
+        "editTitle": "Edit badge",
+        "nameEn": "Name (English)",
+        "nameAm": "Name (አማርኛ)",
+        "nameHint": "Fill in at least one language.",
+        "descriptionEn": "Description (English)",
+        "descriptionAm": "Description (አማርኛ)",
+        "code": "Code",
+        "codeHint": "Lower-case letters, digits and underscores, starting with a letter. It can't be changed later.",
+        "codeInvalid": "Use 2 to 41 lower-case letters, digits or underscores, starting with a letter.",
+        "type": "How it is earned",
+        "typeHint": {
+          "MANUAL": "A teacher gives it by hand.",
+          "POINTS_TOTAL": "Earned automatically at a points total.",
+          "CATEGORY_TOTAL": "Earned automatically at a total in one skill.",
+          "ATTENDANCE_STREAK": "Given by attendance."
+        },
+        "typeFixed": "Earned: {type}. This can't be changed.",
+        "threshold": "Points needed",
+        "days": "Days in a row",
+        "category": "Skill",
+        "categoryPlaceholder": "Choose a skill",
+        "criteriaInvalid": "Check this value.",
+        "icon": "Icon",
+        "saved": "Badge saved.",
+        "failed": "We couldn't save the badge.",
+        "iconN": "Icon {n}"
+      }
     }
   },
   "family": {
@@ -2176,6 +2513,61 @@
       "incomplete": "Enter all ten characters of the code.",
       "open": "Have a parent code?",
       "continue": "Continue"
+    },
+    "pointsLink": "{name}'s points",
+    "backToChildren": "My children",
+    "childNotFound": "We couldn't find this child.",
+    "points": {
+      "loadFailed": "We couldn't load the points.",
+      "school": {
+        "title": "School points",
+        "descriptionStudent": "Points from your teachers at school.",
+        "descriptionGuardian": "Points from teachers at school."
+      },
+      "home": {
+        "title": "Home points",
+        "descriptionStudent": "Points from your family at home.",
+        "descriptionGuardian": "Points from your family at home.",
+        "note": "Home points belong to your family. They are not counted in class or school results."
+      },
+      "total": "Total",
+      "positive": "Positive",
+      "needsWork": "Needs work",
+      "noPoints": "No points yet.",
+      "tableCaption": "{section}: points by skill",
+      "skill": "Skill",
+      "points": "Points",
+      "share": "Share",
+      "needsWorkTag": "Needs work",
+      "timeline": "Timeline",
+      "timelineFailed": "We couldn't load the timeline.",
+      "timelineEmpty": "Nothing here yet.",
+      "undoRow": "Undone: {skill}",
+      "by": "by {name}",
+      "undone": "Undone",
+      "pointsChange": "Points: {points}",
+      "badges": "Badges earned",
+      "studentTitle": "My points",
+      "studentSubtitle": "Hi {name}! Here is what you've earned.",
+      "noSchool": "You are not in a school yet.",
+      "childTitle": "Points",
+      "homeAward": {
+        "open": "Award home points",
+        "title": "Award {child} home points",
+        "plainNote": "Home points are your family's. They are not counted in class or school results.",
+        "loadFailed": "We couldn't load the home skills.",
+        "noSkills": "There are no home skills yet. Ask the school.",
+        "skills": "Home skills",
+        "note": "Note (optional)",
+        "notePlaceholder": "A short note",
+        "awarding": "Awarding…",
+        "failed": "We couldn't award the points.",
+        "networkFailed": "The connection dropped. Tap the skill again: it will not be awarded twice.",
+        "awarded": "Home points added for {child} ({skill}): {points}.",
+        "undo": "Undo",
+        "undone": "Undone.",
+        "undoFailed": "We couldn't undo this."
+      }
     }
   },
   "invite": {

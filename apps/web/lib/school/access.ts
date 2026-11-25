@@ -15,6 +15,8 @@ export const SP = {
   classManage: "class.manage",
   guardians: "school.guardians.manage",
   policies: "school.policies.manage",
+  pointsManage: "school.points.manage",
+  pointsRead: "school.points.read",
 } as const;
 
 export interface ScopeLike {
@@ -71,6 +73,7 @@ export type NavId =
   | "settings"
   | "features"
   | "families"
+  | "points"
   | "policies";
 
 /** The workspace menu for this access, in display order. */
@@ -85,6 +88,8 @@ export function navItems(access: SchoolAccess): NavId[] {
   if (can(SP.academic)) items.push("academic");
   // Teachers confirm and invite guardians of their own classes (the API decides how far, by lead role and school setting).
   if (can(SP.guardians) || access.isTeacher) items.push("families");
+  // Points and badges: teachers (reports of their classes), points managers and readers.
+  if (can(SP.pointsManage) || can(SP.pointsRead) || access.isTeacher) items.push("points");
   if (can(SP.policies)) items.push("policies");
   if (can(SP.settings)) items.push("settings");
   if (can(SP.read)) items.push("features");
@@ -113,5 +118,6 @@ export const NAV_PATH: Record<NavId, string> = {
   settings: "settings",
   features: "features",
   families: "families",
+  points: "points",
   policies: "policies",
 };
