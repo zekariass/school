@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { BellRingIcon, CheckCircle2Icon, ClockIcon, SchoolIcon } from "lucide-react";
+import { BellRingIcon, CheckCircle2Icon, ClockIcon, SchoolIcon, SparklesIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useFormatInstant } from "@/components/calendar-preference";
 import { EmptyNotice, ErrorNotice, LoadingRows } from "@/components/console/states";
@@ -130,6 +130,15 @@ function ChildCard({ child, needsDecision }: { child: MyChild; needsDecision: "n
               </section>
             );
           })}
+
+          {child.permissions.canViewAcademics ? (
+            <Button asChild variant="outline" className="self-start">
+              <Link href={`/family/children/${child.studentId}`} data-testid="child-points-link">
+                <SparklesIcon className="size-4" aria-hidden />
+                {t("pointsLink", { name: child.givenName })}
+              </Link>
+            </Button>
+          ) : null}
 
           {needsDecision === "needed" ? (
             <Button asChild variant="outline" className="self-start">

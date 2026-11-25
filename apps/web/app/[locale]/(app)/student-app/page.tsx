@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SignOutButton } from "@/components/sign-out-button";
 import { SiteHeader } from "@/components/site-header";
+import { StudentHome } from "@/components/points/student-points-view";
 import { Card, CardContent } from "@/components/ui/card";
 import { requireSession } from "@/lib/server/dal";
 
@@ -23,12 +24,16 @@ export default function StudentAppPage() {
 async function StudentApp() {
   const me = await requireSession();
   const t = await getTranslations("school.studentApp");
+  const schools = me.memberships
+    .filter((m) => m.type === "STUDENT" && m.studentId)
+    .map((m) => ({ schoolId: m.schoolId, schoolName: m.schoolName, studentId: m.studentId! }));
   return (
     <>
       <SiteHeader user={{ name: me.displayName }} />
-      <main id="main" className="mx-auto flex w-full max-w-lg flex-1 items-center px-4 py-10">
+      <main id="main" className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8">
+        <StudentHome schools={schools} name={me.givenName || me.displayName} />
         <Card className="w-full">
-          <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+          <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
             <span className="grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary">
               <SmartphoneIcon className="size-7" aria-hidden />
             </span>

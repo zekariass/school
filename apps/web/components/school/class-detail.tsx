@@ -8,8 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@/i18n/navigation";
 import { errorMessage } from "@/lib/console/errors";
+import { classPointsAbilities } from "@/lib/points/access";
 import { classAbilities, toClassCard } from "@/lib/school/class-view";
 import { fetchClass, sk } from "@/lib/school/queries";
+import { ClassPointsTab } from "@/components/points/class-points-tab";
+import { ClassToolkitTab } from "@/components/points/toolkit/class-toolkit-tab";
 import { ClassCodesTab } from "./class-codes";
 import { ClassConsentTab } from "./consent-views";
 import { ClassGroupsTab } from "./class-groups";
@@ -35,6 +38,7 @@ export function ClassDetail({ classId }: { classId: string }) {
   const data = cls.data;
   const card = toClassCard(data);
   const abilities = classAbilities(data, permissions);
+  const points = classPointsAbilities(data, permissions);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
@@ -63,8 +67,18 @@ export function ClassDetail({ classId }: { classId: string }) {
         </p>
       ) : null}
 
-      <Tabs defaultValue="roster">
+      <Tabs defaultValue={points.canUse ? "points" : "roster"}>
         <TabsList className="h-auto flex-wrap">
+          {points.canUse ? (
+            <TabsTrigger value="points" className="min-h-10 px-4" data-testid="tab-points">
+              {t("tabs.points")}
+            </TabsTrigger>
+          ) : null}
+          {points.canUse ? (
+            <TabsTrigger value="toolkit" className="min-h-10 px-4" data-testid="tab-toolkit">
+              {t("tabs.toolkit")}
+            </TabsTrigger>
+          ) : null}
           <TabsTrigger value="roster" className="min-h-10 px-4">
             {t("tabs.roster")}
           </TabsTrigger>
@@ -92,6 +106,16 @@ export function ClassDetail({ classId }: { classId: string }) {
             </TabsTrigger>
           ) : null}
         </TabsList>
+        {points.canUse ? (
+          <TabsContent value="points" className="pt-4">
+            <ClassPointsTab cls={data} />
+          </TabsContent>
+        ) : null}
+        {points.canUse ? (
+          <TabsContent value="toolkit" className="pt-4">
+            <ClassToolkitTab cls={data} />
+          </TabsContent>
+        ) : null}
         <TabsContent value="roster" className="pt-4">
           <ClassRosterTab cls={data} abilities={abilities} />
         </TabsContent>

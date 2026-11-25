@@ -15,6 +15,7 @@ import { getBrowserApi } from "@/lib/api-client";
 import { editorKindFor, parseEditorText, summarizeValue, toEditorText } from "@/lib/console/definitions";
 import { errorMessage, fieldErrors } from "@/lib/console/errors";
 import { SP } from "@/lib/school/access";
+import { ENGAGEMENT_MODULE, engagementSettingId } from "@/lib/points/settings";
 import { groupSettings, type SettingGroup } from "@/lib/school/settings";
 import { definitionsKey, fetchConfiguration, fetchDefinitions, sk } from "@/lib/school/queries";
 import { PageHeader } from "./page-header";
@@ -66,10 +67,13 @@ export function SchoolSettingsView() {
 }
 
 function ModuleCard({ group }: { group: SettingGroup }) {
+  const tp = useTranslations("school.points.settings");
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg capitalize">{group.module}</CardTitle>
+        <CardTitle className={group.module === ENGAGEMENT_MODULE ? "text-lg" : "text-lg capitalize"}>
+          {group.module === ENGAGEMENT_MODULE ? tp("module") : group.module}
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {group.settings.map((setting) => (
@@ -83,6 +87,8 @@ function ModuleCard({ group }: { group: SettingGroup }) {
 
 function SettingRow({ setting }: { setting: SettingGroup["settings"][number] }) {
   const t = useTranslations("school.settings");
+  const tp = useTranslations("school.points.settings");
+  const engagementId = engagementSettingId(setting.key);
   const { school } = useSchool();
   const kind = editorKindFor(setting.valueSchema);
   const stored = toEditorText(kind, setting.value);
@@ -133,10 +139,15 @@ function SettingRow({ setting }: { setting: SettingGroup["settings"][number] }) 
     <div className="flex flex-col gap-3 rounded-2xl border p-4" data-testid={`setting-${setting.key}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <label htmlFor={inputId} className="font-mono text-sm font-semibold break-all">
+          {engagementId ? <p className="font-semibold">{tp(`${engagementId}.title`)}</p> : null}
+          <label htmlFor={inputId} className={engagementId ? "font-mono text-xs text-muted-foreground break-all" : "font-mono text-sm font-semibold break-all"}>
             {setting.key}
           </label>
-          {setting.description ? <p className="text-sm text-muted-foreground">{setting.description}</p> : null}
+          {engagementId ? (
+            <p className="text-sm text-muted-foreground">{tp(`${engagementId}.description`)}</p>
+          ) : setting.description ? (
+            <p className="text-sm text-muted-foreground">{setting.description}</p>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{t("effectiveFrom")}</span>
