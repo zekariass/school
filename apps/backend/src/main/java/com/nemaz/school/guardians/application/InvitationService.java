@@ -407,7 +407,7 @@ public class InvitationService implements InvitationRedeemer {
 				+ LIVE + " " + """
 						and exists (select 1 from school_students ss where ss.school_id = i.school_id
 						             and ss.student_id = i.student_id and ss.status = 'ACTIVE')
-						 and exists (select 1 from schools s where s.id = i.school_id and s.status = 'ACTIVE')"""
+						 and exists (select 1 from schools s where s.id = i.school_id and s.status in ('ONBOARDING', 'ACTIVE'))"""
 				+ (lock ? " for update of i" : ""))
 			.param("h", h)
 			.param("now", Timestamp.from(this.clock.instant()))

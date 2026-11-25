@@ -228,6 +228,21 @@ class GuardianInvitationFlowTest extends GuardianTestSupport {
 	}
 
 	@Test
+	void invitationsWorkWhileTheSchoolIsOnboardingButNotWhenItIsSuspendedOrArchived() throws Exception {
+		Setup s = setup("Onboarding invite school");
+		String token = inviteBySms(s, s.admin(), "+251911700001");
+		String ip = randomIp();
+		for (String status : new String[] { "ONBOARDING", "ACTIVE" }) {
+			this.jdbc.update("update schools set status = ? where id = ?", status, s.schoolId());
+			assertThat(preview(token(token), ip).andReturn().getResponse().getStatus()).as(status).isEqualTo(200);
+		}
+		for (String status : new String[] { "SUSPENDED", "ARCHIVED" }) {
+			this.jdbc.update("update schools set status = ? where id = ?", status, s.schoolId());
+			assertThat(preview(token(token), ip).andReturn().getResponse().getStatus()).as(status).isEqualTo(404);
+		}
+	}
+
+	@Test
 	void guessingAndCodeRequestsAreRateLimited() throws Exception {
 		Setup s = setup("Rate limit school");
 		String ip = randomIp();
