@@ -185,8 +185,39 @@ public class ImportService {
 
 	@Transactional(readOnly = true)
 	public ImportPreview preview(CurrentUser user, UUID schoolId, UUID jobId) {
+		return preview(user, schoolId, jobId, null, null, null);
+	}
+
+	/**
+	 * The preview of a job, or, when the caller names an encoding, delimiter or sheet, of the file read that way: the
+	 * wizard's "read it differently" step. Nothing is saved; the mapping is suggested again from the new headers.
+	 */
+	@Transactional(readOnly = true)
+	public ImportPreview preview(CurrentUser user, UUID schoolId, UUID jobId, String encoding, String delimiter, String sheet) {
 		this.gate.require(user, schoolId, Permissions.SCHOOL_IMPORT_MANAGE);
-		return preview(load(schoolId, jobId));
+		Job job = load(schoolId, jobId);
+		if (encoding == null && delimiter == null && sheet == null) {
+			return preview(job);
+		}
+		if (!MAPPABLE.contains(job.status())) {
+			throw ApiException.conflict("import.invalid_state");
+		}
+		ImportOptions options = new ImportOptions(blank(encoding), blank(delimiter), blank(sheet), job.options().dateSystemOrDefault(),
+				null);
+		try (ImportFiles.Staged file = this.files.stage(job.mediaId())) {
+			Scan scan = scan(file, options);
+			if (scan.headers().isEmpty()) {
+				throw ApiException.badRequest("import.empty_file");
+			}
+			Map<String, Integer> mapping = new LinkedHashMap<>();
+			topUp(mapping, job.type(), scan.headers());
+			return new ImportPreview(view(job, true), detectedView(scan.info()), scan.headers(), scan.preview(), mapping,
+					job.type().requiredFields(), job.type().missing(mapping.keySet()), fields(job.type()), null);
+		}
+	}
+
+	private static String blank(String value) {
+		return (value == null || value.isBlank()) ? null : value;
 	}
 
 	/** Re-reads the file with the job's options: headers and first rows for the wizard's mapping step. */
@@ -562,7 +593,8 @@ public class ImportService {
 			}
 		}
 		CommitResult result = (job.createdCount() == null) ? null : new CommitResult(value(job.createdCount()),
-				value(job.updatedCount()), value(job.unchangedCount()), value(job.skippedCount()));
+				value(job.updatedCount()), value(job.unchangedCount()), value(job.skippedCount()),
+				live ? this.store.stagedGuardianContacts(job.id()) : null);
 		Failure failure = (job.status() == Status.FAILED && job.failureCode() != null) ? new Failure(job.failurePhase(),
 				job.failureRowNumber(), job.failureCode(), this.problemMessages.job(job.failureCode(), LocaleContextHolder.getLocale())) : null;
 		return new ImportJobView(job.id(), job.type(), job.status(), job.filename(), job.mediaId(), job.mappingProfileId(),

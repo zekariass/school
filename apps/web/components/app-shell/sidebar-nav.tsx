@@ -3,6 +3,7 @@
 import {
   BookOpenIcon,
   CalendarRangeIcon,
+  FileUpIcon,
   LayoutDashboardIcon,
   SettingsIcon,
   SlidersHorizontalIcon,
@@ -21,6 +22,7 @@ const ICONS: Record<NavId, LucideIcon> = {
   myClasses: BookOpenIcon,
   students: SmileIcon,
   teachers: UsersIcon,
+  import: FileUpIcon,
   academic: CalendarRangeIcon,
   settings: SettingsIcon,
   features: SlidersHorizontalIcon,

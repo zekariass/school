@@ -308,6 +308,14 @@ class ImportStore {
 			.update();
 	}
 
+	/** Parent contacts this job's commit saved for a later invitation (nothing is linked or invited yet). */
+	int stagedGuardianContacts(UUID jobId) {
+		return this.jdbc.sql("select count(*) from guardian_contact_candidates where import_job_id = :id")
+			.param("id", jobId)
+			.query(Integer.class)
+			.single();
+	}
+
 	int running(UUID schoolId) {
 		return this.jdbc.sql("select count(*) from import_jobs where school_id = :s and status in ('VALIDATING', 'COMMITTING')")
 			.param("s", schoolId)

@@ -11,6 +11,7 @@ export const SP = {
   academic: "school.academic.manage",
   staff: "school.staff.manage",
   students: "school.students.manage",
+  importManage: "school.import.manage",
   classManage: "class.manage",
 } as const;
 
@@ -63,6 +64,7 @@ export type NavId =
   | "myClasses"
   | "students"
   | "teachers"
+  | "import"
   | "academic"
   | "settings"
   | "features";
@@ -75,6 +77,7 @@ export function navItems(access: SchoolAccess): NavId[] {
   else if (access.isTeacher) items.push("myClasses");
   if (can(SP.students)) items.push("students");
   if (can(SP.staff)) items.push("teachers");
+  if (can(SP.importManage)) items.push("import");
   if (can(SP.academic)) items.push("academic");
   if (can(SP.settings)) items.push("settings");
   if (can(SP.read)) items.push("features");
@@ -98,6 +101,7 @@ export const NAV_PATH: Record<NavId, string> = {
   myClasses: "classes",
   students: "students",
   teachers: "teachers",
+  import: "import",
   academic: "academic",
   settings: "settings",
   features: "features",

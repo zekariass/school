@@ -6153,6 +6153,27 @@
             "type" : "string",
             "format" : "uuid"
           }
+        }, {
+          "in" : "query",
+          "name" : "encoding",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "delimiter",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "sheet",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "200" : {
@@ -6176,7 +6197,7 @@
             "description" : "Error (RFC 9457 problem details)"
           }
         },
-        "summary" : "The preview again (headers, first rows, mapping so far), for reloading the mapping step",
+        "summary" : "The preview again (headers, first rows, mapping so far), for reloading the mapping step. When any of encoding, delimiter or sheet is given (an empty value means detect), the file is read that way instead and the mapping is suggested from the new headers; nothing is saved until the mapping is",
         "tags" : [ "imports" ]
       }
     },
@@ -8524,6 +8545,11 @@
           "created" : {
             "type" : "integer",
             "format" : "int32"
+          },
+          "guardianContacts" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Parent contacts of the file saved for a later invitation (no guardian link is made); absent in history lists"
           },
           "skipped" : {
             "type" : "integer",
