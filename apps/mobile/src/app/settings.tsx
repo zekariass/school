@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
 import { AvatarSection } from '@/components/avatar-section';
+import { NotificationSettings } from '@/components/notification-settings';
 import { Button, Card, Screen, SegmentedControl, Text } from '@/components/ui';
 import { CALENDAR_PREFERENCES } from '@/lib/calendar/format-instant';
 import { SUPPORTED_LOCALES, isSupportedLocale } from '@school/i18n';
@@ -68,6 +69,8 @@ export default function SettingsScreen() {
           options={CALENDAR_PREFERENCES.map((value) => ({ value, label: t(`calendar.${value}`) }))}
         />
       </Section>
+
+      {status === 'signedIn' && !preview ? <NotificationSettings /> : null}
 
       {status === 'signedIn' && roles.length > 1 ? (
         <Section title={t('mobile.settings.switchRole')} hint={t('mobile.settings.switchRoleHint')}>

@@ -1,5 +1,7 @@
 # Test profile (activated by @IntegrationTest). Development-only secrets.
 school:
+  cors:
+    allowed-origins: http://localhost:3100
   auth:
     jwt:
       keys: ""
@@ -8,6 +10,8 @@ school:
       pepper: test-pepper-not-a-secret-0123456789abcdef
   sms:
     provider: console
+  push:
+    provider: log
   storage:
     # endpoint comes from the SeaweedFS Testcontainer (TestcontainersConfiguration)
     region: us-east-1

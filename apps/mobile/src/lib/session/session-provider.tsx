@@ -4,6 +4,7 @@ import { ApiRequestError } from '@/lib/api-error';
 import { loadMe, logout } from '@/lib/auth/auth-requests';
 import type { IssuedTokens } from '@/lib/auth/refresh';
 import { refreshTokens, sessionEnded } from '@/lib/auth/session-auth';
+import { unregisterStoredPushDevice } from '@/lib/notifications/device';
 import { endReasonFor } from '@/lib/auth/session-events';
 import { clearQueryCache } from '@/lib/query/query-client';
 
@@ -124,6 +125,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const refreshToken = previewRef.current ? null : await readRefreshToken();
     invalidateRestore();
     dispatch({ type: 'signedOut' });
+    // Stop pushes to this phone while the access token still works (best effort, bounded in time).
+    if (refreshToken) await unregisterStoredPushDevice();
     // Server-side revocation is best effort and must not hold the UI up.
     if (refreshToken) void logout(refreshToken);
     await Promise.allSettled([clearTokens(), clearQueryCache()]);

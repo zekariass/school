@@ -1,10 +1,12 @@
 import { ShieldCheckIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { TestNotificationButton } from "@/components/notifications/test-notification-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
 import { visibleSections } from "@/lib/console/permissions";
+import { canSendTestNotification } from "@/lib/notifications/permissions";
 import { permissionsOf, requireSession } from "@/lib/server/dal";
 
 export async function generateMetadata() {
@@ -43,20 +45,23 @@ async function Sections() {
   const t = await getTranslations("console");
   const sections = visibleSections(permissionsOf(me));
   return (
-    <ul className="grid gap-4 sm:grid-cols-2">
-      {sections.map((section) => (
-        <li key={section.id}>
-          <Link href={section.href} className="block h-full rounded-2xl transition-shadow hover:shadow-md">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>{t(`nav.${section.id}`)}</CardTitle>
-                <CardDescription>{t(`overview.${section.id}`)}</CardDescription>
-              </CardHeader>
-              <CardContent />
-            </Card>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-6">
+      <ul className="grid gap-4 sm:grid-cols-2">
+        {sections.map((section) => (
+          <li key={section.id}>
+            <Link href={section.href} className="block h-full rounded-2xl transition-shadow hover:shadow-md">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle>{t(`nav.${section.id}`)}</CardTitle>
+                  <CardDescription>{t(`overview.${section.id}`)}</CardDescription>
+                </CardHeader>
+                <CardContent />
+              </Card>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {canSendTestNotification(me) ? <TestNotificationButton /> : null}
+    </div>
   );
 }

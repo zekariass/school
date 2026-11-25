@@ -51,13 +51,7 @@ public class PrincipalConverter implements Converter<Jwt, AbstractAuthentication
 	public AbstractAuthenticationToken convert(Jwt jwt) {
 		UUID userId = uuid(jwt.getSubject());
 		UUID sessionId = uuid(jwt.getClaimAsString(AccessTokenKeys.SESSION_CLAIM));
-		if (this.denyList.isDenied(sessionId)) {
-			throw new CodedAuthenticationException("auth.session_revoked");
-		}
-		UserSnapshotCache.UserSnapshot user = this.users.get(userId);
-		if (user == null || user.status() != UserStatus.ACTIVE) {
-			throw new CodedAuthenticationException("auth.account_inactive");
-		}
+		UserSnapshotCache.UserSnapshot user = requireActive(userId, sessionId);
 		List<RoleGrant> grants = this.roleAssignments.activeGrants(userId);
 		List<GrantedAuthority> authorities = grants.stream()
 			.filter((g) -> g.scope().level() == ScopeLevel.PLATFORM)
@@ -69,6 +63,21 @@ public class PrincipalConverter implements Converter<Jwt, AbstractAuthentication
 		Locale locale = (user.preferredLanguageCode() != null) ? Locale.forLanguageTag(user.preferredLanguageCode())
 				: null;
 		return new CurrentUserAuthentication(new CurrentUser(userId, sessionId, locale, grants), jwt, authorities);
+	}
+
+	/**
+	 * The session and account rules shared by every way of authenticating (HTTP bearer tokens,
+	 * WebSocket CONNECT): the family must not be deny-listed and the account must be ACTIVE.
+	 */
+	public UserSnapshotCache.UserSnapshot requireActive(UUID userId, UUID sessionId) {
+		if (this.denyList.isDenied(sessionId)) {
+			throw new CodedAuthenticationException("auth.session_revoked");
+		}
+		UserSnapshotCache.UserSnapshot user = this.users.get(userId);
+		if (user == null || user.status() != UserStatus.ACTIVE) {
+			throw new CodedAuthenticationException("auth.account_inactive");
+		}
+		return user;
 	}
 
 	private static UUID uuid(String value) {

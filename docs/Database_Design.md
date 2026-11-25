@@ -1378,6 +1378,13 @@ create table push_devices (                      -- also the device identity for
 );
 ```
 
+**As built (M2b, `V2_10__notifications`, seed `R__50_notification_types`):** deviations from the DDL above.
+- `push_devices.session_family_id uuid` replaces `auth_session_id`. `auth_sessions` has one row per refresh token and a new row on every refresh, so its id changes constantly; the token family id (the access token's `sid` claim) is the stable identity of a sign-in. It has no foreign key (the family id is not unique in `auth_sessions`). Devices are revoked (`revoked_at`) when their family is revoked (`SessionsRevoked`); the row stays because `notification_deliveries` refers to it. `push_token` is `not null unique`: a token that appears again belongs to the new registrant (the phone changed hands) and becomes active again.
+- `notification_deliveries.last_attempt_at` drives the retry back-off (1 minute after the first failure, 5 after the second, at most 3 attempts). Two partial unique indexes (`notification_id, push_device_id` where a device is set, `notification_id, channel` where not) make fan-out idempotent. `notification_id` cascades on delete. IN_APP needs no delivery row (the `notifications` row is the in-app record); EMAIL and SMS rows are not written yet. `SUPPRESSED` rows record `PREFERENCE` (type pushed by default, user opted out), `NO_DEVICE` (no row per device), `QUIET_HOURS` (per device) and `BLOCKED` (pending push of a device that moved to another user).
+- `notifications` is a plain table for now. Monthly partitioning (and then `PRIMARY KEY (id, created_at)`) waits until volume needs it. Indexes: inbox `(user_id, created_at desc, id desc) where archived_at is null` (keyset order), unread `(user_id) where archived_at is null and read_at is null`, and `(user_id, type_code, source_type, source_id)` for idempotent listeners.
+- `notification_preferences.channel` and `notification_types.category` carry CHECKs; `IN_APP` is a channel value but is always on (the API refuses to switch it off). `user_notification_settings` has a CHECK that quiet hours are both set or both null; `digest_mode` is `OFF` only for now.
+- `notification_types` is code-owned (`R__50_notification_types.sql`, `ON CONFLICT DO UPDATE`); user-facing labels, titles and bodies are message keys `notification.<code in lower case>.label|title|body` in `messages*.properties`, rendered per recipient when the notification is written (the stored `title` and `body` are already in the recipient's language).
+
 ### 4.14 Calendar (P1)
 
 ```sql

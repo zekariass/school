@@ -193,6 +193,46 @@
     "status": {
       "description": "Live details from the School API, fetched from this device. Pull down to refresh."
     },
+    "notifications": {
+      "title": "Notifications",
+      "bellLabel": "Notifications",
+      "bellLabelUnread": "Notifications, {count} unread",
+      "markAllRead": "Mark all as read",
+      "emptyTitle": "You are all caught up",
+      "emptyBody": "New notifications will show up here as they arrive.",
+      "errorTitle": "Could not load notifications",
+      "errorBody": "Check your connection and pull down to try again.",
+      "unreadItem": "Unread",
+      "settings": {
+        "title": "Notifications",
+        "pushOn": "Notifications are turned on for this phone.",
+        "pushUndetermined": "Allow notifications to get news on this phone even when the app is closed.",
+        "pushDenied": "Notifications are turned off for this phone. You can turn them on in the phone settings.",
+        "allow": "Turn on notifications",
+        "openSettings": "Open phone settings",
+        "preferencesTitle": "What to be notified about",
+        "preferencesHint": "Everything always appears in the app. Choose which kinds also reach your phone.",
+        "locked": "Always on",
+        "pushToggle": "{name}: send to this phone",
+        "quietTitle": "Quiet hours",
+        "quietHint": "No phone notifications during these hours, in your time zone ({timezone}). Urgent notices still come through.",
+        "startLabel": "From (HH:mm)",
+        "endLabel": "Until (HH:mm)",
+        "save": "Save quiet hours",
+        "clear": "Turn off quiet hours",
+        "saved": "Saved.",
+        "errorIncomplete": "Enter both times, or leave both empty.",
+        "errorInvalid": "Enter times like 22:00 and 06:30.",
+        "loadError": "Could not load your notification settings.",
+        "saveError": "Could not save. Please try again."
+      }
+    },
+    "push": {
+      "cardTitle": "Stay in the loop",
+      "cardBody": "Allow notifications to hear about messages, announcements and school news, even when the app is closed. You can change this any time in Settings.",
+      "cardAllow": "Allow notifications",
+      "cardLater": "Not now"
+    },
     "dev": {
       "title": "Role preview",
       "warningTitle": "Development only",
@@ -523,6 +563,63 @@
     "email": "Email",
     "notSet": "Not set",
     "save": "Save",
-    "saveFailed": "We couldn't save your changes. Please try again."
+    "saveFailed": "We couldn't save your changes. Please try again.",
+    "notificationsLink": "Notification settings",
+    "notificationsHint": "Choose which notifications reach your phone and when not to be disturbed."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bell": {
+      "label": "Notifications",
+      "labelUnread": "Notifications, {count} unread",
+      "markAllRead": "Mark all as read",
+      "empty": "You're all caught up.",
+      "viewAll": "See all notifications",
+      "loadFailed": "We couldn't load your notifications.",
+      "open": "Open"
+    },
+    "page": {
+      "subtitle": "What happened at your schools and in your account.",
+      "filterAll": "All",
+      "filterUnread": "Unread",
+      "emptyAll": "No notifications yet.",
+      "emptyUnread": "Nothing unread.",
+      "markRead": "Mark as read",
+      "archive": "Remove",
+      "archived": "Notification removed.",
+      "actionFailed": "We couldn't do that. Please try again.",
+      "loadMore": "Load more",
+      "settings": "Notification settings",
+      "unread": "Unread"
+    },
+    "preferences": {
+      "title": "Notification settings",
+      "subtitle": "Choose how each kind of notification reaches you.",
+      "loadFailed": "We couldn't load your notification settings.",
+      "saveFailed": "We couldn't save that. Please try again.",
+      "inApp": "In the app",
+      "push": "Push",
+      "alwaysOn": "Always on",
+      "locked": "This notification is important and cannot be switched off.",
+      "urgent": "Can break through quiet hours",
+      "quietHours": {
+        "title": "Quiet hours",
+        "hint": "Push notifications are held back during these hours. Urgent notifications that are allowed to are still delivered. Times are in your timezone: {timezone}.",
+        "start": "From",
+        "end": "Until",
+        "save": "Save quiet hours",
+        "clear": "Turn off",
+        "saved": "Quiet hours saved.",
+        "cleared": "Quiet hours turned off.",
+        "incomplete": "Choose both a start and an end time.",
+        "off": "Quiet hours are off."
+      }
+    },
+    "test": {
+      "button": "Send me a test notification",
+      "hint": "Checks that notifications reach you live, in the app and on your phone.",
+      "sent": "Test notification sent.",
+      "failed": "We couldn't send the test notification."
+    }
   }
 }

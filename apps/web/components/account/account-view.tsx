@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link } from "@/i18n/navigation";
 import { getBrowserApi } from "@/lib/api-client";
 import { unwrap } from "@/lib/api-error";
 
@@ -24,6 +25,7 @@ const meKey = ["me"] as const;
 export function AccountView({ initial }: { initial: Me }) {
   const t = useTranslations("account");
   const tm = useTranslations("media");
+  const tn = useTranslations("notifications");
   const queryClient = useQueryClient();
   const me = useQuery({
     queryKey: meKey,
@@ -90,6 +92,18 @@ export function AccountView({ initial }: { initial: Me }) {
             onRemove={clear}
             labels={{ choose: tm("avatar.choose"), change: tm("avatar.change"), remove: tm("avatar.remove") }}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{tn("title")}</CardTitle>
+          <CardDescription>{t("notificationsHint")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="outline">
+            <Link href="/account/notifications">{t("notificationsLink")}</Link>
+          </Button>
         </CardContent>
       </Card>
 

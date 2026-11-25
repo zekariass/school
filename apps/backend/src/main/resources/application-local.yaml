@@ -39,6 +39,8 @@ school:
     cors-origins: http://localhost:3100
   sms:
     provider: console             # one-time codes are printed in the backend log
+  push:
+    provider: ${SCHOOL_PUSH_PROVIDER:log}   # "log" prints pushes; SCHOOL_PUSH_PROVIDER=expo sends real ones
   bootstrap:
     admin:
       phone: "+251900000001"      # sign in locally with this phone; the code is in the log

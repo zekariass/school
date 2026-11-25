@@ -3,13 +3,16 @@ package com.nemaz.school.authorization.application;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 import com.nemaz.school.audit.AuditEntry;
 import com.nemaz.school.audit.AuditLog;
 import com.nemaz.school.audit.AuditOutcome;
+import com.nemaz.school.authorization.RoleAssignmentGranted;
 import com.nemaz.school.authorization.RoleAssignments;
 import com.nemaz.school.authorization.RoleCodes;
 import com.nemaz.school.authorization.domain.AssignmentStatus;
@@ -31,6 +34,8 @@ import com.nemaz.school.tenancy.TenantDirectory.CampusRef;
 import jakarta.persistence.criteria.Predicate;
 import org.hibernate.exception.ConstraintViolationException;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
@@ -71,9 +76,14 @@ public class RoleAssignmentService implements RoleAssignments {
 
 	private final Clock clock;
 
+	private final ApplicationEventPublisher events;
+
+	private final List<String> languages;
+
 	RoleAssignmentService(RoleRepository roles, RoleAssignmentRepository assignments, RolePermissions rolePermissions,
 			AuthorizationService authorization, GrantCache grantCache, TenantDirectory directory,
-			ReferenceData reference, AuditLog audit, Clock clock) {
+			ReferenceData reference, AuditLog audit, Clock clock, ApplicationEventPublisher events,
+			@Value("${school.i18n.supported-locales:en,am}") List<String> languages) {
 		this.roles = roles;
 		this.assignments = assignments;
 		this.rolePermissions = rolePermissions;
@@ -83,6 +93,8 @@ public class RoleAssignmentService implements RoleAssignments {
 		this.reference = reference;
 		this.audit = audit;
 		this.clock = clock;
+		this.events = events;
+		this.languages = List.copyOf(languages);
 	}
 
 	// --- RoleAssignments (for the identity module) -------------------------------------
@@ -235,6 +247,15 @@ public class RoleAssignmentService implements RoleAssignments {
 			.metadata("roleCode", role.getCode())
 			.metadata("scope", describe(scope)));
 		this.grantCache.evictAfterCommit(userId);
+		Map<String, String> scopeNames = new LinkedHashMap<>();
+		for (String language : this.languages) {
+			String name = scopeName(scope, Locale.forLanguageTag(language));
+			if (name != null) {
+				scopeNames.put(language, name);
+			}
+		}
+		this.events.publishEvent(new RoleAssignmentGranted(saved.getId(), userId, role.getCode(), role.names(),
+				scope.level(), scope.schoolId(), scopeNames, grantedBy));
 		return saved;
 	}
 

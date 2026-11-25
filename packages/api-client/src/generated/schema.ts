@@ -142,6 +142,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every notification type by category with its channels: enabled (stored choice, else the type's default) and locked (the user cannot change it) */
+        get: operations["getNotificationPreferences"];
+        /** Switch PUSH on or off per type; locked types and IN_APP cannot be switched off (400 notification.preference_locked) */
+        put: operations["updateNotificationPreferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notification-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Quiet hours (in my timezone) and digest mode */
+        get: operations["getNotificationSettings"];
+        /** Set quiet hours (both times or neither); only digest mode OFF exists so far */
+        put: operations["updateNotificationSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/password": {
         parameters: {
             query?: never;
@@ -154,6 +190,40 @@ export interface paths {
         put: operations["changeMyPassword"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/push-devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register (or refresh) this device's push token for my current session; a token already registered to someone else moves to me */
+        post: operations["registerPushDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/push-devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Stop pushes to one of my devices (idempotent) */
+        delete: operations["deletePushDevice"];
         options?: never;
         head?: never;
         patch?: never;
@@ -256,6 +326,108 @@ export interface paths {
         get: operations["getMeta"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My notifications, newest first (archived ones excluded) */
+        get: operations["listNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark every unread notification read */
+        post: operations["markAllNotificationsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send myself a test notification (platform administrators): inbox, real-time and push */
+        post: operations["sendTestNotification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** How many unread notifications I have */
+        get: operations["getUnreadNotificationCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove a notification from the inbox (idempotent) */
+        post: operations["archiveNotification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark one notification read (idempotent) */
+        post: operations["markNotificationRead"];
         delete?: never;
         options?: never;
         head?: never;
@@ -648,6 +820,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/realtime/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A single-use ticket (60 seconds) to open the WebSocket at /ws from a browser, sent as the STOMP CONNECT header 'ticket' */
+        post: operations["createRealtimeTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reference/countries": {
         parameters: {
             query?: never;
@@ -782,9 +971,20 @@ export interface components {
             /** Format: int32 */
             version: number;
         };
+        CategoryView: {
+            code: string;
+            label: string;
+            types: components["schemas"]["TypeView"][];
+        };
         ChangePasswordRequest: {
             currentPassword?: string;
             newPassword: string;
+        };
+        ChannelView: {
+            /** @enum {string} */
+            channel: "IN_APP" | "PUSH";
+            enabled: boolean;
+            locked: boolean;
         };
         ContextRef: {
             /** Format: uuid */
@@ -901,6 +1101,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageNotificationView: {
+            items: components["schemas"]["NotificationView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageOrganizationResponse: {
             items: components["schemas"]["OrganizationResponse"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -958,6 +1163,10 @@ export interface components {
             name: string;
             nativeName: string;
             script?: string;
+        };
+        MarkedRead: {
+            /** Format: int32 */
+            updated: number;
         };
         MeResponse: {
             /** @enum {string} */
@@ -1033,6 +1242,28 @@ export interface components {
             service: string;
             supportedLocales: string[];
         };
+        NotificationView: {
+            body?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Routing data; 'path' is a relative in-app path */
+            data: {
+                [key: string]: unknown;
+            };
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            priority: "NORMAL" | "URGENT";
+            /** Format: date-time */
+            readAt?: string;
+            /** Format: uuid */
+            schoolId?: string;
+            /** Format: uuid */
+            sourceId?: string;
+            sourceType?: string;
+            title: string;
+            typeCode: string;
+        };
         OrganizationResponse: {
             countryCode: string;
             /** Format: date-time */
@@ -1084,6 +1315,14 @@ export interface components {
         PoliciesResponse: {
             purposes: components["schemas"]["PurposePolicy"][];
         };
+        PreferenceChange: {
+            channel: string;
+            enabled: boolean;
+            typeCode: string;
+        };
+        Preferences: {
+            categories: components["schemas"]["CategoryView"][];
+        };
         /** @description RFC 9457 problem details returned by every failing endpoint. */
         ProblemDetail: {
             /** @description Stable machine-readable error code */
@@ -1113,6 +1352,21 @@ export interface components {
             /** @enum {string} */
             purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING";
         };
+        PushDeviceResponse: {
+            appVersion?: string;
+            /** Format: date-time */
+            createdAt: string;
+            deviceModel?: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            lastSeenAt?: string;
+            locale?: string;
+            /** @enum {string} */
+            platform: "IOS" | "ANDROID" | "WEB";
+            /** @enum {string} */
+            provider: "EXPO" | "FCM" | "APNS" | "WEBPUSH";
+        };
         PutFeatureOverrideRequest: {
             /** @description Optional feature-specific configuration (a JSON object) */
             config?: components["schemas"]["JsonNode"];
@@ -1128,6 +1382,16 @@ export interface components {
         };
         RefreshRequest: {
             refreshToken: string;
+        };
+        RegisterPushDeviceRequest: {
+            appVersion?: string;
+            deviceModel?: string;
+            locale?: string;
+            /** @enum {string} */
+            platform: "IOS" | "ANDROID" | "WEB";
+            /** @enum {string} */
+            provider: "EXPO" | "FCM" | "APNS" | "WEBPUSH";
+            token: string;
         };
         RoleAssignmentResponse: {
             /** Format: date-time */
@@ -1288,6 +1552,13 @@ export interface components {
             /** @description Any JSON value */
             value: components["schemas"]["JsonNode"];
         };
+        SettingsResponse: {
+            digestMode: string;
+            quietHoursEnd?: string;
+            quietHoursStart?: string;
+            /** @description The timezone quiet hours are evaluated in */
+            timezone: string;
+        };
         SubscriptionResponse: {
             /** Format: date-time */
             createdAt: string;
@@ -1305,6 +1576,18 @@ export interface components {
             /** Format: date-time */
             trialEndsAt?: string;
         };
+        TestNotificationResponse: {
+            /** Format: uuid */
+            notificationId: string;
+        };
+        TicketResponse: {
+            /**
+             * Format: int64
+             * @description Seconds the ticket stays valid
+             */
+            expiresIn: number;
+            ticket: string;
+        };
         TokenResponse: {
             accessToken: string;
             /**
@@ -1321,6 +1604,17 @@ export interface components {
             refreshTokenExpiresIn: number;
             /** @enum {string} */
             tokenType: "Bearer";
+        };
+        TypeView: {
+            canBeUrgent: boolean;
+            channels: components["schemas"]["ChannelView"][];
+            code: string;
+            label: string;
+            userCanDisable: boolean;
+        };
+        UnreadCount: {
+            /** Format: int32 */
+            count: number;
         };
         UpdateCampusRequest: {
             code?: string;
@@ -1341,9 +1635,19 @@ export interface components {
             /** @enum {string} */
             status: "ACTIVE" | "SUSPENDED" | "ARCHIVED";
         };
+        UpdatePreferencesRequest: {
+            changes: components["schemas"]["PreferenceChange"][];
+        };
         UpdateSchoolStatusRequest: {
             /** @enum {string} */
             status: "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+        };
+        UpdateSettingsRequest: {
+            /** @enum {string} */
+            digestMode?: "OFF";
+            quietHoursEnd?: string;
+            /** @description HH:mm in my timezone, or absent for no quiet hours */
+            quietHoursStart?: string;
         };
         UploadRequestBody: {
             /** @description What the media belongs to; optional for AVATAR (the caller) */
@@ -1726,6 +2030,130 @@ export interface operations {
             };
         };
     };
+    getNotificationPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Preferences"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateNotificationPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePreferencesRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Preferences"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getNotificationSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateNotificationSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     changeMyPassword: {
         parameters: {
             query?: never;
@@ -1738,6 +2166,68 @@ export interface operations {
                 "application/json": components["schemas"]["ChangePasswordRequest"];
             };
         };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    registerPushDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterPushDeviceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushDeviceResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deletePushDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description No Content */
             204: {
@@ -1960,6 +2450,184 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MetaResponse"];
                 };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listNotifications: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                unreadOnly?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageNotificationView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    markAllNotificationsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkedRead"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    sendTestNotification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestNotificationResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getUnreadNotificationCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCount"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    archiveNotification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    markNotificationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Error (RFC 9457 problem details) */
             default: {
@@ -3093,6 +3761,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserMatchResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createRealtimeTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketResponse"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

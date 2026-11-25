@@ -16,6 +16,13 @@ public class SecurityTestConfiguration {
 		return new MutableClock();
 	}
 
+	/** Replaces the configured push provider: tests read what would have been pushed. */
+	@Bean
+	@Primary
+	RecordingPushSender recordingPushSender() {
+		return new RecordingPushSender();
+	}
+
 	@Bean
 	@Primary
 	RecordingMessages recordingMessages() {

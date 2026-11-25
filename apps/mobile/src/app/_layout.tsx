@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { NotificationsRuntime } from '@/components/notifications-runtime';
 import { RestoreOfflineScreen } from '@/components/restore-offline-screen';
 import { bootstrap, type BootstrapResult } from '@/lib/bootstrap';
 import { AppIntlProvider } from '@/lib/i18n/intl-provider';
@@ -90,6 +91,7 @@ function RootNavigator() {
   return (
     <ThemeProvider value={navigationTheme}>
       <StatusBar style="auto" />
+      <NotificationsRuntime />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="index" />
 
@@ -109,6 +111,9 @@ function RootNavigator() {
           <Stack.Screen name="(student)" />
         </Stack.Protected>
 
+        <Stack.Protected guard={signedIn}>
+          <Stack.Screen name="notifications" options={{ ...header, title: t('mobile.notifications.title') }} />
+        </Stack.Protected>
         <Stack.Screen name="settings" options={{ ...header, title: t('nav.settings') }} />
         <Stack.Screen name="status" options={{ ...header, title: t('status.title') }} />
         {/* DEVELOPMENT ONLY: not part of the route table in release builds. */}
