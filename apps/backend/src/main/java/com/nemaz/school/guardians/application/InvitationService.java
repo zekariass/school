@@ -353,7 +353,17 @@ public class InvitationService implements InvitationRedeemer {
 		return this.links.load(linkId, false);
 	}
 
+	/**
+	 * Both redemption paths (one-time code, signed in) end here, so the eligibility rules hold for both: the adult must
+	 * have an ACTIVE STANDARD account (never a school-managed student account) and cannot be the child.
+	 */
 	private UUID accept(Live live, UUID userId, String provenPhone, String provenEmail, RelationshipType requested) {
+		boolean eligible = !live.studentId().equals(userId) && this.users.verifiedContacts(userId)
+			.map(VerifiedContacts::activeStandardAccount)
+			.orElse(false);
+		if (!eligible) {
+			throw ApiException.forbidden("guardian.account_not_eligible");
+		}
 		Optional<UUID> existing = this.links.liveLinkId(live.studentId(), userId);
 		if (existing.isPresent()) {
 			return existing.get();

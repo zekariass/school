@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -23,6 +24,7 @@ import com.nemaz.school.identity.UserAccounts.ProvisionRequest;
 import com.nemaz.school.identity.UserAccounts.ProvisionedUser;
 import com.nemaz.school.identity.application.Destination.Channel;
 import com.nemaz.school.identity.application.TokenService.TokenPair;
+import com.nemaz.school.identity.domain.AccountType;
 import com.nemaz.school.identity.domain.AuthMethod;
 import com.nemaz.school.identity.domain.User;
 import com.nemaz.school.identity.infrastructure.OtpChallengeStore;
@@ -51,8 +53,12 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Purpose {@code ACCEPT_INVITE}; 6 digits, HMAC with the pepper, 5 minutes, 5 attempts, single use, a new code ends
  * the older ones (the sign-in machinery).</li>
  * <li><b>Accept:</b> checks the code (every failure is the same 400 {@code auth.invalid_code}, attempts are committed),
- * then in one transaction finds or creates the adult (STANDARD, destination verified: the code proved it), lets the
- * redeemer link them, and signs them in. An invitation that died in between rolls everything back (404).</li>
+ * then in one transaction finds or creates the adult and signs them in. A new adult gets a STANDARD account with the
+ * destination verified (the code proved it). An existing holder of the destination is used only if it is an ACTIVE
+ * STANDARD account on which that destination is already verified, exactly as OTP sign-in requires; an unverified copy
+ * of the phone or email, a school-managed account or an inactive one is refused with 409
+ * {@code invitation.contact_unavailable} (no session, nothing verified, nothing linked), so proving a phone through an
+ * invitation can never take over somebody else's account. The redeemer then links the adult. An invitation that died in between rolls everything back (404).</li>
  * </ul>
  * The invited destination never proves anything by itself: the redeemer decides the link status.
  */
@@ -158,6 +164,13 @@ public class InvitationSignInService {
 			if (checked != null) {
 				return checked;
 			}
+			// An existing holder of the destination is used only when it is an ACTIVE STANDARD account on which this
+			// contact is already verified (what OTP sign-in requires). Anything else (unverified copy, managed or
+			// inactive account) is refused: proving a phone here must never take over somebody else's account.
+			if (holder(destination).filter((u) -> !eligibleHolder(u, destination)).isPresent()) {
+				fail(destination, "contact_unavailable", null);
+				return Result.UNAVAILABLE;
+			}
 			String name = name(displayName, target);
 			ProvisionedUser account = this.accounts.findOrCreateVerified(new ProvisionRequest(
 					(destination.channel() == Channel.SMS) ? destination.value() : null,
@@ -165,12 +178,10 @@ public class InvitationSignInService {
 					(language != null) ? language : target.languageCode()));
 			Instant now = this.clock.instant();
 			User user = this.users.findById(account.id()).orElseThrow();
-			// The code just proved the destination: an existing account whose copy was unverified is now verified.
-			if (destination.channel() == Channel.SMS && user.getPhoneVerifiedAt() == null) {
-				user.verifyPhone(now);
-			}
-			if (destination.channel() == Channel.EMAIL && user.getEmailVerifiedAt() == null) {
-				user.verifyEmail(now);
+			if (!eligibleHolder(user, destination)) {
+				// A concurrent request created or changed the holder in between: refuse the same way.
+				status.setRollbackOnly();
+				return Result.UNAVAILABLE;
 			}
 			VerifiedContact proof = new VerifiedContact((destination.channel() == Channel.SMS) ? destination.value() : null,
 					(destination.channel() == Channel.EMAIL) ? destination.value() : null);
@@ -194,6 +205,9 @@ public class InvitationSignInService {
 		});
 		if (result == Result.GONE) {
 			throw ApiException.notFound("invitation.not_found");
+		}
+		if (result == Result.UNAVAILABLE) {
+			throw ApiException.conflict("invitation.contact_unavailable");
 		}
 		if (result.tokens() == null) {
 			throw ApiException.badRequest("auth.invalid_code");
@@ -258,6 +272,21 @@ public class InvitationSignInService {
 		return name;
 	}
 
+	/** Whoever holds the phone or email, verified or not, active or not. */
+	private Optional<User> holder(Destination destination) {
+		return (destination.channel() == Channel.SMS) ? this.users.findByPhoneE164(destination.value())
+				: this.users.findByEmail(destination.value());
+	}
+
+	/** An ACTIVE STANDARD account on which exactly this destination is already verified. */
+	private static boolean eligibleHolder(User user, Destination destination) {
+		boolean verified = (destination.channel() == Channel.SMS)
+				? destination.value().equals(user.getPhoneE164()) && user.getPhoneVerifiedAt() != null
+				: destination.value().equalsIgnoreCase(user.getEmail()) && user.getEmailVerifiedAt() != null;
+		return verified && user.isActive() && user.getDeletedAt() == null
+				&& user.getAccountType() == AccountType.STANDARD;
+	}
+
 	private User findActive(Destination destination) {
 		return ((destination.channel() == Channel.SMS) ? this.users.findActiveByVerifiedPhone(destination.value())
 				: this.users.findActiveByVerifiedEmail(destination.value()))
@@ -296,6 +325,8 @@ public class InvitationSignInService {
 		static final Result INVALID = new Result(null, "invalid");
 
 		static final Result GONE = new Result(null, "gone");
+
+		static final Result UNAVAILABLE = new Result(null, "unavailable");
 
 	}
 
