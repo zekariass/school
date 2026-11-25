@@ -57,6 +57,12 @@ public interface ClassAccess {
 	 */
 	SqlFragment visibleClasses(CurrentUser user, String classAlias);
 
+	/**
+	 * Like {@link #visibleClasses} but for {@link #canTeach}: classes the user is an ACTIVE teacher of, or manages. Students
+	 * and contributed rules (guardians) never count.
+	 */
+	SqlFragment teachableClasses(CurrentUser user, String classAlias);
+
 	/** Like {@link #visibleClasses} but for {@link #canViewRoster}: members and managers, without contributed rules. */
 	SqlFragment rosterVisibleClasses(CurrentUser user, String classAlias);
 

@@ -41,7 +41,20 @@ public interface ClassMemberships {
 	/** For each student, the ACTIVE classes. */
 	Map<UUID, List<StudentClass>> activeClassesOf(Collection<UUID> studentIds);
 
+	/**
+	 * The students who belonged to the class at any moment of [{@code dayStart}, {@code dayEnd}): enrolled before the day
+	 * ended and not left before it began (ACTIVE, and FORMER or REMOVED ones whose stay overlaps the day). Attendance
+	 * asks this for a school-local calendar day.
+	 */
+	Set<UUID> studentIdsDuring(UUID classId, java.time.Instant dayStart, java.time.Instant dayEnd);
+
+	/** The ACTIVE teachers of the classes with their roles (one entry per class and teacher; the best role if several). */
+	List<ClassTeacher> activeTeachers(Collection<UUID> classIds);
+
 	record StudentClass(UUID classId, String name, UUID gradeLevelId) {
+	}
+
+	record ClassTeacher(UUID classId, UUID teacherId, ClassMembershipView.TeacherRole role) {
 	}
 
 }

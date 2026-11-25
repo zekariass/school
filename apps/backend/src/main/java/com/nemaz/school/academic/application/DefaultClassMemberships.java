@@ -177,4 +177,36 @@ class DefaultClassMemberships implements ClassMemberships {
 		return result;
 	}
 
+	@Override
+	@Transactional(readOnly = true)
+	public Set<UUID> studentIdsDuring(UUID classId, java.time.Instant dayStart, java.time.Instant dayEnd) {
+		return new LinkedHashSet<>(this.jdbc.sql("""
+				select distinct student_id from class_students
+				where class_id = :c and status in ('ACTIVE', 'FORMER', 'REMOVED')
+				  and joined_at < :end and (left_at is null or left_at >= :start)
+				order by student_id""")
+			.param("c", classId)
+			.param("start", Timestamp.from(dayStart))
+			.param("end", Timestamp.from(dayEnd))
+			.query(UUID.class)
+			.list());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ClassTeacher> activeTeachers(Collection<UUID> classIds) {
+		if (classIds.isEmpty()) {
+			return List.of();
+		}
+		return this.jdbc.sql("""
+				select class_id, teacher_id,
+				       (array_agg(role order by case role when 'LEAD' then 0 when 'CO_TEACHER' then 1 when 'SUBJECT_TEACHER' then 2 else 3 end))[1] as role
+				from class_teachers where class_id in (:ids) and status = 'ACTIVE'
+				group by class_id, teacher_id order by class_id, teacher_id""")
+			.param("ids", classIds)
+			.query((rs, i) -> new ClassTeacher(Rows.uuid(rs, "class_id"), Rows.uuid(rs, "teacher_id"),
+					com.nemaz.school.academic.ClassMembershipView.TeacherRole.valueOf(rs.getString("role"))))
+			.list();
+	}
+
 }

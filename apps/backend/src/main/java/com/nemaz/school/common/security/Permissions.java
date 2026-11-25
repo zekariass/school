@@ -68,12 +68,21 @@ public final class Permissions {
 	/** The school-wide points reports (CSV export included) and any student's points of the school (M6). */
 	public static final String SCHOOL_POINTS_READ = "school.points.read";
 
+	/**
+	 * Attendance of the whole school: take or correct any class's roll, edit a locked roll with an audited reason,
+	 * decide on absence reports, read the absence-report notes (M7).
+	 */
+	public static final String SCHOOL_ATTENDANCE_MANAGE = "school.attendance.manage";
+
+	/** The school-wide attendance dashboard, summary reports (CSV export included) and any student's attendance (M7). */
+	public static final String SCHOOL_ATTENDANCE_READ = "school.attendance.read";
+
 	/** Every permission code, in seed order. */
 	public static final List<String> ALL = List.of(PLATFORM_ORGANIZATIONS_MANAGE, PLATFORM_SCHOOLS_MANAGE,
 			PLATFORM_SUBSCRIPTIONS_MANAGE, PLATFORM_FEATURES_MANAGE, PLATFORM_SETTINGS_MANAGE, PLATFORM_ROLES_MANAGE,
 			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ, SCHOOL_ACADEMIC_MANAGE, SCHOOL_STAFF_MANAGE,
 			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE, SCHOOL_IMPORT_MANAGE, SCHOOL_GUARDIANS_MANAGE, SCHOOL_POLICIES_MANAGE,
-			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ);
+			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ);
 
 	private Permissions() {
 	}

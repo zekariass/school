@@ -1,5 +1,6 @@
 package com.nemaz.school.engagement.application;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,10 +21,25 @@ class DefaultPointsApi implements PointsApi {
 
 	private final BadgeService badges;
 
-	DefaultPointsApi(JdbcClient jdbc, AwardService awards, BadgeService badges) {
+	private final EngagementSettings settings;
+
+	DefaultPointsApi(JdbcClient jdbc, AwardService awards, BadgeService badges, EngagementSettings settings) {
 		this.jdbc = jdbc;
 		this.awards = awards;
 		this.badges = badges;
+		this.settings = settings;
+	}
+
+	@Override
+	public List<StreakBadge> attendanceStreakBadges(UUID schoolId, UUID studentId) {
+		if (!this.settings.badges(schoolId)) {
+			return List.of();
+		}
+		return this.badges.streakCandidates(schoolId, studentId)
+			.stream()
+			.filter((b) -> b.criteria().get("days") instanceof Number)
+			.map((b) -> new StreakBadge(b.code(), ((Number) b.criteria().get("days")).intValue()))
+			.toList();
 	}
 
 	@Override
