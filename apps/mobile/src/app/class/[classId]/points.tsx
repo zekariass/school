@@ -9,6 +9,7 @@ import { Avatar } from '@/components/avatar';
 import { AwardSheet } from '@/components/points/award-sheet';
 import { PointsGrid } from '@/components/points/points-grid';
 import { FailureBanners } from '@/components/points/queue-status';
+import { OfflineNote } from '@/components/sync/offline-note';
 import { QueueIndicator } from '@/components/sync/queue-indicator';
 import { UndoSnackbar } from '@/components/points/undo-snackbar';
 import { ProblemBanner } from '@/components/problem-banner';
@@ -231,6 +232,7 @@ export default function ClassPoints() {
         </View>
 
         <QueueIndicator classId={classId!} />
+        <OfflineNote fromCache={roster.fromCache || overview.fromCache} fetchedAt={overview.fetchedAt ?? roster.fetchedAt} />
         <FailureBanners classId={classId!} students={students} categories={skills} />
         {awards.problem ? (
           <View accessibilityRole="alert" style={{ padding: spacing[3], borderRadius: radii.lg, borderWidth: 1, borderColor: colors.destructive, backgroundColor: colors.muted }}>

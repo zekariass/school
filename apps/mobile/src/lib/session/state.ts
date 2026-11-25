@@ -22,6 +22,8 @@ export interface SessionState {
   endReason: SessionEndReason | null;
   /** How the current or last session was started; kept after sign-out to route back to the right screen. */
   signInMethod: SignInMethod | null;
+  /** A teacher opened the app with no connection: this is the last session the server confirmed, not yet renewed. */
+  offline: boolean;
 }
 
 export const INITIAL_SESSION: SessionState = {
@@ -32,6 +34,7 @@ export const INITIAL_SESSION: SessionState = {
   profile: null,
   endReason: null,
   signInMethod: null,
+  offline: false,
 };
 
 export type SessionAction =
@@ -41,6 +44,8 @@ export type SessionAction =
       preferredRole?: Role | null;
       profile?: SessionProfile;
       signInMethod?: SignInMethod | null;
+      /** Restored from the remembered profile because the server could not be reached. */
+      offline?: boolean;
     }
   | {
       type: 'signedIn';
@@ -75,6 +80,7 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
         profile,
         endReason: null,
         signInMethod: action.signInMethod ?? state.signInMethod,
+        offline: action.type === 'restored' && action.offline === true,
       };
     }
     case 'setActiveRole':
@@ -94,7 +100,7 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
     case 'startPreview': {
       const roles = normalizeRoles(action.roles);
       if (!roles.includes(action.role)) return state;
-      return { status: 'signedIn', roles, activeRole: action.role, preview: true, profile: null, endReason: null, signInMethod: null };
+      return { status: 'signedIn', roles, activeRole: action.role, preview: true, profile: null, endReason: null, signInMethod: null, offline: false };
     }
   }
 }

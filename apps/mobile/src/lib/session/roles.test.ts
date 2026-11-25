@@ -67,6 +67,7 @@ describe('sessionReducer', () => {
       profile: null,
       endReason: null,
       signInMethod: null,
+      offline: false,
     });
   });
 });

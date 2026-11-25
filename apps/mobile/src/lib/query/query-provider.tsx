@@ -23,7 +23,8 @@ export function AppQueryProvider({ children }: { children: ReactNode }) {
       persistOptions={{
         persister: queryPersister,
         maxAge: QUERY_CACHE_MAX_AGE_MS,
-        buster: Constants.expoConfig?.version ?? '0',
+        // The shape of the class and roster queries changed with the offline cache (M7b): older persisted copies are dropped.
+        buster: `${Constants.expoConfig?.version ?? '0'}+offline1`,
         // Signed media links are dead after a restart, and notification texts and counts are cheap to
         // refetch and describe children's school life: keep both out of the persisted cache. So are
         // student records (date of birth...) and school-wide student searches, and the guardian screens

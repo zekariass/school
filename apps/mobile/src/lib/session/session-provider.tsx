@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import * as Network from 'expo-network';
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 
 import { ApiRequestError } from '@/lib/api-error';
@@ -77,7 +77,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [state.preview]);
   /** Only the newest restore may change the session. */
   const restoreRun = useRef(0);
-  const [offlineSession, setOfflineSession] = useState(false);
+  const offlineSession = state.offline;
 
   const invalidateRestore = useCallback(() => {
     restoreRun.current++;
@@ -96,7 +96,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const offline = toOfflineIdentity(me, Date.now());
       if (offline) saveQuietly(OFFLINE_IDENTITY_KEY, JSON.stringify(offline));
       else void kv.removeItem(OFFLINE_IDENTITY_KEY).catch(() => {});
-      setOfflineSession(false);
       dispatch({
         type,
         roles: identity.roles,
@@ -113,9 +112,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const identity = resolveSessionFromMe(offline.me, remembered.role);
       // The profile query has the full profile when it is still cached; otherwise it starts from this one.
       queryClient.setQueryData(ME_KEY, (old: unknown) => old ?? { ...offline.me, id: offline.userId });
-      setOfflineSession(true);
       dispatch({
         type: 'restored',
+        offline: true,
         roles: identity.roles,
         preferredRole: remembered.role,
         signInMethod: remembered.method,
