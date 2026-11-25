@@ -11,6 +11,10 @@ export default function StudentTabs() {
         <NativeTabs.Trigger.Label>{t('nav.home')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'star', selected: 'star.fill' }} md="star" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="points">
+        <NativeTabs.Trigger.Label>{t('mobile.points.tab')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'trophy', selected: 'trophy.fill' }} md="emoji_events" />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="portfolio">
         <NativeTabs.Trigger.Label>{t('nav.portfolio')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'photo.on.rectangle', selected: 'photo.on.rectangle.angled' }} md="photo_library" />

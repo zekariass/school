@@ -5093,7 +5093,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/CategoryView"
+                  "$ref" : "#/components/schemas/PointCategoryView"
                 }
               }
             },
@@ -5157,7 +5157,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/CategoryView"
+                  "$ref" : "#/components/schemas/PointCategoryView"
                 }
               }
             },
@@ -7177,7 +7177,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/CategoryView"
+                    "$ref" : "#/components/schemas/PointCategoryView"
                   }
                 }
               }
@@ -7224,7 +7224,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/CategoryView"
+                  "$ref" : "#/components/schemas/PointCategoryView"
                 }
               }
             },
@@ -7280,7 +7280,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/CategoryView"
+                  "$ref" : "#/components/schemas/PointCategoryView"
                 }
               }
             },
@@ -8834,7 +8834,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/CategoryView"
+                    "$ref" : "#/components/schemas/PointCategoryView"
                   }
                 }
               }
@@ -13143,6 +13143,61 @@
           }
         },
         "required" : [ "code", "name" ]
+      },
+      "PointCategoryView" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Set for a category of one class"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "context" : {
+            "type" : "string",
+            "enum" : [ "CLASS", "SCHOOL", "HOME" ]
+          },
+          "defaultPoints" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "The name in the caller's language"
+          },
+          "names" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "The names by language code"
+          },
+          "polarity" : {
+            "type" : "string",
+            "enum" : [ "POSITIVE", "NEEDS_WORK" ]
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "templateCode" : {
+            "type" : "string",
+            "description" : "Set for a copy of a platform template; the stable key of default categories"
+          }
+        },
+        "required" : [ "context", "id", "name", "names", "polarity" ]
       },
       "PoliciesResponse" : {
         "type" : "object",

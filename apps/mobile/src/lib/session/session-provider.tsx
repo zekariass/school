@@ -6,6 +6,7 @@ import { loadMe, logout } from '@/lib/auth/auth-requests';
 import type { IssuedTokens } from '@/lib/auth/refresh';
 import { refreshTokens, sessionEnded } from '@/lib/auth/session-auth';
 import { unregisterStoredPushDevice } from '@/lib/notifications/device';
+import { clearAwardQueue } from '@/lib/points/award-runtime';
 import { endReasonFor } from '@/lib/auth/session-events';
 import { clearQueryCache } from '@/lib/query/query-client';
 import { kv, saveQuietly } from '@/lib/storage';
@@ -129,6 +130,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (previewRef.current) return;
         dispatch({ type: 'signedOut', reason });
         void clearQueryCache();
+        void clearAwardQueue();
       }),
     [],
   );
@@ -169,7 +171,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     if (refreshToken) await unregisterStoredPushDevice();
     // Server-side revocation is best effort and must not hold the UI up.
     if (refreshToken) void logout(refreshToken);
-    await Promise.allSettled([clearTokens(), clearQueryCache()]);
+    // The award queue holds children's ids: nothing of it outlives the session.
+    await Promise.allSettled([clearTokens(), clearQueryCache(), clearAwardQueue()]);
   }, [invalidateRestore]);
 
   const startPreview = useCallback((role: Role) => {

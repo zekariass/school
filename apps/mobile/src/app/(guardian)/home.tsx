@@ -78,6 +78,7 @@ function MyChildren() {
               child={child}
               consent={childConsent(consents.data, child.studentId)}
               onReviewConsent={() => router.push('/consent')}
+              onOpenPoints={() => router.push({ pathname: '/child/[studentId]', params: { studentId: child.studentId } })}
             />
           ))}
           {data?.pending.map((link) => <PendingCard key={link.linkId} link={link} />)}

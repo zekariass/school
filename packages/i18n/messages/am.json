@@ -404,6 +404,189 @@
         "validUntil": "እስከ {date} ድረስ ይሠራል",
         "shownOnce": "ይህ ኮድ የሚታየው አንድ ጊዜ ብቻ ነው። ይህን ገጽ ሲዘጉ ይጠፋል።"
       }
+    },
+    "points": {
+      "tab": "ነጥቦች",
+      "title": "የክፍል ነጥቦች",
+      "openClass": "ነጥብ ይስጡ",
+      "header": {
+        "mute": "ድምፅ አጥፋ",
+        "unmute": "ድምፅ አብራ",
+        "toolkit": "የክፍል መሣሪያዎች"
+      },
+      "wholeClass": {
+        "title": "መላው ክፍል",
+        "total": "የክፍሉ ድምር፡ {total}",
+        "label": "ለመላው ክፍል ነጥብ ይስጡ። የክፍሉ ድምር {total}"
+      },
+      "select": {
+        "start": "ምረጥ",
+        "done": "ተከናውኗል",
+        "award": "ለተመረጡት ይስጡ ({count})"
+      },
+      "grid": {
+        "totalLabel": "ነጥብ፡ {count}",
+        "selected": "ተመርጧል",
+        "notSelected": "አልተመረጠም",
+        "openHint": "የሚሰጡ ክህሎቶችን ይከፍታል"
+      },
+      "sheet": {
+        "titleStudent": "ለ{name} ይስጡ",
+        "titleMany": "ለተመረጡ ተማሪዎች ይስጡ፡ {count}",
+        "titleClass": "ለመላው ክፍል ይስጡ",
+        "pointsLabel": "ነጥብ",
+        "pointsDefault": "የክህሎቱ ነባሪ",
+        "pointsChoice": "ነጥብ፡ {count}",
+        "positiveTitle": "ክህሎቶች",
+        "needsWorkTitle": "መሻሻል ያለበት",
+        "noSkills": "እስካሁን ምንም ክህሎት አልተዘጋጀም። ትምህርት ቤትዎ እንዲያክልልዎ ይጠይቁ።",
+        "awardVerb": "ይስጡ"
+      },
+      "snackbar": {
+        "awarded": "{skill} {points} ለ{who}",
+        "wholeClass": "መላው ክፍል",
+        "students": "{count} ተማሪዎች",
+        "waiting": "ለመላክ በመጠበቅ ላይ…",
+        "sent": "ተልኳል። ለ{seconds} ሰከንድ መቀልበስ ይችላሉ",
+        "sentFinal": "ተልኳል",
+        "undo": "ቀልብስ",
+        "undoing": "በመቀልበስ ላይ…",
+        "undoFailed": "ይህን ነጥብ መቀልበስ አልተቻለም።",
+        "dismiss": "ዝጋ"
+      },
+      "queue": {
+        "waiting": "{count} ለመላክ ይጠብቃሉ",
+        "retryHint": "አሁን ለመላክ ይንኩ",
+        "failedTitle": "{skill} ለ{students} መስጠት አልተቻለም",
+        "rejectedBody": "የትምህርት ቤቱ አገልጋይ ይህን ነጥብ አልተቀበለም። አሁንም ከፈለጉ እንደገና ይስጡ።",
+        "expiredBody": "ለመላክ በጣም ረጅም ጊዜ ስለቆየ ተሰርዟል። አሁንም ከፈለጉ እንደገና ይስጡ።",
+        "full": "ለመላክ የሚጠብቁ ነጥቦች በጣም ብዙ ናቸው። ከበይነመረብ ጋር ይገናኙና እንደገና ይሞክሩ።",
+        "unknownSkill": "አንድ ክህሎት",
+        "unknownStudent": "አንድ ተማሪ",
+        "wholeClass": "መላው ክፍል"
+      },
+      "errors": {
+        "skillsTitle": "ክህሎቶቹን መጫን አልተቻለም",
+        "skillsBody": "ግንኙነትዎን ያረጋግጡና እንደገና ለመሞከር ወደ ታች ይጎትቱ።",
+        "totalsOffline": "የነጥብ ድምሮች አሁን አይገኙም። አዲስ ነጥብ መስጠት ግን ይሠራል።"
+      },
+      "donut": {
+        "empty": "እስካሁን የሚታይ ነጥብ የለም።",
+        "item": "{name}፡ {points} ({percent}%)",
+        "summary": "በክህሎት የተከፋፈሉ ነጥቦች፣ በአጠቃላይ {total} ተገኝቷል። {items}"
+      },
+      "section": {
+        "points": "ነጥብ",
+        "total": "ድምር {total}",
+        "needsWork": "መሻሻል ያለበት",
+        "showTimeline": "ሁሉንም አሳይ",
+        "hideTimeline": "ዝርዝሩን ደብቅ"
+      },
+      "timeline": {
+        "empty": "እስካሁን ምንም የለም።",
+        "errorTitle": "ዝርዝሩን መጫን አልተቻለም",
+        "errorBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
+        "more": "ተጨማሪ አሳይ",
+        "reversal": "{skill} (ተመልሷል)",
+        "undone": "ተመልሷል"
+      },
+      "badges": {
+        "title": "ባጆች",
+        "empty": "እስካሁን ባጅ የለም። ይቀጥሉ!",
+        "earned": "{date} ተገኝቷል"
+      },
+      "student": {
+        "title": "የእኔ ነጥቦች",
+        "emptyTitle": "እስካሁን ነጥብ የለም",
+        "emptyBody": "መምህርዎ ነጥብ ሲሰጥዎ ነጥቦችዎና ባጆችዎ እዚህ ይታያሉ።",
+        "schoolPoints": "የትምህርት ቤት ነጥቦች",
+        "homePoints": "ከቤት የመጡ ነጥቦች",
+        "homeNote": "ቤተሰብዎ የሰጠዎት ናቸው። በክፍል ውጤት ውስጥ አይቆጠሩም።"
+      },
+      "child": {
+        "title": "ነጥቦች",
+        "open": "ነጥቦችን እይ",
+        "schoolPoints": "የትምህርት ቤት ነጥቦች",
+        "homePoints": "የቤት ነጥቦች",
+        "homeNote": "የቤት ነጥቦች የቤተሰብዎ ብቻ ናቸው። ከትምህርት ቤት ነጥቦች ጋር አይደመሩም፣ በክፍል ውጤትም አይቆጠሩም።",
+        "noAccess": "የዚህን ልጅ የትምህርት ቤት ነጥቦች ማየት አይችሉም።",
+        "errorTitle": "ነጥቦቹን መጫን አልተቻለም",
+        "errorBody": "ግንኙነትዎን ያረጋግጡና እንደገና ለመሞከር ወደ ታች ይጎትቱ።",
+        "notFoundTitle": "ልጁ አልተገኘም",
+        "notFoundBody": "ይህ ልጅ ከአሁን በኋላ በዝርዝርዎ ውስጥ የለም።"
+      },
+      "home": {
+        "open": "ለ{name} የቤት ነጥብ ይስጡ",
+        "title": "የ{name} የቤት ነጥቦች",
+        "note": "የቤት ነጥቦች የቤተሰብዎ ብቻ ናቸው። በክፍል ውጤት፣ በክፍል ድምር ወይም በትምህርት ቤት ባጆች ውስጥ አይቆጠሩም።",
+        "giveVerb": "ስጥ",
+        "given": "{skill} {points} ለ{name} ተሰጥቷል",
+        "failedTitle": "ነጥቡን መስጠት አልተቻለም",
+        "failedBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
+        "noSkills": "እስካሁን የሚመረጡ የቤት ክህሎቶች የሉም።"
+      }
+    },
+    "toolkit": {
+      "title": "የክፍል መሣሪያዎች",
+      "open": "የክፍል መሣሪያዎች",
+      "tabsLabel": "የመሣሪያ ክፍል",
+      "tabs": {
+        "timer": "ሰዓት ቆጣሪ",
+        "picker": "መራጭ",
+        "groups": "ቡድኖች",
+        "routines": "ልማዶች"
+      },
+      "timer": {
+        "modeLabel": "ሰዓት ቆጣሪ ወይም የሩጫ ሰዓት",
+        "countdown": "ቆጣሪ",
+        "stopwatch": "የሩጫ ሰዓት",
+        "start": "ጀምር",
+        "pause": "አቁም",
+        "reset": "እንደገና ጀምር",
+        "addMinute": "+1 ደቂቃ",
+        "bigClock": "ትልቅ ሰዓት",
+        "bigClockHint": "ሙሉ ማያ ገጽ ሰዓት ይከፍታል",
+        "clockLabel": "ጊዜ {time}",
+        "finished": "ጊዜው አልቋል!",
+        "minutes": "{minutes} ደቂቃ"
+      },
+      "picker": {
+        "prompt": "ተማሪ ለመምረጥ አዝራሩን ይንኩ።",
+        "noStudents": "በዚህ ክፍል ውስጥ እስካሁን ተማሪ የለም።",
+        "pick": "ተማሪ ምረጥ",
+        "pickNext": "ሌላ ምረጥ",
+        "startOver": "እንደገና ጀምር",
+        "progress": "ከ{total} {picked} ተመርጠዋል"
+      },
+      "groups": {
+        "byLabel": "ቡድኖችን በዚህ አድርግ",
+        "byCount": "የቡድን ብዛት",
+        "bySize": "የቡድን መጠን",
+        "countCaption": "ቡድኖች",
+        "sizeCaption": "ተማሪዎች በእያንዳንዱ",
+        "countValue": "{value} ቡድኖች",
+        "sizeValue": "በእያንዳንዱ ቡድን {value} ተማሪዎች",
+        "less": "ቀንስ",
+        "more": "ጨምር",
+        "make": "ቡድኖችን ሥራ",
+        "again": "እንደገና ቀላቅል",
+        "groupName": "ቡድን {number}",
+        "save": "ቡድኖችን ለክፍሉ አስቀምጥ",
+        "saved": "ቡድኖቹ ተቀምጠዋል።",
+        "saveHint": "ለማስቀመጥ የበይነመረብ ግንኙነት ያስፈልጋል።",
+        "saveFailedTitle": "ቡድኖቹን ማስቀመጥ አልተቻለም",
+        "saveFailedBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።"
+      },
+      "routines": {
+        "emptyTitle": "እስካሁን ልማድ የለም",
+        "emptyBody": "እርስዎ ወይም ትምህርት ቤትዎ በድር ጣቢያው ላይ የሚያክሏቸው ልማዶችና የማረጋገጫ ዝርዝሮች እዚህ ይታያሉ።",
+        "errorTitle": "ልማዶቹን መጫን አልተቻለም",
+        "errorBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
+        "back": "ሁሉም ልማዶች",
+        "progress": "ከ{total} {done} ተጠናቀዋል",
+        "clear": "ሁሉንም አጥፋ",
+        "itemCount": "ደረጃዎች፡ {count}"
+      }
     }
   },
   "schoolPicker": {
