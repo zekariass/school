@@ -210,6 +210,7 @@ Deployed environments configure, besides the database:
 | `SCHOOL_AUTH_JWT_ISSUER` / `SCHOOL_AUTH_JWT_AUDIENCE` | Token `iss` / `aud` (default `school-api` / `school-apps`) |
 | `SCHOOL_SMS_PROVIDER` | **Required.** SMS provider; only `console` (log output) exists yet, which is refused unless `SCHOOL_SMS_ALLOW_CONSOLE=true` (staging only, never production) |
 | `SCHOOL_PUSH_PROVIDER` | **Required.** Push provider: `expo` (Expo push service, `https://exp.host`) or `log` (writes a masked line per push; refused outside local/test unless `SCHOOL_PUSH_ALLOW_LOG=true`). |
+| `SCHOOL_GUARDIANS_INVITE_BASE_URL` | **Required.** Web app origin used in guardian invitation links (`{origin}/{locale}/invite/{token}`), e.g. `https://app.example.org`; the local profile uses `http://localhost:3100`. |
 | `EXPO_ACCESS_TOKEN` | Optional bearer token for the Expo push API (enhanced push security). Secret. |
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | SMTP for email sign-in codes; without a host, emails are dropped with a warning. `SCHOOL_MAIL_FROM` sets the sender |
 | `SCHOOL_BOOTSTRAP_ADMIN_PHONE` / `SCHOOL_BOOTSTRAP_ADMIN_EMAIL` / `SCHOOL_BOOTSTRAP_ADMIN_NAME` | First platform administrator, created at startup only while no active platform administrator exists |
@@ -306,6 +307,7 @@ docker run --rm -p 8080:8080 \
   -e SCHOOL_AUTH_OTP_PEPPER=change-me-to-a-long-random-secret-0123456789 \
   -e SCHOOL_SMS_PROVIDER=console -e SCHOOL_SMS_ALLOW_CONSOLE=true \
   -e SCHOOL_PUSH_PROVIDER=log -e SCHOOL_PUSH_ALLOW_LOG=true \
+  -e SCHOOL_GUARDIANS_INVITE_BASE_URL=http://localhost:3000 \
   school-backend:local
 
 # Web: Next.js standalone server on Node 26 (build context: repo root)
@@ -317,7 +319,7 @@ docker run --rm -p 3000:3000 \
 
 | Image | Port | Required env | Optional env |
 |---|---|---|---|
-| `school-backend` | 8080 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SCHOOL_AUTH_JWT_KEYS`, `SCHOOL_AUTH_OTP_PEPPER`, `SCHOOL_SMS_PROVIDER`, `SCHOOL_PUSH_PROVIDER` | the variables in [Backend configuration](#backend-configuration), `JAVA_TOOL_OPTIONS` |
+| `school-backend` | 8080 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SCHOOL_AUTH_JWT_KEYS`, `SCHOOL_AUTH_OTP_PEPPER`, `SCHOOL_SMS_PROVIDER`, `SCHOOL_PUSH_PROVIDER`, `SCHOOL_GUARDIANS_INVITE_BASE_URL` | the variables in [Backend configuration](#backend-configuration), `JAVA_TOOL_OPTIONS` |
 | `school-web` | 3000 | `API_ORIGIN` (read at request time) | `PORT`, `HOSTNAME` |
 
 Both run as a non-root user. The Postgres started by

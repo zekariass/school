@@ -52,7 +52,12 @@ public class SecurityConfig {
 
 	/** Unauthenticated endpoints of the identity module (POST only). */
 	public static final String[] PUBLIC_AUTH_ENDPOINTS = { "/api/v1/auth/otp/request", "/api/v1/auth/otp/verify",
-			"/api/v1/auth/password", "/api/v1/auth/login-code", "/api/v1/auth/refresh", "/api/v1/auth/logout" };
+			"/api/v1/auth/password", "/api/v1/auth/login-code", "/api/v1/auth/refresh", "/api/v1/auth/logout",
+			// Accepting a guardian invitation as a (possibly new) adult (M5): preview, one-time code, accept.
+			"/api/v1/invitations/preview", "/api/v1/invitations/otp", "/api/v1/invitations/accept" };
+
+	/** Unauthenticated reads: the current text of a policy (M5), shown before anyone has an account. */
+	public static final String[] PUBLIC_GET_ENDPOINTS = { "/api/v1/policies/{policyType}" };
 
 	@Bean
 	SecurityFilterChain apiSecurity(HttpSecurity http, ProblemSecurityHandlers handlers, SchoolProperties props,
@@ -72,6 +77,7 @@ public class SecurityConfig {
 			.authorizeHttpRequests((auth) -> {
 				auth.requestMatchers(HttpMethod.GET, "/api/v1/meta").permitAll();
 				auth.requestMatchers(HttpMethod.POST, PUBLIC_AUTH_ENDPOINTS).permitAll();
+				auth.requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll();
 				// WebSocket handshake: the credential is checked at STOMP CONNECT (realtime module)
 				auth.requestMatchers(HttpMethod.GET, "/ws", "/ws/**").permitAll();
 				auth.requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll();
@@ -94,7 +100,7 @@ public class SecurityConfig {
 		List<String> publicPaths = List.of(PUBLIC_AUTH_ENDPOINTS);
 		return (HttpServletRequest request) -> {
 			String path = request.getRequestURI().substring(request.getContextPath().length());
-			if (publicPaths.contains(path)) {
+			if (publicPaths.contains(path) || ("GET".equals(request.getMethod()) && path.startsWith("/api/v1/policies/"))) {
 				return null;
 			}
 			return header.resolve(request);

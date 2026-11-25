@@ -37,7 +37,9 @@ public class OpenApiConfig {
 
 	/** Operations that need no access token (as configured in SecurityConfig). */
 	static final List<String> PUBLIC_PATHS = java.util.stream.Stream
-		.concat(java.util.stream.Stream.of("/api/v1/meta"), java.util.Arrays.stream(SecurityConfig.PUBLIC_AUTH_ENDPOINTS))
+		.of(java.util.stream.Stream.of("/api/v1/meta"), java.util.Arrays.stream(SecurityConfig.PUBLIC_AUTH_ENDPOINTS),
+				java.util.Arrays.stream(SecurityConfig.PUBLIC_GET_ENDPOINTS))
+		.flatMap(java.util.function.Function.identity())
 		.toList();
 
 	@Bean

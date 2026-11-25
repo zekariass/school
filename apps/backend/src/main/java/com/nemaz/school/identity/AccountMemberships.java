@@ -6,8 +6,8 @@ import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * The school memberships of a user (teacher, student, other staff), contributed by the module that owns
- * them (people) and shown in {@code GET /me}. Only ACTIVE memberships are returned.
+ * The school memberships of a user (teacher, student, other staff, guardian), contributed by the modules that own
+ * them (people; guardians since M5) and shown in {@code GET /me}. Only ACTIVE memberships are returned.
  */
 public interface AccountMemberships {
 
@@ -15,7 +15,10 @@ public interface AccountMemberships {
 
 	enum MembershipType {
 
-		TEACHER, STUDENT, STAFF
+		TEACHER, STUDENT, STAFF,
+
+		/** At least one ACTIVE, not custody-restricted guardian link to an ACTIVE student of the school (M5). */
+		GUARDIAN
 
 	}
 

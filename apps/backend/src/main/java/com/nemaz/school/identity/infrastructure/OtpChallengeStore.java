@@ -47,6 +47,20 @@ public class OtpChallengeStore {
 		return rows.stream().findFirst();
 	}
 
+	/**
+	 * The newest unconsumed challenge for the destination and purpose, whoever it was issued for (invitation codes go
+	 * to destinations that may have no account yet), locked for update.
+	 */
+	public Optional<Challenge> lockLatestForDestination(String destination, String purpose) {
+		List<Challenge> rows = this.jdbc.query("""
+				select id, code_hash, attempts, expires_at from otp_challenges
+				where destination = ? and purpose = ? and consumed_at is null
+				order by created_at desc limit 1
+				for update""", (rs, i) -> new Challenge(rs.getObject("id", UUID.class), rs.getString("code_hash"),
+				rs.getInt("attempts"), rs.getTimestamp("expires_at").toInstant()), destination, purpose);
+		return rows.stream().findFirst();
+	}
+
 	public void recordAttempt(UUID id) {
 		this.jdbc.update("update otp_challenges set attempts = attempts + 1 where id = ?", id);
 	}

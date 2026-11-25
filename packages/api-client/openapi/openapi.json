@@ -268,6 +268,126 @@
         "tags" : [ "auth" ]
       }
     },
+    "/api/v1/invitations/accept" : {
+      "post" : {
+        "operationId" : "acceptInvitation",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InvitationAcceptRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Accept a live invitation with the one-time code: finds or creates the adult's account, links them to the child (PENDING until the school verifies, unless the school auto-verifies its own SMS/email invites accepted from the invited destination) and signs them in. Wrong or expired codes are 400 auth.invalid_code",
+        "tags" : [ "invitations" ]
+      }
+    },
+    "/api/v1/invitations/otp" : {
+      "post" : {
+        "operationId" : "requestInvitationOtp",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InvitationOtpRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OtpRequestAccepted"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Send a one-time code to the phone or email of the adult accepting a live invitation (even when no account exists; 3 per destination and 20 per address per hour). 404 invitation.not_found for unknown, expired, revoked or used-up invitations",
+        "tags" : [ "invitations" ]
+      }
+    },
+    "/api/v1/invitations/preview" : {
+      "post" : {
+        "operationId" : "previewInvitation",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InvitationKeyRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InvitationPreview"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "What a live invitation is about, before signing in: school, the child's first name, relationship, channel. Unknown, expired, revoked and used-up invitations are all 404 invitation.not_found; guessing is rate limited (429)",
+        "tags" : [ "guardian-invitations" ]
+      }
+    },
     "/api/v1/me" : {
       "get" : {
         "operationId" : "getMe",
@@ -400,6 +520,35 @@
         "tags" : [ "me" ]
       }
     },
+    "/api/v1/me/children" : {
+      "get" : {
+        "operationId" : "listMyChildren",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MyChildren"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "My children through ACTIVE links that are not custody-restricted (record, schools, classes and teachers when the link allows academics); PENDING requests listed apart with the child's first name only",
+        "tags" : [ "guardians" ]
+      }
+    },
     "/api/v1/me/classes" : {
       "get" : {
         "operationId" : "listMyClasses",
@@ -439,6 +588,111 @@
         },
         "summary" : "The caller's classes as student or teacher across schools, with school and the caller's role (at most 200, active only unless includeArchived)",
         "tags" : [ "me" ]
+      }
+    },
+    "/api/v1/me/consents" : {
+      "get" : {
+        "operationId" : "listMyConsents",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MyConsents"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "For each child I may give consent for (ACTIVE link, not restricted, can_give_consent) and school: ACCOUNT_PARTICIPATION and MEDIA_PUBLICATION with the current text, my latest decision and whether a new decision is needed; plus my own TERMS and PRIVACY",
+        "tags" : [ "consent" ]
+      },
+      "post" : {
+        "operationId" : "recordMyConsent",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MyConsentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecordedConsent"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Record a decision on the current policy version: for a child (studentId; schoolId when the child is in several schools) ACCOUNT_PARTICIPATION or MEDIA_PUBLICATION, or for myself (no studentId) TERMS or PRIVACY. 404 consent.child_not_found for children I may not decide for, 409 consent.version_outdated for any version but the current one",
+        "tags" : [ "consent" ]
+      }
+    },
+    "/api/v1/me/guardian-links" : {
+      "post" : {
+        "operationId" : "redeemGuardianInvitation",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RedeemRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GuardianLinkView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Redeem an invitation link token or printed parent code as the signed-in adult (STANDARD account with a verified phone or email, which is the proof). Creates a PENDING link (or returns the existing one); unknown, expired or used-up invitations are 404 invitation.not_found",
+        "tags" : [ "guardians" ]
       }
     },
     "/api/v1/me/notification-preferences" : {
@@ -2781,6 +3035,70 @@
         "tags" : [ "platform-users" ]
       }
     },
+    "/api/v1/policies/{policyType}" : {
+      "get" : {
+        "operationId" : "getPolicy",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "policyType",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ACCOUNT_PARTICIPATION", "MEDIA_PUBLICATION", "TERMS", "PRIVACY" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "schoolId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "country",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          }
+        }, {
+          "in" : "query",
+          "name" : "lang",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 8,
+            "minLength" : 0
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PolicyView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "The current text of a policy (public): the school's own document if it has a published version, else the country default (country, default ET); in lang, else English, else any language. 404 policy.not_found",
+        "tags" : [ "policies" ]
+      }
+    },
     "/api/v1/realtime/tickets" : {
       "post" : {
         "operationId" : "createRealtimeTicket",
@@ -3800,6 +4118,55 @@
         "tags" : [ "classes" ]
       }
     },
+    "/api/v1/schools/{schoolId}/classes/{classId}/consent-summary" : {
+      "get" : {
+        "operationId" : "getClassConsentSummary",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/StudentConsentSummary"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The roster's consent column (teachers of the class, class managers, school.guardians.manage): per ACTIVE student the effective ACCOUNT_PARTICIPATION and MEDIA_PUBLICATION status, without guardian identities. Treat MEDIA_PUBLICATION UNKNOWN as not allowed",
+        "tags" : [ "consent" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/classes/{classId}/groups" : {
       "get" : {
         "operationId" : "listClassGroups",
@@ -4053,6 +4420,64 @@
         },
         "summary" : "Revoke one login code of the class's sheet",
         "tags" : [ "student-login-codes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/parent-codes" : {
+      "post" : {
+        "operationId" : "issueParentCodes",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IssueParentCodesRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/IssuedParentCode"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Print parent codes (home connection) for students of the class (default: all ACTIVE students): one code per student for up to guardians.parent_code.max_uses adults within guardians.parent_code.ttl_days; the student's previous live code is revoked. Links made with a code are always PENDING. The codes are in this response only (Cache-Control: no-store); do not send an Idempotency-Key",
+        "tags" : [ "guardian-invitations" ]
       }
     },
     "/api/v1/schools/{schoolId}/classes/{classId}/restore" : {
@@ -4650,6 +5075,325 @@
         },
         "summary" : "Change a grade level, or deactivate it",
         "tags" : [ "academic-structure" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/guardian-invitations/{invitationId}/revoke" : {
+      "post" : {
+        "operationId" : "revokeGuardianInvitation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "invitationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InvitationView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Revoke an invitation or a printed parent code; links already made stay as they are",
+        "tags" : [ "guardian-invitations" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/guardian-links" : {
+      "get" : {
+        "operationId" : "listGuardianLinks",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "ACTIVE", "REJECTED", "REVOKED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageGuardianLinkView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The verification queue: links of the school's ACTIVE students in one status (default PENDING), oldest first. Administrators see all, verifying lead teachers the students of their classes",
+        "tags" : [ "guardian-links" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/guardian-links/{linkId}" : {
+      "patch" : {
+        "operationId" : "updateGuardianLink",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "linkId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateLinkRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GuardianLinkView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change a PENDING or ACTIVE link: permission flags, relationship, primary guardian (one per child), custody restriction with an admin-only note (a restricted link grants nothing)",
+        "tags" : [ "guardian-links" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/guardian-links/{linkId}/approve" : {
+      "post" : {
+        "operationId" : "approveGuardianLink",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "linkId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DecisionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GuardianLinkView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Verify a PENDING link (SCHOOL_VERIFIED): it becomes ACTIVE and the guardian is notified. 409 guardian_link.not_pending otherwise",
+        "tags" : [ "guardian-links" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/guardian-links/{linkId}/reject" : {
+      "post" : {
+        "operationId" : "rejectGuardianLink",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "linkId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DecisionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GuardianLinkView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Reject a PENDING link; the adult is notified",
+        "tags" : [ "guardian-links" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/guardian-links/{linkId}/revoke" : {
+      "post" : {
+        "operationId" : "revokeGuardianLink",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "linkId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GuardianLinkView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "End a link: access stops with the guardian's next request",
+        "tags" : [ "guardian-links" ]
       }
     },
     "/api/v1/schools/{schoolId}/imports" : {
@@ -5569,6 +6313,323 @@
         "tags" : [ "imports" ]
       }
     },
+    "/api/v1/schools/{schoolId}/policies" : {
+      "get" : {
+        "operationId" : "listSchoolPolicies",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SchoolPolicy"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The school's own policy documents with every version (drafts included)",
+        "tags" : [ "policies" ]
+      },
+      "post" : {
+        "operationId" : "createSchoolPolicy",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreatePolicyRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Document"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Start the school's own wording of ACCOUNT_PARTICIPATION or MEDIA_PUBLICATION (409 policy.already_exists); it replaces the country default once a version is published",
+        "tags" : [ "policies" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/policies/{documentId}" : {
+      "put" : {
+        "operationId" : "updateSchoolPolicy",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "documentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdatePolicyRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Document"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Rename a school policy document",
+        "tags" : [ "policies" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/policies/{documentId}/versions" : {
+      "post" : {
+        "operationId" : "createSchoolPolicyVersion",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "documentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateVersionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Version"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add a draft version in one language (one row per label and language; 409 policy.version_exists)",
+        "tags" : [ "policies" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/policies/{documentId}/versions/{versionId}" : {
+      "put" : {
+        "operationId" : "updateSchoolPolicyVersion",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "documentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "versionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateVersionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Version"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change a draft version (409 policy.version_published once published)",
+        "tags" : [ "policies" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/policies/{documentId}/versions/{versionId}/publish" : {
+      "post" : {
+        "operationId" : "publishSchoolPolicyVersion",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "documentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "versionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Version"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Publish a draft: it becomes immutable and takes effect at effectiveFrom (now at the earliest). With requiresReconsent, guardians are asked again and earlier grants stop counting once it is in effect",
+        "tags" : [ "policies" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/staff" : {
       "get" : {
         "operationId" : "listStaff",
@@ -6081,6 +7142,312 @@
         },
         "summary" : "Change a student's details (school.students.manage); the student themself may change only avatarConfig",
         "tags" : [ "students" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/consents" : {
+      "get" : {
+        "operationId" : "listStudentConsents",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StudentConsents"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The child's effective statuses and every consent record, newest first (school.guardians.manage)",
+        "tags" : [ "consent" ]
+      },
+      "post" : {
+        "operationId" : "recordStudentConsent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StaffConsentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecordedConsent"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Record a decision the school received on paper or verbally (school.guardians.manage): from a guardian link that may give consent (409 consent.guardian_not_eligible otherwise) or from a named guardian without an account",
+        "tags" : [ "consent" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/guardian-invitations" : {
+      "get" : {
+        "operationId" : "listGuardianInvitations",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/InvitationView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The student's guardian invitations, newest first (destinations masked; never tokens or codes)",
+        "tags" : [ "guardian-invitations" ]
+      },
+      "post" : {
+        "operationId" : "inviteGuardian",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InviteGuardianRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InvitationView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Invite an adult by SMS or email to link to the student (single use, 14 days, sent in the school's language). The phone or email is not proof of guardianship: accepting creates a PENDING link. At most 10 live invitations per student (409 invitation.limit_reached)",
+        "tags" : [ "guardian-invitations" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/guardians" : {
+      "get" : {
+        "operationId" : "listStudentGuardians",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/GuardianLinkView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The student's guardian links. Administrators (school.guardians.manage) see every status with masked contact details and notes; teachers of the student see PENDING and ACTIVE links with names, relationship and status only",
+        "tags" : [ "guardian-links" ]
+      },
+      "post" : {
+        "operationId" : "createStudentGuardian",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateGuardianRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GuardianLinkView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Link an adult the school knows (the administrator vouches): found by phone or email or created, the link is ACTIVE (SCHOOL_VERIFIED)",
+        "tags" : [ "guardian-links" ]
       }
     },
     "/api/v1/schools/{schoolId}/students/{studentId}/login-codes" : {
@@ -6872,6 +8239,161 @@
         },
         "required" : [ "channel", "enabled", "locked" ]
       },
+      "Child" : {
+        "type" : "object",
+        "properties" : {
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          },
+          "dateOfBirth" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "gender" : {
+            "type" : "string"
+          },
+          "givenName" : {
+            "type" : "string"
+          },
+          "linkId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "permissions" : {
+            "$ref" : "#/components/schemas/LinkPermissions"
+          },
+          "primary" : {
+            "type" : "boolean"
+          },
+          "relationshipType" : {
+            "type" : "string",
+            "enum" : [ "MOTHER", "FATHER", "GRANDPARENT", "SIBLING", "AUNT_UNCLE", "LEGAL_GUARDIAN", "OTHER" ]
+          },
+          "schools" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ChildSchool"
+            }
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "displayName", "givenName", "linkId", "permissions", "primary", "relationshipType", "schools", "studentId" ]
+      },
+      "ChildClass" : {
+        "type" : "object",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "gradeLevelName" : {
+            "type" : "string"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "teachers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ClassTeacher"
+            }
+          }
+        },
+        "required" : [ "classId", "name", "teachers" ]
+      },
+      "ChildConsents" : {
+        "type" : "object",
+        "properties" : {
+          "childName" : {
+            "type" : "string"
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConsentItem"
+            }
+          },
+          "linkId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolName" : {
+            "type" : "string"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "childName", "items", "linkId", "schoolId", "schoolName", "studentId" ]
+      },
+      "ChildSchool" : {
+        "type" : "object",
+        "properties" : {
+          "classes" : {
+            "type" : "array",
+            "description" : "Empty unless the link allows viewing academics",
+            "items" : {
+              "$ref" : "#/components/schemas/ChildClass"
+            }
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolName" : {
+            "type" : "string"
+          },
+          "schoolSlug" : {
+            "type" : "string"
+          },
+          "studentNumber" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "classes", "schoolId", "schoolName", "schoolSlug" ]
+      },
+      "ClassTeacher" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "role" : {
+            "type" : "string",
+            "enum" : [ "LEAD", "CO_TEACHER", "SUBJECT_TEACHER", "ASSISTANT" ]
+          },
+          "teacherId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "displayName", "role", "teacherId" ]
+      },
       "ClassTeacherView" : {
         "type" : "object",
         "properties" : {
@@ -7017,6 +8539,104 @@
           }
         },
         "required" : [ "created", "skipped", "unchanged", "updated" ]
+      },
+      "ConsentItem" : {
+        "type" : "object",
+        "properties" : {
+          "consentType" : {
+            "type" : "string",
+            "enum" : [ "ACCOUNT_PARTICIPATION", "MEDIA_PUBLICATION", "TERMS", "PRIVACY" ]
+          },
+          "currentVersion" : {
+            "$ref" : "#/components/schemas/PolicyView",
+            "description" : "The text to decide on; absent when no policy is published"
+          },
+          "effectiveStatus" : {
+            "$ref" : "#/components/schemas/ConsentStatus",
+            "description" : "The child's effective status (children only)"
+          },
+          "myDecision" : {
+            "$ref" : "#/components/schemas/MyDecisionView",
+            "description" : "My latest decision (for a child: the latest decision of my link, also when the school recorded it)"
+          },
+          "needsDecision" : {
+            "type" : "boolean",
+            "description" : "No decision yet, or an outdated one"
+          },
+          "outdated" : {
+            "type" : "boolean",
+            "description" : "My GRANTED decision is on a version superseded by one that requires new consent"
+          }
+        },
+        "required" : [ "consentType", "needsDecision", "outdated" ]
+      },
+      "ConsentRecordView" : {
+        "type" : "object",
+        "properties" : {
+          "consentType" : {
+            "type" : "string",
+            "enum" : [ "ACCOUNT_PARTICIPATION", "MEDIA_PUBLICATION", "TERMS", "PRIVACY" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "decidedByName" : {
+            "type" : "string",
+            "description" : "The guardian (account name or the name written on paper)"
+          },
+          "decision" : {
+            "type" : "string",
+            "enum" : [ "GRANTED", "DENIED", "WITHDRAWN" ]
+          },
+          "guardianLinkId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "method" : {
+            "type" : "string",
+            "enum" : [ "IN_APP", "PAPER_RECORDED_BY_SCHOOL", "VERBAL_RECORDED_BY_SCHOOL" ]
+          },
+          "policyVersionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "recordedBy" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Staff member who recorded a paper or verbal decision"
+          },
+          "versionLabel" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "consentType", "createdAt", "decision", "id", "method", "policyVersionId", "versionLabel" ]
+      },
+      "ConsentStatus" : {
+        "type" : "object",
+        "properties" : {
+          "decidingRecordIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "reason" : {
+            "type" : "string",
+            "description" : "GRANTED: at least one current guardian granted and nobody refused; DENIED / WITHDRAWN: a current guardian (or a paper record) refused or withdrew; RECONSENT_REQUIRED: the only grants are on a version superseded by one that requires new consent; NO_DECISION: nobody decided yet",
+            "enum" : [ "GRANTED", "DENIED", "WITHDRAWN", "RECONSENT_REQUIRED", "NO_DECISION" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "GRANTED", "DENIED", "UNKNOWN" ]
+          }
+        },
+        "required" : [ "decidingRecordIds", "reason", "status" ]
       },
       "ContextRef" : {
         "type" : "object",
@@ -7242,6 +8862,36 @@
         },
         "required" : [ "name", "studentIds" ]
       },
+      "CreateGuardianRequest" : {
+        "type" : "object",
+        "description" : "Exactly one of phone or email. National phone formats are read in `country` (default: the school's country).",
+        "properties" : {
+          "country" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "phone" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "relationshipType" : {
+            "type" : "string",
+            "enum" : [ "MOTHER", "FATHER", "GRANDPARENT", "SIBLING", "AUNT_UNCLE", "LEGAL_GUARDIAN", "OTHER" ]
+          }
+        },
+        "required" : [ "name", "relationshipType" ]
+      },
       "CreateImportRequest" : {
         "type" : "object",
         "properties" : {
@@ -7320,6 +8970,21 @@
           }
         },
         "required" : [ "endsOn", "name", "periodType", "startsOn" ]
+      },
+      "CreatePolicyRequest" : {
+        "type" : "object",
+        "properties" : {
+          "policyType" : {
+            "type" : "string",
+            "enum" : [ "ACCOUNT_PARTICIPATION", "MEDIA_PUBLICATION", "TERMS", "PRIVACY" ]
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "policyType", "title" ]
       },
       "CreateProfileRequest" : {
         "type" : "object",
@@ -7563,6 +9228,34 @@
         },
         "required" : [ "givenName" ]
       },
+      "CreateVersionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "effectiveFrom" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "languageCode" : {
+            "type" : "string",
+            "maxLength" : 8,
+            "minLength" : 0
+          },
+          "requiresReconsent" : {
+            "type" : "boolean"
+          },
+          "versionLabel" : {
+            "type" : "string",
+            "maxLength" : 40,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "content", "languageCode", "versionLabel" ]
+      },
       "CreateYearRequest" : {
         "type" : "object",
         "properties" : {
@@ -7682,6 +9375,22 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/ClassView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageGuardianLinkView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GuardianLinkView"
             }
           },
           "nextCursor" : {
@@ -7819,6 +9528,17 @@
         },
         "required" : [ "items" ]
       },
+      "DecisionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "note" : {
+            "type" : "string",
+            "description" : "Internal to the school",
+            "maxLength" : 500,
+            "minLength" : 0
+          }
+        }
+      },
       "DefinitionsResponse" : {
         "type" : "object",
         "properties" : {
@@ -7871,6 +9591,30 @@
           }
         },
         "required" : [ "date1904", "format", "formulaCells", "mergedRegions", "sheetNames" ]
+      },
+      "Document" : {
+        "type" : "object",
+        "properties" : {
+          "countryCode" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "policyType" : {
+            "type" : "string",
+            "enum" : [ "ACCOUNT_PARTICIPATION", "MEDIA_PUBLICATION", "TERMS", "PRIVACY" ]
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "policyType", "title" ]
       },
       "Failure" : {
         "type" : "object",
@@ -8005,6 +9749,92 @@
           }
         },
         "required" : [ "active", "id", "name", "sequence" ]
+      },
+      "GuardianLinkView" : {
+        "type" : "object",
+        "properties" : {
+          "contactMatchesInvitation" : {
+            "type" : "boolean",
+            "description" : "SMS/email invitations: whether the adult proved the invited phone or email; school.guardians.manage only"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "custodyRestricted" : {
+            "type" : "boolean",
+            "description" : "Grants nothing at all while true (court order etc.)"
+          },
+          "decidedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "decisionNote" : {
+            "type" : "string",
+            "description" : "The verifier's note; school.guardians.manage only"
+          },
+          "guardianEmail" : {
+            "type" : "string",
+            "description" : "Masked; school.guardians.manage only"
+          },
+          "guardianId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "guardianName" : {
+            "type" : "string"
+          },
+          "guardianPhone" : {
+            "type" : "string",
+            "description" : "Masked; school.guardians.manage only"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "invitedName" : {
+            "type" : "string",
+            "description" : "The name the inviter typed; school.guardians.manage only"
+          },
+          "permissions" : {
+            "$ref" : "#/components/schemas/LinkPermissions"
+          },
+          "primary" : {
+            "type" : "boolean"
+          },
+          "relationshipType" : {
+            "type" : "string",
+            "enum" : [ "MOTHER", "FATHER", "GRANDPARENT", "SIBLING", "AUNT_UNCLE", "LEGAL_GUARDIAN", "OTHER" ]
+          },
+          "requestedVia" : {
+            "type" : "string",
+            "enum" : [ "INVITE_LINK", "PARENT_CODE", "ADMIN" ]
+          },
+          "restrictionNote" : {
+            "type" : "string",
+            "description" : "school.guardians.manage only"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "ACTIVE", "REJECTED", "REVOKED" ]
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentName" : {
+            "type" : "string"
+          },
+          "verificationMethod" : {
+            "type" : "string",
+            "enum" : [ "SCHOOL_INVITE", "SCHOOL_VERIFIED", "DOCUMENT", "PLATFORM_ADMIN" ]
+          },
+          "verifiedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "createdAt", "custodyRestricted", "guardianId", "guardianName", "id", "permissions", "primary", "relationshipType", "requestedVia", "status", "studentId", "studentName" ]
       },
       "ImportJobView" : {
         "type" : "object",
@@ -8253,6 +10083,206 @@
         },
         "required" : [ "fields", "label", "requiredFields", "type" ]
       },
+      "InvitationAcceptRequest" : {
+        "type" : "object",
+        "description" : "Set exactly one of token or code, and the same phone or email the code was sent to.",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "country" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "displayName" : {
+            "type" : "string",
+            "description" : "Name for a new account (ignored for an existing one)",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "otpCode" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "phone" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "preferredLanguage" : {
+            "type" : "string",
+            "description" : "Language for a new account, e.g. am or en",
+            "maxLength" : 8,
+            "minLength" : 0
+          },
+          "token" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "otpCode" ]
+      },
+      "InvitationKeyRequest" : {
+        "type" : "object",
+        "description" : "Exactly one of token (from the invitation link) or code (printed parent code, any case, hyphen optional).",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "token" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          }
+        }
+      },
+      "InvitationOtpRequest" : {
+        "type" : "object",
+        "description" : "Set exactly one of token (from the invitation link) or code (printed parent code), and exactly one of phone or email.",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "country" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "phone" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "token" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          }
+        }
+      },
+      "InvitationPreview" : {
+        "type" : "object",
+        "properties" : {
+          "channel" : {
+            "type" : "string",
+            "enum" : [ "SMS", "EMAIL", "LINK", "PRINTED_CODE" ]
+          },
+          "childFirstName" : {
+            "type" : "string"
+          },
+          "relationshipType" : {
+            "type" : "string",
+            "enum" : [ "MOTHER", "FATHER", "GRANDPARENT", "SIBLING", "AUNT_UNCLE", "LEGAL_GUARDIAN", "OTHER" ]
+          },
+          "schoolName" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "channel", "childFirstName", "schoolName" ]
+      },
+      "InvitationView" : {
+        "type" : "object",
+        "properties" : {
+          "channel" : {
+            "type" : "string",
+            "enum" : [ "SMS", "EMAIL", "LINK", "PRINTED_CODE" ]
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "destination" : {
+            "type" : "string",
+            "description" : "Masked phone or email (SMS and EMAIL invitations)"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "guardianName" : {
+            "type" : "string",
+            "description" : "The name the inviter typed"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "maxUses" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "relationshipType" : {
+            "type" : "string",
+            "enum" : [ "MOTHER", "FATHER", "GRANDPARENT", "SIBLING", "AUNT_UNCLE", "LEGAL_GUARDIAN", "OTHER" ]
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "EXPIRED when the validity ended while still unused",
+            "enum" : [ "PENDING", "SENT", "ACCEPTED", "EXPIRED", "REVOKED" ]
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "useCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "channel", "createdAt", "expiresAt", "id", "maxUses", "status", "studentId", "useCount" ]
+      },
+      "InviteGuardianRequest" : {
+        "type" : "object",
+        "description" : "Exactly one of phone or email. National phone formats are read in `country` (default: the school's country).",
+        "properties" : {
+          "country" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "guardianName" : {
+            "type" : "string",
+            "description" : "A hint for verifiers, not proof",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "phone" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "relationshipType" : {
+            "type" : "string",
+            "enum" : [ "MOTHER", "FATHER", "GRANDPARENT", "SIBLING", "AUNT_UNCLE", "LEGAL_GUARDIAN", "OTHER" ]
+          }
+        },
+        "required" : [ "relationshipType" ]
+      },
       "IssueCodesRequest" : {
         "type" : "object",
         "properties" : {
@@ -8279,6 +10309,20 @@
           }
         }
       },
+      "IssueParentCodesRequest" : {
+        "type" : "object",
+        "properties" : {
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 200,
+            "minItems" : 0
+          }
+        }
+      },
       "IssuedCode" : {
         "type" : "object",
         "properties" : {
@@ -8302,6 +10346,34 @@
         },
         "required" : [ "displayName", "expiresAt", "studentId" ]
       },
+      "IssuedParentCode" : {
+        "type" : "object",
+        "properties" : {
+          "childFirstName" : {
+            "type" : "string"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "invitationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "maxUses" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "childFirstName", "code", "expiresAt", "invitationId", "maxUses", "studentId" ]
+      },
       "JsonNode" : { },
       "LanguageResponse" : {
         "type" : "object",
@@ -8324,6 +10396,30 @@
           }
         },
         "required" : [ "code", "direction", "name", "nativeName" ]
+      },
+      "LinkPermissions" : {
+        "type" : "object",
+        "properties" : {
+          "canAwardPoints" : {
+            "type" : "boolean"
+          },
+          "canBookAndPay" : {
+            "type" : "boolean"
+          },
+          "canGiveConsent" : {
+            "type" : "boolean"
+          },
+          "canMessageStaff" : {
+            "type" : "boolean"
+          },
+          "canReceiveNotifications" : {
+            "type" : "boolean"
+          },
+          "canViewAcademics" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "canAwardPoints", "canBookAndPay", "canGiveConsent", "canMessageStaff", "canReceiveNotifications", "canViewAcademics" ]
       },
       "LoginCodeInfo" : {
         "type" : "object",
@@ -8593,6 +10689,25 @@
         },
         "required" : [ "toClassId" ]
       },
+      "MyChildren" : {
+        "type" : "object",
+        "properties" : {
+          "children" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Child"
+            }
+          },
+          "pending" : {
+            "type" : "array",
+            "description" : "Link requests waiting for the school's verification",
+            "items" : {
+              "$ref" : "#/components/schemas/PendingLink"
+            }
+          }
+        },
+        "required" : [ "children", "pending" ]
+      },
       "MyClass" : {
         "type" : "object",
         "properties" : {
@@ -8654,6 +10769,69 @@
           }
         },
         "required" : [ "classType", "id", "name", "role", "schoolId", "status", "studentCount" ]
+      },
+      "MyConsentRequest" : {
+        "type" : "object",
+        "properties" : {
+          "consentType" : {
+            "type" : "string",
+            "enum" : [ "ACCOUNT_PARTICIPATION", "MEDIA_PUBLICATION", "TERMS", "PRIVACY" ]
+          },
+          "decision" : {
+            "type" : "string",
+            "enum" : [ "GRANTED", "DENIED", "WITHDRAWN" ]
+          },
+          "policyVersionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "consentType", "decision", "policyVersionId" ]
+      },
+      "MyConsents" : {
+        "type" : "object",
+        "properties" : {
+          "account" : {
+            "type" : "array",
+            "description" : "The adult's own TERMS and PRIVACY",
+            "items" : {
+              "$ref" : "#/components/schemas/ConsentItem"
+            }
+          },
+          "children" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ChildConsents"
+            }
+          }
+        },
+        "required" : [ "account", "children" ]
+      },
+      "MyDecisionView" : {
+        "type" : "object",
+        "properties" : {
+          "decidedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "decision" : {
+            "type" : "string",
+            "enum" : [ "GRANTED", "DENIED", "WITHDRAWN" ]
+          },
+          "policyVersionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "decidedAt", "decision", "policyVersionId" ]
       },
       "NotificationView" : {
         "type" : "object",
@@ -8824,6 +11002,53 @@
         },
         "required" : [ "identifier", "password" ]
       },
+      "PendingLink" : {
+        "type" : "object",
+        "properties" : {
+          "childFirstName" : {
+            "type" : "string"
+          },
+          "linkId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "requestedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolName" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "ACTIVE", "REJECTED", "REVOKED" ]
+          }
+        },
+        "required" : [ "childFirstName", "linkId", "requestedAt", "status" ]
+      },
+      "PermissionChange" : {
+        "type" : "object",
+        "properties" : {
+          "canAwardPoints" : {
+            "type" : "boolean"
+          },
+          "canBookAndPay" : {
+            "type" : "boolean"
+          },
+          "canGiveConsent" : {
+            "type" : "boolean"
+          },
+          "canMessageStaff" : {
+            "type" : "boolean"
+          },
+          "canReceiveNotifications" : {
+            "type" : "boolean"
+          },
+          "canViewAcademics" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "PlanInfo" : {
         "type" : "object",
         "properties" : {
@@ -8847,6 +11072,54 @@
           }
         },
         "required" : [ "purposes" ]
+      },
+      "PolicyView" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "string"
+          },
+          "countryCode" : {
+            "type" : "string"
+          },
+          "documentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "effectiveFrom" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "languageCode" : {
+            "type" : "string"
+          },
+          "policyType" : {
+            "type" : "string",
+            "enum" : [ "ACCOUNT_PARTICIPATION", "MEDIA_PUBLICATION", "TERMS", "PRIVACY" ]
+          },
+          "publishedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "requiresReconsent" : {
+            "type" : "boolean"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "versionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "versionLabel" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "content", "documentId", "effectiveFrom", "languageCode", "policyType", "publishedAt", "requiresReconsent", "title", "versionId", "versionLabel" ]
       },
       "PreferenceChange" : {
         "type" : "object",
@@ -9105,6 +11378,71 @@
           }
         },
         "required" : [ "key", "scope", "value" ]
+      },
+      "RecordedConsent" : {
+        "type" : "object",
+        "properties" : {
+          "consentType" : {
+            "type" : "string",
+            "enum" : [ "ACCOUNT_PARTICIPATION", "MEDIA_PUBLICATION", "TERMS", "PRIVACY" ]
+          },
+          "decision" : {
+            "type" : "string",
+            "enum" : [ "GRANTED", "DENIED", "WITHDRAWN" ]
+          },
+          "effectiveStatus" : {
+            "$ref" : "#/components/schemas/ConsentStatus",
+            "description" : "The child's effective status after this decision (children only)"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "method" : {
+            "type" : "string",
+            "enum" : [ "IN_APP", "PAPER_RECORDED_BY_SCHOOL", "VERBAL_RECORDED_BY_SCHOOL" ]
+          },
+          "policyVersionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "recordedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "versionLabel" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "consentType", "decision", "id", "method", "policyVersionId", "recordedAt", "versionLabel" ]
+      },
+      "RedeemRequest" : {
+        "type" : "object",
+        "description" : "Exactly one of token or code. relationshipType is used when the invitation names none (printed codes).",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "relationshipType" : {
+            "type" : "string",
+            "enum" : [ "MOTHER", "FATHER", "GRANDPARENT", "SIBLING", "AUNT_UNCLE", "LEGAL_GUARDIAN", "OTHER" ]
+          },
+          "token" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          }
+        }
       },
       "RefreshRequest" : {
         "type" : "object",
@@ -9492,10 +11830,26 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "TEACHER", "STUDENT", "STAFF" ]
+            "enum" : [ "TEACHER", "STUDENT", "STAFF", "GUARDIAN" ]
           }
         },
         "required" : [ "schoolId", "schoolName", "schoolSlug", "type" ]
+      },
+      "SchoolPolicy" : {
+        "type" : "object",
+        "properties" : {
+          "document" : {
+            "$ref" : "#/components/schemas/Document"
+          },
+          "versions" : {
+            "type" : "array",
+            "description" : "Drafts and published versions, newest first",
+            "items" : {
+              "$ref" : "#/components/schemas/Version"
+            }
+          }
+        },
+        "required" : [ "document", "versions" ]
       },
       "SchoolResponse" : {
         "type" : "object",
@@ -9797,6 +12151,39 @@
         },
         "required" : [ "digestMode", "timezone" ]
       },
+      "StaffConsentRequest" : {
+        "type" : "object",
+        "description" : "Exactly one of guardianLinkId or guardianName. Evidence uploads (scanned forms) are not supported yet.",
+        "properties" : {
+          "consentType" : {
+            "type" : "string",
+            "enum" : [ "ACCOUNT_PARTICIPATION", "MEDIA_PUBLICATION", "TERMS", "PRIVACY" ]
+          },
+          "decision" : {
+            "type" : "string",
+            "enum" : [ "GRANTED", "DENIED", "WITHDRAWN" ]
+          },
+          "guardianLinkId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "guardianName" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "method" : {
+            "type" : "string",
+            "description" : "PAPER_RECORDED_BY_SCHOOL or VERBAL_RECORDED_BY_SCHOOL",
+            "enum" : [ "IN_APP", "PAPER_RECORDED_BY_SCHOOL", "VERBAL_RECORDED_BY_SCHOOL" ]
+          },
+          "policyVersionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "consentType", "decision", "method", "policyVersionId" ]
+      },
       "StaffView" : {
         "type" : "object",
         "properties" : {
@@ -9865,6 +12252,47 @@
           }
         },
         "required" : [ "id", "name" ]
+      },
+      "StudentConsentSummary" : {
+        "type" : "object",
+        "properties" : {
+          "accountParticipation" : {
+            "$ref" : "#/components/schemas/ConsentStatus"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "mediaPublication" : {
+            "$ref" : "#/components/schemas/ConsentStatus"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "accountParticipation", "displayName", "mediaPublication", "studentId" ]
+      },
+      "StudentConsents" : {
+        "type" : "object",
+        "properties" : {
+          "accountParticipation" : {
+            "$ref" : "#/components/schemas/ConsentStatus"
+          },
+          "mediaPublication" : {
+            "$ref" : "#/components/schemas/ConsentStatus"
+          },
+          "records" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConsentRecordView"
+            }
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "accountParticipation", "mediaPublication", "records", "studentId" ]
       },
       "StudentGroupView" : {
         "type" : "object",
@@ -10214,6 +12642,30 @@
           }
         }
       },
+      "UpdateLinkRequest" : {
+        "type" : "object",
+        "properties" : {
+          "custodyRestricted" : {
+            "type" : "boolean"
+          },
+          "permissions" : {
+            "$ref" : "#/components/schemas/PermissionChange"
+          },
+          "primary" : {
+            "type" : "boolean"
+          },
+          "relationshipType" : {
+            "type" : "string",
+            "enum" : [ "MOTHER", "FATHER", "GRANDPARENT", "SIBLING", "AUNT_UNCLE", "LEGAL_GUARDIAN", "OTHER" ]
+          },
+          "restrictionNote" : {
+            "type" : "string",
+            "description" : "Visible to school.guardians.manage only; never audited",
+            "maxLength" : 1000,
+            "minLength" : 0
+          }
+        }
+      },
       "UpdateMeRequest" : {
         "type" : "object",
         "properties" : {
@@ -10284,6 +12736,17 @@
             "format" : "date"
           }
         }
+      },
+      "UpdatePolicyRequest" : {
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "title" ]
       },
       "UpdatePreferencesRequest" : {
         "type" : "object",
@@ -10435,6 +12898,23 @@
             "type" : "string",
             "maxLength" : 100,
             "minLength" : 1
+          }
+        }
+      },
+      "UpdateVersionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 1
+          },
+          "effectiveFrom" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "requiresReconsent" : {
+            "type" : "boolean"
           }
         }
       },
@@ -10594,6 +13074,41 @@
           }
         },
         "required" : [ "type" ]
+      },
+      "Version" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "string"
+          },
+          "documentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "effectiveFrom" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "languageCode" : {
+            "type" : "string"
+          },
+          "publishedAt" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "Null while a draft"
+          },
+          "requiresReconsent" : {
+            "type" : "boolean"
+          },
+          "versionLabel" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "content", "documentId", "effectiveFrom", "id", "languageCode", "requiresReconsent", "versionLabel" ]
       },
       "WithdrawRequest" : {
         "type" : "object",

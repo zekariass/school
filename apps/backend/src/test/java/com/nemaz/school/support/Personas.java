@@ -35,7 +35,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  * ({@code TEACHER_LEAD_A}) and a SUBJECT_TEACHER ({@code TEACHER_SUBJECT_A}) of class 8A, a teacher
  * who leads 7B only ({@code TEACHER_OTHER_A}), students ACTIVE in 8A ({@code STUDENT_A1}) and 7B
  * ({@code STUDENT_A2}), a student who was in 8A and left it ({@code STUDENT_FORMER_A}); in school B
- * a student of class 9B ({@code STUDENT_B1}). The fixture is created once per test JVM (lazily, with unique slugs and
+ * a student of class 9B ({@code STUDENT_B1}); since M5 guardians (STANDARD accounts without roles or memberships): an
+ * ACTIVE guardian of student A1 ({@code GUARDIAN_A1}, every permission flag on), a PENDING one
+ * ({@code GUARDIAN_PENDING_A1}), a custody-restricted ACTIVE one ({@code GUARDIAN_RESTRICTED_A1}), a REVOKED one
+ * ({@code GUARDIAN_REVOKED_A1}), an ACTIVE guardian of student A2 in 7B ({@code GUARDIAN_OF_A2}) and an adult without
+ * any link ({@code UNRELATED_ADULT}). The fixture is created once per test JVM (lazily, with unique slugs and
  * phones) and never changed by the harness afterwards; tests must not modify these rows.
  *
  * <p>
@@ -51,7 +55,8 @@ public class Personas {
 
 		PLATFORM_ADMIN, COUNTRY_ADMIN_ET, COUNTRY_ADMIN_KE, ORG_ADMIN, SCHOOL_ADMIN_A, SCHOOL_ADMIN_B, CAMPUS_ADMIN_A,
 		PLAIN_USER, SUSPENDED_USER, TEACHER_LEAD_A, TEACHER_SUBJECT_A, TEACHER_OTHER_A, STUDENT_A1, STUDENT_A2,
-		STUDENT_FORMER_A, STUDENT_B1
+		STUDENT_FORMER_A, STUDENT_B1, GUARDIAN_A1, GUARDIAN_PENDING_A1, GUARDIAN_RESTRICTED_A1, GUARDIAN_REVOKED_A1,
+		GUARDIAN_OF_A2, UNRELATED_ADULT
 
 	}
 
@@ -332,9 +337,40 @@ public class Personas {
 		UUID b1 = newStudent(f.schoolB(), "student-b1");
 		addStudentToClass(f.schoolB(), f.class9B(), b1);
 		this.personas.put(Name.STUDENT_B1, persona("student-b1", b1));
+		this.personas.put(Name.GUARDIAN_A1, guardian("guardian-a1", a1, "ACTIVE", false));
+		this.personas.put(Name.GUARDIAN_PENDING_A1, guardian("guardian-pending-a1", a1, "PENDING", false));
+		this.personas.put(Name.GUARDIAN_RESTRICTED_A1, guardian("guardian-restricted-a1", a1, "ACTIVE", true));
+		this.personas.put(Name.GUARDIAN_REVOKED_A1, guardian("guardian-revoked-a1", a1, "REVOKED", false));
+		this.personas.put(Name.GUARDIAN_OF_A2, guardian("guardian-of-a2", a2, "ACTIVE", false));
+		this.personas.put(Name.UNRELATED_ADULT, newUser("unrelated-adult"));
 		this.personas.put(Name.PLAIN_USER, newUser("plain-user"));
 		UUID suspended = createUser("suspended-user", "SUSPENDED");
 		this.personas.put(Name.SUSPENDED_USER, persona("suspended-user", suspended));
+	}
+
+	private Persona guardian(String label, UUID studentId, String status, boolean restricted) {
+		UUID id = createUser(label, "ACTIVE");
+		linkGuardian(studentId, id, status, restricted);
+		return persona(label, id);
+	}
+
+	/**
+	 * Links an adult to a student directly (fixtures; the invitation and verification paths are tested separately): a
+	 * guardian profile and a {@code student_guardians} row in {@code status} with every permission flag on. Returns the
+	 * link id.
+	 */
+	public UUID linkGuardian(UUID studentId, UUID guardianId, String status, boolean custodyRestricted) {
+		this.jdbc.update("insert into guardian_profiles (user_id) values (?) on conflict do nothing", guardianId);
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into student_guardians (id, student_id, guardian_id, relationship_type, status, requested_via,
+				                               verification_method, verified_at, custody_restricted, restriction_note,
+				                               revoked_at)
+				values (?, ?, ?, 'MOTHER', ?, 'ADMIN', case when ? = 'ACTIVE' then 'SCHOOL_VERIFIED' end,
+				        case when ? = 'ACTIVE' then now() end, ?, case when ? then 'Court order (fixture)' end,
+				        case when ? = 'REVOKED' then now() end)""", id, studentId, guardianId, status, status, status,
+				custodyRestricted, custodyRestricted, status);
+		return id;
 	}
 
 	private void add(Name name, String roleCode, AccessScope scope) {

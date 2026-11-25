@@ -10,6 +10,8 @@ school:
       pepper: test-pepper-not-a-secret-0123456789abcdef
   sms:
     provider: console
+  guardians:
+    invite-base-url: http://localhost:3100
   push:
     provider: log
   storage:

@@ -36,6 +36,19 @@ class DefaultUserDirectory implements UserDirectory {
 	}
 
 	@Override
+	public java.util.Optional<VerifiedContacts> verifiedContacts(UUID userId) {
+		return this.jdbc.query("""
+				select id, case when phone_verified_at is not null then phone_e164 end as phone,
+				       case when email_verified_at is not null then email end as email,
+				       (account_type = 'STANDARD' and status = 'ACTIVE' and deleted_at is null) as standard
+				from users where id = :id""", new MapSqlParameterSource("id", userId),
+				(rs, i) -> new VerifiedContacts(rs.getObject("id", UUID.class), rs.getString("phone"),
+						rs.getString("email"), rs.getBoolean("standard")))
+			.stream()
+			.findFirst();
+	}
+
+	@Override
 	public Map<UUID, UserProfileView> profiles(Collection<UUID> userIds) {
 		Map<UUID, UserProfileView> result = new HashMap<>();
 		if (userIds.isEmpty()) {

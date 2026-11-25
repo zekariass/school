@@ -13,6 +13,22 @@ public interface UserDirectory {
 	/** Display data of the given users (unknown ids are absent from the result). Contact details are masked only. */
 	Map<UUID, UserProfileView> profiles(Collection<UUID> userIds);
 
+	/**
+	 * The user's verified phone and email (null when missing or unverified) and whether the account is an ACTIVE
+	 * STANDARD (not school-managed) account; empty for an unknown user. For proofs such as "the user who accepted an
+	 * invitation has verified the invited phone"; never show these values to other people.
+	 */
+	java.util.Optional<VerifiedContacts> verifiedContacts(UUID userId);
+
+	record VerifiedContacts(UUID userId, String phoneE164, String email, boolean activeStandardAccount) {
+
+		@Override
+		public String toString() {
+			return "VerifiedContacts[redacted]";
+		}
+
+	}
+
 	/** Both values may be null when the user never chose one. */
 	record UserPreferences(String languageCode, String timezone) {
 	}

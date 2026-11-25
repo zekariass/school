@@ -7,7 +7,8 @@
  * {@code identity.UserAccounts} and plugs into identity through its ports ({@code LoginCodeRedeemer},
  * {@code ManagedAccountPolicy}, {@code AccountMemberships}). It implements the academic module's
  * {@code SchoolPeople} port and uses {@code academic.ClassMemberships} and {@code ClassAccess}: the dependency
- * between the two is one-way (people depends on academic). Guardians and invitations arrive with M5.
+ * between the two is one-way (people depends on academic). Guardians and invitations are the guardians module (M5);
+ * people asks it ({@code guardians.GuardianAccess}) for a guardian's full view of their own child and their child's avatar.
  */
 @ApplicationModule(displayName = "People")
 package com.nemaz.school.people;

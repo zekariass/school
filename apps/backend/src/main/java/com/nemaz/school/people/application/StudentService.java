@@ -267,10 +267,17 @@ public class StudentService {
 		return new CursorPage<>(views(page.items(), (row) -> DataAccessLevel.FULL), page.nextCursor());
 	}
 
-	/** Reading another person's full record (date of birth, gender, username) is audited (spec section 131). */
+	/**
+	 * Reading another person's full record (date of birth, gender, username) is audited (spec section 131). A guardian
+	 * reads their own child's full record through the guardian link without being a member of the school (M5).
+	 */
 	public StudentView get(CurrentUser user, UUID schoolId, UUID studentId) {
-		this.gate.requireVisible(user, schoolId);
 		DataAccessLevel level = this.access.level(user, schoolId, studentId);
+		if (level == null) {
+			// Strangers learn nothing: an invisible school is 404 school.not_found, then the student 404.
+			this.gate.requireVisible(user, schoolId);
+			throw ApiException.notFound("student.not_found");
+		}
 		StudentView view = load(user, schoolId, studentId, level);
 		if (level == DataAccessLevel.FULL && !user.userId().equals(studentId)) {
 			this.audit.record(AuditEntry.of("student.read", AuditOutcome.SUCCESS).target("student", studentId).school(schoolId));

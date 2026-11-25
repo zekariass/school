@@ -50,11 +50,20 @@ public final class Permissions {
 	/** Every class of the covered school or campus (rosters, teachers, login codes). */
 	public static final String CLASS_MANAGE = "class.manage";
 
+	/**
+	 * Guardians of the school's students: invite, verify, change permission flags and custody restrictions, revoke,
+	 * record paper consent (M5).
+	 */
+	public static final String SCHOOL_GUARDIANS_MANAGE = "school.guardians.manage";
+
+	/** The school's own policy texts (account participation, media publication) (M5). */
+	public static final String SCHOOL_POLICIES_MANAGE = "school.policies.manage";
+
 	/** Every permission code, in seed order. */
 	public static final List<String> ALL = List.of(PLATFORM_ORGANIZATIONS_MANAGE, PLATFORM_SCHOOLS_MANAGE,
 			PLATFORM_SUBSCRIPTIONS_MANAGE, PLATFORM_FEATURES_MANAGE, PLATFORM_SETTINGS_MANAGE, PLATFORM_ROLES_MANAGE,
 			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ, SCHOOL_ACADEMIC_MANAGE, SCHOOL_STAFF_MANAGE,
-			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE, SCHOOL_IMPORT_MANAGE);
+			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE, SCHOOL_IMPORT_MANAGE, SCHOOL_GUARDIANS_MANAGE, SCHOOL_POLICIES_MANAGE);
 
 	private Permissions() {
 	}
