@@ -194,7 +194,7 @@ export function useReverseAward(schoolId: string | undefined) {
   });
 }
 
-/** Routines and checklists the teacher may use in this class (the API filters by visibility). */
+/** Routines and checklists the teacher may use: their own, those shared with their classes and the school's. (A classId filter would leave out the school-wide ones.) */
 export function useRoutineTemplates(schoolId: string | undefined, classId: string | undefined) {
   return useQuery({
     queryKey: templatesKey(schoolId ?? '', classId ?? ''),
@@ -203,10 +203,10 @@ export function useRoutineTemplates(schoolId: string | undefined, classId: strin
       request(async () => {
         const [routines, checklists] = await Promise.all([
           api.GET('/api/v1/schools/{schoolId}/activity-templates', {
-            params: { path: { schoolId: schoolId! }, query: { classId: classId!, templateType: 'ROUTINE', limit: 50 } },
+            params: { path: { schoolId: schoolId! }, query: { templateType: 'ROUTINE', limit: 50 } },
           }),
           api.GET('/api/v1/schools/{schoolId}/activity-templates', {
-            params: { path: { schoolId: schoolId! }, query: { classId: classId!, templateType: 'CHECKLIST', limit: 50 } },
+            params: { path: { schoolId: schoolId! }, query: { templateType: 'CHECKLIST', limit: 50 } },
           }),
         ]);
         return [...unwrap(routines).items, ...unwrap(checklists).items];
