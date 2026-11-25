@@ -55,4 +55,12 @@ class DefaultTenantDirectory implements TenantDirectory {
 			.map((c) -> new CampusRef(c.getId(), c.getSchoolId(), c.getName(), c.getStatus().name()));
 	}
 
+	@Override
+	public java.util.List<CampusEntry> campusesOf(UUID schoolId) {
+		return this.campuses.findBySchoolIdOrderByNameAscIdAsc(schoolId)
+			.stream()
+			.map((c) -> new CampusEntry(c.getId(), c.getName(), c.getCode(), c.getStatus().name()))
+			.toList();
+	}
+
 }

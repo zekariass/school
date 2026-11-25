@@ -44,7 +44,7 @@ public class DeliveryRetryJob {
 
 	@Scheduled(fixedDelayString = "PT1M", initialDelayString = "PT1M")
 	@SchedulerLock(name = "notifications.retry-deliveries", lockAtMostFor = "PT5M")
-	public int retryDue() {
+	public Integer retryDue() {
 		Instant now = this.clock.instant();
 		List<DeliveryJob> due = this.deliveries.due(now, now.minus(QUEUED_GRACE), now.minus(FRESH_FOR), BATCH);
 		if (!due.isEmpty()) {

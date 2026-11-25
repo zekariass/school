@@ -27,6 +27,7 @@ import com.nemaz.school.common.persistence.Rows;
 import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
 import com.nemaz.school.common.security.SchoolGate;
+import com.nemaz.school.common.text.PersonNames;
 import com.nemaz.school.identity.UserAccounts;
 import com.nemaz.school.identity.UserAccounts.ManagedChange;
 import com.nemaz.school.identity.UserAccounts.ManagedRequest;
@@ -123,7 +124,6 @@ public class StudentService {
 	}
 
 	public StudentView create(CurrentUser actor, UUID schoolId, CreateStudent r) {
-		SchoolRef school = null;
 		boolean manager = this.gate.can(actor, schoolId, Permissions.SCHOOL_STUDENTS_MANAGE);
 		if (!manager) {
 			this.gate.requireVisible(actor, schoolId);
@@ -140,7 +140,20 @@ public class StudentService {
 		else if (!manager) {
 			throw ApiException.forbidden("student.access_denied");
 		}
-		school = this.directory.school(schoolId).orElseThrow(() -> ApiException.notFound("school.not_found"));
+		UUID studentId = provision(actor.userId(), schoolId, r, null);
+		return load(actor, schoolId, studentId, DataAccessLevel.FULL);
+	}
+
+	/**
+	 * Creates a student the caller was already allowed to create (the roster import checked
+	 * {@code school.import.manage}); no permission check, {@code actorId} stands for the initiator.
+	 */
+	public UUID createForImport(UUID actorId, UUID schoolId, CreateStudent r, String externalRef) {
+		return provision(actorId, schoolId, r, externalRef);
+	}
+
+	private UUID provision(UUID actorId, UUID schoolId, CreateStudent r, String externalRef) {
+		SchoolRef school = this.directory.school(schoolId).orElseThrow(() -> ApiException.notFound("school.not_found"));
 		if (r.dateOfBirth() != null && r.dateOfBirth().isAfter(LocalDate.now(this.clock))) {
 			throw ApiException.badRequest("student.invalid_birth_date");
 		}
@@ -154,21 +167,35 @@ public class StudentService {
 		}
 		UUID studentId = this.accounts.createManaged(new ManagedRequest(r.givenName(), r.middleName(), r.familyName(),
 				r.dateOfBirth(), r.gender(), r.username(), school.defaultLanguageCode()));
-		this.jdbc.sql("insert into student_profiles (user_id, avatar_config) values (:u, cast(:cfg as jsonb))")
+		this.jdbc.sql("insert into student_profiles (user_id, avatar_config, name_fold) values (:u, cast(:cfg as jsonb), :fold)")
 			.param("u", studentId)
 			.param("cfg", configJson(r.avatarConfig()))
+			.param("fold", nameFold(r.givenName(), r.middleName(), r.familyName()))
 			.update();
-		UUID enrollmentId = enroll(schoolId, studentId, campusId, r.studentNumber(), r.admissionOn());
+		UUID enrollmentId = enroll(schoolId, studentId, campusId, r.studentNumber(), r.admissionOn(), externalRef);
 		if (r.classId() != null) {
-			this.classes.addStudent(schoolId, r.classId(), studentId, actor.userId());
+			this.classes.addStudent(schoolId, r.classId(), studentId, actorId);
 		}
-		this.events.publishEvent(new StudentEnrolledInSchool(schoolId, studentId, enrollmentId, r.classId(), actor.userId()));
+		this.events.publishEvent(new StudentEnrolledInSchool(schoolId, studentId, enrollmentId, r.classId(), actorId));
 		this.audit.record(AuditEntry.of("student.create", AuditOutcome.SUCCESS)
+			.actor(actorId)
 			.target("student", studentId)
 			.school(schoolId)
 			.metadata("enrollmentId", enrollmentId.toString())
 			.metadata("classId", (r.classId() != null) ? r.classId().toString() : null));
-		return load(actor, schoolId, studentId, DataAccessLevel.FULL);
+		return studentId;
+	}
+
+	/** Changes a student on behalf of the roster import (absent fields stay); no permission check. */
+	public void updateForImport(UUID actorId, UUID schoolId, UUID studentId, UpdateStudent r, String externalRef) {
+		Row before = find(schoolId, studentId);
+		applyUpdate(schoolId, studentId, before, r, externalRef);
+		this.audit.record(AuditEntry.of("student.update", AuditOutcome.SUCCESS)
+			.actor(actorId)
+			.target("student", studentId)
+			.school(schoolId)
+			.metadata("fields", changedFields(r))
+			.metadata("by", "import"));
 	}
 
 	@Transactional(readOnly = true)
@@ -268,31 +295,7 @@ public class StudentService {
 			}
 		}
 		Row before = find(schoolId, studentId);
-		if (r.dateOfBirth() != null && r.dateOfBirth().isAfter(LocalDate.now(this.clock))) {
-			throw ApiException.badRequest("student.invalid_birth_date");
-		}
-		this.accounts.updateManaged(studentId, new ManagedChange(r.givenName(), r.middleName(), r.familyName(),
-				r.dateOfBirth(), r.gender(), r.username()));
-		if (r.avatarConfig() != null) {
-			this.jdbc.sql("update student_profiles set avatar_config = cast(:cfg as jsonb) where user_id = :u")
-				.param("cfg", configJson(r.avatarConfig()))
-				.param("u", studentId)
-				.update();
-		}
-		UUID campus = (r.campusId() != null) ? validCampus(schoolId, r.campusId()) : before.campusId();
-		try {
-			this.jdbc.sql("""
-					update school_students set campus_id = :campus, student_number = :number, admission_on = :admission,
-					       updated_at = now(), version = version + 1 where id = :id""")
-				.param("campus", campus)
-				.param("number", (r.studentNumber() != null) ? blankToNull(r.studentNumber()) : before.studentNumber())
-				.param("admission", (r.admissionOn() != null) ? r.admissionOn() : before.admissionOn())
-				.param("id", before.enrollmentId())
-				.update();
-		}
-		catch (DataIntegrityViolationException ex) {
-			throw numberTaken(ex);
-		}
+		applyUpdate(schoolId, studentId, before, r, null);
 		this.audit.record(AuditEntry.of("student.update", AuditOutcome.SUCCESS)
 			.target("student", studentId)
 			.school(schoolId)
@@ -360,6 +363,56 @@ public class StudentService {
 		this.audit.record(AuditEntry.of("student.password.set", AuditOutcome.SUCCESS).target("student", studentId).school(schoolId));
 	}
 
+	private void applyUpdate(UUID schoolId, UUID studentId, Row before, UpdateStudent r, String externalRef) {
+		if (r.dateOfBirth() != null && r.dateOfBirth().isAfter(LocalDate.now(this.clock))) {
+			throw ApiException.badRequest("student.invalid_birth_date");
+		}
+		this.accounts.updateManaged(studentId, new ManagedChange(r.givenName(), r.middleName(), r.familyName(),
+				r.dateOfBirth(), r.gender(), r.username()));
+		if (r.avatarConfig() != null) {
+			this.jdbc.sql("update student_profiles set avatar_config = cast(:cfg as jsonb) where user_id = :u")
+				.param("cfg", configJson(r.avatarConfig()))
+				.param("u", studentId)
+				.update();
+		}
+		if (r.givenName() != null || r.middleName() != null || r.familyName() != null) {
+			refreshNameFold(studentId);
+		}
+		UUID campus = (r.campusId() != null) ? validCampus(schoolId, r.campusId()) : before.campusId();
+		try {
+			this.jdbc.sql("""
+					update school_students set campus_id = :campus, student_number = :number, admission_on = :admission,
+					       external_ref = coalesce(:ext, external_ref), updated_at = now(), version = version + 1
+					where id = :id""")
+				.param("campus", campus)
+				.param("number", (r.studentNumber() != null) ? blankToNull(r.studentNumber()) : before.studentNumber())
+				.param("admission", (r.admissionOn() != null) ? r.admissionOn() : before.admissionOn())
+				.param("ext", blankToNull(externalRef))
+				.param("id", before.enrollmentId())
+				.update();
+		}
+		catch (DataIntegrityViolationException ex) {
+			throw numberTaken(ex);
+		}
+	}
+
+	/** Recomputes the comparison key of the student's name from the account (called after a name change). */
+	void refreshNameFold(UUID studentId) {
+		this.jdbc.sql("""
+				update student_profiles sp set name_fold = :fold where sp.user_id = :u""")
+			.param("fold", this.jdbc.sql("select given_name, middle_name, family_name from users where id = :u")
+				.param("u", studentId)
+				.query((rs, i) -> nameFold(rs.getString(1), rs.getString(2), rs.getString(3)))
+				.single())
+			.param("u", studentId)
+			.update();
+	}
+
+	static String nameFold(String given, String middle, String family) {
+		String fold = PersonNames.fold(given, middle, family);
+		return fold.isEmpty() ? null : fold;
+	}
+
 	// --- helpers ------------------------------------------------------------------------
 
 	private StudentView load(CurrentUser user, UUID schoolId, UUID studentId, DataAccessLevel level) {
@@ -403,17 +456,20 @@ public class StudentService {
 		return views;
 	}
 
-	private UUID enroll(UUID schoolId, UUID studentId, UUID campusId, String number, LocalDate admissionOn) {
+	private UUID enroll(UUID schoolId, UUID studentId, UUID campusId, String number, LocalDate admissionOn,
+			String externalRef) {
 		UUID id = Ids.newId();
 		try {
 			this.jdbc.sql("""
-					insert into school_students (id, school_id, student_id, campus_id, student_number, admission_on, status)
-					values (:id, :s, :st, :campus, :number, :admission, 'ACTIVE')""")
+					insert into school_students (id, school_id, student_id, campus_id, student_number, external_ref, admission_on,
+					                             status)
+					values (:id, :s, :st, :campus, :number, :ext, :admission, 'ACTIVE')""")
 				.param("id", id)
 				.param("s", schoolId)
 				.param("st", studentId)
 				.param("campus", campusId)
 				.param("number", blankToNull(number))
+				.param("ext", blankToNull(externalRef))
 				.param("admission", (admissionOn != null) ? admissionOn : LocalDate.now(this.clock))
 				.update();
 		}

@@ -24,6 +24,11 @@ public class SecurityTestConfiguration {
 	}
 
 	@Bean
+	DomainEventRecorder domainEventRecorder() {
+		return new DomainEventRecorder();
+	}
+
+	@Bean
 	@Primary
 	RecordingMessages recordingMessages() {
 		return new RecordingMessages();

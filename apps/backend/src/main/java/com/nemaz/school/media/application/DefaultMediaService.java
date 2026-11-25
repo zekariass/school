@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.common.security.CurrentUser;
+import com.nemaz.school.media.MediaContent;
 import com.nemaz.school.media.MediaContext;
 import com.nemaz.school.media.MediaInfo;
 import com.nemaz.school.media.MediaPurpose;
@@ -20,6 +21,7 @@ import com.nemaz.school.media.MediaSummary;
 import com.nemaz.school.media.MediaVariant;
 import com.nemaz.school.media.domain.Media;
 import com.nemaz.school.media.domain.MediaVariantRow;
+import com.nemaz.school.media.domain.ObjectStorage;
 import com.nemaz.school.media.infrastructure.MediaRepository;
 import com.nemaz.school.media.infrastructure.MediaVariantRepository;
 
@@ -38,8 +40,11 @@ class DefaultMediaService implements MediaService {
 
 	private final MediaReads reads;
 
+	private final ObjectStorage storage;
+
 	DefaultMediaService(MediaRepository media, MediaVariantRepository variants, PurposePolicies policies,
-			MediaReads reads) {
+			MediaReads reads, ObjectStorage storage) {
+		this.storage = storage;
 		this.media = media;
 		this.variants = variants;
 		this.policies = policies;
@@ -97,6 +102,15 @@ class DefaultMediaService implements MediaService {
 			throw ApiException.conflict("media.not_ready");
 		}
 		return info;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<MediaContent> content(UUID mediaId) {
+		return this.media.findById(mediaId)
+			.filter((m) -> m.getStatus() == MediaStatus.READY)
+			.map((m) -> new MediaContent(m.getOriginalFilename(), m.getMimeType(), m.getSizeBytes(),
+					this.storage.get(m.getObjectKey())));
 	}
 
 	@Override

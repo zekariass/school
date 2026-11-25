@@ -25,6 +25,11 @@ final class MimeCatalog {
 
 	static final String CSV = "text/csv";
 
+	/** Some browsers and tools send a CSV as plain text or, on Windows, as the Excel type. */
+	static final String TEXT_PLAIN = "text/plain";
+
+	static final String MS_EXCEL = "application/vnd.ms-excel";
+
 	static final String XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 	private MimeCatalog() {

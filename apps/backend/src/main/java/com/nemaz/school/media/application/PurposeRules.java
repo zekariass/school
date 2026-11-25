@@ -25,6 +25,9 @@ final class PurposeRules {
 
 	static final long VIDEO_MAX = 100 * MB;
 
+	/** Roster import files (CSV and XLSX); the importer enforces 20,000 rows on top. */
+	static final long IMPORT_FILE_MAX = 10 * MB;
+
 	/** Accepted MIME types of a purpose with their size limit in bytes, and the allowed contexts. */
 	record Rule(Set<ContextType> contexts, Map<String, Long> maxBytesByMimeType) {
 
@@ -60,11 +63,25 @@ final class PurposeRules {
 		RULES.put(MediaPurpose.RECORDING, new Rule(school, mimeLimits(VIDEO_MAX, MimeCatalog.MP4, MimeCatalog.WEBM)));
 		RULES.put(MediaPurpose.TRANSCRIPT, new Rule(school, mimeLimits(PDF_MAX, MimeCatalog.PDF)));
 		RULES.put(MediaPurpose.VERIFICATION_DOC, new Rule(Set.of(ContextType.USER), imagesAndPdf));
-		RULES.put(MediaPurpose.IMPORT_FILE, new Rule(school, mimeLimits(PDF_MAX, MimeCatalog.CSV, MimeCatalog.XLSX)));
+		RULES.put(MediaPurpose.IMPORT_FILE, new Rule(school, mimeLimits(IMPORT_FILE_MAX, MimeCatalog.CSV,
+				MimeCatalog.TEXT_PLAIN, MimeCatalog.MS_EXCEL, MimeCatalog.XLSX)));
 		RULES.put(MediaPurpose.REPORT, new Rule(school, mimeLimits(PDF_MAX, MimeCatalog.PDF)));
 	}
 
 	private PurposeRules() {
+	}
+
+	/**
+	 * Whether the file name fits the declared type. Only import files are checked: a CSV (any of its three types)
+	 * must be named {@code .csv} and a workbook {@code .xlsx}, so {@code .xls} and {@code .xlsm} are refused even
+	 * when sent as the Excel type.
+	 */
+	static boolean acceptsFilename(MediaPurpose purpose, String mimeType, String filename) {
+		if (purpose != MediaPurpose.IMPORT_FILE) {
+			return true;
+		}
+		String name = (filename == null) ? "" : filename.toLowerCase(java.util.Locale.ROOT).strip();
+		return MimeCatalog.XLSX.equals(mimeType) ? name.endsWith(".xlsx") : name.endsWith(".csv");
 	}
 
 	static Rule of(MediaPurpose purpose) {

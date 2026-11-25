@@ -270,6 +270,18 @@ the pepper invalidates every issued code. Optional settings (platform, country, 
 `classes.teachers_can_create`, `students.login_code.ttl_days`, `students.password_login.enabled`; the session
 lifetime of code sign-ins is `school.auth.sessions.login-code-absolute-ttl` / `login-code-idle-ttl`.
 
+### Roster import
+
+`/api/v1/schools/{schoolId}/imports` (permission `school.import.manage`, school administrators and the higher
+administrators): upload a CSV or XLSX through the media flow (purpose `IMPORT_FILE`, 10 MB), `POST /imports`
+(preview and suggested mapping), `PUT .../mapping`, `POST .../dry-run`, review `GET .../rows`, decide possible
+duplicates, `POST .../commit`; templates at `GET /imports/templates/{type}?format=csv|xlsx`. Types: grade levels,
+subjects, classes, staff, students, enrollments (academic years are set up by hand). Limits (20,000 rows, 60
+columns, 1,000 characters per cell, 30 s to read) and retention (raw rows and the file are purged 30 days after
+creation, 7 after commit) are `school.imports.*` (`ImportProperties`). Roster files hold children's data: they are
+only ever read by the import. The Ethiopian calendar conversion is a Java port of `packages/calendar`; after changing
+that package run `node scripts/gen-calendar-parity-fixture.mjs` and the backend's `CalendarParityTest`.
+
 **Changing the API:** after editing controllers or DTOs, run
 `npm run openapi:export -w school-backend` (writes
 `packages/api-client/openapi/openapi.json`) and then `npm run codegen`
