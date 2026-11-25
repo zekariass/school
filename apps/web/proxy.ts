@@ -19,7 +19,7 @@ const handleIntl = createIntlProxy(routing);
  * invited parent has no account yet (the invitation page and its Route Handlers sign them in).
  */
 const PROTECTED = new RegExp(
-  `^/(${routing.locales.join("|")})/(s|platform|schools|no-access|student-app|family)(/|$)`,
+  `^/(${routing.locales.join("|")})/(s|platform|schools|no-access|student-app|family|points|children)(/|$)`,
 );
 
 function signInRedirect(request: NextRequest, locale: string) {

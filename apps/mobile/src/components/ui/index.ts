@@ -5,3 +5,4 @@ export { Screen, type ScreenProps } from './screen';
 export { SegmentedControl, type SegmentedOption } from './segmented-control';
 export { Text, type TextProps } from './text';
 export { TextField, type TextFieldProps } from './text-field';
+export { Sheet, type SheetProps } from './sheet';

@@ -152,7 +152,19 @@ class AuditLogApiTest {
 		assertThat(this.partitions.ensurePartitions()).hasSize(4)
 			.allSatisfy((name) -> assertThat(this.jdbc.queryForObject("select to_regclass(?) is not null", Boolean.class,
 					name)).isTrue());
-		assertThat(this.jdbc.queryForObject("select count(*) from audit_logs_default", Integer.class)).isZero();
+		// Rows of the current month and the next three land in real partitions, not the default one. (Not "the default
+		// partition is empty": other tests in the shared database move the clock by a year and write audit rows then.)
+		YearMonth now = YearMonth.now(java.time.ZoneOffset.UTC);
+		for (int ahead = 0; ahead <= 3; ahead++) {
+			String at = now.plusMonths(ahead).atDay(15).atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toString();
+			String routed = this.tx.execute((status) -> {
+				this.jdbc.update("insert into audit_logs (occurred_at, action, outcome) values (?::timestamptz, 'test.routing', 'SUCCESS')", at);
+				return this.jdbc.queryForObject(
+						"select tableoid::regclass::text from audit_logs where action = 'test.routing' and occurred_at = ?::timestamptz",
+						String.class, at);
+			});
+			assertThat(routed).as("partition of %s", at).isNotEqualTo("audit_logs_default");
+		}
 	}
 
 }

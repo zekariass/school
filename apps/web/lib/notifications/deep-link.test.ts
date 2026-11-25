@@ -14,6 +14,13 @@ describe("resolveDeepLink", () => {
     expect(resolveDeepLink({ path: "/children/other" })).toBe("/children/other");
   });
 
+  it("opens the child's own page when a points notification names the child", () => {
+    const studentId = "0198b3a2-7c1e-7b34-9f4d-2a6c8e1d5f70";
+    expect(resolveDeepLink({ path: "/children", studentId })).toBe(`/family/children/${studentId}`);
+    expect(resolveDeepLink({ path: "/children", studentId: "../../x" })).toBe("/family");
+    expect(resolveDeepLink({ path: "/points", studentId })).toBe("/points");
+  });
+
   it("rejects anything that could leave the origin", () => {
     for (const path of ["//evil.example", "https://evil.example", "javascript:alert(1)", "/\\evil.example", "/a\tb", "relative", ""]) {
       expect(resolveDeepLink({ path })).toBeNull();
