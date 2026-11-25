@@ -1,4 +1,23 @@
-import { AWARD_QUEUE_STATEMENTS } from '@/lib/points/award-queue-sql';
+import { OFFLINE_CACHE_STATEMENTS } from '@/lib/offline/cache-sql';
+import { OUTBOX_STATEMENTS } from '@/lib/sync/outbox-sql';
+
+/** Migration 2 as shipped with M6c (frozen: a later migration copies its rows and drops the table). */
+const M6C_AWARD_QUEUE_STATEMENTS: readonly string[] = [
+  `CREATE TABLE points_award_queue (
+    seq INTEGER PRIMARY KEY AUTOINCREMENT,
+    op_id TEXT NOT NULL UNIQUE,
+    owner_id TEXT NOT NULL,
+    school_id TEXT NOT NULL,
+    class_id TEXT NOT NULL,
+    category_id TEXT NOT NULL,
+    student_ids TEXT NOT NULL,
+    whole_class INTEGER NOT NULL,
+    points INTEGER,
+    created_at INTEGER NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at INTEGER NOT NULL DEFAULT 0
+  )`,
+];
 
 /**
  * Local SQLite schema versioning. `PRAGMA user_version` holds the number of the last
@@ -14,9 +33,8 @@ export interface Migration {
 }
 
 /**
- * Mirrors the backend's planned `sync_operations` ledger (docs/Database_Design.md
- * §4.6): the server de-duplicates by (device id, client_operation_id), so retries of
- * an outbox row are idempotent.
+ * The local schema (see docs/Database_Design.md §4.6 for the server's `sync_operations`: it de-duplicates by
+ * (user, device id, client operation id), so retries of an outbox row are idempotent).
  */
 export const MIGRATIONS: readonly Migration[] = [
   {
@@ -43,7 +61,19 @@ export const MIGRATIONS: readonly Migration[] = [
     // Awards waiting to be sent (M6c): ids, category, points, op id and times only. Cleared on sign-out.
     version: 2,
     name: 'create_points_award_queue',
-    statements: AWARD_QUEUE_STATEMENTS,
+    statements: M6C_AWARD_QUEUE_STATEMENTS,
+  },
+  {
+    // The generic outbox (M7b): attendance marks and point awards over POST /sync. Takes over the M6c awards.
+    version: 3,
+    name: 'create_outbox_operations',
+    statements: OUTBOX_STATEMENTS,
+  },
+  {
+    // The offline read cache (M7b): roster, rolls, skills and totals per class, keyed by user, wiped at sign-out.
+    version: 4,
+    name: 'create_offline_cache',
+    statements: OFFLINE_CACHE_STATEMENTS,
   },
 ];
 

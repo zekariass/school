@@ -17,13 +17,31 @@ const KNOWN_ROUTES: Record<string, 'home' | 'points' | string> = {
   '/points': 'points',
 };
 
-/** The route to open for `path`, or null to stay put. `homeRoute` is the active role's home tab. */
-export function routeForPath(path: unknown, homeRoute: string | null): string | null {
+const UUID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
+/** A teacher is told of a parent's absence report: "/classes/{classId}/attendance" opens that class's inbox. */
+const CLASS_ABSENCES = new RegExp(`^/classes/(${UUID})/attendance$`);
+const UUID_ONLY = new RegExp(`^${UUID}$`);
+
+/**
+ * The route to open for `path`, or null to stay put. `homeRoute` is the active role's home tab. `data` is the
+ * notification's data: "/children" alone only names the family list, but an ATTENDANCE_MARKED notification also
+ * carries the child and the date, and opens that child's attendance.
+ */
+export function routeForPath(path: unknown, homeRoute: string | null, data?: unknown): string | null {
   if (typeof path !== 'string' || path.length === 0 || path.length > 2048) return null;
   if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) return null;
   if (/[\u0000-\u001f\u007f]/.test(path)) return null;
   const clean = path.split(/[?#]/)[0] ?? '';
   const trimmed = clean.length > 1 ? clean.replace(/\/+$/, '') : clean;
+  const absences = CLASS_ABSENCES.exec(trimmed);
+  if (absences) return homeRoute?.startsWith('/(teacher)/') ? `/class/${absences[1]}/absences` : homeRoute;
+  if (trimmed === '/children' && homeRoute?.startsWith('/(guardian)/')) {
+    const record = asRecord(data);
+    const nested = asRecord(record?.body);
+    const studentId = record?.studentId ?? nested?.studentId;
+    const date = record?.date ?? nested?.date;
+    if (typeof studentId === 'string' && UUID_ONLY.test(studentId) && typeof date === 'string') return `/child/${studentId}/attendance`;
+  }
   const target = KNOWN_ROUTES[trimmed];
   if (!target) return null;
   if (target === 'points') return homeRoute?.startsWith('/(student)/') ? '/(student)/points' : homeRoute;

@@ -12,11 +12,10 @@ export const templatesKey = (schoolId: string, classId: string) => [POINTS_ROOT,
 export const classGroupsKey = (classId: string) => [POINTS_ROOT, 'groups', classId] as const;
 
 /**
- * Only the skill palettes are cached for offline use (a teacher must be able to award with no connection).
- * Totals, timelines, notes and badges describe children's school life: never written to the persisted cache.
- * Routine templates are plain lessons, not child data, and persist too.
+ * Nothing about points is written to TanStack's persisted cache: totals, timelines, notes and badges describe
+ * children's school life. The skill palettes, the class totals and the routine templates a teacher needs offline
+ * live in the explicit, owner-scoped cache table instead (`lib/offline`), which is wiped at sign-out.
  */
 export function isPersistablePointsQuery(queryKey: readonly unknown[]): boolean {
-  if (queryKey[0] !== POINTS_ROOT) return true;
-  return queryKey[1] === 'categories' || queryKey[1] === 'templates';
+  return queryKey[0] !== POINTS_ROOT;
 }

@@ -457,8 +457,6 @@
         "dismiss": "Dismiss"
       },
       "queue": {
-        "waiting": "{count} waiting to send",
-        "retryHint": "Tap to try sending now",
         "failedTitle": "Couldn't give {skill} to {students}",
         "rejectedBody": "The school server did not accept this award. Award it again if you still want to.",
         "expiredBody": "It waited too long to send, so it was dropped. Award it again if you still want to.",
@@ -588,6 +586,213 @@
         "progress": "{done} of {total} done",
         "clear": "Untick all",
         "itemCount": "Steps: {count}"
+      }
+    },
+    "sync": {
+      "waiting": "{count} waiting to send",
+      "retryHint": "Tap to try sending now",
+      "allSent": "Everything is sent",
+      "offline": "Offline",
+      "savedCopy": "Saved copy. {age}",
+      "classListUpdated": "Built from the class list. {age}",
+      "age": {
+        "now": "Updated just now",
+        "minutes": "Updated {count} min ago",
+        "hours": "Updated {count} h ago",
+        "days": "Updated {count} d ago"
+      }
+    },
+    "attendance": {
+      "title": "Attendance",
+      "open": "Take attendance",
+      "status": {
+        "PRESENT": "Present",
+        "ABSENT": "Absent",
+        "LATE": "Late",
+        "EXCUSED": "Excused",
+        "LEFT_EARLY": "Left early",
+        "NONE": "Not marked"
+      },
+      "summary": "Present {present}, absent {absent}, late {late}, excused {excused}, left early {leftEarly}, not marked {unmarked}",
+      "allMarked": "Everyone is marked.",
+      "start": {
+        "title": "Is everyone here?",
+        "body": "Nobody is marked yet. Tap “Mark all present”, then tap the students who are not here."
+      },
+      "markAll": {
+        "button": "Mark all present ({count})",
+        "title": "Mark everyone present?",
+        "body": "{count} students who are not marked yet will be marked present.",
+        "excused": "{count} of them have an absence report from a parent and will be marked excused instead.",
+        "confirm": "Mark present"
+      },
+      "row": {
+        "label": "{name}, {status}",
+        "hint": "Tap to change the status. Press and hold for more.",
+        "details": "More options",
+        "detailsFor": "More options for {name}"
+      },
+      "hint": {
+        "parentReported": "Parent reported: {reason}",
+        "parentReportedNoReason": "Parent reported an absence",
+        "parentWaiting": "Parent reported an absence. Waiting for you to answer.",
+        "minutesLate": "{minutes} min late"
+      },
+      "sheet": {
+        "status": "Status",
+        "minutesLate": "Minutes late",
+        "minutesOption": "{minutes} minutes",
+        "minutesCustom": "Other number of minutes",
+        "minutesError": "Enter a number from 1 to 600.",
+        "note": "Short note (optional)",
+        "noteHint": "Only teachers can read it. It is sent only if the app stays open until you are online, and it is never saved on this phone."
+      },
+      "date": {
+        "previous": "Previous day",
+        "next": "Next day",
+        "today": "Today",
+        "todayLabel": "{date}, today",
+        "backToToday": "Back to today"
+      },
+      "slot": {
+        "label": "Part of the day",
+        "DAY": "Whole day",
+        "AM": "Morning",
+        "PM": "Afternoon",
+        "period": "Period {number}"
+      },
+      "lock": {
+        "lockedTitle": "This roll is locked",
+        "lockedBody": "It locked on {time}. Only the lead teacher and attendance managers can change it now.",
+        "overrideTitle": "This roll is locked",
+        "overrideBody": "It locked on {time}. You can still change it, but you must give a reason, and the change is recorded.",
+        "reasonTitle": "Why are you changing it?",
+        "reasonBody": "A locked roll can be changed with a reason. The reason is saved with the change.",
+        "reasonLabel": "Reason"
+      },
+      "stale": {
+        "title": "This roll is too old to change",
+        "body": "{age}. Connect to the internet to load the latest roll before you change anything."
+      },
+      "synthetic": {
+        "title": "Roll not loaded yet",
+        "body": "This is the class list with nobody marked. {age}. Your marks are checked when you are online: if a colleague marked the same student differently, you will be asked."
+      },
+      "unavailable": {
+        "title": "Not saved on this phone yet",
+        "body": "Open the attendance of this class once while you are online. After that you can take it with no connection."
+      },
+      "errors": {
+        "full": "Too many changes are waiting to send. Connect to the internet and try again.",
+        "invalid": "That change could not be saved.",
+        "loadTitle": "We couldn't load the roll",
+        "loadBody": "Check your connection and pull down to try again."
+      },
+      "issues": {
+        "title": "Attendance to check",
+        "banner": "Attendance to check: {count}",
+        "bannerHint": "Tap to review",
+        "emptyTitle": "Nothing to check",
+        "emptyBody": "All your attendance changes were accepted.",
+        "conflictTitle": "A colleague marked this differently",
+        "conflictBody": "While your phone was offline, another teacher marked these students. Nothing was overwritten. Choose which mark to keep.",
+        "theirs": "{teacher} marked {student}: {status}.",
+        "mine": "You marked: {status}.",
+        "keepTheirs": "Keep theirs",
+        "useMine": "Use mine",
+        "keepTheirsFor": "Keep their mark for {student}",
+        "useMineFor": "Use my mark for {student}",
+        "keepAllTheirs": "Keep all theirs",
+        "useAllMine": "Use all mine",
+        "unknownTeacher": "Another teacher",
+        "unknownStudent": "a student",
+        "rejectedTitle": "Attendance for {class} on {date} was not saved",
+        "rejectedBody": "The school server did not accept these marks. Open the roll and mark again if you still need to.",
+        "expiredTitle": "Attendance for {class} on {date} waited too long",
+        "expiredBody": "It could not be sent in time and was dropped. Open the roll and mark again.",
+        "openRoll": "Open the roll",
+        "dismiss": "Dismiss"
+      },
+      "guardian": {
+        "title": "Attendance",
+        "titleFor": "{name}: attendance",
+        "open": "Attendance and absences for {name}",
+        "history": "Attendance history",
+        "historyEmpty": "No attendance has been recorded yet.",
+        "historyErrorTitle": "We couldn't load the attendance",
+        "historyErrorBody": "Check your connection and try again.",
+        "noAccess": "The school has not given you access to this child's attendance."
+      }
+    },
+    "absence": {
+      "report": "Report an absence for {name}",
+      "sent": "Report sent. {name}'s teachers have been told.",
+      "range": "{from} to {to}",
+      "statusLabel": "Status: {status}",
+      "status": {
+        "SUBMITTED": "Waiting",
+        "ACKNOWLEDGED": "Acknowledged",
+        "DECLINED": "Declined",
+        "CANCELLED": "Cancelled"
+      },
+      "reason": {
+        "ILLNESS": "Illness",
+        "FAMILY": "Family",
+        "APPOINTMENT": "Appointment",
+        "OTHER": "Other"
+      },
+      "decisionNote": "Teacher's note: {note}",
+      "loadMore": "Show more",
+      "mine": {
+        "title": "Your reports",
+        "empty": "You haven't reported any absence for this child.",
+        "errorTitle": "We couldn't load your reports",
+        "errorBody": "Check your connection and try again."
+      },
+      "cancel": {
+        "action": "Cancel this report",
+        "title": "Cancel this report?",
+        "body": "The teachers will no longer see it.",
+        "confirm": "Cancel report",
+        "keep": "Keep it",
+        "failedTitle": "We couldn't cancel the report",
+        "failedBody": "Check your connection and try again."
+      },
+      "form": {
+        "title": "Report an absence for {name}",
+        "from": "First day away",
+        "to": "Last day away",
+        "dayBefore": "{label}: the day before",
+        "dayAfter": "{label}: the day after",
+        "reason": "Reason",
+        "note": "Note for the teachers (optional)",
+        "noteHint": "Only {name}'s teachers can read this. Please keep it short.",
+        "submit": "Send report",
+        "failedTitle": "We couldn't send the report",
+        "failedBody": "Check your connection and try again.",
+        "errors": {
+          "order": "The last day can't be before the first day.",
+          "tooLong": "An absence report can cover at most 61 days.",
+          "tooEarly": "A report can go back at most 7 days.",
+          "tooFar": "A report can look ahead at most 90 days.",
+          "noteTooLong": "The note is too long (500 characters at most)."
+        }
+      },
+      "inbox": {
+        "title": "Absence reports",
+        "open": "Absence reports",
+        "intro": "Parents tell the school ahead of time that a child will be away. An acknowledged report shows on the roll as a hint. It never marks a child by itself.",
+        "acknowledge": "Acknowledge",
+        "decline": "Decline",
+        "emptyTitle": "No absence reports",
+        "emptyBody": "When a parent reports an absence, it appears here.",
+        "errorTitle": "We couldn't load the reports",
+        "errorBody": "Check your connection and pull down to try again.",
+        "decisionFailedTitle": "We couldn't save your answer",
+        "decisionFailedBody": "Check your connection and try again.",
+        "declineTitle": "Decline the report for {name}?",
+        "declineBody": "The parent's report stays on record. You can add a short note.",
+        "declineNote": "Note (optional)"
       }
     }
   },

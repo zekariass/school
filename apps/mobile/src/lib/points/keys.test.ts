@@ -11,9 +11,9 @@ import {
 } from './keys';
 
 describe('isPersistablePointsQuery', () => {
-  it('keeps only what a teacher needs to award offline', () => {
-    expect(isPersistablePointsQuery(categoriesKey('s', 'c'))).toBe(true);
-    expect(isPersistablePointsQuery(templatesKey('s', 'c'))).toBe(true);
+  it('persists no points query at all: what a teacher needs offline sits in the explicit cache table', () => {
+    expect(isPersistablePointsQuery(categoriesKey('s', 'c'))).toBe(false);
+    expect(isPersistablePointsQuery(templatesKey('s', 'c'))).toBe(false);
   });
 
   it('never persists children\'s totals, timelines, notes or home data', () => {

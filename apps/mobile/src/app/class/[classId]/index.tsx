@@ -7,9 +7,13 @@ import { useTranslations } from 'use-intl';
 import { ClassBadge } from '@/components/class-card';
 import { ProblemBanner } from '@/components/problem-banner';
 import { RosterGrid } from '@/components/roster-grid';
+import { QueueIndicator } from '@/components/sync/queue-indicator';
 import { Button, Card, EmptyState, Screen, Text } from '@/components/ui';
 import { canEditRoster, teacherNames } from '@/lib/people/classes';
 import { useClassDetail, useClassTeachers, useMyClass, useRoster } from '@/lib/people/queries';
+import { useAgeText } from '@/lib/sync/age-text';
+import { useAttentionOperations } from '@/lib/sync/runtime';
+import { isAttendanceOp } from '@/lib/sync/types';
 import { useAppTheme } from '@/lib/theme/theme-provider';
 
 /** A class: its details, the roster as an avatar wall and the roster actions. */
@@ -23,7 +27,10 @@ export default function ClassDetail() {
   const teachers = useClassTeachers(schoolId, classId);
   const roster = useRoster(schoolId, classId);
   const queryClient = useQueryClient();
+  const ageText = useAgeText();
+  const [openedAt] = useState(() => Date.now());
   const [refreshing, setRefreshing] = useState(false);
+  const attentionCount = useAttentionOperations().filter((op) => isAttendanceOp(op) && op.classId === classId).length;
 
   async function refresh() {
     setRefreshing(true);
@@ -94,14 +101,32 @@ export default function ClassDetail() {
           {cls.role === 'TEACHER' && cls.status === 'ACTIVE' ? (
             <View style={{ gap: spacing[3] }}>
               <Button
+                label={t('mobile.attendance.open')}
+                onPress={() => router.push({ pathname: '/class/[classId]/attendance', params: { classId: cls.id } })}
+              />
+              <Button
+                variant="secondary"
                 label={t('mobile.points.openClass')}
                 onPress={() => router.push({ pathname: '/class/[classId]/points', params: { classId: cls.id } })}
               />
               <Button
-                variant="secondary"
+                variant="ghost"
+                label={t('mobile.absence.inbox.open')}
+                onPress={() => router.push({ pathname: '/class/[classId]/absences', params: { classId: cls.id } })}
+              />
+              <Button
+                variant="ghost"
                 label={t('mobile.toolkit.open')}
                 onPress={() => router.push({ pathname: '/class/[classId]/toolkit', params: { classId: cls.id } })}
               />
+              <QueueIndicator classId={cls.id} />
+              {attentionCount > 0 ? (
+                <Button
+                  variant="destructive"
+                  label={t('mobile.attendance.issues.banner', { count: attentionCount })}
+                  onPress={() => router.push({ pathname: '/class/[classId]/attendance-issues', params: { classId: cls.id } })}
+                />
+              ) : null}
             </View>
           ) : null}
 
@@ -122,6 +147,9 @@ export default function ClassDetail() {
 
           <View style={{ gap: spacing[3] }}>
             <Text variant="heading">{t('mobile.classes.rosterTitle')}</Text>
+            {roster.fromCache && roster.fetchedAt !== undefined ? (
+              <Text variant="caption">{t('mobile.sync.savedCopy', { age: ageText(roster.fetchedAt, openedAt) })}</Text>
+            ) : null}
             {roster.isPending ? (
               <ActivityIndicator color={colors.primary} />
             ) : roster.isError && !roster.data ? (

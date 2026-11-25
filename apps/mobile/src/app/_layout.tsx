@@ -4,9 +4,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { HeaderBack } from '@/components/header-back';
 import { NotificationsRuntime } from '@/components/notifications-runtime';
-import { PointsRuntime } from '@/components/points/points-runtime';
 import { RestoreOfflineScreen } from '@/components/restore-offline-screen';
+import { SyncRuntime } from '@/components/sync-runtime';
 import { bootstrap, type BootstrapResult } from '@/lib/bootstrap';
 import { AppIntlProvider } from '@/lib/i18n/intl-provider';
 import { PreferencesProvider } from '@/lib/preferences/preferences-provider';
@@ -93,7 +94,7 @@ function RootNavigator() {
     <ThemeProvider value={navigationTheme}>
       <StatusBar style="auto" />
       <NotificationsRuntime />
-      <PointsRuntime />
+      <SyncRuntime />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="index" />
 
@@ -114,6 +115,8 @@ function RootNavigator() {
         <Stack.Protected guard={signedIn && activeRole === 'guardian'}>
           {/* A child's points: school and home, separate. */}
           <Stack.Screen name="child/[studentId]" options={{ ...header, title: t('mobile.points.child.title') }} />
+          {/* A child's attendance: absence reports to the school and the history. */}
+          <Stack.Screen name="child/[studentId]/attendance" options={{ ...header, title: t('mobile.attendance.guardian.title'), headerLeft: () => <HeaderBack /> }} />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && activeRole === 'student'}>
           <Stack.Screen name="(student)" />

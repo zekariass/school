@@ -457,8 +457,6 @@
         "dismiss": "ዝጋ"
       },
       "queue": {
-        "waiting": "{count} ለመላክ ይጠብቃሉ",
-        "retryHint": "አሁን ለመላክ ይንኩ",
         "failedTitle": "{skill} ለ{students} መስጠት አልተቻለም",
         "rejectedBody": "የትምህርት ቤቱ አገልጋይ ይህን ነጥብ አልተቀበለም። አሁንም ከፈለጉ እንደገና ይስጡ።",
         "expiredBody": "ለመላክ በጣም ረጅም ጊዜ ስለቆየ ተሰርዟል። አሁንም ከፈለጉ እንደገና ይስጡ።",
@@ -588,6 +586,213 @@
         "progress": "ከ{total} {done} ተጠናቀዋል",
         "clear": "ሁሉንም አጥፋ",
         "itemCount": "ደረጃዎች፡ {count}"
+      }
+    },
+    "sync": {
+      "waiting": "{count} ለመላክ በመጠባበቅ ላይ",
+      "retryHint": "አሁን ለመላክ ይንኩ",
+      "allSent": "ሁሉም ተልኳል",
+      "offline": "ከመስመር ውጭ",
+      "savedCopy": "የተቀመጠ ቅጂ። {age}",
+      "classListUpdated": "ከክፍሉ ዝርዝር የተሠራ። {age}",
+      "age": {
+        "now": "አሁን ተዘምኗል",
+        "minutes": "ከ{count} ደቂቃ በፊት ተዘምኗል",
+        "hours": "ከ{count} ሰዓት በፊት ተዘምኗል",
+        "days": "ከ{count} ቀን በፊት ተዘምኗል"
+      }
+    },
+    "attendance": {
+      "title": "ክትትል",
+      "open": "ክትትል ያዙ",
+      "status": {
+        "PRESENT": "ተገኝቷል",
+        "ABSENT": "ቀርቷል",
+        "LATE": "አርፍዷል",
+        "EXCUSED": "በፈቃድ ቀርቷል",
+        "LEFT_EARLY": "ቀድሞ ሄዷል",
+        "NONE": "አልተመዘገበም"
+      },
+      "summary": "የተገኙ {present}፣ የቀሩ {absent}፣ ያረፈዱ {late}፣ በፈቃድ የቀሩ {excused}፣ ቀድመው የሄዱ {leftEarly}፣ ያልተመዘገቡ {unmarked}",
+      "allMarked": "ሁሉም ተመዝግበዋል።",
+      "start": {
+        "title": "ሁሉም ተገኝተዋል?",
+        "body": "እስካሁን ማንም አልተመዘገበም። «ሁሉንም ተገኝተዋል በል» ይንኩ፣ ከዚያ ያልተገኙትን ተማሪዎች ይንኩ።"
+      },
+      "markAll": {
+        "button": "ሁሉንም ተገኝተዋል በል ({count})",
+        "title": "ሁሉም ተገኝተዋል ልበል?",
+        "body": "ገና ያልተመዘገቡ {count} ተማሪዎች እንደተገኙ ይመዘገባሉ።",
+        "excused": "ከእነዚህ ውስጥ {count} ተማሪዎች ወላጅ የቀረበ የመቅረት ማሳወቂያ ስላላቸው በፈቃድ እንደቀሩ ይመዘገባሉ።",
+        "confirm": "ተገኝተዋል በል"
+      },
+      "row": {
+        "label": "{name}፣ {status}",
+        "hint": "ሁኔታውን ለመቀየር ይንኩ። ለተጨማሪ ተጭነው ይያዙ።",
+        "details": "ተጨማሪ አማራጮች",
+        "detailsFor": "የ{name} ተጨማሪ አማራጮች"
+      },
+      "hint": {
+        "parentReported": "ወላጅ አሳውቋል፦ {reason}",
+        "parentReportedNoReason": "ወላጅ መቅረቱን አሳውቋል",
+        "parentWaiting": "ወላጅ መቅረቱን አሳውቋል። የእርስዎን ምላሽ ይጠብቃል።",
+        "minutesLate": "{minutes} ደቂቃ አርፍዷል"
+      },
+      "sheet": {
+        "status": "ሁኔታ",
+        "minutesLate": "ያረፈደባቸው ደቂቃዎች",
+        "minutesOption": "{minutes} ደቂቃ",
+        "minutesCustom": "ሌላ የደቂቃ ብዛት",
+        "minutesError": "ከ1 እስከ 600 ያለ ቁጥር ያስገቡ።",
+        "note": "አጭር ማስታወሻ (አማራጭ)",
+        "noteHint": "መምህራን ብቻ ያነቡታል። የሚላከው መተግበሪያው እስከሚገናኙ ድረስ ክፍት ከሆነ ብቻ ነው፣ በዚህ ስልክ ላይም አይቀመጥም።"
+      },
+      "date": {
+        "previous": "ያለፈው ቀን",
+        "next": "የሚቀጥለው ቀን",
+        "today": "ዛሬ",
+        "todayLabel": "{date}፣ ዛሬ",
+        "backToToday": "ወደ ዛሬ ተመለስ"
+      },
+      "slot": {
+        "label": "የቀኑ ክፍል",
+        "DAY": "ሙሉ ቀን",
+        "AM": "ጠዋት",
+        "PM": "ከሰዓት",
+        "period": "ክፍለ ጊዜ {number}"
+      },
+      "lock": {
+        "lockedTitle": "ይህ ዝርዝር ተቆልፏል",
+        "lockedBody": "በ{time} ተቆልፏል። አሁን መቀየር የሚችሉት ዋና መምህሩና የክትትል ኃላፊዎች ብቻ ናቸው።",
+        "overrideTitle": "ይህ ዝርዝር ተቆልፏል",
+        "overrideBody": "በ{time} ተቆልፏል። አሁንም መቀየር ይችላሉ፣ ግን ምክንያት መስጠት አለብዎት፤ ለውጡም ይመዘገባል።",
+        "reasonTitle": "ለምን ይቀይራሉ?",
+        "reasonBody": "የተቆለፈ ዝርዝር በምክንያት መቀየር ይቻላል። ምክንያቱ ከለውጡ ጋር ይቀመጣል።",
+        "reasonLabel": "ምክንያት"
+      },
+      "stale": {
+        "title": "ይህ ዝርዝር ለመቀየር በጣም ያረጀ ነው",
+        "body": "{age}። ምንም ከመቀየርዎ በፊት የቅርብ ጊዜውን ዝርዝር ለመጫን ከበይነመረብ ጋር ይገናኙ።"
+      },
+      "synthetic": {
+        "title": "ዝርዝሩ ገና አልተጫነም",
+        "body": "ይህ ማንም ያልተመዘገበበት የክፍሉ ዝርዝር ነው። {age}። የሚመዘግቡት መስመር ላይ ሲሆኑ ይፈተሻል፤ አንድ የሥራ ባልደረባ ተመሳሳዩን ተማሪ በተለየ መንገድ ከመዘገበ ይጠየቃሉ።"
+      },
+      "unavailable": {
+        "title": "በዚህ ስልክ ላይ ገና አልተቀመጠም",
+        "body": "የዚህን ክፍል ክትትል መስመር ላይ ሲሆኑ አንድ ጊዜ ይክፈቱ። ከዚያ በኋላ ያለ ግንኙነት መያዝ ይችላሉ።"
+      },
+      "errors": {
+        "full": "ለመላክ የሚጠብቁ ለውጦች በጣም ብዙ ናቸው። ከበይነመረብ ጋር ተገናኝተው እንደገና ይሞክሩ።",
+        "invalid": "ይህ ለውጥ ሊቀመጥ አልቻለም።",
+        "loadTitle": "ዝርዝሩን መጫን አልቻልንም",
+        "loadBody": "ግንኙነትዎን ያረጋግጡና እንደገና ለመሞከር ወደ ታች ይጎትቱ።"
+      },
+      "issues": {
+        "title": "የሚፈተሹ የክትትል ለውጦች",
+        "banner": "የሚፈተሹ የክትትል ለውጦች፦ {count}",
+        "bannerHint": "ለማየት ይንኩ",
+        "emptyTitle": "ምንም የሚፈተሽ የለም",
+        "emptyBody": "ሁሉም የክትትል ለውጦችዎ ተቀባይነት አግኝተዋል።",
+        "conflictTitle": "አንድ የሥራ ባልደረባ በተለየ መንገድ መዝግቧል",
+        "conflictBody": "ስልክዎ ከመስመር ውጭ በነበረበት ጊዜ ሌላ መምህር እነዚህን ተማሪዎች መዝግቧል። ምንም አልተተካም። የትኛውን ምዝገባ እንደሚያስቀሩ ይምረጡ።",
+        "theirs": "{teacher} {student}ን መዝግቧል፦ {status}።",
+        "mine": "እርስዎ የመዘገቡት፦ {status}።",
+        "keepTheirs": "የእነሱን ያቆዩ",
+        "useMine": "የእኔን ይጠቀሙ",
+        "keepTheirsFor": "ለ{student} የእነሱን ምዝገባ ያቆዩ",
+        "useMineFor": "ለ{student} የእኔን ምዝገባ ይጠቀሙ",
+        "keepAllTheirs": "ሁሉንም የእነሱን ያቆዩ",
+        "useAllMine": "ሁሉንም የእኔን ይጠቀሙ",
+        "unknownTeacher": "ሌላ መምህር",
+        "unknownStudent": "አንድ ተማሪ",
+        "rejectedTitle": "የ{class} የ{date} ክትትል አልተቀመጠም",
+        "rejectedBody": "የትምህርት ቤቱ አገልጋይ እነዚህን ምዝገባዎች አልተቀበለም። አሁንም ከፈለጉ ዝርዝሩን ከፍተው እንደገና ይመዝግቡ።",
+        "expiredTitle": "የ{class} የ{date} ክትትል ለረጅም ጊዜ ቆይቷል",
+        "expiredBody": "በጊዜ መላክ አልተቻለም፣ ስለዚህ ተትቷል። ዝርዝሩን ከፍተው እንደገና ይመዝግቡ።",
+        "openRoll": "ዝርዝሩን ክፈት",
+        "dismiss": "አስወግድ"
+      },
+      "guardian": {
+        "title": "ክትትል",
+        "titleFor": "{name}፦ ክትትል",
+        "open": "የ{name} ክትትልና መቅረት",
+        "history": "የክትትል ታሪክ",
+        "historyEmpty": "እስካሁን ምንም ክትትል አልተመዘገበም።",
+        "historyErrorTitle": "ክትትሉን መጫን አልቻልንም",
+        "historyErrorBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
+        "noAccess": "ትምህርት ቤቱ የዚህን ልጅ ክትትል እንዲያዩ አልፈቀደልዎትም።"
+      }
+    },
+    "absence": {
+      "report": "ለ{name} መቅረት ያሳውቁ",
+      "sent": "ማሳወቂያው ተልኳል። የ{name} መምህራን ተነግሯቸዋል።",
+      "range": "ከ{from} እስከ {to}",
+      "statusLabel": "ሁኔታ፦ {status}",
+      "status": {
+        "SUBMITTED": "በመጠባበቅ ላይ",
+        "ACKNOWLEDGED": "ተቀብለዋል",
+        "DECLINED": "ውድቅ ተደርጓል",
+        "CANCELLED": "ተሰርዟል"
+      },
+      "reason": {
+        "ILLNESS": "ሕመም",
+        "FAMILY": "ቤተሰብ",
+        "APPOINTMENT": "ቀጠሮ",
+        "OTHER": "ሌላ"
+      },
+      "decisionNote": "የመምህሩ ማስታወሻ፦ {note}",
+      "loadMore": "ተጨማሪ አሳይ",
+      "mine": {
+        "title": "ያሳወቋቸው",
+        "empty": "ለዚህ ልጅ ምንም መቅረት አላሳወቁም።",
+        "errorTitle": "ማሳወቂያዎችዎን መጫን አልቻልንም",
+        "errorBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።"
+      },
+      "cancel": {
+        "action": "ይህን ማሳወቂያ ሰርዝ",
+        "title": "ይህ ማሳወቂያ ይሰረዝ?",
+        "body": "መምህራን ከዚህ በኋላ አያዩትም።",
+        "confirm": "ማሳወቂያውን ሰርዝ",
+        "keep": "ይቆይ",
+        "failedTitle": "ማሳወቂያውን መሰረዝ አልቻልንም",
+        "failedBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።"
+      },
+      "form": {
+        "title": "ለ{name} መቅረት ያሳውቁ",
+        "from": "የመቅረት የመጀመሪያ ቀን",
+        "to": "የመቅረት የመጨረሻ ቀን",
+        "dayBefore": "{label}፦ ያለፈው ቀን",
+        "dayAfter": "{label}፦ የሚቀጥለው ቀን",
+        "reason": "ምክንያት",
+        "note": "ለመምህራን ማስታወሻ (አማራጭ)",
+        "noteHint": "የ{name} መምህራን ብቻ ያነቡታል። እባክዎ አጭር ያድርጉት።",
+        "submit": "ማሳወቂያ ላክ",
+        "failedTitle": "ማሳወቂያውን መላክ አልቻልንም",
+        "failedBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
+        "errors": {
+          "order": "የመጨረሻው ቀን ከመጀመሪያው ቀን በፊት ሊሆን አይችልም።",
+          "tooLong": "አንድ የመቅረት ማሳወቂያ ቢበዛ 61 ቀናትን ሊሸፍን ይችላል።",
+          "tooEarly": "ማሳወቂያ ወደ ኋላ ቢበዛ 7 ቀናት መመለስ ይችላል።",
+          "tooFar": "ማሳወቂያ ወደ ፊት ቢበዛ 90 ቀናት ማየት ይችላል።",
+          "noteTooLong": "ማስታወሻው በጣም ረጅም ነው (ቢበዛ 500 ፊደላት)።"
+        }
+      },
+      "inbox": {
+        "title": "የመቅረት ማሳወቂያዎች",
+        "open": "የመቅረት ማሳወቂያዎች",
+        "intro": "ወላጆች አንድ ልጅ እንደሚቀር አስቀድመው ለትምህርት ቤቱ ያሳውቃሉ። የተቀበሉት ማሳወቂያ በዝርዝሩ ላይ እንደ ፍንጭ ይታያል። ራሱ ማንንም አይመዘግብም።",
+        "acknowledge": "ተቀበል",
+        "decline": "ውድቅ አድርግ",
+        "emptyTitle": "ምንም የመቅረት ማሳወቂያ የለም",
+        "emptyBody": "ወላጅ መቅረት ሲያሳውቅ እዚህ ይታያል።",
+        "errorTitle": "ማሳወቂያዎቹን መጫን አልቻልንም",
+        "errorBody": "ግንኙነትዎን ያረጋግጡና እንደገና ለመሞከር ወደ ታች ይጎትቱ።",
+        "decisionFailedTitle": "ምላሽዎን ማስቀመጥ አልቻልንም",
+        "decisionFailedBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
+        "declineTitle": "የ{name}ን ማሳወቂያ ውድቅ ያድርጉ?",
+        "declineBody": "የወላጁ ማሳወቂያ በመዝገብ ላይ ይቆያል። አጭር ማስታወሻ ማከል ይችላሉ።",
+        "declineNote": "ማስታወሻ (አማራጭ)"
       }
     }
   },

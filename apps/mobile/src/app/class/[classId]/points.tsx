@@ -8,7 +8,8 @@ import { useTranslations } from 'use-intl';
 import { Avatar } from '@/components/avatar';
 import { AwardSheet } from '@/components/points/award-sheet';
 import { PointsGrid } from '@/components/points/points-grid';
-import { FailureBanners, QueueIndicator } from '@/components/points/queue-status';
+import { FailureBanners } from '@/components/points/queue-status';
+import { QueueIndicator } from '@/components/sync/queue-indicator';
 import { UndoSnackbar } from '@/components/points/undo-snackbar';
 import { ProblemBanner } from '@/components/problem-banner';
 import { Button, EmptyState, Text } from '@/components/ui';
@@ -48,7 +49,8 @@ export default function ClassPoints() {
 
   const students = useMemo(() => roster.data ?? [], [roster.data]);
   const skills = useMemo<PointCategory[]>(() => categories.data ?? [], [categories.data]);
-  const refetchOverview = useCallback(() => void overview.refetch(), [overview]);
+  const { refetch: refetchTotals } = overview;
+  const refetchOverview = useCallback(() => void refetchTotals(), [refetchTotals]);
 
   const awards = useClassAwards({
     schoolId,
