@@ -1,0 +1,75 @@
+name: Deploy production
+
+# Deploys a release tag (vX.Y.Z) to production after the Images workflow has published its images. The
+# "production" GitHub environment must have required reviewers: the deploy job waits for their approval.
+# Skipped (with a notice, workflow stays green) until the owner switches it on:
+#   repository variable  DEPLOY_PROD_ENABLED = true   (and the secrets/variables of the "production" environment,
+#   docs/ops/Runbook.md, "GitHub setup").
+# Only stable tags of commits that are on main are deployed (v1.2.3, not v1.2.3-rc.1).
+
+on:
+  workflow_run:
+    workflows: [Images]
+    types: [completed]
+
+# Never two production deploys at once, never cancelled half-way.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # A successful Images run for a pushed tag whose name looks like a release.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    outputs:
+      deploy: ${{ steps.plan.outputs.deploy }}
+      sha: ${{ steps.plan.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - id: plan
+        env:
+          ENABLED: ${{ vars.DEPLOY_PROD_ENABLED }}
+          TAG: ${{ github.event.workflow_run.head_branch }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "deploy=false" >> "$GITHUB_OUTPUT"
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::notice title=Not a release tag::'$TAG' is not vMAJOR.MINOR.PATCH; nothing deployed."
+            exit 0
+          fi
+          if [ "$ENABLED" != "true" ]; then
+            echo "::notice title=Production deploy skipped::Set the repository variable DEPLOY_PROD_ENABLED=true after configuring the 'production' environment (docs/ops/Runbook.md)."
+            exit 0
+          fi
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$SHA" origin/main; then
+            echo "::error title=Tag not on main::$TAG ($SHA) is not reachable from main; refusing to deploy it."
+            exit 1
+          fi
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy
+    needs: plan
+    if: needs.plan.outputs.deploy == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+      sha: ${{ needs.plan.outputs.sha }}
+      pin-digests: true
+    secrets: inherit
+    permissions:
+      contents: read

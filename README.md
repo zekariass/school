@@ -191,14 +191,16 @@ Local endpoints (`npm run dev -- --filter=school-backend`):
 | http://localhost:8180/api/v1/meta | Public service metadata + server time |
 | http://localhost:8180/swagger-ui/index.html | API explorer (local only) |
 | http://localhost:8180/v3/api-docs | OpenAPI spec (local only) |
-| http://localhost:8180/actuator/health | Health; `/readiness`, `/liveness` probes |
+| http://localhost:8180/actuator/health | Health; `/readiness` (database + Redis) and `/liveness` probes, status only; `/actuator/info` returns version and commit |
 | http://localhost:8180/actuator/prometheus | Metrics (local only; private network elsewhere) |
 
-Deployed environments configure, besides the database:
+Deployed environments (`staging`, `prod` profiles) refuse to start unless the configuration is complete and safe:
+the check lists **every** problem in one message (see [docs/ops/Runbook.md](docs/ops/Runbook.md#2-what-the-deployed-profiles-enforce)).
+They configure, besides the database:
 
 | Variable | Purpose |
 |---|---|
-| `REDIS_URL` | **Required** in deployed environments, e.g. `rediss://user:pass@host:6379` (configuration cache). If unset, Spring falls back to `localhost:6379`. |
+| `REDIS_URL` | **Required** in every profile except `local` and `test`, e.g. `rediss://user:pass@host:6379`. Startup fails when it is unset (there is no localhost fallback). |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the API |
 | `API_DOCS_ENABLED` | `true` to serve the OpenAPI spec / Swagger UI (off by default) |
 | `LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs` | JSON logs for log aggregation |
@@ -218,6 +220,11 @@ Deployed environments configure, besides the database:
 | `SCHOOL_STORAGE_PUBLIC_ENDPOINT` | Host that clients put in presigned URLs (default: `SCHOOL_STORAGE_ENDPOINT`). Set it when the backend reaches the store on a private address. For uploads from a physical phone locally, see [Media storage](#media-storage). |
 | `SCHOOL_STORAGE_BUCKET`, `SCHOOL_STORAGE_ACCESS_KEY`, `SCHOOL_STORAGE_SECRET_KEY` | **Required.** Bucket name and its S3 credentials (secret). The bucket and its CORS rule (allow `PUT`/`GET` from the web origin) are provisioned with the platform; the application only creates them locally. |
 | `SCHOOL_STORAGE_REGION` | Signing region (default `auto`, which is what R2 uses). |
+| `SPRING_PROFILES_ACTIVE` | `staging` or `prod` in deployed environments: strict startup validation (below), JSON logs, graceful shutdown, Flyway validate-only. |
+| `SCHOOL_MIGRATIONS_MODE` | `validate` (default in `staging`/`prod`: the app only checks the schema, migrations run with `--migrate`) or `migrate` (Flyway migrates at startup; default elsewhere). |
+| `SCHOOL_MIGRATE_ONLY=true` / argument `--migrate` | One-shot migrate mode of the image: runs Flyway and exits (0 ok, 1 failed, 2 bad `DB_*`), no web server. |
+| `SCHOOL_BUILD_COMMIT` | Set by the image build (`GIT_SHA`); returned by `/actuator/info` for deploy smoke tests. |
+| `SENTRY_DSN` | Optional. Enables error tracking (Sentry or compatible); events carry no request data, users or personal data. Off when empty. |
 | `SERVER_FORWARD_HEADERS_STRATEGY` | Set to `native`/`framework` only behind a trusted proxy; otherwise rate limits and audit see the proxy's address (`X-Forwarded-For` is ignored) |
 
 ### Media storage
@@ -303,6 +310,7 @@ docker build -t school-backend:local apps/backend
 docker run --rm -p 8080:8080 \
   -e DB_URL=jdbc:postgresql://host.docker.internal:5442/school \
   -e DB_USERNAME=school -e DB_PASSWORD=school \
+  -e REDIS_URL=redis://host.docker.internal:6390 \
   -e SCHOOL_AUTH_JWT_KEYS="$(npm run -s jwk:generate -w school-backend)" \
   -e SCHOOL_AUTH_OTP_PEPPER=change-me-to-a-long-random-secret-0123456789 \
   -e SCHOOL_SMS_PROVIDER=console -e SCHOOL_SMS_ALLOW_CONSOLE=true \
@@ -319,11 +327,43 @@ docker run --rm -p 3000:3000 \
 
 | Image | Port | Required env | Optional env |
 |---|---|---|---|
-| `school-backend` | 8080 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SCHOOL_AUTH_JWT_KEYS`, `SCHOOL_AUTH_OTP_PEPPER`, `SCHOOL_SMS_PROVIDER`, `SCHOOL_PUSH_PROVIDER`, `SCHOOL_GUARDIANS_INVITE_BASE_URL` | the variables in [Backend configuration](#backend-configuration), `JAVA_TOOL_OPTIONS` |
+| `school-backend` | 8080 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `REDIS_URL`, `SCHOOL_AUTH_JWT_KEYS`, `SCHOOL_AUTH_OTP_PEPPER`, `SCHOOL_SMS_PROVIDER`, `SCHOOL_PUSH_PROVIDER`, `SCHOOL_GUARDIANS_INVITE_BASE_URL` | the variables in [Backend configuration](#backend-configuration), `JAVA_TOOL_OPTIONS` |
 | `school-web` | 3000 | `API_ORIGIN` (read at request time) | `PORT`, `HOSTNAME` |
 
 Both run as a non-root user. The Postgres started by
 `npm run infra:up` is reachable from a container at `host.docker.internal:5442`.
+
+## Deployment (staging and production)
+
+Provider-agnostic kit in [`infra/deploy/`](infra/deploy): `docker-compose.yml` (backend, web, one-shot `migrate`,
+Caddy proxy, optional Cloudflare tunnel and local Postgres/Redis; non-root, read-only filesystems, health checks,
+resource limits), `.env.example` (every variable, secrets marked) and `deploy.sh`:
+
+```bash
+# on the server, in /opt/school (infra/deploy copied there; .env filled in from .env.example)
+./deploy.sh --backend ghcr.io/<owner>/school-backend:sha-<short> --web ghcr.io/<owner>/school-web:sha-<short> --commit <full sha>
+./deploy.sh --rollback        # previous images
+./deploy.sh --status
+```
+
+It pulls pinned images (`sha-<commit>` tags or digests, never `latest`), runs the migrations once with the backend
+image's `--migrate` mode, rolls the services, smoke-tests and rolls back by itself when that fails. The GitHub Actions
+pipelines `deploy-staging.yml` (after `Images` on `main`) and `deploy-prod.yml` (tag `v*.*.*`, environment
+`production` with required reviewers) use the same script over SSH; both skip with a notice until the owner has set
+up the environments (Runbook, section 4). Operations manual, secrets, backups, Cloudflare and R2 setup, incident
+basics: [docs/ops/Runbook.md](docs/ops/Runbook.md). Where to host and what it costs:
+[docs/ops/Hosting_Options.md](docs/ops/Hosting_Options.md).
+
+Operations scripts (`scripts/ops/`):
+
+| Script | What |
+|---|---|
+| `backup-postgres.sh` | `pg_dump` (custom format) encrypted with `age`/`gpg`, uploaded to an S3-compatible bucket, retention; no plaintext on disk |
+| `restore-drill.sh` | restores the newest backup into a scratch database, runs integrity checks, drops it |
+| `r2-smoke.mjs` | the 9-step manual smoke test of [docs/research/R2_Compatibility.md](docs/research/R2_Compatibility.md) against any S3-compatible bucket |
+
+Mobile builds: `apps/mobile/eas.json` has `development`, `preview`, `staging` and `production` profiles with OTA
+channels (Runbook, section 11).
 
 ## Notes
 

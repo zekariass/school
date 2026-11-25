@@ -1,0 +1,185 @@
+name: Deploy (reusable)
+
+# Shared implementation of deploy-staging.yml and deploy-prod.yml: rolls the images of one commit out to a
+# Docker host over SSH using infra/deploy/deploy.sh (pull, migrate once, roll, smoke test, roll back on failure),
+# then smoke-tests the public URLs from GitHub.
+#
+# Application secrets (database, JWT keys, R2 token, ...) live in /opt/school/.env ON THE SERVER, never in GitHub:
+# the pipeline only holds the credentials to reach the host. Nothing is printed: secrets reach steps through
+# env: only, and GitHub masks them.
+#
+# While the environment is not configured (no SSH secrets) every step after the check is skipped with a notice and
+# the workflow succeeds, so CI stays green until the owner has chosen hosting. What to configure: docs/ops/Runbook.md.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment (staging or production)
+        required: true
+        type: string
+      sha:
+        description: Full commit SHA whose images are deployed
+        required: true
+        type: string
+      pin-digests:
+        description: Resolve the image tags to immutable digests before deploying
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    outputs:
+      configured: ${{ steps.config.outputs.configured }}
+    env:
+      DEPLOY_SHA: ${{ inputs.sha }}
+      DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+    steps:
+      - name: Check that the environment is configured
+        id: config
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          if ! [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error title=Invalid commit::'sha' must be a full 40-character commit SHA"
+            exit 1
+          fi
+          missing=()
+          [ -n "$SSH_HOST" ] || missing+=(DEPLOY_SSH_HOST)
+          [ -n "$SSH_USER" ] || missing+=(DEPLOY_SSH_USER)
+          [ -n "$SSH_KEY" ] || missing+=(DEPLOY_SSH_PRIVATE_KEY)
+          [ -n "$SSH_KNOWN_HOSTS" ] || missing+=(DEPLOY_SSH_KNOWN_HOSTS)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::notice title=Deploy skipped::The '$DEPLOY_ENVIRONMENT' environment has no ${missing[*]} secret yet, so nothing was deployed. See docs/ops/Runbook.md (GitHub setup)."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.config.outputs.configured == 'true'
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+
+      - name: Resolve the image references
+        id: refs
+        if: steps.config.outputs.configured == 'true'
+        env:
+          OWNER: ${{ github.repository_owner }}
+          PIN_DIGESTS: ${{ inputs.pin-digests }}
+        run: |
+          owner="${OWNER,,}"
+          short="${DEPLOY_SHA:0:7}"
+          backend="ghcr.io/${owner}/school-backend:sha-${short}"
+          web="ghcr.io/${owner}/school-web:sha-${short}"
+          if [ "$PIN_DIGESTS" = "true" ]; then
+            for name in backend web; do
+              ref="${!name}"
+              digest="$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+              [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "::error::could not resolve the digest of $ref (is it published?)"; exit 1; }
+              printf -v "$name" '%s' "${ref%%:*}@${digest}"
+            done
+          fi
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+          echo "web=$web" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Deploying to ${DEPLOY_ENVIRONMENT}"
+            echo "- commit: \`${DEPLOY_SHA}\`"
+            echo "- backend: \`${backend}\`"
+            echo "- web: \`${web}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ---- isolated deploy command: replace this step (and the SSH setup) to deploy another way ----
+      - name: Prepare SSH
+        if: steps.config.outputs.configured == 'true'
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          umask 077
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          # The host key is pinned (no trust on first use): paste `ssh-keyscan -t ed25519 <host>` into the secret.
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Upload the deploy kit and run deploy.sh
+        if: steps.config.outputs.configured == 'true'
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+          SSH_PORT: ${{ vars.DEPLOY_SSH_PORT }}
+          REMOTE_PATH: ${{ vars.DEPLOY_PATH }}
+          BACKEND_REF: ${{ steps.refs.outputs.backend }}
+          WEB_REF: ${{ steps.refs.outputs.web }}
+        run: |
+          remote_path="${REMOTE_PATH:-/opt/school}"
+          ssh_opts=(-i "$HOME/.ssh/deploy_key" -p "${SSH_PORT:-22}" -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=20)
+          target="${SSH_USER}@${SSH_HOST}"
+          # .env, certs and the state of previous deploys stay on the server. --inplace keeps the inode of the bind-mounted
+          # Caddyfile, so the running proxy sees the new content.
+          rsync -az --inplace --exclude '.env' --exclude '.deploy/' --exclude 'certs/' \
+            -e "ssh ${ssh_opts[*]}" infra/deploy/ "${target}:${remote_path}/"
+          # the values are expanded on the client on purpose
+          # shellcheck disable=SC2029
+          ssh "${ssh_opts[@]}" "$target" \
+            "cd '${remote_path}' && ./deploy.sh --backend '${BACKEND_REF}' --web '${WEB_REF}' --commit '${DEPLOY_SHA}'"
+
+      - name: Remove the SSH key
+        if: always() && steps.config.outputs.configured == 'true'
+        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts
+
+  smoke:
+    name: Smoke test ${{ inputs.environment }}
+    needs: deploy
+    if: needs.deploy.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment }}
+    env:
+      DEPLOY_SHA: ${{ inputs.sha }}
+      API_URL: ${{ vars.PUBLIC_API_URL }}
+      WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
+    steps:
+      - name: Public health, version and web page
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$WEB_URL" ]; then
+            echo "::notice title=Public smoke test skipped::Set the PUBLIC_API_URL and PUBLIC_WEB_URL variables of the '${{ inputs.environment }}' environment (https, no trailing slash)."
+            exit 0
+          fi
+          fail=0
+          retry() { for _ in 1 2 3 4 5 6 7 8 9 10; do "$@" && return 0; sleep 6; done; return 1; }
+
+          if retry curl -fsS --max-time 15 -o /dev/null "$API_URL/actuator/health/readiness"; then
+            echo "PASS  API readiness"
+          else
+            echo "::error::API readiness is not UP"; fail=1
+          fi
+
+          info="$(curl -fsS --max-time 15 "$API_URL/actuator/info" || true)"
+          if printf '%s' "$info" | grep -q "\"commit\":\"$DEPLOY_SHA\""; then
+            echo "PASS  API reports commit $DEPLOY_SHA"
+          else
+            echo "::error::the API does not report commit $DEPLOY_SHA"; fail=1
+          fi
+
+          if retry curl -fsSL --max-time 15 -o /dev/null "$WEB_URL/en/sign-in"; then
+            echo "PASS  web sign-in page"
+          else
+            echo "::error::the web app does not answer"; fail=1
+          fi
+
+          code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$API_URL/actuator/prometheus" || true)"
+          if [ "$code" = "200" ]; then echo "::error::Prometheus metrics are public"; fail=1; else echo "PASS  metrics are not public ($code)"; fi
+          exit "$fail"
