@@ -13,9 +13,6 @@ export interface CategoryLike {
   classId?: string | null;
 }
 
-/** Emoji presets for a category's tile (stored as the `icon` text, so every client can show it). */
-export const CATEGORY_ICONS = ["⭐", "🤝", "📚", "💡", "🙋", "🏆", "🎯", "💪", "🌟", "🧹", "🎨", "⏰"] as const;
-
 /** Friendly colors for the tile (stored as `#rrggbb`); a fixed set so every choice stays readable. */
 export const CATEGORY_COLORS = [
   "#27AE60",
@@ -28,15 +25,13 @@ export const CATEGORY_COLORS = [
   "#8D6E63",
 ] as const;
 
-export const DEFAULT_CATEGORY_ICON = CATEGORY_ICONS[0];
+export const DEFAULT_CATEGORY_ICON = "star" as const;
 export const DEFAULT_CATEGORY_COLOR = CATEGORY_COLORS[0];
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
 export const categoryColor = (c: Pick<CategoryLike, "color">): string =>
   c.color && HEX.test(c.color) ? c.color : DEFAULT_CATEGORY_COLOR;
-
-export const categoryIcon = (c: Pick<CategoryLike, "icon">): string => c.icon?.trim() || DEFAULT_CATEGORY_ICON;
 
 /** Readable text color (black or white) on a `#rrggbb` background, by relative luminance. */
 export function readableOn(background: string): "#000000" | "#ffffff" {

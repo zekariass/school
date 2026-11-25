@@ -7,8 +7,6 @@ const TYPES: readonly BadgeCriteriaType[] = ["MANUAL", "POINTS_TOTAL", "CATEGORY
 /** The badge type when the API sent one we know; null for anything newer than this client. */
 export const asBadgeType = (value: string): BadgeCriteriaType | null => TYPES.find((t) => t === value) ?? null;
 
-export const BADGE_ICONS = ["🏅", "🌟", "🏆", "📚", "🤝", "🚀", "🎖️", "💎", "🔥", "🌱", "🎨", "🧠"] as const;
-
 /** The API's code format: lower-case letters, digits and underscores, starting with a letter, 2-41 characters. */
 export const BADGE_CODE = /^[a-z][a-z0-9_]{1,40}$/;
 

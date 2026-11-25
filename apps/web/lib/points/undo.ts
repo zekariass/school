@@ -1,11 +1,23 @@
 /** The quick-undo window of awards: entries live in memory (no child data is stored), expire by the clock. */
 
+/** What reversing an award calls: a multi-student award is undone as a batch, a single row by its id. */
+export type ReverseTarget = { kind: "batch"; id: string } | { kind: "transaction"; id: string };
+
+/**
+ * How to undo an award from its response: a batch id when the API gave one (several students or the whole
+ * class), else the single row. Null when there is nothing to reverse.
+ */
+export function reverseTarget(result: { batchId?: string; transactions: readonly { id: string }[] }): ReverseTarget | null {
+  if (result.batchId) return { kind: "batch", id: result.batchId };
+  const only = result.transactions.length === 1 ? result.transactions[0] : undefined;
+  return only ? { kind: "transaction", id: only.id } : null;
+}
+
 export interface UndoEntry {
-  /** Unique key of the entry (the batch id of the award). */
+  /** Unique key of the entry (the id of its reverse target). */
   id: string;
   classId: string;
-  /** Reversing the whole batch undoes every row. */
-  batchId: string;
+  target: ReverseTarget;
   studentIds: readonly string[];
   /** The signed amount the award added to each student's total. */
   delta: number;

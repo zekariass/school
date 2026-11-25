@@ -18,17 +18,17 @@ export function ClassToolkitTab({ cls }: { cls: ClassView }) {
   if (!classPointsAbilities(cls, permissions).canUse) return <EmptyNotice>{t("notForYou")}</EmptyNotice>;
   return (
     <Tabs defaultValue="timer">
-      <TabsList className="h-auto flex-wrap">
-        <TabsTrigger value="timer" className="min-h-10 px-4" data-testid="tool-timer">
+      <TabsList className="w-full justify-start overflow-x-auto group-data-[orientation=horizontal]/tabs:h-11">
+        <TabsTrigger value="timer" className="min-h-10 flex-none px-4" data-testid="tool-timer">
           {t("tabs.timer")}
         </TabsTrigger>
-        <TabsTrigger value="picker" className="min-h-10 px-4" data-testid="tool-picker">
+        <TabsTrigger value="picker" className="min-h-10 flex-none px-4" data-testid="tool-picker">
           {t("tabs.picker")}
         </TabsTrigger>
-        <TabsTrigger value="groups" className="min-h-10 px-4" data-testid="tool-groups">
+        <TabsTrigger value="groups" className="min-h-10 flex-none px-4" data-testid="tool-groups">
           {t("tabs.groups")}
         </TabsTrigger>
-        <TabsTrigger value="routines" className="min-h-10 px-4" data-testid="tool-routines">
+        <TabsTrigger value="routines" className="min-h-10 flex-none px-4" data-testid="tool-routines">
           {t("tabs.routines")}
         </TabsTrigger>
       </TabsList>

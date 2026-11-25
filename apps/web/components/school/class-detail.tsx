@@ -68,40 +68,40 @@ export function ClassDetail({ classId }: { classId: string }) {
       ) : null}
 
       <Tabs defaultValue={points.canUse ? "points" : "roster"}>
-        <TabsList className="h-auto flex-wrap">
+        <TabsList className="w-full justify-start overflow-x-auto group-data-[orientation=horizontal]/tabs:h-11">
           {points.canUse ? (
-            <TabsTrigger value="points" className="min-h-10 px-4" data-testid="tab-points">
+            <TabsTrigger value="points" className="min-h-10 flex-none px-4" data-testid="tab-points">
               {t("tabs.points")}
             </TabsTrigger>
           ) : null}
           {points.canUse ? (
-            <TabsTrigger value="toolkit" className="min-h-10 px-4" data-testid="tab-toolkit">
+            <TabsTrigger value="toolkit" className="min-h-10 flex-none px-4" data-testid="tab-toolkit">
               {t("tabs.toolkit")}
             </TabsTrigger>
           ) : null}
-          <TabsTrigger value="roster" className="min-h-10 px-4">
+          <TabsTrigger value="roster" className="min-h-10 flex-none px-4">
             {t("tabs.roster")}
           </TabsTrigger>
-          <TabsTrigger value="teachers" className="min-h-10 px-4">
+          <TabsTrigger value="teachers" className="min-h-10 flex-none px-4">
             {t("tabs.teachers")}
           </TabsTrigger>
           {abilities.canTeach ? (
-            <TabsTrigger value="groups" className="min-h-10 px-4">
+            <TabsTrigger value="groups" className="min-h-10 flex-none px-4">
               {t("tabs.groups")}
             </TabsTrigger>
           ) : null}
           {abilities.canTeach ? (
-            <TabsTrigger value="codes" className="min-h-10 px-4">
+            <TabsTrigger value="codes" className="min-h-10 flex-none px-4">
               {t("tabs.codes")}
             </TabsTrigger>
           ) : null}
           {abilities.canTeach ? (
-            <TabsTrigger value="consent" className="min-h-10 px-4">
+            <TabsTrigger value="consent" className="min-h-10 flex-none px-4">
               {t("tabs.consent")}
             </TabsTrigger>
           ) : null}
           {abilities.canLead ? (
-            <TabsTrigger value="settings" className="min-h-10 px-4">
+            <TabsTrigger value="settings" className="min-h-10 flex-none px-4">
               {t("tabs.settings")}
             </TabsTrigger>
           ) : null}

@@ -10,6 +10,8 @@ import { errorMessage } from "@/lib/console/errors";
 import { createOpTracker, type AwardIntent } from "@/lib/points/award-op";
 import { pointsFor, type CategoryLike } from "@/lib/points/categories";
 import { applyAwardToOverview, awardDelta, awardTargets } from "@/lib/points/optimistic";
+import { overviewRefresher } from "@/lib/points/refresh";
+import { reverseTarget } from "@/lib/points/undo";
 import { pk, postAward, type AwardResult, type ClassPoints, type PointCategory } from "@/lib/points/queries";
 import { usePointsFeedback } from "./points-provider";
 
@@ -48,16 +50,18 @@ export function useAward(classId: string, className: string, roster: readonly { 
       // The same intent after a failed attempt gets the same clientOpId.
       return postAward(school.id, classId, tracker.begin(intent));
     },
-    onSuccess: (result, request) => {
+    onSuccess: async (result, request) => {
       tracker.succeeded();
       const points = pointsFor(request.category, request.points);
       const delta = awardDelta(request.category.polarity, points);
       const targets = awardTargets(request.target, roster);
+      // A fetch that started before this award would overwrite the new numbers with older ones: drop it first.
+      await queryClient.cancelQueries({ queryKey: pk.overview(school.id, classId) });
       queryClient.setQueryData<ClassPoints>(pk.overview(school.id, classId), (old) =>
         old ? applyAwardToOverview(old, targets, delta) : old,
       );
       // The projection is eventually consistent: look again shortly and let the server's numbers replace ours.
-      setTimeout(() => void queryClient.invalidateQueries({ queryKey: pk.overview(school.id, classId) }), 3000);
+      overviewRefresher.schedule(`${school.id}:${classId}`, () => void queryClient.invalidateQueries({ queryKey: pk.overview(school.id, classId) }));
       const needsWork = request.category.polarity === "NEEDS_WORK";
       play(needsWork ? "needsWork" : "award");
       announce(
@@ -67,10 +71,11 @@ export function useAward(classId: string, className: string, roster: readonly { 
           points: Math.abs(delta),
         }),
       );
-      if (result.undoableUntil && result.batchId) {
+      const target = reverseTarget(result);
+      if (result.undoableUntil && target) {
         addUndo({
-          id: result.batchId,
-          batchId: result.batchId,
+          id: target.id,
+          target,
           classId,
           studentIds: targets,
           delta,

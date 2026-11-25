@@ -2242,7 +2242,8 @@
           "color": "Color",
           "colorN": "Color {n}",
           "saved": "Skill saved.",
-          "failed": "We couldn't save the skill."
+          "failed": "We couldn't save the skill.",
+          "iconN": "Icon {n}"
         }
       },
       "report": {
@@ -2464,7 +2465,8 @@
         "criteriaInvalid": "Check this value.",
         "icon": "Icon",
         "saved": "Badge saved.",
-        "failed": "We couldn't save the badge."
+        "failed": "We couldn't save the badge.",
+        "iconN": "Icon {n}"
       }
     }
   },
@@ -2543,7 +2545,7 @@
       "undoRow": "Undone: {skill}",
       "by": "by {name}",
       "undone": "Undone",
-      "pointsChange": "{points, plural, one {# point} other {# points}}",
+      "pointsChange": "Points: {points}",
       "badges": "Badges earned",
       "studentTitle": "My points",
       "studentSubtitle": "Hi {name}! Here is what you've earned.",
@@ -2561,7 +2563,7 @@
         "awarding": "Awarding…",
         "failed": "We couldn't award the points.",
         "networkFailed": "The connection dropped. Tap the skill again: it will not be awarded twice.",
-        "awarded": "{child} got {points, plural, one {# home point} other {# home points}} for {skill}.",
+        "awarded": "Home points added for {child} ({skill}): {points}.",
         "undo": "Undo",
         "undone": "Undone.",
         "undoFailed": "We couldn't undo this."

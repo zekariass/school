@@ -2242,7 +2242,8 @@
           "color": "ቀለም",
           "colorN": "ቀለም {n}",
           "saved": "ክህሎቱ ተቀምጧል።",
-          "failed": "ክህሎቱን ማስቀመጥ አልተቻለም።"
+          "failed": "ክህሎቱን ማስቀመጥ አልተቻለም።",
+          "iconN": "ምልክት {n}"
         }
       },
       "report": {
@@ -2464,7 +2465,8 @@
         "criteriaInvalid": "ይህን ዋጋ ያረጋግጡ።",
         "icon": "ምልክት",
         "saved": "ባጁ ተቀምጧል።",
-        "failed": "ባጁን ማስቀመጥ አልተቻለም።"
+        "failed": "ባጁን ማስቀመጥ አልተቻለም።",
+        "iconN": "ምልክት {n}"
       }
     }
   },
@@ -2543,7 +2545,7 @@
       "undoRow": "ተሰርዟል፦ {skill}",
       "by": "በ{name}",
       "undone": "ተሰርዟል",
-      "pointsChange": "{points, plural, one {# ነጥብ} other {# ነጥቦች}}",
+      "pointsChange": "ነጥብ፦ {points}",
       "badges": "የተገኙ ባጆች",
       "studentTitle": "ነጥቦቼ",
       "studentSubtitle": "ሰላም {name}! ያገኙት ይህ ነው።",
@@ -2561,7 +2563,7 @@
         "awarding": "በመስጠት ላይ…",
         "failed": "ነጥቡን መስጠት አልተቻለም።",
         "networkFailed": "ግንኙነቱ ተቋርጧል። ክህሎቱን እንደገና ይንኩ፤ ሁለት ጊዜ አይሰጥም።",
-        "awarded": "{child} ለ{skill} {points, plural, one {# የቤት ነጥብ} other {# የቤት ነጥቦች}} አገኘ።",
+        "awarded": "ለ{child} የቤት ነጥብ ተጨምሯል ({skill})፦ {points}።",
         "undo": "ሰርዝ",
         "undone": "ተሰርዟል።",
         "undoFailed": "ይህን መሰረዝ አልተቻለም።"

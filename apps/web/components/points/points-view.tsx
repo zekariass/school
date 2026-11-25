@@ -25,19 +25,19 @@ export function PointsView() {
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <PageHeader title={t("page.title")} description={t("page.subtitle")} />
       <Tabs defaultValue={access.canSeeReport ? "report" : "skills"}>
-        <TabsList className="h-auto flex-wrap">
+        <TabsList className="w-full justify-start overflow-x-auto group-data-[orientation=horizontal]/tabs:h-11">
           {access.canSeeReport ? (
-            <TabsTrigger value="report" className="min-h-10 px-4" data-testid="tab-report">
+            <TabsTrigger value="report" className="min-h-10 flex-none px-4" data-testid="tab-report">
               {t("page.tabs.report")}
             </TabsTrigger>
           ) : null}
           {access.canManage ? (
-            <TabsTrigger value="skills" className="min-h-10 px-4" data-testid="tab-skills">
+            <TabsTrigger value="skills" className="min-h-10 flex-none px-4" data-testid="tab-skills">
               {t("page.tabs.skills")}
             </TabsTrigger>
           ) : null}
           {access.canManage ? (
-            <TabsTrigger value="badges" className="min-h-10 px-4" data-testid="tab-badges">
+            <TabsTrigger value="badges" className="min-h-10 flex-none px-4" data-testid="tab-badges">
               {t("page.tabs.badges")}
             </TabsTrigger>
           ) : null}

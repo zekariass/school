@@ -4,6 +4,7 @@ import { ApiRequestError, ensureOk, unwrap } from "@/lib/api-error";
 import { getBrowserApi } from "@/lib/api-client";
 import { reportQuery, type ReportFilters } from "./report";
 import type { AwardBody } from "./award-op";
+import type { ReverseTarget } from "./undo";
 
 type S = components["schemas"];
 
@@ -138,6 +139,19 @@ export async function reverseBatch(schoolId: string, batchId: string): Promise<A
     }),
   );
 }
+
+export async function reverseTransaction(schoolId: string, transactionId: string): Promise<AwardResult> {
+  return unwrap(
+    await api().POST("/api/v1/schools/{schoolId}/points/transactions/{transactionId}/reverse", {
+      params: { path: { schoolId, transactionId } },
+      body: {},
+    }),
+  );
+}
+
+/** Undoes an award: its batch, or its single row. */
+export const reverseAward = (schoolId: string, target: ReverseTarget): Promise<AwardResult> =>
+  target.kind === "batch" ? reverseBatch(schoolId, target.id) : reverseTransaction(schoolId, target.id);
 
 export async function awardBadge(schoolId: string, studentId: string, badgeId: string): Promise<void> {
   ensureOk(

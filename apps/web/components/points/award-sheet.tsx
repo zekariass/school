@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { errorMessage } from "@/lib/console/errors";
-import { awardableCategories, categoryColor, categoryIcon, pointsFor, readableOn, signedPoints } from "@/lib/points/categories";
+import { awardableCategories, categoryColor, pointsFor, readableOn, signedPoints } from "@/lib/points/categories";
 import {
   awardBadge,
   fetchBadges,
@@ -25,6 +25,7 @@ import {
 } from "@/lib/points/queries";
 import { showBadges } from "@/lib/points/access";
 import { cn } from "@/lib/utils";
+import { CategoryIcon } from "./category-icon";
 import { useAward } from "./use-award";
 
 export type AwardTarget =
@@ -235,9 +236,7 @@ export function SkillTile({
         category.polarity === "NEEDS_WORK" && "outline-2 -outline-offset-4 outline-dashed outline-current",
       )}
     >
-      <span aria-hidden className="text-3xl leading-none">
-        {categoryIcon(category)}
-      </span>
+      <CategoryIcon icon={category.icon} className="size-8 text-3xl" />
       <span className="text-sm leading-tight break-words">{category.name}</span>
       <span aria-hidden className="rounded-full bg-black/15 px-2 py-0.5 text-xs">
         {label}
@@ -272,8 +271,8 @@ function BadgePicker({ student, onAwarded }: { student: ClassPointsStudent; onAw
         <ul className="flex flex-col gap-2" aria-label={t("tabBadges")}>
           {manual.map((badge) => (
             <li key={badge.id} className="flex items-center gap-3 rounded-xl border p-3">
-              <span aria-hidden className="text-2xl">
-                {badge.icon || "🏅"}
+              <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-2xl">
+                <CategoryIcon icon={badge.icon} fallback="award" className="size-6" />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{badge.name}</p>

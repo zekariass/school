@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { addEntry, clock, isUndoable, pruneExpired, removeEntry, secondsLeft, type UndoEntry } from "./undo";
+import { addEntry, clock, isUndoable, pruneExpired, removeEntry, reverseTarget, secondsLeft, type UndoEntry } from "./undo";
 
 const NOW = Date.parse("2026-11-25T10:00:00Z");
 const entry = (id: string, secondsFromNow: number): UndoEntry => ({
   id,
-  batchId: id,
+  target: { kind: "batch", id },
   classId: "c",
   studentIds: ["s"],
   delta: 1,
@@ -51,6 +51,21 @@ describe("entries", () => {
 
   it("removes by id", () => {
     expect(removeEntry([entry("a", 5), entry("b", 5)], "a").map((e) => e.id)).toEqual(["b"]);
+  });
+});
+
+describe("reverseTarget", () => {
+  it("undoes a multi-student award as a batch", () => {
+    expect(reverseTarget({ batchId: "b1", transactions: [{ id: "t1" }, { id: "t2" }] })).toEqual({ kind: "batch", id: "b1" });
+  });
+
+  it("undoes a single award by its row (the API sends no batch id for one student)", () => {
+    expect(reverseTarget({ transactions: [{ id: "t1" }] })).toEqual({ kind: "transaction", id: "t1" });
+  });
+
+  it("has nothing to undo without rows", () => {
+    expect(reverseTarget({ transactions: [] })).toBeNull();
+    expect(reverseTarget({ transactions: [{ id: "a" }, { id: "b" }] })).toBeNull();
   });
 });
 

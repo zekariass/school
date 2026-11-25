@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { draftsFrom, itemBodies, moveDraft, progress, totalMinutes, visibilityChoices, type ItemDraft } from "./routines";
+import { draftsFrom, itemBodies, moveDraft, progress, templatesForClass, totalMinutes, visibilityChoices, type ItemDraft } from "./routines";
 
 const d = (text: string, minutes = ""): ItemDraft => ({ key: text, text, minutes });
 
@@ -59,5 +59,17 @@ describe("totals and visibility", () => {
   it("offers school-wide sharing only to points managers", () => {
     expect(visibilityChoices(false)).toEqual(["PRIVATE", "CLASS"]);
     expect(visibilityChoices(true)).toEqual(["PRIVATE", "CLASS", "SCHOOL"]);
+  });
+});
+
+describe("templatesForClass", () => {
+  it("keeps private and school-wide templates and those shared with this class only", () => {
+    const list = [
+      { id: "mine", visibility: "PRIVATE" as const },
+      { id: "school", visibility: "SCHOOL" as const },
+      { id: "here", visibility: "CLASS" as const, classId: "c1" },
+      { id: "elsewhere", visibility: "CLASS" as const, classId: "c2" },
+    ];
+    expect(templatesForClass(list, "c1").map((t) => t.id)).toEqual(["mine", "school", "here"]);
   });
 });

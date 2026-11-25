@@ -23,7 +23,7 @@ import { newIdempotencyKey } from "@/lib/console/idempotency";
 import { errorMessage, fieldErrors } from "@/lib/console/errors";
 import { classPointsAbilities } from "@/lib/points/access";
 import { fetchTemplates, pk, type ActivityTemplate, type TemplateType, type TemplateVisibility } from "@/lib/points/queries";
-import { draftsFrom, itemBodies, moveDraft, progress, totalMinutes, visibilityChoices, type ItemDraft } from "@/lib/points/routines";
+import { draftsFrom, itemBodies, moveDraft, progress, templatesForClass, totalMinutes, visibilityChoices, type ItemDraft } from "@/lib/points/routines";
 import type { ClassView } from "@/lib/school/queries";
 import { cn } from "@/lib/utils";
 
@@ -38,9 +38,11 @@ export function RoutinesTool({ cls }: { cls: ClassView }) {
   const [editing, setEditing] = useState<ActivityTemplate | "new" | null>(null);
   const [deleting, setDeleting] = useState<ActivityTemplate | null>(null);
   const templates = useQuery({
-    queryKey: pk.templates(school.id, cls.id),
-    queryFn: () => fetchTemplates(school.id, cls.id),
+    queryKey: pk.templates(school.id, null),
+    queryFn: () => fetchTemplates(school.id, null),
   });
+
+  const visibleTemplates = templatesForClass(templates.data?.items ?? [], cls.id);
 
   const remove = useSubmit({
     mutationFn: async (id: string) =>
@@ -70,11 +72,11 @@ export function RoutinesTool({ cls }: { cls: ClassView }) {
         <LoadingRows rows={3} />
       ) : templates.isError ? (
         <ErrorNotice message={errorMessage(templates.error, t("loadFailed"))} onRetry={() => void templates.refetch()} />
-      ) : templates.data.items.length === 0 ? (
+      ) : visibleTemplates.length === 0 ? (
         <EmptyNotice>{t("empty")}</EmptyNotice>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2" aria-label={t("listLabel")}>
-          {templates.data.items.map((template) => (
+          {visibleTemplates.map((template) => (
             <li key={template.id}>
               <Card data-testid="routine-card" className="h-full">
                 <CardContent className="flex h-full flex-col gap-3">

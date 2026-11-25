@@ -19,17 +19,17 @@ import { getBrowserApi } from "@/lib/api-client";
 import { errorMessage, fieldErrors } from "@/lib/console/errors";
 import {
   CATEGORY_COLORS,
-  CATEGORY_ICONS,
   DEFAULT_CATEGORY_COLOR,
   DEFAULT_CATEGORY_ICON,
   categoryColor,
-  categoryIcon,
   isClassOwn,
   manageableCategories,
   readableOn,
 } from "@/lib/points/categories";
+import { SKILL_ICON_CHOICES } from "@/lib/points/icons";
 import { fetchCategories, pk, type PointCategory } from "@/lib/points/queries";
 import { cn } from "@/lib/utils";
+import { CategoryIcon } from "./category-icon";
 
 export type SkillsScope = { kind: "school" } | { kind: "class"; classId: string };
 
@@ -110,7 +110,7 @@ export function SkillsPanel({ scope }: { scope: SkillsScope }) {
                 style={{ backgroundColor: categoryColor(category), color: readableOn(categoryColor(category)) }}
                 className="grid size-11 shrink-0 place-items-center rounded-xl text-2xl"
               >
-                {categoryIcon(category)}
+                <CategoryIcon icon={category.icon} className="size-6 text-2xl" />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{category.name}</p>
@@ -268,17 +268,17 @@ function CategoryForm({ scope, category, onClose }: { scope: SkillsScope; catego
       <fieldset className="flex flex-col gap-2">
         <legend className="pb-1 text-sm leading-none font-medium">{t("icon")}</legend>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("icon")}>
-          {CATEGORY_ICONS.map((choice) => (
+          {SKILL_ICON_CHOICES.map((choice, index) => (
             <button
               key={choice}
               type="button"
               role="radio"
               aria-checked={icon === choice}
-              aria-label={choice}
+              aria-label={t("iconN", { n: index + 1 })}
               onClick={() => setIcon(choice)}
               className={cn("grid size-11 place-items-center rounded-xl border text-2xl focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none", icon === choice && "border-primary bg-primary/10 ring-2 ring-primary")}
             >
-              {choice}
+              <CategoryIcon icon={choice} fallback="star" className="size-6" />
             </button>
           ))}
         </div>

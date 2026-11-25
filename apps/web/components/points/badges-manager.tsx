@@ -16,9 +16,11 @@ import { Input } from "@/components/ui/input";
 import { unwrap } from "@/lib/api-error";
 import { getBrowserApi } from "@/lib/api-client";
 import { errorMessage, fieldErrors } from "@/lib/console/errors";
-import { asBadgeType, badgeCriteria, BADGE_ICONS, BADGE_CODE, slugFromName, type BadgeCriteriaType } from "@/lib/points/badges";
+import { asBadgeType, badgeCriteria, BADGE_CODE, slugFromName, type BadgeCriteriaType } from "@/lib/points/badges";
+import { BADGE_ICON_CHOICES } from "@/lib/points/icons";
 import { fetchBadges, fetchCategories, pk, type BadgeDefinition } from "@/lib/points/queries";
 import { cn } from "@/lib/utils";
+import { CategoryIcon } from "./category-icon";
 
 const CREATABLE: BadgeCriteriaType[] = ["MANUAL", "POINTS_TOTAL", "CATEGORY_TOTAL"];
 
@@ -65,7 +67,7 @@ export function BadgesManager() {
           {badges.data.map((badge) => (
             <li key={badge.id} data-testid="badge-row" className={cn("flex items-center gap-3 rounded-2xl border bg-card p-3", badge.active === false && "opacity-60")}>
               <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-2xl">
-                {badge.icon || "🏅"}
+                <CategoryIcon icon={badge.icon} fallback="award" className="size-6 text-2xl" />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{badge.name}</p>
@@ -115,7 +117,7 @@ function BadgeForm({ badge, onClose }: { badge: BadgeDefinition | null; onClose:
   const [descEn, setDescEn] = useState(badge?.descriptions.en ?? "");
   const [descAm, setDescAm] = useState(badge?.descriptions.am ?? "");
   const [code, setCode] = useState(badge?.code ?? "");
-  const [icon, setIcon] = useState(badge?.icon || BADGE_ICONS[0]);
+  const [icon, setIcon] = useState<string>(badge?.icon || BADGE_ICON_CHOICES[0]);
   const [threshold, setThreshold] = useState(String(badge?.criteria.threshold ?? 50));
   const [days, setDays] = useState(String(badge?.criteria.days ?? 5));
   const [categoryId, setCategoryId] = useState(typeof badge?.criteria.categoryId === "string" ? badge.criteria.categoryId : "");
@@ -237,17 +239,17 @@ function BadgeForm({ badge, onClose }: { badge: BadgeDefinition | null; onClose:
       <fieldset className="flex flex-col gap-2">
         <legend className="pb-1 text-sm leading-none font-medium">{t("icon")}</legend>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("icon")}>
-          {BADGE_ICONS.map((choice) => (
+          {BADGE_ICON_CHOICES.map((choice, index) => (
             <button
               key={choice}
               type="button"
               role="radio"
               aria-checked={icon === choice}
-              aria-label={choice}
+              aria-label={t("iconN", { n: index + 1 })}
               onClick={() => setIcon(choice)}
               className={cn("grid size-11 place-items-center rounded-xl border text-2xl focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none", icon === choice && "border-primary bg-primary/10 ring-2 ring-primary")}
             >
-              {choice}
+              <CategoryIcon icon={choice} fallback="award" className="size-6" />
             </button>
           ))}
         </div>

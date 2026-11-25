@@ -9,7 +9,8 @@ import { useSchool } from "@/components/school/school-context";
 import { errorMessage } from "@/lib/console/errors";
 import { useLocalStorageValue } from "@/lib/use-local-storage";
 import { applyAwardToOverview } from "@/lib/points/optimistic";
-import { pk, reverseBatch, type ClassPoints } from "@/lib/points/queries";
+import { overviewRefresher } from "@/lib/points/refresh";
+import { pk, reverseAward, type ClassPoints } from "@/lib/points/queries";
 import { MUTE_KEY, parseMuted, playSound, type SoundName } from "@/lib/points/sound";
 import { addEntry, clock, pruneExpired, removeEntry, secondsLeft, type UndoEntry } from "@/lib/points/undo";
 
@@ -138,15 +139,16 @@ function UndoToast({ entry, seconds, onDone }: { entry: UndoEntry; seconds: numb
   const { play, announce } = usePointsFeedback();
 
   const undo = useMutation({
-    mutationFn: () => reverseBatch(school.id, entry.batchId),
-    onSuccess: () => {
+    mutationFn: () => reverseAward(school.id, entry.target),
+    onSuccess: async () => {
+      await queryClient.cancelQueries({ queryKey: pk.overview(school.id, entry.classId) });
       queryClient.setQueryData<ClassPoints>(pk.overview(school.id, entry.classId), (old) =>
         old ? applyAwardToOverview(old, entry.studentIds, -entry.delta) : old,
       );
       play("undo");
       announce(t("undone", { label: entry.label }));
       // The projection catches up within moments; ask again a little later and keep the optimistic numbers until then.
-      setTimeout(() => void queryClient.invalidateQueries({ queryKey: pk.overview(school.id, entry.classId) }), 3000);
+      overviewRefresher.schedule(`${school.id}:${entry.classId}`, () => void queryClient.invalidateQueries({ queryKey: pk.overview(school.id, entry.classId) }));
       onDone();
     },
   });

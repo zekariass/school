@@ -14,8 +14,8 @@ import { newIdempotencyKey } from "@/lib/console/idempotency";
 import { errorMessage } from "@/lib/console/errors";
 import { createOpTracker } from "@/lib/points/award-op";
 import { compareCategories, pointsFor } from "@/lib/points/categories";
-import { fetchHomeCategories, pk, postHomeAward, reverseBatch, type PointCategory } from "@/lib/points/queries";
-import { secondsLeft } from "@/lib/points/undo";
+import { fetchHomeCategories, pk, postHomeAward, reverseAward, type PointCategory } from "@/lib/points/queries";
+import { reverseTarget, secondsLeft } from "@/lib/points/undo";
 import { SkillTile } from "./award-sheet";
 
 /** The button on a child's Home points section: opens the sheet where a guardian with `can_award_points` awards. */
@@ -58,15 +58,15 @@ function HomeAwardSheet({ schoolId, studentId, childName, onClose }: { schoolId:
       void queryClient.invalidateQueries({ queryKey: pk.timeline(schoolId, studentId, "HOME") });
       const points = pointsFor(category, null);
       const window = result.undoableUntil ? secondsLeft(result.undoableUntil, Date.now()) : 0;
-      const batchId = result.batchId;
+      const target = reverseTarget(result);
       toast.success(t("awarded", { child: childName, skill: category.name, points }), {
         duration: window > 0 ? Math.min(window, 20) * 1000 : 4000,
-        ...(batchId && window > 0
+        ...(target && window > 0
           ? {
               action: {
                 label: t("undo"),
                 onClick: () => {
-                  reverseBatch(schoolId, batchId)
+                  reverseAward(schoolId, target)
                     .then(() => {
                       toast.success(t("undone"));
                       void queryClient.invalidateQueries({ queryKey: pk.student(schoolId, studentId) });

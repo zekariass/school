@@ -9,11 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { errorMessage } from "@/lib/console/errors";
-import { categoryColor, categoryIcon, readableOn } from "@/lib/points/categories";
+import { categoryColor, readableOn } from "@/lib/points/categories";
 import { donutSlices } from "@/lib/points/donut";
 import { fetchStudentPoints, fetchTimeline, pk, type PointsSection, type StudentPoints, type TimelineItem } from "@/lib/points/queries";
 import { sectionsOf } from "@/lib/points/sections";
 import { cn } from "@/lib/utils";
+import { CategoryIcon } from "./category-icon";
 import { PointsDonut } from "./donut-chart";
 import { HomeAwardButton } from "./home-award-sheet";
 
@@ -187,7 +188,7 @@ function Section({
                               style={{ backgroundColor: slice?.color ?? categoryColor(c), color: readableOn(slice?.color ?? categoryColor(c)) }}
                               className="grid size-7 place-items-center rounded-lg text-sm"
                             >
-                              {categoryIcon(c)}
+                              <CategoryIcon icon={c.icon} className="size-4 text-sm" />
                             </span>
                             {c.name}
                             {c.polarity === "NEEDS_WORK" ? <Badge variant="outline">{t("needsWorkTag")}</Badge> : null}
@@ -249,7 +250,7 @@ function TimelineRow({ item }: { item: TimelineItem }) {
   return (
     <li className={cn("flex items-center gap-3 rounded-2xl border p-3", item.reversed && "opacity-60")}>
       <span aria-hidden style={{ backgroundColor: color, color: readableOn(color) }} className="grid size-10 shrink-0 place-items-center rounded-xl text-xl">
-        {categoryIcon(item)}
+        <CategoryIcon icon={item.icon} className="size-5 text-xl" />
       </span>
       <div className="min-w-0 flex-1">
         <p className={cn("font-semibold", item.reversed && "line-through")}>
@@ -284,7 +285,7 @@ function BadgesEarned({ badges }: { badges: StudentPoints["badges"] }) {
           {badges.map((badge) => (
             <li key={badge.badgeId} className="flex items-center gap-3 rounded-2xl border p-3">
               <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-2xl">
-                {badge.icon || "🏅"}
+                <CategoryIcon icon={badge.icon} fallback="award" className="size-6" />
               </span>
               <div className="min-w-0">
                 <p className="font-semibold">{badge.name}</p>

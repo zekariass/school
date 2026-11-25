@@ -63,3 +63,15 @@ export const totalMinutes = (items: readonly { minutes?: number }[]): number => 
 export function visibilityChoices(canShareSchoolWide: boolean): ("PRIVATE" | "CLASS" | "SCHOOL")[] {
   return canShareSchoolWide ? ["PRIVATE", "CLASS", "SCHOOL"] : ["PRIVATE", "CLASS"];
 }
+
+/**
+ * The templates the toolkit of one class shows: the teacher's own, the school-wide ones and those shared with
+ * THIS class. (The API's `classId` filter returns only that class's own templates, so the list is asked
+ * without it and narrowed here.)
+ */
+export function templatesForClass<T extends { visibility: "PRIVATE" | "CLASS" | "SCHOOL"; classId?: string | null }>(
+  templates: readonly T[],
+  classId: string,
+): T[] {
+  return templates.filter((t) => t.visibility !== "CLASS" || t.classId === classId);
+}

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   awardableCategories,
   categoryColor,
-  categoryIcon,
   manageableCategories,
   pointsFor,
   readableOn,
@@ -74,11 +73,9 @@ describe("points", () => {
 });
 
 describe("look", () => {
-  it("falls back for missing or bad colors and icons", () => {
+  it("falls back for missing or bad colors", () => {
     expect(categoryColor({ color: "red" })).toBe("#27AE60");
     expect(categoryColor({ color: "#112233" })).toBe("#112233");
-    expect(categoryIcon({ icon: "  " })).toBe("⭐");
-    expect(categoryIcon({ icon: "🎯" })).toBe("🎯");
   });
 
   it("picks readable text", () => {
