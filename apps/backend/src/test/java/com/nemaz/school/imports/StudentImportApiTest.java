@@ -82,6 +82,21 @@ class StudentImportApiTest extends ImportTestSupport {
 		assertThat(preview.get("job").get("progress").get("total").asInt()).isEqualTo(7);
 		UUID jobId = UUID.fromString(preview.get("job").get("id").asString());
 
+		// reading the file another way previews it that way and saves nothing
+		JsonNode latin = call(HttpMethod.GET, imports(this.schoolId) + "/" + jobId + "/preview?encoding=windows-1252&delimiter=", this.admin,
+				null, 200);
+		assertThat(latin.get("detected").get("encoding").asString()).isEqualTo("windows-1252");
+		assertThat(latin.get("detected").get("delimiter").asString()).isEqualTo(",");
+		assertThat(latin.get("headers")).hasSize(10);
+		assertThat(latin.get("previewRows").get(1).get("cells").get(0).asString()).isNotEqualTo("አልማዝ");
+		assertThat(latin.get("job").get("options").path("encoding").asString("")).isEmpty();
+		assertThat(call(HttpMethod.GET, imports(this.schoolId) + "/" + jobId + "/preview?delimiter=%3B", this.admin, null, 400)
+			.get("code").asString()).isEqualTo("import.csv_malformed");
+		assertThat(call(HttpMethod.GET, imports(this.schoolId) + "/" + jobId + "/preview", this.admin, null, 200).get("headers"))
+			.hasSize(10);
+		assertThat(call(HttpMethod.GET, imports(this.schoolId) + "/" + jobId + "/preview?encoding=nonsense", this.admin, null, 400)
+			.get("code").asString()).isEqualTo("import.encoding_unreadable");
+
 		// mapping, then the dry run in the background
 		JsonNode mapped = saveMapping(this.admin, this.schoolId, jobId, mappingOf(preview), null);
 		assertThat(mapped.get("job").get("status").asString()).isEqualTo("PREVIEWED");
@@ -152,6 +167,8 @@ class StudentImportApiTest extends ImportTestSupport {
 		assertThat(done.get("result").get("created").asInt()).isEqualTo(3);
 		assertThat(done.get("result").get("skipped").asInt()).isEqualTo(4);
 		assertThat(done.get("progress").get("done").asInt()).isEqualTo(7);
+		assertThat(done.get("result").get("guardianContacts").asInt()).isEqualTo(count(
+				"select count(*) from guardian_contact_candidates where import_job_id = ?", jobId)).isPositive();
 
 		// the students exist with their data, in their class; Ethiopic names intact
 		List<Map<String, Object>> students = this.jdbc.queryForList("""

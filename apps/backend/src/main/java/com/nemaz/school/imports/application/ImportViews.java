@@ -33,7 +33,8 @@ public final class ImportViews {
 	}
 
 	@Schema(description = "What the commit did; present from COMMITTING on")
-	public record CommitResult(@NotNull int created, @NotNull int updated, @NotNull int unchanged, @NotNull int skipped) {
+	public record CommitResult(@NotNull int created, @NotNull int updated, @NotNull int unchanged, @NotNull int skipped,
+			@Schema(description = "Parent contacts of the file saved for a later invitation (no guardian link is made); absent in history lists") Integer guardianContacts) {
 	}
 
 	public record Progress(@NotNull int done, @NotNull int total) {

@@ -96,9 +96,12 @@ public class ImportController {
 	}
 
 	@GetMapping("/{importId}/preview")
-	@Operation(operationId = "previewImport", summary = "The preview again (headers, first rows, mapping so far), for reloading the mapping step")
-	public ImportPreview preview(@PathVariable UUID schoolId, @PathVariable UUID importId) {
-		return this.imports.preview(CurrentUser.require(), schoolId, importId);
+	@Operation(operationId = "previewImport",
+			summary = "The preview again (headers, first rows, mapping so far), for reloading the mapping step. When any of encoding, delimiter or sheet is given (an empty value means detect), the file is read that way instead and the mapping is suggested from the new headers; nothing is saved until the mapping is")
+	public ImportPreview preview(@PathVariable UUID schoolId, @PathVariable UUID importId,
+			@RequestParam(required = false) String encoding, @RequestParam(required = false) String delimiter,
+			@RequestParam(required = false) String sheet) {
+		return this.imports.preview(CurrentUser.require(), schoolId, importId, encoding, delimiter, sheet);
 	}
 
 	@PutMapping("/{importId}/mapping")

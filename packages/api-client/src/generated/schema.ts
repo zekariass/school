@@ -1746,7 +1746,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The preview again (headers, first rows, mapping so far), for reloading the mapping step */
+        /** The preview again (headers, first rows, mapping so far), for reloading the mapping step. When any of encoding, delimiter or sheet is given (an empty value means detect), the file is read that way instead and the mapping is suggested from the new headers; nothing is saved until the mapping is */
         get: operations["previewImport"];
         put?: never;
         post?: never;
@@ -2405,6 +2405,11 @@ export interface components {
         CommitResult: {
             /** Format: int32 */
             created: number;
+            /**
+             * Format: int32
+             * @description Parent contacts of the file saved for a later invitation (no guardian link is made); absent in history lists
+             */
+            guardianContacts?: number;
             /** Format: int32 */
             skipped: number;
             /** Format: int32 */
@@ -8611,7 +8616,11 @@ export interface operations {
     };
     previewImport: {
         parameters: {
-            query?: never;
+            query?: {
+                encoding?: string;
+                delimiter?: string;
+                sheet?: string;
+            };
             header?: never;
             path: {
                 schoolId: string;
