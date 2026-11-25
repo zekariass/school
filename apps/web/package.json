@@ -13,6 +13,7 @@
   "dependencies": {
     "@school/api-client": "*",
     "@school/calendar": "*",
+    "@school/classroom-toolkit": "*",
     "@school/design-tokens": "*",
     "@school/i18n": "*",
     "@school/validation": "*",
