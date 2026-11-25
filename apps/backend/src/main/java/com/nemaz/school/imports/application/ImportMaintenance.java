@@ -60,7 +60,7 @@ public class ImportMaintenance {
 
 	@Scheduled(cron = "0 20 3 * * *", zone = "UTC")
 	@SchedulerLock(name = "imports.purge-rows", lockAtMostFor = "PT30M")
-	public int purgeExpired() {
+	public Integer purgeExpired() {
 		int total = 0;
 		List<UUID> due;
 		do {
@@ -97,7 +97,7 @@ public class ImportMaintenance {
 	@Scheduled(initialDelayString = "PT1M", fixedDelayString = "PT1M")
 	@SchedulerLock(name = "imports.resubmit-stuck", lockAtMostFor = "PT5M")
 	@Transactional
-	public int resubmitStuck() {
+	public Integer resubmitStuck() {
 		List<UUID> stuck = this.store.stuck(this.properties.stuckAfter());
 		for (UUID id : stuck) {
 			Job job = this.store.find(id).orElse(null);

@@ -63,7 +63,7 @@ Before declaring work done, run `npm run lint typecheck test` (or the filtered e
 - **Modules:** each direct subpackage is a Spring Modulith module with `api` / `application` / `domain` / `infrastructure` subpackages. Use other modules only through their top-level package or events; `ModularityTest` enforces this. `common` is the shared kernel and `system` the technical platform.
 - **Errors:** throw `ApiException` with a stable snake_case `code` (e.g. `ApiException.forbidden("class.access_denied")`) and add `error.<code>` to *both* `messages.properties` and `messages_am.properties` (`MessagesTest`). Never return stack traces or internal messages.
 - **Events:** publish domain events inside the transaction. Listeners use `@ApplicationModuleListener`, are **idempotent** (delivery is at-least-once), and never call back into the publisher synchronously.
-- **Recurring jobs:** `@Scheduled` + `@SchedulerLock(name = "<module>.<job>")`.
+- **Recurring jobs:** `@Scheduled` + `@SchedulerLock(name = "<module>.<job>")`. A locked method returns `void` or an object (e.g. `Integer`), never a primitive: ShedLock then throws on every run, and integration tests (scheduling off) would not notice (`SchedulerLockMethodsTest`).
 - **Time and ids:** inject `Clock`; use `Ids.newId()` / Hibernate `@UuidGenerator(style = VERSION_7)`.
 - **Lists:** keyset pagination with `CursorPage` / `Cursors`, never offsets.
 - **API changes:** run `npm run openapi:export -w school-backend`, then `npm run codegen`, and commit both the spec and the generated types.

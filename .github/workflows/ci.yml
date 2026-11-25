@@ -72,21 +72,31 @@ jobs:
         with:
           distribution: temurin
           java-version: "25"
-          cache: maven
 
-      # The Maven wrapper downloads its Maven distribution on every run; cache it
-      # (setup-java's cache covers ~/.m2/repository only). A transient download
-      # failure from repo.maven.apache.org broke a run on PR #10.
+      # Our own cache instead of setup-java's `cache: maven`, which only restores an
+      # exact pom-hash match: any pom change re-downloaded everything and Maven Central
+      # answered HTTP 429 (PR #21). restore-keys brings back the previous repository so
+      # only new artifacts are fetched. Also caches the wrapper's Maven distribution
+      # (a transient download failure broke a run on PR #10).
       - uses: actions/cache@v6
         with:
-          path: ~/.m2/wrapper
-          key: maven-wrapper-${{ hashFiles('apps/backend/.mvn/wrapper/maven-wrapper.properties') }}
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: maven-${{ runner.os }}-${{ hashFiles('apps/backend/pom.xml', 'apps/backend/.mvn/wrapper/maven-wrapper.properties') }}
+          restore-keys: |
+            maven-${{ runner.os }}-
 
       # Testcontainers uses the Docker daemon preinstalled on ubuntu-latest.
       # The full repo is checked out because OpenApiSpecTest reads
       # packages/api-client/openapi/openapi.json.
       - name: Verify
         working-directory: apps/backend
+        # Retry 429/503 from Maven Central with a longer back-off than the default.
+        env:
+          MAVEN_ARGS: >-
+            -Daether.transport.http.retryHandler.count=6
+            -Daether.transport.http.retryHandler.interval=10000
         run: ./mvnw -B verify
 
       - name: Upload test reports

@@ -45,7 +45,7 @@ public class MediaMaintenance {
 	@Scheduled(cron = "0 15 * * * *", zone = "UTC")
 	@SchedulerLock(name = "media.purge-stale-uploads", lockAtMostFor = "PT30M")
 	@Transactional
-	public int purgeStaleUploads() {
+	public Integer purgeStaleUploads() {
 		int total = 0;
 		List<Media> stale;
 		do {
