@@ -53,14 +53,21 @@ export function hasStudentMembership(me: GrantsLike): boolean {
   return (me.memberships ?? []).some((m) => m.type === "STUDENT");
 }
 
+/** True when the user is connected to a child as a guardian (an ACTIVE link). */
+export function hasGuardianMembership(me: GrantsLike): boolean {
+  return (me.memberships ?? []).some((m) => m.type === "GUARDIAN");
+}
+
 /**
  * Where to send a user right after sign-in:
  *  1. a safe `next` path, if the page that sent them to sign-in gave one;
  *  2. platform / country / organization administrators: the console;
  *  3. exactly one school: that school's workspace;
  *  4. several schools: the school picker;
- *  5. only a student membership: the "students use the School app" page;
- *  6. nothing yet: the "no access" page.
+ *  5. a guardian of a child: "My children";
+ *  6. only a student membership: the "students use the School app" page;
+ *  7. nothing yet: "My children" too (a parent whose request still waits for the school has no
+ *     membership, and the page explains what happens and lets them connect with a code).
  */
 export function resolvePostSignInPath(input: {
   me: GrantsLike;
@@ -74,6 +81,7 @@ export function resolvePostSignInPath(input: {
   const schools = schoolChoices(input.me);
   if (schools.length === 1 && schools[0]) return `${base}/s/${encodeURIComponent(schools[0].slug)}`;
   if (schools.length > 1) return `${base}/schools`;
+  if (hasGuardianMembership(input.me)) return `${base}/family`;
   if (hasStudentMembership(input.me)) return `${base}/student-app`;
-  return `${base}/no-access`;
+  return `${base}/family`;
 }

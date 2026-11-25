@@ -19,6 +19,13 @@ export type LoginCodeInfo = S["LoginCodeInfo"];
 export type IssuedCode = S["IssuedCode"];
 export type Campus = S["CampusResponse"];
 export type MediaSummary = S["MediaSummary"];
+export type GuardianLink = S["GuardianLinkView"];
+export type GuardianInvitation = S["InvitationView"];
+export type StudentConsents = S["StudentConsents"];
+export type ConsentSummaryRow = S["StudentConsentSummary"];
+export type SchoolPolicy = S["SchoolPolicy"];
+export type PolicyView = S["PolicyView"];
+export type ConsentRecord = S["ConsentRecordView"];
 export type TeacherRole = ClassTeacher["role"];
 export type ClassType = ClassView["classType"];
 
@@ -49,6 +56,15 @@ export const sk = {
   studentList: (schoolId: string, filters: object) => ["school", schoolId, "students", "list", filters] as const,
   studentOne: (schoolId: string, studentId: string) => ["school", schoolId, "students", "one", studentId] as const,
   studentCodes: (schoolId: string, studentId: string) => ["school", schoolId, "students", "codes", studentId] as const,
+  guardians: (schoolId: string) => ["school", schoolId, "guardians"] as const,
+  studentGuardians: (schoolId: string, studentId: string) => ["school", schoolId, "guardians", "student", studentId] as const,
+  studentInvitations: (schoolId: string, studentId: string) => ["school", schoolId, "guardians", "invitations", studentId] as const,
+  linkQueue: (schoolId: string, status: string) => ["school", schoolId, "guardians", "queue", status] as const,
+  consent: (schoolId: string) => ["school", schoolId, "consent"] as const,
+  studentConsent: (schoolId: string, studentId: string) => ["school", schoolId, "consent", "student", studentId] as const,
+  classConsent: (schoolId: string, classId: string) => ["school", schoolId, "consent", "class", classId] as const,
+  policies: (schoolId: string) => ["school", schoolId, "policies"] as const,
+  effectivePolicy: (schoolId: string, type: string, lang: string) => ["school", schoolId, "policies", "effective", type, lang] as const,
   configuration: (schoolId: string) => ["school", schoolId, "configuration"] as const,
   settingOverrides: (schoolId: string) => ["school", schoolId, "setting-overrides"] as const,
 };
@@ -173,4 +189,49 @@ export const fetchDefinitions = async () => unwrap(await api().GET("/api/v1/plat
 export const fetchSchoolSettingOverrides = async (schoolId: string) =>
   unwrap(
     await api().GET("/api/v1/platform/settings", { params: { query: { scopeType: "SCHOOL", schoolId } } }),
+  );
+
+export const fetchStudentGuardians = async (schoolId: string, studentId: string) =>
+  unwrap(
+    await api().GET("/api/v1/schools/{schoolId}/students/{studentId}/guardians", {
+      params: { path: { schoolId, studentId } },
+    }),
+  );
+
+export const fetchStudentInvitations = async (schoolId: string, studentId: string) =>
+  unwrap(
+    await api().GET("/api/v1/schools/{schoolId}/students/{studentId}/guardian-invitations", {
+      params: { path: { schoolId, studentId } },
+    }),
+  );
+
+export const fetchLinkQueue = async (schoolId: string, status: GuardianLink["status"], cursor?: string) =>
+  unwrap(
+    await api().GET("/api/v1/schools/{schoolId}/guardian-links", {
+      params: { path: { schoolId }, query: { status, cursor, limit: PAGE_SIZE } },
+    }),
+  );
+
+export const fetchStudentConsents = async (schoolId: string, studentId: string) =>
+  unwrap(
+    await api().GET("/api/v1/schools/{schoolId}/students/{studentId}/consents", {
+      params: { path: { schoolId, studentId } },
+    }),
+  );
+
+export const fetchClassConsent = async (schoolId: string, classId: string) =>
+  unwrap(
+    await api().GET("/api/v1/schools/{schoolId}/classes/{classId}/consent-summary", {
+      params: { path: { schoolId, classId } },
+    }),
+  );
+
+export const fetchSchoolPolicies = async (schoolId: string) =>
+  unwrap(await api().GET("/api/v1/schools/{schoolId}/policies", { params: { path: { schoolId } } }));
+
+export const fetchEffectivePolicy = async (schoolId: string, type: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION", lang: string) =>
+  unwrap(
+    await api().GET("/api/v1/policies/{policyType}", {
+      params: { path: { policyType: type }, query: { schoolId, lang } },
+    }),
   );

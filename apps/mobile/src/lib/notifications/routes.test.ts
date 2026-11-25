@@ -10,6 +10,10 @@ describe('routeForPath', () => {
     expect(routeForPath('/settings', HOME)).toBe('/settings');
     expect(routeForPath('/', HOME)).toBe(HOME);
   });
+  it('opens the guardian screens', () => {
+    expect(routeForPath('/children', HOME)).toBe(HOME);
+    expect(routeForPath('/consents', HOME)).toBe('/consent');
+  });
   it('ignores query, hash and a trailing slash', () => {
     expect(routeForPath('/notifications?x=1#top', HOME)).toBe('/notifications');
     expect(routeForPath('/notifications/', HOME)).toBe('/notifications');

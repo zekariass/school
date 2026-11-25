@@ -61,10 +61,10 @@ describe("resolvePostSignInPath", () => {
     );
   });
 
-  it("explains when there is nothing yet", () => {
-    expect(resolvePostSignInPath({ me: me(), locale: "en" })).toBe("/en/no-access");
+  it("opens My children when there is nothing else (a parent's request may still wait for the school)", () => {
+    expect(resolvePostSignInPath({ me: me(), locale: "en" })).toBe("/en/family");
     // a school grant the API could not resolve to a slug doesn't count
-    expect(resolvePostSignInPath({ me: me(grant("SCHOOL")), locale: "am" })).toBe("/am/no-access");
+    expect(resolvePostSignInPath({ me: me(grant("SCHOOL")), locale: "am" })).toBe("/am/family");
   });
 
   it("encodes the slug", () => {
@@ -103,6 +103,18 @@ describe("resolvePostSignInPath with memberships", () => {
     expect(
       resolvePostSignInPath({ me: { roleAssignments: [], memberships: [membership("STUDENT", sunrise)] }, locale: "en" }),
     ).toBe("/en/student-app");
+  });
+
+  it("sends a guardian to My children, after workspaces", () => {
+    expect(
+      resolvePostSignInPath({ me: { roleAssignments: [], memberships: [membership("GUARDIAN", sunrise)] }, locale: "am" }),
+    ).toBe("/am/family");
+    expect(
+      resolvePostSignInPath({
+        me: { roleAssignments: [], memberships: [membership("GUARDIAN", sunrise), membership("TEACHER", moon)] },
+        locale: "en",
+      }),
+    ).toBe("/en/s/moon");
   });
 
   it("prefers a workspace over the student page for someone who is both", () => {

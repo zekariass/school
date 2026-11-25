@@ -5,6 +5,7 @@ import {
   buildUpstreamUrl,
   filterResponseHeaders,
   isAllowedUpstreamPath,
+  isTokenIssuingPath,
 } from "./bff";
 
 describe("isAllowedUpstreamPath", () => {
@@ -52,6 +53,31 @@ describe("buildUpstreamUrl", () => {
   it("returns null for traversal attempts", () => {
     expect(buildUpstreamUrl("http://api", ["api", "v1", "..", "..", "actuator"], "")).toBeNull();
     expect(buildUpstreamUrl("http://api", ["actuator", "health"], "")).toBeNull();
+  });
+});
+
+describe("token-issuing endpoints", () => {
+  it.each([
+    [["api", "v1", "auth", "otp", "verify"]],
+    [["api", "v1", "auth", "password"]],
+    [["api", "v1", "auth", "login-code"]],
+    [["api", "v1", "auth", "refresh"]],
+    [["api", "v1", "invitations", "accept"]],
+    [["api", "v1", "Invitations", "ACCEPT"]],
+  ])("are not reachable through the BFF: %j", (segments) => {
+    expect(isTokenIssuingPath(segments)).toBe(true);
+    expect(buildUpstreamUrl("http://api", segments, "")).toBeNull();
+  });
+
+  it.each([
+    [["api", "v1", "invitations", "otp"]],
+    [["api", "v1", "invitations", "preview"]],
+    [["api", "v1", "auth", "otp", "request"]],
+    [["api", "v1", "me", "guardian-links"]],
+    [["api", "v1", "me"]],
+  ])("leaves the others alone: %j", (segments) => {
+    expect(isTokenIssuingPath(segments)).toBe(false);
+    expect(buildUpstreamUrl("http://api", segments, "")).not.toBeNull();
   });
 });
 

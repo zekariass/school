@@ -29,13 +29,30 @@ export function isAllowedUpstreamPath(segments: readonly string[]): boolean {
   return segments.every((s) => s !== "." && s !== ".." && SEGMENT.test(s));
 }
 
+/**
+ * Endpoints that answer with a token pair. Only dedicated Route Handlers call them, because they
+ * put the tokens in httpOnly cookies: the BFF would hand the tokens to the browser's JavaScript.
+ */
+const TOKEN_ISSUING = [
+  ["auth", "otp", "verify"],
+  ["auth", "password"],
+  ["auth", "login-code"],
+  ["auth", "refresh"],
+  ["invitations", "accept"],
+] as const;
+
+export function isTokenIssuingPath(segments: readonly string[]): boolean {
+  const rest = segments.slice(2).map((s) => s.toLowerCase());
+  return TOKEN_ISSUING.some((path) => path.length === rest.length && path.every((p, i) => p === rest[i]));
+}
+
 /** Upstream URL for a request, or null when the path isn't allowed. */
 export function buildUpstreamUrl(
   origin: string,
   segments: readonly string[],
   search: string,
 ): URL | null {
-  if (!isAllowedUpstreamPath(segments)) return null;
+  if (!isAllowedUpstreamPath(segments) || isTokenIssuingPath(segments)) return null;
   const base = origin.replace(/\/+$/, "");
   return new URL(`${base}/${segments.join("/")}${search}`);
 }

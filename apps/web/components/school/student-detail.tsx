@@ -21,6 +21,8 @@ import { SP } from "@/lib/school/access";
 import type { CodeKind, CodeSheet } from "@/lib/school/codes";
 import { fetchStudent, fetchStudentCodes, sk, type StudentView } from "@/lib/school/queries";
 import { ConfirmDialog } from "./confirm-dialog";
+import { StudentConsentCard } from "./consent-views";
+import { GuardiansPanel } from "./guardians-panel";
 import { SelectField } from "./fields";
 import { FormDialog } from "./form-dialog";
 import { IssuedCodeDialog } from "./issued-code-dialog";
@@ -57,6 +59,8 @@ export function StudentDetail({ studentId }: { studentId: string }) {
       </Link>
       <StudentCard student={data} />
       {data.accessLevel === "FULL" && permissions.has(SP.students) ? <LoginCodesCard student={data} /> : null}
+      <GuardiansPanel student={data} />
+      <StudentConsentCard student={data} />
     </div>
   );
 }

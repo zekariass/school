@@ -14,9 +14,12 @@ import {
 
 const handleIntl = createIntlProxy(routing);
 
-/** Pages that need a session. */
+/**
+ * Pages that need a session. Everything else is public, notably `/{locale}/invite/{token}`: an
+ * invited parent has no account yet (the invitation page and its Route Handlers sign them in).
+ */
 const PROTECTED = new RegExp(
-  `^/(${routing.locales.join("|")})/(s|platform|schools|no-access|student-app)(/|$)`,
+  `^/(${routing.locales.join("|")})/(s|platform|schools|no-access|student-app|family)(/|$)`,
 );
 
 function signInRedirect(request: NextRequest, locale: string) {

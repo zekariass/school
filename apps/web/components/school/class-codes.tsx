@@ -11,6 +11,7 @@ import { useRouter } from "@/i18n/navigation";
 import { errorMessage } from "@/lib/console/errors";
 import { sheetForClass, type CodeKind } from "@/lib/school/codes";
 import type { ClassView } from "@/lib/school/queries";
+import { ClassParentCodes } from "./class-parent-codes";
 import { ConfirmDialog } from "./confirm-dialog";
 import { SelectField } from "./fields";
 import { useIssuedCodes } from "./issued-codes-context";
@@ -137,6 +138,8 @@ export function ClassCodesTab({ cls }: { cls: ClassView }) {
           onClose={() => setConfirming(false)}
         />
       ) : null}
+
+      <ClassParentCodes cls={cls} />
     </div>
   );
 }

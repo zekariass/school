@@ -10,6 +10,9 @@ const KNOWN_ROUTES: Record<string, 'home' | string> = {
   '/': 'home',
   '/notifications': '/notifications',
   '/settings': '/settings',
+  // Guardians: a link was decided ("/children") and a consent decision is requested ("/consents").
+  '/children': 'home',
+  '/consents': '/consent',
 };
 
 /** The route to open for `path`, or null to stay put. `homeRoute` is the active role's home tab. */
