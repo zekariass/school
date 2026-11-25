@@ -311,3 +311,16 @@ Items marked **⚑ Decision** need your confirmation. The design already applies
 | D5 | Machine translation provider in Phase 1? | Storage ready in Phase 1. Provider switched on when chosen |
 | D6 | Young-student sign-in method | Managed accounts with teacher-issued QR or text codes |
 | D7 | When is school fee invoicing needed? | Phase 5+ |
+
+### Guardians and consent (M5a), confirmed 25 November 2026
+
+The owner delegated these to the recommendations below, benchmarked on ClassDojo (a teacher can invite parents immediately; parents see only their own child; schools approve connections; consent is requested, not assumed).
+
+| # | Question | Decision |
+|---|---|---|
+| D8 | Policy texts (Proclamation 1321/2024) | The seeded texts stay **DRAFT PLACEHOLDERS**. Legal review (and a native-speaker Amharic review) is a **blocker for any pilot with real families**, tracked in the M1.5/pilot checklist. Schools may publish their own texts meanwhile |
+| D9 | May teachers see that a guardian link is custody-restricted? | **No.** Restricted links are invisible to teachers (list, queue and flag); only `school.guardians.manage` sees them and the note. A restricted adult simply sees nothing |
+| D10 | Paper consent on an older policy version, and scanned evidence | **Current version only** (409 `consent.version_outdated` otherwise). Scanned evidence is deferred: the column exists, add a `CONSENT_EVIDENCE` media purpose when schools ask |
+| D11 | Consent request when the guardian turned notifications off | **Still sent.** A consent request is a required, school-initiated notice, not marketing |
+| D12 | Invitations while the school is ONBOARDING | **Allowed** (ONBOARDING or ACTIVE; not SUSPENDED or ARCHIVED). Schools invite parents while setting up, as in ClassDojo. Links still need school approval unless auto-verification applies. Student code sign-in is unchanged (ACTIVE only) |
+| D13 | Links are global: may the child's current school revoke or restrict a link another school verified? | **Yes.** The student's current school owns access to the child's data; every such change is audited |

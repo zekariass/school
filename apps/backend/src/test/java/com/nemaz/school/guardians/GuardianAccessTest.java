@@ -123,13 +123,12 @@ class GuardianAccessTest extends GuardianTestSupport {
 		assertThat(this.guardians.guardiansOf(s.studentId())).isEmpty();
 		assertThat(this.guardians.can(adult, s.studentId(), GuardianPermission.GIVE_CONSENT)).isFalse();
 
-		// the note is for administrators only; teachers see names, relationship and status
-		JsonNode forTeacher = get(school(s.schoolId()) + "/students/" + s.studentId() + "/guardians", s.lead()).get(0);
-		assertThat(forTeacher.has("restrictionNote")).isFalse();
-		assertThat(forTeacher.has("guardianPhone")).isFalse();
-		assertThat(forTeacher.get("guardianName").asString()).isEqualTo("parent");
-		JsonNode forAdmin = get(school(s.schoolId()) + "/students/" + s.studentId() + "/guardians", s.admin()).get(0);
+		// teachers never see a custody-restricted link, not even that it exists; administrators see all of it
+		String guardiansUrl = school(s.schoolId()) + "/students/" + s.studentId() + "/guardians";
+		assertThat(get(guardiansUrl, s.lead())).isEmpty();
+		JsonNode forAdmin = get(guardiansUrl, s.admin()).get(0);
 		assertThat(forAdmin.get("restrictionNote").asString()).isEqualTo("Court order 12/2026");
+		assertThat(forAdmin.get("custodyRestricted").asBoolean()).isTrue();
 		assertThat(this.jdbc.queryForList("select coalesce(metadata::text, '') || coalesce(changes::text, '') from audit_logs"
 				+ " where target_id = ?", String.class, link)).isNotEmpty()
 			.noneMatch((row) -> row.contains("Court order"));
@@ -137,6 +136,12 @@ class GuardianAccessTest extends GuardianTestSupport {
 
 		call(HttpMethod.PATCH, linkUrl, s.admin(), Map.of("custodyRestricted", false), 200);
 		get(classUrl, guardian);
+		// lifted: teachers see names, relationship and status again, but never the note or contact details
+		JsonNode forTeacher = get(guardiansUrl, s.lead()).get(0);
+		assertThat(forTeacher.has("restrictionNote")).isFalse();
+		assertThat(forTeacher.has("guardianPhone")).isFalse();
+		assertThat(forTeacher.get("custodyRestricted").asBoolean()).isFalse();
+		assertThat(forTeacher.get("guardianName").asString()).isEqualTo("parent");
 		post(linkUrl + "/revoke", s.admin(), null, 200);
 		call(HttpMethod.GET, classUrl, guardian, null, 404);
 		assertThat(get("/api/v1/me", guardian).get("memberships")).isEmpty();

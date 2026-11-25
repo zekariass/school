@@ -200,6 +200,7 @@ public class GuardianLinkService {
 		params.put("school", schoolId);
 		params.put("status", ((status != null) ? status : LinkStatus.PENDING).name());
 		if (!manager) {
+			where.append(" and not sg.custody_restricted");
 			where.append(" ").append("""
 					and exists (select 1 from class_teachers ct join class_students cs on cs.class_id = ct.class_id
 					             and cs.status = 'ACTIVE' where ct.teacher_id = :me and ct.status = 'ACTIVE' and ct.role = 'LEAD'
@@ -289,7 +290,8 @@ public class GuardianLinkService {
 	public List<GuardianLinkView> forStudent(CurrentUser user, UUID schoolId, UUID studentId) {
 		this.rules.require(user, schoolId, studentId, this.rules.mayReadLinks(user, schoolId, studentId));
 		boolean manager = this.rules.manages(user, schoolId);
-		String statuses = manager ? "" : " and sg.status in ('PENDING', 'ACTIVE')";
+		// Teachers never see a custody-restricted link (not even the flag): only school.guardians.manage does.
+		String statuses = manager ? "" : " and sg.status in ('PENDING', 'ACTIVE') and not sg.custody_restricted";
 		return this.jdbc.sql(SELECT + " where sg.student_id = :st" + statuses
 				+ " order by case sg.status when 'ACTIVE' then 0 when 'PENDING' then 1 else 2 end, sg.is_primary desc, sg.created_at, sg.id")
 			.param("st", studentId)
@@ -603,7 +605,7 @@ public class GuardianLinkService {
 	static GuardianLinkView view(LinkRow r, boolean manager) {
 		return new GuardianLinkView(r.id(), r.studentId(), r.studentName(), r.guardianId(), r.guardianName(),
 				r.relationshipType(), r.primary(), r.status(), r.requestedVia(), r.verificationMethod(), r.verifiedAt(),
-				r.createdAt(), r.permissions(), r.custodyRestricted(), manager ? r.restrictionNote() : null,
+				r.createdAt(), r.permissions(), manager && r.custodyRestricted(), manager ? r.restrictionNote() : null,
 				manager ? Masking.phone(r.phone()) : null, manager ? Masking.email(r.email()) : null,
 				manager ? r.invitedName() : null, manager ? r.contactMatchesInvitation() : null,
 				manager ? r.decisionNote() : null, r.decidedAt());
