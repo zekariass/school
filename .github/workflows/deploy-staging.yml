@@ -1,0 +1,68 @@
+name: Deploy staging
+
+# Deploys every commit that reaches main to the staging environment, once the Images workflow has published
+# its container images. Skipped (with a notice, workflow stays green) until the owner switches it on:
+#   repository variable  DEPLOY_STAGING_ENABLED = true   (and the secrets/variables of the "staging" GitHub
+#   environment described in docs/ops/Runbook.md, "GitHub setup").
+# Manual run: Actions > Deploy staging > Run workflow (optionally a commit SHA whose images exist).
+
+on:
+  workflow_run:
+    workflows: [Images]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Full commit SHA to deploy (default: the head of main)"
+        required: false
+        type: string
+
+# One staging deploy at a time; a newer commit waits for the running one instead of cancelling a half-done roll-out.
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Images succeeded for a push to main (not for a pull request), or a manual run.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    outputs:
+      enabled: ${{ steps.plan.outputs.enabled }}
+      sha: ${{ steps.plan.outputs.sha }}
+    steps:
+      - id: plan
+        env:
+          ENABLED: ${{ vars.DEPLOY_STAGING_ENABLED }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          INPUT_SHA: ${{ inputs.sha }}
+          MAIN_SHA: ${{ github.sha }}
+        run: |
+          sha="${RUN_SHA:-${INPUT_SHA:-$MAIN_SHA}}"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          if [ "$ENABLED" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Staging deploy skipped::Set the repository variable DEPLOY_STAGING_ENABLED=true after configuring the 'staging' environment (docs/ops/Runbook.md)."
+          fi
+
+  deploy:
+    name: Deploy
+    needs: plan
+    if: needs.plan.outputs.enabled == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+      sha: ${{ needs.plan.outputs.sha }}
+    secrets: inherit
+    permissions:
+      contents: read

@@ -33,3 +33,7 @@ Thumbs.db
 
 # Claude Code local state and agent worktrees
 .claude/worktrees/
+
+# deployment kit: state written by deploy.sh on the server, TLS keys
+infra/deploy/.deploy/
+infra/deploy/certs/*.key

@@ -26,6 +26,7 @@
 		<commons-imaging.version>1.0.0-alpha6</commons-imaging.version>
 		<poi.version>6.0.0</poi.version>
 		<commons-csv.version>1.14.1</commons-csv.version>
+		<sentry.version>8.66.0</sentry.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -136,6 +137,14 @@
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+
+		<!-- Error tracking (optional, off unless SENTRY_DSN is set): Spring Boot 4 starter. Events are scrubbed of
+		     request data, users and personal data by system.observability.SentryScrubber before they leave the process. -->
+		<dependency>
+			<groupId>io.sentry</groupId>
+			<artifactId>sentry-spring-boot-4-starter</artifactId>
+			<version>${sentry.version}</version>
 		</dependency>
 
 		<!-- Phone numbers: parsing and E.164 normalization -->

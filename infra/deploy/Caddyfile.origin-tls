@@ -1,0 +1,63 @@
+# Variant for hosts that Cloudflare reaches directly (no tunnel): Cloudflare "Full (strict)" TLS to this origin
+# with a Cloudflare Origin CA certificate. Put the certificate and key in infra/deploy/certs/ on the server
+# (origin.pem, origin.key; never commit them) and set CADDYFILE=Caddyfile.origin-tls, PROXY_BIND_TLS=0.0.0.0
+# and PROXY_HTTPS_PORT=443 in .env. Restrict the host firewall to Cloudflare's published IP ranges.
+
+{
+	auto_https off
+	admin 127.0.0.1:2019
+	servers {
+		# Cloudflare edge ranges: https://www.cloudflare.com/ips/ (keep in sync, or terminate at the firewall).
+		trusted_proxies static private_ranges 173.245.48.0/20 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 141.101.64.0/18 108.162.192.0/18 190.93.240.0/20 188.114.96.0/20 197.234.240.0/22 198.41.128.0/17 162.158.0.0/15 104.16.0.0/13 104.24.0.0/14 172.64.0.0/13 131.0.72.0/22
+		client_ip_headers Cf-Connecting-Ip X-Forwarded-For
+	}
+}
+
+(security_headers) {
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+https://{$APP_HOST} {
+	tls /certs/origin.pem /certs/origin.key
+	import security_headers
+	request_body {
+		max_size 64MB
+	}
+	reverse_proxy {
+		# Re-resolve the container address through Docker's DNS: a recreated container gets a new IP.
+		dynamic a {
+			name web
+			port 3000
+			refresh 3s
+		}
+		header_up X-Forwarded-For {client_ip}
+	}
+}
+
+https://{$API_HOST} {
+	tls /certs/origin.pem /certs/origin.key
+	import security_headers
+	request_body {
+		max_size 16MB
+	}
+	@actuator_private {
+		path /actuator /actuator/*
+		not path /actuator/health /actuator/health/* /actuator/info
+	}
+	respond @actuator_private 404
+	reverse_proxy {
+		dynamic a {
+			name backend
+			port 8080
+			refresh 3s
+		}
+		header_up X-Forwarded-For {client_ip}
+		header_up X-Forwarded-Proto https
+		stream_timeout 24h
+		stream_close_delay 5s
+	}
+}
