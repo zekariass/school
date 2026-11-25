@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SchoolShell, SchoolShellSkeleton } from "@/components/app-shell/school-shell";
+import { PointsProvider } from "@/components/points/points-provider";
 import { IssuedCodesProvider } from "@/components/school/issued-codes-context";
 import { SchoolProvider } from "@/components/school/school-context";
 import { roleNamesForSchool } from "@/lib/roles";
@@ -46,6 +47,7 @@ async function Workspace({
       isStaff={access.isStaff}
     >
       <IssuedCodesProvider>
+        <PointsProvider>
         <SchoolShell
           slug={school.slug}
           schoolName={school.name}
@@ -54,6 +56,7 @@ async function Workspace({
         >
           {children}
         </SchoolShell>
+        </PointsProvider>
       </IssuedCodesProvider>
     </SchoolProvider>
   );

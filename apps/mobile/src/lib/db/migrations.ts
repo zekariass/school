@@ -1,3 +1,5 @@
+import { AWARD_QUEUE_STATEMENTS } from '@/lib/points/award-queue-sql';
+
 /**
  * Local SQLite schema versioning. `PRAGMA user_version` holds the number of the last
  * applied migration; migrations are an ordered, append-only list (never edit or
@@ -36,6 +38,12 @@ export const MIGRATIONS: readonly Migration[] = [
       )`,
       'CREATE INDEX idx_sync_outbox_status ON sync_outbox (status, id)',
     ],
+  },
+  {
+    // Awards waiting to be sent (M6c): ids, category, points, op id and times only. Cleared on sign-out.
+    version: 2,
+    name: 'create_points_award_queue',
+    statements: AWARD_QUEUE_STATEMENTS,
   },
 ];
 

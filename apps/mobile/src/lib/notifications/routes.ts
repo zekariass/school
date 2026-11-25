@@ -6,13 +6,15 @@
  */
 
 /** Paths the app can open now, without query or hash. "/" means the user's home screen. */
-const KNOWN_ROUTES: Record<string, 'home' | string> = {
+const KNOWN_ROUTES: Record<string, 'home' | 'points' | string> = {
   '/': 'home',
   '/notifications': '/notifications',
   '/settings': '/settings',
   // Guardians: a link was decided ("/children") and a consent decision is requested ("/consents").
   '/children': 'home',
   '/consents': '/consent',
+  // Students: points or a badge was awarded ("/points"). Anyone else lands on their home.
+  '/points': 'points',
 };
 
 /** The route to open for `path`, or null to stay put. `homeRoute` is the active role's home tab. */
@@ -24,6 +26,7 @@ export function routeForPath(path: unknown, homeRoute: string | null): string | 
   const trimmed = clean.length > 1 ? clean.replace(/\/+$/, '') : clean;
   const target = KNOWN_ROUTES[trimmed];
   if (!target) return null;
+  if (target === 'points') return homeRoute?.startsWith('/(student)/') ? '/(student)/points' : homeRoute;
   return target === 'home' ? homeRoute : target;
 }
 
