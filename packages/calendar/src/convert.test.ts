@@ -70,7 +70,9 @@ describe('round trips', () => {
       expect(isValidEthiopianDate(e)).toBe(true);
       expect(ethiopianToGregorian(e)).toEqual(g);
     }
-  });
+    // ~73,000 days with assertions each: takes a few seconds on a loaded machine, so don't
+    // rely on vitest's 5 s default (this test flaked once when the whole monorepo ran at once).
+  }, 60_000);
 
   it('consecutive days advance the Ethiopian date by exactly one day', () => {
     const start = gregorianToJdn({ year: 2020, month: 1, day: 1 });
