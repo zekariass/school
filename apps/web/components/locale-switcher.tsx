@@ -21,7 +21,7 @@ export function LocaleSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-11 gap-2 rounded-xl px-3" aria-label={t("label")}>
+        <Button variant="ghost" className="h-11 gap-1.5 rounded-xl px-2.5 sm:gap-2 sm:px-3" aria-label={t("label")}>
           <LanguagesIcon className="size-5" aria-hidden />
           <span className="uppercase">{locale}</span>
         </Button>

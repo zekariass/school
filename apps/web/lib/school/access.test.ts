@@ -10,6 +10,8 @@ const ADMIN = [
   "school.students.manage",
   "school.import.manage",
   "class.manage",
+  "school.guardians.manage",
+  "school.policies.manage",
 ];
 
 const schoolAdmin: MeLike = { scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ADMIN }] };
@@ -25,6 +27,8 @@ describe("navItems", () => {
       "teachers",
       "import",
       "academic",
+      "families",
+      "policies",
       "settings",
       "features",
     ]);
@@ -43,8 +47,15 @@ describe("navItems", () => {
     expect(navItems(schoolAccess(withImport, "moon"))).not.toContain("import");
   });
 
-  it("gives teachers the dashboard and their classes only", () => {
-    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses"]);
+  it("gives teachers the dashboard, their classes and the families queue", () => {
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families"]);
+  });
+
+  it("shows Policies only with the policies permission", () => {
+    const guardianAdmin: MeLike = {
+      scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["school.read", "school.guardians.manage"] }],
+    };
+    expect(navItems(schoolAccess(guardianAdmin, "sunrise"))).toEqual(["dashboard", "families", "features"]);
   });
 
   it("shows a campus administrator the classes and the read-only features", () => {
@@ -66,7 +77,7 @@ describe("navItems", () => {
       scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["class.manage"] }],
       memberships: [{ type: "TEACHER", schoolSlug: "sunrise" }],
     };
-    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes"]);
+    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families"]);
   });
 });
 

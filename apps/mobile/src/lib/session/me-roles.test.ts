@@ -12,8 +12,12 @@ describe('resolveSessionFromMe', () => {
     expect(resolveSessionFromMe(admin)).toEqual({ roles: [], activeRole: null, accessKind: 'admin' });
   });
 
-  it('distinguishes accounts without any role', () => {
-    expect(resolveSessionFromMe({ displayName: 'New', roleAssignments: [] }).accessKind).toBe('none');
+  it('gives an account that holds nothing yet "My children" (a waiting parent, or one yet to connect)', () => {
+    expect(resolveSessionFromMe({ displayName: 'New', roleAssignments: [] })).toEqual({
+      roles: ['guardian'],
+      activeRole: 'guardian',
+      accessKind: 'app',
+    });
   });
 
   it('maps teacher and student memberships to mobile roles', () => {
@@ -39,9 +43,19 @@ describe('resolveSessionFromMe', () => {
     expect(resolveSessionFromMe(adminTeacher)).toMatchObject({ roles: ['teacher'], accessKind: 'app' });
   });
 
-  it('never maps the guardian role until M5', () => {
-    const me = { displayName: 'G', roleAssignments: [{ roleCode: 'GUARDIAN' }], memberships: [{ type: 'GUARDIAN' }] };
-    expect(resolveSessionFromMe(me).roles).toEqual([]);
+  it('maps a GUARDIAN membership to the guardian role', () => {
+    const me = { displayName: 'G', roleAssignments: [], memberships: [{ type: 'GUARDIAN' }, { type: 'GUARDIAN' }] };
+    expect(resolveSessionFromMe(me)).toEqual({ roles: ['guardian'], activeRole: 'guardian', accessKind: 'app' });
+  });
+
+  it('puts the guardian role between teacher and student, for a parent who also teaches', () => {
+    const me = { displayName: 'G', roleAssignments: [], memberships: [{ type: 'STUDENT' }, { type: 'GUARDIAN' }, { type: 'TEACHER' }] };
+    expect(resolveSessionFromMe(me).roles).toEqual(['teacher', 'guardian', 'student']);
+  });
+
+  it('keeps administrators and staff without the family fallback', () => {
+    expect(resolveSessionFromMe({ displayName: 'A', roleAssignments: [{ roleCode: 'SCHOOL_ADMIN' }] }).roles).toEqual([]);
+    expect(resolveSessionFromMe({ displayName: 'S', roleAssignments: [], memberships: [{ type: 'STAFF' }] }).roles).toEqual([]);
   });
 
   it('maps roles through the given table and honours the preferred role', () => {

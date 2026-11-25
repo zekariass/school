@@ -115,7 +115,12 @@ function RootNavigator() {
 
         <Stack.Protected guard={signedIn}>
           <Stack.Screen name="notifications" options={{ ...header, title: t('mobile.notifications.title') }} />
+          {/* Guardians decide on consent requests. */}
+          <Stack.Screen name="consent" options={{ ...header, title: t('consent.title') }} />
         </Stack.Protected>
+        {/* An invitation link (`school://invite/{token}`) and "Have a parent code?": open to anyone, signed in or not. */}
+        <Stack.Screen name="invite/[token]" options={{ ...header, title: t('invite.pageTitle') }} />
+        <Stack.Screen name="parent-code" options={{ ...header, title: t('family.connect.title') }} />
         <Stack.Screen name="settings" options={{ ...header, title: t('nav.settings') }} />
         <Stack.Screen name="status" options={{ ...header, title: t('status.title') }} />
         {/* DEVELOPMENT ONLY: not part of the route table in release builds. */}

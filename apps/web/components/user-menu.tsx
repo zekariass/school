@@ -25,10 +25,10 @@ export function UserMenu({ name, detail }: { name: string; detail?: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-11 max-w-48 gap-2 rounded-xl px-3" aria-label={t("accountMenu")}>
+        <Button variant="ghost" className="h-11 max-w-48 gap-2 rounded-xl px-2.5 sm:px-3" aria-label={t("accountMenu")}>
           <UserRoundIcon className="size-5 shrink-0" aria-hidden />
           <span className="hidden truncate sm:inline">{name}</span>
-          <ChevronDownIcon className="size-4 shrink-0 opacity-60" aria-hidden />
+          <ChevronDownIcon className="hidden size-4 shrink-0 opacity-60 sm:block" aria-hidden />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-56 rounded-xl p-1.5">

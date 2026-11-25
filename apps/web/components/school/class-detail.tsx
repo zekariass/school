@@ -11,6 +11,7 @@ import { errorMessage } from "@/lib/console/errors";
 import { classAbilities, toClassCard } from "@/lib/school/class-view";
 import { fetchClass, sk } from "@/lib/school/queries";
 import { ClassCodesTab } from "./class-codes";
+import { ClassConsentTab } from "./consent-views";
 import { ClassGroupsTab } from "./class-groups";
 import { ClassRosterTab } from "./class-roster";
 import { ClassSettingsTab } from "./class-settings";
@@ -80,6 +81,11 @@ export function ClassDetail({ classId }: { classId: string }) {
               {t("tabs.codes")}
             </TabsTrigger>
           ) : null}
+          {abilities.canTeach ? (
+            <TabsTrigger value="consent" className="min-h-10 px-4">
+              {t("tabs.consent")}
+            </TabsTrigger>
+          ) : null}
           {abilities.canLead ? (
             <TabsTrigger value="settings" className="min-h-10 px-4">
               {t("tabs.settings")}
@@ -100,6 +106,11 @@ export function ClassDetail({ classId }: { classId: string }) {
         {abilities.canTeach ? (
           <TabsContent value="codes" className="pt-4">
             <ClassCodesTab cls={data} />
+          </TabsContent>
+        ) : null}
+        {abilities.canTeach ? (
+          <TabsContent value="consent" className="pt-4">
+            <ClassConsentTab cls={data} />
           </TabsContent>
         ) : null}
         {abilities.canLead ? (

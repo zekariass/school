@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Shared zod form schemas; errors are @school/i18n message keys.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./guardians": "./src/guardians.ts",
+    "./family": "./src/family.ts"
   },
   "scripts": {
     "lint": "eslint .",

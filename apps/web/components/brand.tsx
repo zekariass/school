@@ -12,7 +12,7 @@ export function Brand() {
       <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground">
         <GraduationCapIcon className="size-5" aria-hidden />
       </span>
-      {t("app.name")}
+      <span className="max-[400px]:sr-only">{t("app.name")}</span>
     </Link>
   );
 }

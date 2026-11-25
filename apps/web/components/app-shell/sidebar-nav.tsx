@@ -4,6 +4,8 @@ import {
   BookOpenIcon,
   CalendarRangeIcon,
   FileUpIcon,
+  FileTextIcon,
+  HeartHandshakeIcon,
   LayoutDashboardIcon,
   SettingsIcon,
   SlidersHorizontalIcon,
@@ -26,6 +28,8 @@ const ICONS: Record<NavId, LucideIcon> = {
   academic: CalendarRangeIcon,
   settings: SettingsIcon,
   features: SlidersHorizontalIcon,
+  families: HeartHandshakeIcon,
+  policies: FileTextIcon,
 };
 
 /** Vertical list in the desktop sidebar, horizontal scroller on small screens. Only the items the caller may use. */

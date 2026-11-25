@@ -109,6 +109,8 @@ export default function SignInScreen() {
           label={t('mobile.signIn.studentLink')}
           onPress={() => router.push('/(auth)/student-code')}
         />
+        {/* A parent with a printed code has no account yet: the code is accepted before signing in. */}
+        <Button variant="ghost" label={t('family.connect.open')} onPress={() => router.push('/parent-code')} />
       </View>
 
       <View style={{ alignItems: 'center', gap: spacing[1] }}>

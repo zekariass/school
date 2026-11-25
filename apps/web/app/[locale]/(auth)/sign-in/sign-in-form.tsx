@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link } from "@/i18n/navigation";
 import { getBrowserApi } from "@/lib/api-client";
 import { resolvePostSignInPath } from "@/lib/post-sign-in";
 import { formatCountdown, readProblem, retryAfterSeconds, secondsUntil } from "@/lib/problem";
@@ -198,6 +199,11 @@ function PhoneStep({ onSent }: { onSent: (phone: string, expiresIn: number) => v
               </p>
             ) : null}
           </div>
+
+          {/* A parent with a printed code has no account yet: the code is accepted before signing in. */}
+          <Button asChild variant="ghost">
+            <Link href="/connect">{t("family.connect.open")}</Link>
+          </Button>
         </form>
       </CardContent>
     </Card>
