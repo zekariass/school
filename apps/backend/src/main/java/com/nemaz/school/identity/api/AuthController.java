@@ -6,6 +6,7 @@ import com.nemaz.school.identity.application.Destination;
 import com.nemaz.school.identity.application.Destination.Channel;
 import com.nemaz.school.identity.application.Emails;
 import com.nemaz.school.identity.application.IdentityProperties;
+import com.nemaz.school.identity.application.LoginCodeSignInService;
 import com.nemaz.school.identity.application.OtpSignInService;
 import com.nemaz.school.identity.application.PasswordSignInService;
 import com.nemaz.school.identity.application.PhoneNumbers;
@@ -44,14 +45,17 @@ public class AuthController {
 
 	private final PasswordSignInService passwords;
 
+	private final LoginCodeSignInService loginCodes;
+
 	private final TokenService tokens;
 
 	private final IdentityProperties props;
 
-	AuthController(OtpSignInService otp, PasswordSignInService passwords, TokenService tokens,
-			IdentityProperties props) {
+	AuthController(OtpSignInService otp, PasswordSignInService passwords, LoginCodeSignInService loginCodes,
+			TokenService tokens, IdentityProperties props) {
 		this.otp = otp;
 		this.passwords = passwords;
+		this.loginCodes = loginCodes;
 		this.tokens = tokens;
 		this.props = props;
 	}
@@ -79,6 +83,13 @@ public class AuthController {
 	@Operation(operationId = "signInWithPassword", summary = "Sign in with email, phone or username and a password")
 	public ResponseEntity<TokenResponse> password(@Valid @RequestBody PasswordSignInRequest r) {
 		return tokenResponse(this.passwords.signIn(r.identifier(), r.country(), r.password()));
+	}
+
+	@PostMapping("/login-code")
+	@Operation(operationId = "signInWithLoginCode",
+			summary = "Sign in a student with the QR token or text code their teacher printed (case and hyphen are ignored); every failure is the same 400 auth.invalid_code")
+	public ResponseEntity<TokenResponse> loginCode(@Valid @RequestBody LoginCodeRequest r) {
+		return tokenResponse(this.loginCodes.signIn(r.code()));
 	}
 
 	@PostMapping("/refresh")
@@ -151,6 +162,16 @@ public class AuthController {
 		@Override
 		public String toString() {
 			return "PasswordSignInRequest[redacted]";
+		}
+
+	}
+
+	public record LoginCodeRequest(@NotBlank(message = "validation.required") @Size(max = 64,
+			message = "validation.tooLong") @Schema(description = "A QR token or a text code such as K7M2P-9XQ4T") String code) {
+
+		@Override
+		public String toString() {
+			return "LoginCodeRequest[redacted]";
 		}
 
 	}

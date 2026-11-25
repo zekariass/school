@@ -12,6 +12,7 @@ import com.nemaz.school.authorization.RoleAssignments.AssignmentView;
 import com.nemaz.school.common.security.AccessScope;
 import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.ScopeLevel;
+import com.nemaz.school.identity.AccountMemberships.SchoolMembership;
 import com.nemaz.school.identity.application.MeService;
 import com.nemaz.school.identity.application.MeService.Me;
 import com.nemaz.school.identity.application.MeService.ProfileChange;
@@ -144,7 +145,8 @@ public class MeController {
 			String calendarPreference, @NotNull UserStatus status, @NotNull boolean hasPassword, Instant lastLoginAt,
 			@NotNull List<RoleAssignmentSummary> roleAssignments,
 			@NotNull @Schema(description = "Permissions merged per scope, from all roles held there") List<ScopePermissions> scopes,
-			@Schema(description = "READY avatar; ask /media/{id}/url for a signed link") MediaSummary avatar) {
+			@Schema(description = "READY avatar; ask /media/{id}/url for a signed link") MediaSummary avatar,
+			@NotNull @Schema(description = "ACTIVE school memberships as teacher, student or other staff (not administrative roles, which are in roleAssignments); clients build navigation and the mobile role from them") List<SchoolMembership> memberships) {
 
 		static MeResponse from(Me me) {
 			User u = me.user();
@@ -161,7 +163,7 @@ public class MeController {
 					u.getFamilyName(), u.getEmail(), u.getEmailVerifiedAt() != null, u.getPhoneE164(),
 					u.getPhoneVerifiedAt() != null, u.getUsername(), u.getPreferredLanguageCode(), u.getTimezone(),
 					u.getCalendarPreference(), u.getStatus(), me.hasPassword(), u.getLastLoginAt(),
-					me.assignments().stream().map(RoleAssignmentSummary::from).toList(), scopes, me.avatar());
+					me.assignments().stream().map(RoleAssignmentSummary::from).toList(), scopes, me.avatar(), me.memberships());
 		}
 
 	}

@@ -14,6 +14,7 @@ import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.common.security.Masking;
 import com.nemaz.school.common.web.ClientRequests;
 import com.nemaz.school.identity.application.TokenService.TokenPair;
+import com.nemaz.school.identity.domain.AccountType;
 import com.nemaz.school.identity.domain.AuthMethod;
 import com.nemaz.school.identity.domain.PasswordCredential;
 import com.nemaz.school.identity.domain.User;
@@ -45,6 +46,8 @@ public class PasswordSignInService {
 
 	private final TokenService tokens;
 
+	private final java.util.List<com.nemaz.school.identity.ManagedAccountPolicy> managedPolicies;
+
 	private final AuthRateLimits limits;
 
 	private final AuditLog audit;
@@ -58,12 +61,13 @@ public class PasswordSignInService {
 	private final String dummyHash;
 
 	PasswordSignInService(UserRepository users, PasswordCredentialRepository credentials, PasswordEncoder encoder,
-			TokenService tokens, AuthRateLimits limits, AuditLog audit, IdentityProperties props, Clock clock,
-			TransactionTemplate tx) {
+			TokenService tokens, java.util.List<com.nemaz.school.identity.ManagedAccountPolicy> managedPolicies,
+			AuthRateLimits limits, AuditLog audit, IdentityProperties props, Clock clock, TransactionTemplate tx) {
 		this.users = users;
 		this.credentials = credentials;
 		this.encoder = encoder;
 		this.tokens = tokens;
+		this.managedPolicies = managedPolicies;
 		this.limits = limits;
 		this.audit = audit;
 		this.props = props;
@@ -87,6 +91,12 @@ public class PasswordSignInService {
 
 	private Optional<TokenPair> attempt(String identifier, String password) {
 		User user = lookup(identifier).orElse(null);
+		if (user != null && user.getAccountType() == AccountType.MANAGED
+				&& !this.managedPolicies.stream().allMatch((p) -> p.mayUsePassword(user.getId()))) {
+			// A student whose school does not allow passwords: indistinguishable from a wrong password.
+			this.encoder.matches(password, this.dummyHash);
+			return fail(identifier, user, AuditOutcome.DENIED, "password_login_disabled");
+		}
 		PasswordCredential credential = (user != null) ? this.credentials.lockByUserId(user.getId()).orElse(null)
 				: null;
 		if (credential == null) {

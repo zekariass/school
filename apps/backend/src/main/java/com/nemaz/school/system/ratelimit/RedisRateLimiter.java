@@ -62,6 +62,22 @@ class RedisRateLimiter implements RateLimiter {
 		}
 	}
 
+	@Override
+	public void check(String bucket, String key, int limit, Duration window, String problemCode) {
+		String redisKey = "rl:" + bucket + ":" + digest(key);
+		try {
+			String value = this.redis.opsForValue().get(redisKey);
+			if (value != null && Long.parseLong(value) >= limit) {
+				Long ttl = this.redis.getExpire(redisKey, java.util.concurrent.TimeUnit.MILLISECONDS);
+				throw ApiException.tooManyRequests(problemCode,
+						((ttl != null && ttl > 0) ? ttl : window.toMillis() + 999) / 1000);
+			}
+		}
+		catch (DataAccessException | NumberFormatException ex) {
+			log.warn("Rate limiter unavailable, allowing request for bucket {}: {}", bucket, ex.getMessage());
+		}
+	}
+
 	private static String digest(String key) {
 		try {
 			byte[] hash = MessageDigest.getInstance("SHA-256").digest(String.valueOf(key).getBytes(StandardCharsets.UTF_8));

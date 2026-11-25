@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/auth/login-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign in a student with the QR token or text code their teacher printed (case and hyphen are ignored); every failure is the same 400 auth.invalid_code */
+        post: operations["signInWithLoginCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/logout": {
         parameters: {
             query?: never;
@@ -137,6 +154,23 @@ export interface paths {
         post?: never;
         /** Remove my avatar and delete its file */
         delete: operations["clearMyAvatar"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/classes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's classes as student or teacher across schools, with school and the caller's role (at most 200, active only unless includeArchived) */
+        get: operations["listMyClasses"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -905,10 +939,613 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/academic-years": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The school's academic years, newest first (a short list, no paging) */
+        get: operations["listAcademicYears"];
+        put?: never;
+        /** Create an academic year (PLANNED unless stated); makeCurrent also makes it the school's current year */
+        post: operations["createAcademicYear"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/academic-years/{yearId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One academic year */
+        get: operations["getAcademicYear"];
+        put?: never;
+        post?: never;
+        /** Delete a year with its periods; 409 when it is current or classes use it */
+        delete: operations["deleteAcademicYear"];
+        options?: never;
+        head?: never;
+        /** Change name, dates or status (absent fields stay); 409 when the new dates cut off a period or the current year would be closed */
+        patch: operations["updateAcademicYear"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/academic-years/{yearId}/make-current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make this the school's only current year (the previous current year stays as it is; a CLOSED year cannot be current) */
+        post: operations["makeAcademicYearCurrent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/academic-years/{yearId}/periods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The year's periods in sequence order */
+        get: operations["listAcademicPeriods"];
+        put?: never;
+        /** Add a period: within the year, no overlap with other periods (409 academic.period_overlap), unique sequence (defaults to the next) */
+        post: operations["createAcademicPeriod"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/academic-years/{yearId}/periods/{periodId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a period */
+        delete: operations["deleteAcademicPeriod"];
+        options?: never;
+        head?: never;
+        /** Change a period (same rules as creating one) */
+        patch: operations["updateAcademicPeriod"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Classes the caller may see (students and teachers: their own; administrators: all in scope), by name; filters year, grade, campus, status, type, mine, q */
+        get: operations["listClasses"];
+        put?: never;
+        /** Create a class: needs class.manage, or be a teacher of the school while classes.teachers_can_create is on (the teacher becomes lead) */
+        post: operations["createClass"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One class the caller may see; 404 otherwise */
+        get: operations["getClass"];
+        put?: never;
+        post?: never;
+        /** Delete a class that never had students (and no teacher besides its first lead); otherwise 409 class.not_empty, archive it instead */
+        delete: operations["deleteClass"];
+        options?: never;
+        head?: never;
+        /** Change a class (lead teacher or class.manage; campus and year only with class.manage); subjectIds replaces the set */
+        patch: operations["updateClass"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive a class: it stays readable and keeps its members, but its roster can no longer change */
+        post: operations["archiveClass"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved student groups of the class (teachers of the class) */
+        get: operations["listClassGroups"];
+        put?: never;
+        /** Save a group of the class's students (a result of the group maker) */
+        post: operations["createClassGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/groups/{groupId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a saved group */
+        delete: operations["deleteClassGroup"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/login-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue new login codes for students of the class (default: all ACTIVE students); their previous live codes are revoked. The plaintext codes are in this response only, with Cache-Control: no-store */
+        post: operations["issueClassLoginCodes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/login-codes/{codeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke one login code of the class's sheet */
+        delete: operations["revokeClassLoginCode"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make an archived class active again */
+        post: operations["restoreClass"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The class's ACTIVE students by name (at most 500, no paging). Date of birth, gender and username only for teachers of the class and school.students.manage (accessLevel FULL); everybody else gets name and avatar */
+        get: operations["listClassStudents"];
+        put?: never;
+        /** Add students of the school to the class (all or none; 409 when one is not enrolled or already a member) */
+        post: operations["addClassStudents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/students/{studentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** End a student's membership (history is kept); reason REMOVED (default) or PROMOTED */
+        delete: operations["removeClassStudent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/students/{studentId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move a student to another class of the school: ends this membership (TRANSFERRED_CLASS) and starts the new one, atomically */
+        post: operations["moveClassStudent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/teachers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The class's ACTIVE teachers: lead first */
+        get: operations["listClassTeachers"];
+        put?: never;
+        /** Add a teacher of the school (lead teacher or class.manage); SUBJECT_TEACHER needs subjectId */
+        post: operations["addClassTeacher"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/teachers/{classTeacherId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a teacher row (lead or class.manage; any non-lead teacher may remove herself); the last lead cannot be removed (409 class.last_lead) */
+        delete: operations["removeClassTeacher"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/grade-levels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The school's grade levels in sequence order */
+        get: operations["listGradeLevels"];
+        put?: never;
+        /** Add a grade level (sequence defaults to the next; unique per school) */
+        post: operations["createGradeLevel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/grade-levels/{gradeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a grade level; 409 when classes use it (deactivate it instead) */
+        delete: operations["deleteGradeLevel"];
+        options?: never;
+        head?: never;
+        /** Change a grade level, or deactivate it */
+        patch: operations["updateGradeLevel"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff by name; filters staffType, status, campusId, q. Managers see every status and masked contacts, other staff only ACTIVE colleagues */
+        get: operations["listStaff"];
+        put?: never;
+        /** Add a person to the school's staff by phone or email: finds their account or creates one the administrator vouches for; 409 staff.already_member when they are staff already */
+        post: operations["addStaff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff/{staffId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One staff member */
+        get: operations["getStaff"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change job title, campus or employee number (absent fields stay) */
+        patch: operations["updateStaff"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff/{staffId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the staff member FORMER (ended today) and end their class teaching; administrative roles are not touched */
+        post: operations["deactivateStaff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Students by name (ACTIVE unless status is given); filters classId, gradeLevelId, campusId, status, q. School.students.manage sees all, teachers the students of their classes */
+        get: operations["listStudents"];
+        put?: never;
+        /** Create a school-managed student (no phone or email) and enroll them; optionally straight into a class. Needs school.students.manage, or be a teacher of that class */
+        post: operations["createStudent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One student: FULL for managers, the student and their teachers; BASIC (name, avatar) for classmates and class administrators; 404 for everybody else */
+        get: operations["getStudent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change a student's details (school.students.manage); the student themself may change only avatarConfig */
+        patch: operations["updateStudent"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/login-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Metadata of the student's live login codes (never the codes); managers and teachers of the student */
+        get: operations["listStudentLoginCodes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/login-codes/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke every live login code of the student */
+        post: operations["revokeStudentLoginCodes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set an initial password (the student must change it); only while the school allows password sign-in (409 student.password_login_disabled) and the student has a username */
+        post: operations["setStudentPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw a student from the school: class memberships end, login codes are revoked, history stays */
+        post: operations["withdrawStudent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/subjects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The school's subjects by name */
+        get: operations["listSubjects"];
+        put?: never;
+        /** Add a subject (code unique per school, case-insensitive) */
+        post: operations["createSubject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/subjects/{subjectId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a subject; 409 when classes use it (deactivate it instead) */
+        delete: operations["deleteSubject"];
+        options?: never;
+        head?: never;
+        /** Change a subject, or deactivate it */
+        patch: operations["updateSubject"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AcademicPeriodView: {
+            /** Format: uuid */
+            academicYearId: string;
+            /** Format: date */
+            endsOn: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            periodType: "TERM" | "SEMESTER" | "QUARTER" | "CUSTOM";
+            /** Format: int32 */
+            sequence: number;
+            /** Format: date */
+            startsOn: string;
+        };
+        AcademicYearView: {
+            /** @description Exactly one year of a school is current */
+            current: boolean;
+            /** Format: date */
+            endsOn: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: date */
+            startsOn: string;
+            /** @enum {string} */
+            status: "PLANNED" | "ACTIVE" | "CLOSED";
+        };
+        /** @description Set exactly one of phone or email (national phone formats are read in `country`, default ET). adminRole is only for ADMINISTRATOR. */
+        AddStaffRequest: {
+            /** @enum {string} */
+            adminRole?: "SCHOOL_ADMIN" | "CAMPUS_ADMIN" | "SCHOOL_STAFF";
+            /** Format: uuid */
+            campusId?: string;
+            country?: string;
+            displayName?: string;
+            email?: string;
+            employeeNumber?: string;
+            familyName?: string;
+            givenName: string;
+            jobTitle?: string;
+            phone?: string;
+            preferredLanguage?: string;
+            /** @enum {string} */
+            staffType: "TEACHER" | "ADMINISTRATOR" | "SUPPORT_STAFF";
+        };
+        AddStudentsRequest: {
+            studentIds: string[];
+        };
+        AddTeacherRequest: {
+            /** @enum {string} */
+            role: "LEAD" | "CO_TEACHER" | "SUBJECT_TEACHER" | "ASSISTANT";
+            /** Format: uuid */
+            subjectId?: string;
+            /** Format: uuid */
+            teacherId: string;
+        };
         AdministrativeAreaResponse: {
             code?: string;
             countryCode: string;
@@ -986,6 +1623,62 @@ export interface components {
             enabled: boolean;
             locked: boolean;
         };
+        ClassTeacherView: {
+            avatar?: components["schemas"]["MediaSummary"];
+            displayName: string;
+            /**
+             * Format: uuid
+             * @description Roster row id, used to remove the teacher
+             */
+            id: string;
+            /** Format: date-time */
+            joinedAt: string;
+            /** @enum {string} */
+            role: "LEAD" | "CO_TEACHER" | "SUBJECT_TEACHER" | "ASSISTANT";
+            /** Format: uuid */
+            subjectId?: string;
+            subjectName?: string;
+            /** Format: uuid */
+            teacherId: string;
+        };
+        ClassView: {
+            /** Format: uuid */
+            academicYearId: string;
+            academicYearName: string;
+            /** Format: date-time */
+            archivedAt?: string;
+            /** Format: uuid */
+            campusId?: string;
+            /** @enum {string} */
+            classType: "HOMEROOM" | "SUBJECT" | "CLUB" | "OTHER";
+            color?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            gradeLevelName?: string;
+            icon?: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description How the caller belongs to this class; absent for administrators who only manage it
+             * @enum {string}
+             */
+            myMembership?: "STUDENT" | "TEACHER";
+            /**
+             * @description The caller's teacher role when myMembership is TEACHER
+             * @enum {string}
+             */
+            myTeacherRole?: "LEAD" | "CO_TEACHER" | "SUBJECT_TEACHER" | "ASSISTANT";
+            name: string;
+            /** Format: uuid */
+            schoolId: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "ARCHIVED";
+            /** Format: int32 */
+            studentCount: number;
+            subjectIds: string[];
+            /** Format: int32 */
+            teacherCount: number;
+        };
         ContextRef: {
             /** Format: uuid */
             id: string;
@@ -1029,11 +1722,47 @@ export interface components {
             name: string;
             timezone?: string;
         };
+        CreateClassRequest: {
+            /** Format: uuid */
+            academicYearId?: string;
+            /** Format: uuid */
+            campusId?: string;
+            /** @enum {string} */
+            classType?: "HOMEROOM" | "SUBJECT" | "CLUB" | "OTHER";
+            color?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            icon?: string;
+            name: string;
+            studentIds?: string[];
+            subjectIds?: string[];
+        };
+        CreateGradeRequest: {
+            code?: string;
+            name: string;
+            /** Format: int32 */
+            sequence?: number;
+        };
+        CreateGroupRequest: {
+            name: string;
+            studentIds: string[];
+        };
         CreateOrganizationRequest: {
             countryCode: string;
             legalName?: string;
             name: string;
             slug: string;
+        };
+        CreatePeriodRequest: {
+            /** Format: date */
+            endsOn: string;
+            name: string;
+            /** @enum {string} */
+            periodType: "TERM" | "SEMESTER" | "QUARTER" | "CUSTOM";
+            /** Format: int32 */
+            sequence?: number;
+            /** Format: date */
+            startsOn: string;
         };
         CreateRoleAssignmentRequest: {
             roleCode: string;
@@ -1063,6 +1792,32 @@ export interface components {
             timezone?: string;
             website?: string;
         };
+        CreateStudentRequest: {
+            /** Format: date */
+            admissionOn?: string;
+            /** @description Avatar builder configuration, a JSON object owned by the clients */
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            /** Format: uuid */
+            campusId?: string;
+            /** Format: uuid */
+            classId?: string;
+            /** Format: date */
+            dateOfBirth?: string;
+            familyName?: string;
+            gender?: string;
+            givenName: string;
+            middleName?: string;
+            studentNumber?: string;
+            /** @description Lower case, starts with a letter, 3-31 of a-z 0-9 . _ - ; unique across the platform */
+            username?: string;
+        };
+        CreateSubjectRequest: {
+            code?: string;
+            color?: string;
+            name: string;
+        };
         CreateUserRequest: {
             country?: string;
             displayName?: string;
@@ -1071,6 +1826,16 @@ export interface components {
             givenName: string;
             phone?: string;
             preferredLanguage?: string;
+        };
+        CreateYearRequest: {
+            /** Format: date */
+            endsOn: string;
+            makeCurrent?: boolean;
+            name: string;
+            /** Format: date */
+            startsOn: string;
+            /** @enum {string} */
+            status?: "PLANNED" | "ACTIVE" | "CLOSED";
         };
         CreatedUserResponse: {
             displayName: string;
@@ -1101,6 +1866,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageClassView: {
+            items: components["schemas"]["ClassView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageNotificationView: {
             items: components["schemas"]["NotificationView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -1118,6 +1888,16 @@ export interface components {
         };
         CursorPageSchoolResponse: {
             items: components["schemas"]["SchoolResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageStaffView: {
+            items: components["schemas"]["StaffView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageStudentView: {
+            items: components["schemas"]["StudentView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -1155,6 +1935,37 @@ export interface components {
              */
             limit?: number;
         };
+        GradeLevelView: {
+            active: boolean;
+            code?: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            sequence: number;
+        };
+        IssueCodesRequest: {
+            studentIds?: string[];
+            /**
+             * Format: int32
+             * @description Days the codes stay valid (1-730); default setting students.login_code.ttl_days
+             */
+            ttlDays?: number;
+            /**
+             * @description QR, TEXT or BOTH (default TEXT)
+             * @enum {string}
+             */
+            type?: "QR" | "TEXT" | "BOTH";
+        };
+        IssuedCode: {
+            displayName: string;
+            /** Format: date-time */
+            expiresAt: string;
+            qrToken?: string;
+            /** Format: uuid */
+            studentId: string;
+            textCode?: string;
+        };
         JsonNode: unknown;
         LanguageResponse: {
             code: string;
@@ -1163,6 +1974,28 @@ export interface components {
             name: string;
             nativeName: string;
             script?: string;
+        };
+        LoginCodeInfo: {
+            /** Format: uuid */
+            classId?: string;
+            /** Format: date-time */
+            createdAt: string;
+            expired: boolean;
+            /** Format: date-time */
+            expiresAt?: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            lastUsedAt?: string;
+            /**
+             * @description QR or TEXT
+             * @enum {string}
+             */
+            type: "QR" | "TEXT" | "BOTH";
+        };
+        LoginCodeRequest: {
+            /** @description A QR token or a text code such as K7M2P-9XQ4T */
+            code: string;
         };
         MarkedRead: {
             /** Format: int32 */
@@ -1184,6 +2017,8 @@ export interface components {
             id: string;
             /** Format: date-time */
             lastLoginAt?: string;
+            /** @description ACTIVE school memberships as teacher, student or other staff (not administrative roles, which are in roleAssignments); clients build navigation and the mobile role from them */
+            memberships: components["schemas"]["SchoolMembership"][];
             middleName?: string;
             phone?: string;
             phoneVerified: boolean;
@@ -1241,6 +2076,42 @@ export interface components {
             serverTime: string;
             service: string;
             supportedLocales: string[];
+        };
+        MoveStudentRequest: {
+            /** Format: uuid */
+            toClassId: string;
+        };
+        MyClass: {
+            /** @enum {string} */
+            classType: "HOMEROOM" | "SUBJECT" | "CLUB" | "OTHER";
+            color?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            gradeLevelName?: string;
+            icon?: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /**
+             * @description The caller's role in this class
+             * @enum {string}
+             */
+            role: "STUDENT" | "TEACHER";
+            /** Format: uuid */
+            schoolId: string;
+            schoolName?: string;
+            schoolSlug?: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "ARCHIVED";
+            /** Format: int32 */
+            studentCount: number;
+            /** Format: uuid */
+            subjectId?: string;
+            /**
+             * @description Teacher role when role is TEACHER
+             * @enum {string}
+             */
+            teacherRole?: "LEAD" | "CO_TEACHER" | "SUBJECT_TEACHER" | "ASSISTANT";
         };
         NotificationView: {
             body?: string;
@@ -1393,6 +2264,10 @@ export interface components {
             provider: "EXPO" | "FCM" | "APNS" | "WEBPUSH";
             token: string;
         };
+        RevokedCodes: {
+            /** Format: int32 */
+            revoked: number;
+        };
         RoleAssignmentResponse: {
             /** Format: date-time */
             grantedAt: string;
@@ -1437,6 +2312,29 @@ export interface components {
             /** @enum {string} */
             type: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL" | "CAMPUS";
         };
+        RosterStudent: {
+            /** @enum {string} */
+            accessLevel: "BASIC" | "FULL";
+            avatar?: components["schemas"]["MediaSummary"];
+            /** @description Avatar builder configuration (monster/avatar), client-defined */
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Format: date
+             * @description Only with accessLevel FULL
+             */
+            dateOfBirth?: string;
+            displayName: string;
+            /** @description Only with accessLevel FULL */
+            gender?: string;
+            /** Format: date-time */
+            joinedAt: string;
+            /** Format: uuid */
+            studentId: string;
+            /** @description Only with accessLevel FULL */
+            username?: string;
+        };
         SchoolConfigurationResponse: {
             features: components["schemas"]["FeatureStateResponse"][];
             planCode: string;
@@ -1449,6 +2347,20 @@ export interface components {
         SchoolLanguageResponse: {
             code: string;
             isDefault: boolean;
+        };
+        SchoolMembership: {
+            /** Format: uuid */
+            campusId?: string;
+            /** Format: uuid */
+            schoolId: string;
+            schoolName: string;
+            schoolSlug: string;
+            /** Format: uuid */
+            staffId?: string;
+            /** Format: uuid */
+            studentId?: string;
+            /** @enum {string} */
+            type: "TEACHER" | "STUDENT" | "STAFF";
         };
         SchoolResponse: {
             brandColor?: string;
@@ -1524,6 +2436,9 @@ export interface components {
             /** Format: uuid */
             mediaId: string;
         };
+        SetPasswordRequest: {
+            password: string;
+        };
         SettingDefinitionResponse: {
             allowedScopes: string[];
             /** @description Any JSON value */
@@ -1558,6 +2473,114 @@ export interface components {
             quietHoursStart?: string;
             /** @description The timezone quiet hours are evaluated in */
             timezone: string;
+        };
+        StaffView: {
+            avatar?: components["schemas"]["MediaSummary"];
+            /** Format: uuid */
+            campusId?: string;
+            displayName: string;
+            /** @description Only for school.staff.manage */
+            employeeNumber?: string;
+            /** Format: date */
+            endedOn?: string;
+            /** Format: uuid */
+            id: string;
+            jobTitle?: string;
+            /** @description Masked; only for school.staff.manage */
+            maskedEmail?: string;
+            /** @description Masked; only for school.staff.manage */
+            maskedPhone?: string;
+            /** @enum {string} */
+            staffType: "TEACHER" | "ADMINISTRATOR" | "SUPPORT_STAFF";
+            /** Format: date */
+            startedOn?: string;
+            /** @enum {string} */
+            status: "INVITED" | "ACTIVE" | "SUSPENDED" | "FORMER";
+            /**
+             * Format: uuid
+             * @description The person's user id (a teacher's id in class rosters)
+             */
+            userId: string;
+        };
+        StudentClassRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        StudentGroupView: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            studentIds: string[];
+        };
+        StudentView: {
+            /** @enum {string} */
+            accessLevel: "BASIC" | "FULL";
+            /**
+             * Format: date
+             * @description FULL only
+             */
+            admissionOn?: string;
+            avatar?: components["schemas"]["MediaSummary"];
+            /** @description Avatar builder configuration, client-defined */
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Format: uuid
+             * @description FULL only
+             */
+            campusId?: string;
+            /** @description FULL only: ACTIVE classes */
+            classes?: components["schemas"]["StudentClassRef"][];
+            /**
+             * Format: date
+             * @description FULL only
+             */
+            dateOfBirth?: string;
+            displayName: string;
+            /**
+             * Format: uuid
+             * @description FULL only
+             */
+            enrollmentId?: string;
+            /** @description FULL only */
+            familyName?: string;
+            /** @description FULL only */
+            gender?: string;
+            /** @description FULL only */
+            givenName?: string;
+            /**
+             * Format: uuid
+             * @description The student's user id; used in every path and roster
+             */
+            id: string;
+            /**
+             * Format: date
+             * @description FULL only
+             */
+            leftOn?: string;
+            /** @description FULL only */
+            middleName?: string;
+            /**
+             * @description FULL only
+             * @enum {string}
+             */
+            status?: "PENDING" | "ACTIVE" | "TRANSFERRED" | "GRADUATED" | "WITHDRAWN";
+            /** @description FULL only */
+            studentNumber?: string;
+            /** @description FULL only */
+            username?: string;
+        };
+        SubjectView: {
+            active: boolean;
+            code?: string;
+            color?: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
         };
         SubscriptionResponse: {
             /** Format: date-time */
@@ -1623,6 +2646,27 @@ export interface components {
             status: "ACTIVE" | "ARCHIVED";
             timezone?: string;
         };
+        UpdateClassRequest: {
+            /** Format: uuid */
+            academicYearId?: string;
+            /** Format: uuid */
+            campusId?: string;
+            /** @enum {string} */
+            classType?: "HOMEROOM" | "SUBJECT" | "CLUB" | "OTHER";
+            color?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            icon?: string;
+            name?: string;
+            subjectIds?: string[];
+        };
+        UpdateGradeRequest: {
+            active?: boolean;
+            code?: string;
+            name?: string;
+            /** Format: int32 */
+            sequence?: number;
+        };
         UpdateMeRequest: {
             calendarPreference?: string;
             displayName?: string;
@@ -1634,6 +2678,17 @@ export interface components {
             name: string;
             /** @enum {string} */
             status: "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+        };
+        UpdatePeriodRequest: {
+            /** Format: date */
+            endsOn?: string;
+            name?: string;
+            /** @enum {string} */
+            periodType?: "TERM" | "SEMESTER" | "QUARTER" | "CUSTOM";
+            /** Format: int32 */
+            sequence?: number;
+            /** Format: date */
+            startsOn?: string;
         };
         UpdatePreferencesRequest: {
             changes: components["schemas"]["PreferenceChange"][];
@@ -1648,6 +2703,44 @@ export interface components {
             quietHoursEnd?: string;
             /** @description HH:mm in my timezone, or absent for no quiet hours */
             quietHoursStart?: string;
+        };
+        UpdateStaffRequest: {
+            /** Format: uuid */
+            campusId?: string;
+            employeeNumber?: string;
+            jobTitle?: string;
+        };
+        UpdateStudentRequest: {
+            /** Format: date */
+            admissionOn?: string;
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            /** Format: uuid */
+            campusId?: string;
+            /** Format: date */
+            dateOfBirth?: string;
+            familyName?: string;
+            gender?: string;
+            givenName?: string;
+            middleName?: string;
+            studentNumber?: string;
+            username?: string;
+        };
+        UpdateSubjectRequest: {
+            active?: boolean;
+            code?: string;
+            color?: string;
+            name?: string;
+        };
+        UpdateYearRequest: {
+            /** Format: date */
+            endsOn?: string;
+            name?: string;
+            /** Format: date */
+            startsOn?: string;
+            /** @enum {string} */
+            status?: "PLANNED" | "ACTIVE" | "CLOSED";
         };
         UploadRequestBody: {
             /** @description What the media belongs to; optional for AVATAR (the caller) */
@@ -1707,6 +2800,9 @@ export interface components {
             /** @enum {string} */
             type: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL" | "CAMPUS";
         };
+        WithdrawRequest: {
+            reason?: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -1716,6 +2812,39 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    signInWithLoginCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     logout: {
         parameters: {
             query?: never;
@@ -2017,6 +3146,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMyClasses: {
+        parameters: {
+            query?: {
+                includeArchived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyClass"][];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -3917,6 +5077,1690 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SchoolSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listAcademicYears: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicYearView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createAcademicYear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateYearRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicYearView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getAcademicYear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                yearId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicYearView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteAcademicYear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                yearId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateAcademicYear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                yearId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateYearRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicYearView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    makeAcademicYearCurrent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                yearId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicYearView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listAcademicPeriods: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                yearId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicPeriodView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createAcademicPeriod: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                yearId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePeriodRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicPeriodView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteAcademicPeriod: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                yearId: string;
+                periodId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateAcademicPeriod: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                yearId: string;
+                periodId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePeriodRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicPeriodView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listClasses: {
+        parameters: {
+            query?: {
+                academicYearId?: string;
+                gradeLevelId?: string;
+                campusId?: string;
+                status?: "ACTIVE" | "ARCHIVED";
+                classType?: "HOMEROOM" | "SUBJECT" | "CLUB" | "OTHER";
+                mine?: boolean;
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageClassView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createClass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClassRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getClass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteClass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateClass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateClassRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    archiveClass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listClassGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentGroupView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createClassGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGroupRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentGroupView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteClassGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+                groupId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    issueClassLoginCodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["IssueCodesRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuedCode"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    revokeClassLoginCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+                codeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    restoreClass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listClassStudents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RosterStudent"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    addClassStudents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddStudentsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RosterStudent"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    removeClassStudent: {
+        parameters: {
+            query?: {
+                reason?: "REMOVED" | "PROMOTED" | "TRANSFERRED_CLASS" | "LEFT_SCHOOL";
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    moveClassStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveStudentRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listClassTeachers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassTeacherView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    addClassTeacher: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddTeacherRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassTeacherView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    removeClassTeacher: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+                classTeacherId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listGradeLevels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeLevelView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createGradeLevel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGradeRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeLevelView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteGradeLevel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                gradeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateGradeLevel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                gradeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateGradeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeLevelView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStaff: {
+        parameters: {
+            query?: {
+                staffType?: "TEACHER" | "ADMINISTRATOR" | "SUPPORT_STAFF";
+                status?: "INVITED" | "ACTIVE" | "SUSPENDED" | "FORMER";
+                campusId?: string;
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageStaffView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    addStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddStaffRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                staffId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                staffId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateStaffRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deactivateStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                staffId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStudents: {
+        parameters: {
+            query?: {
+                classId?: string;
+                gradeLevelId?: string;
+                campusId?: string;
+                status?: "PENDING" | "ACTIVE" | "TRANSFERRED" | "GRADUATED" | "WITHDRAWN";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageStudentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateStudentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateStudentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStudentLoginCodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginCodeInfo"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    revokeStudentLoginCodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokedCodes"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    setStudentPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    withdrawStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WithdrawRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listSubjects: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createSubject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSubjectRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteSubject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                subjectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateSubject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                subjectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSubjectRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

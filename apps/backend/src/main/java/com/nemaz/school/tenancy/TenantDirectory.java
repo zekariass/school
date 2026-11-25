@@ -20,11 +20,18 @@ public interface TenantDirectory {
 	record OrganizationRef(UUID id, String countryCode, String name) {
 	}
 
-	/** {@code organizationId} is null for an independent school. */
-	record SchoolRef(UUID id, String countryCode, UUID organizationId, String name, String slug) {
+	/** {@code organizationId} is null for an independent school; {@code status} is the school's status name (ACTIVE, ...). */
+	record SchoolRef(UUID id, String countryCode, UUID organizationId, String name, String slug, String status,
+			String defaultLanguageCode) {
+
+		public boolean isActive() {
+			return "ACTIVE".equals(this.status);
+		}
+
 	}
 
-	record CampusRef(UUID id, UUID schoolId, String name) {
+	/** {@code status} is ACTIVE or ARCHIVED. */
+	record CampusRef(UUID id, UUID schoolId, String name, String status) {
 	}
 
 }

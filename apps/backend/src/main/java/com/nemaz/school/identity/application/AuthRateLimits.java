@@ -40,6 +40,37 @@ public class AuthRateLimits {
 		this.limiter.consume("user-lookup-actor", actorId.toString(), 30, Duration.ofMinutes(15), CODE);
 	}
 
+	/**
+	 * Student login codes. Failures are what count (a classroom signs in from one address): refused once 20
+	 * failures from one client address or 10 for one code prefix fell in 15 minutes, and 300 attempts of any
+	 * kind per address. The prefix key makes guessing the rest of a code that is almost known as slow as
+	 * guessing a whole one.
+	 */
+	void loginCodeAttempt(String ip, String prefix) {
+		if (ip != null) {
+			this.limiter.consume("login-code-ip-total", ip, 300, Duration.ofMinutes(15), CODE);
+			this.limiter.check("login-code-ip-failed", ip, 20, Duration.ofMinutes(15), CODE);
+		}
+		this.limiter.check("login-code-prefix-failed", prefix, 10, Duration.ofMinutes(15), CODE);
+	}
+
+	/** Counts one failed login-code attempt against the address and the code prefix. */
+	void loginCodeFailed(String ip, String prefix) {
+		if (ip != null) {
+			countFailure("login-code-ip-failed", ip, 20);
+		}
+		countFailure("login-code-prefix-failed", prefix, 10);
+	}
+
+	private void countFailure(String bucket, String key, int limit) {
+		try {
+			this.limiter.consume(bucket, key, limit, Duration.ofMinutes(15), CODE);
+		}
+		catch (com.nemaz.school.common.error.ApiException ex) {
+			// Over the limit: the next attempt is refused by loginCodeAttempt; this one stays a plain 400.
+		}
+	}
+
 	/** 10 per identifier and 50 per client address per 15 minutes. */
 	void password(String identifier, String ip) {
 		this.limiter.consume("password-identifier", identifier, 10, Duration.ofMinutes(15), CODE);

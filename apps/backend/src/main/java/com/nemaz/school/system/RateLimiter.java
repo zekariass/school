@@ -16,6 +16,12 @@ public interface RateLimiter {
 	 * is allowed (and logged): sign-in must keep working, and the database-side limits
 	 * (OTP attempts, password lockout) still apply.
 	 */
+	/**
+	 * Like {@link #consume} but without counting: throws the same 429 when {@code limit} hits already fell in
+	 * the current window. For limits that count failures only (counted separately with {@link #consume}).
+	 */
+	void check(String bucket, String key, int limit, Duration window, String problemCode);
+
 	void consume(String bucket, String key, int limit, Duration window, String problemCode);
 
 }

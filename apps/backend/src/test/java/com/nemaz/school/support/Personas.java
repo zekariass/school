@@ -31,7 +31,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * Personas ({@link Name}): platform admin, country admins of ET and KE, the organization's
  * admin, admins of schools A and B, the admin of campus A, a signed-in user without roles and
- * a suspended user. The fixture is created once per test JVM (lazily, with unique slugs and
+ * a suspended user; and, since M3a, school members (no role assignments, R-02): in school A the LEAD
+ * ({@code TEACHER_LEAD_A}) and a SUBJECT_TEACHER ({@code TEACHER_SUBJECT_A}) of class 8A, a teacher
+ * who leads 7B only ({@code TEACHER_OTHER_A}), students ACTIVE in 8A ({@code STUDENT_A1}) and 7B
+ * ({@code STUDENT_A2}), a student who was in 8A and left it ({@code STUDENT_FORMER_A}); in school B
+ * a student of class 9B ({@code STUDENT_B1}). The fixture is created once per test JVM (lazily, with unique slugs and
  * phones) and never changed by the harness afterwards; tests must not modify these rows.
  *
  * <p>
@@ -46,12 +50,18 @@ public class Personas {
 	public enum Name {
 
 		PLATFORM_ADMIN, COUNTRY_ADMIN_ET, COUNTRY_ADMIN_KE, ORG_ADMIN, SCHOOL_ADMIN_A, SCHOOL_ADMIN_B, CAMPUS_ADMIN_A,
-		PLAIN_USER, SUSPENDED_USER
+		PLAIN_USER, SUSPENDED_USER, TEACHER_LEAD_A, TEACHER_SUBJECT_A, TEACHER_OTHER_A, STUDENT_A1, STUDENT_A2,
+		STUDENT_FORMER_A, STUDENT_B1
 
 	}
 
-	/** Ids of the fixture tenancy tree. */
-	public record Fixture(UUID organization, UUID schoolA, UUID schoolB, UUID schoolKe, UUID campusA) {
+	/**
+	 * Ids of the fixture tenancy tree and, in schools A and B, the academic fixture: {@code yearA} (current),
+	 * {@code gradeA} ("Grade 8"), {@code subjectA} (Mathematics), classes {@code class8A}, {@code class7B}
+	 * (school A) and {@code class9B} (school B).
+	 */
+	public record Fixture(UUID organization, UUID schoolA, UUID schoolB, UUID schoolKe, UUID campusA, UUID yearA,
+			UUID gradeA, UUID subjectA, UUID class8A, UUID class7B, UUID class9B) {
 	}
 
 	private static final AtomicLong SEQUENCE = new AtomicLong(System.nanoTime() % 1_000_000L);
@@ -167,6 +177,11 @@ public class Personas {
 		return prefix + "-" + SEQUENCE.incrementAndGet();
 	}
 
+	/** A persona (real token) for an existing user. */
+	public Persona personaFor(String label, UUID userId) {
+		return persona(label, userId);
+	}
+
 	private Persona persona(String name, UUID userId) {
 		return new Persona(name, userId, () -> this.tx.execute(
 				(status) -> this.tokens.startSession(userId, AuthMethod.OTP).accessToken()), this.clock);
@@ -182,7 +197,93 @@ public class Personas {
 		UUID campusA = Ids.newId();
 		this.jdbc.update("insert into campuses (id, school_id, name, code) values (?, ?, 'Campus A', 'A')", campusA,
 				schoolA);
-		return new Fixture(organization, schoolA, schoolB, schoolKe, campusA);
+		UUID yearA = year(schoolA);
+		UUID gradeA = Ids.newId();
+		this.jdbc.update("insert into grade_levels (id, school_id, name, code, sequence) values (?, ?, 'Grade 8', '8', 8)",
+				gradeA, schoolA);
+		UUID subjectA = Ids.newId();
+		this.jdbc.update("insert into subjects (id, school_id, name, code) values (?, ?, 'Mathematics', 'MATH')", subjectA,
+				schoolA);
+		UUID class8A = schoolClass(schoolA, yearA, gradeA, "8A");
+		UUID class7B = schoolClass(schoolA, yearA, null, "7B");
+		UUID class9B = schoolClass(schoolB, year(schoolB), null, "9B");
+		return new Fixture(organization, schoolA, schoolB, schoolKe, campusA, yearA, gradeA, subjectA, class8A, class7B,
+				class9B);
+	}
+
+	private UUID year(UUID schoolId) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into academic_years (id, school_id, name, starts_on, ends_on, status, is_current)
+				values (?, ?, 'Persona year', date '2025-09-01', date '2026-07-31', 'ACTIVE', true)""", id, schoolId);
+		return id;
+	}
+
+	private UUID schoolClass(UUID schoolId, UUID yearId, UUID gradeId, String name) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into classes (id, school_id, academic_year_id, grade_level_id, name) values (?, ?, ?, ?, ?)""", id,
+				schoolId, yearId, gradeId, name);
+		return id;
+	}
+
+	/** A new independent ACTIVE school in Ethiopia (default language am) with a current academic year; returns its id. */
+	public UUID newSchool(String label) {
+		UUID id = school("ET", null, label);
+		year(id);
+		return id;
+	}
+
+	/** A new school administrator of the school. */
+	public Persona schoolAdmin(UUID schoolId, String label) {
+		return withRole(label, RoleCodes.SCHOOL_ADMIN, AccessScope.school(schoolId));
+	}
+
+	/** The current academic year of the school. */
+	public UUID currentYear(UUID schoolId) {
+		return this.jdbc.queryForObject("select id from academic_years where school_id = ? and is_current", UUID.class,
+				schoolId);
+	}
+
+	/** A class of the school in its current year; returns its id (no members). */
+	public UUID newClass(UUID schoolId, String name) {
+		return schoolClass(schoolId, currentYear(schoolId), null, name);
+	}
+
+	/** An ACTIVE teacher of the school (staff row and profile, no role assignment). */
+	public UUID newTeacher(UUID schoolId, String label) {
+		UUID id = createUser(label, "ACTIVE");
+		this.jdbc.update("insert into teacher_profiles (user_id) values (?)", id);
+		this.jdbc.update("""
+				insert into school_staff (id, school_id, user_id, staff_type, status, started_on)
+				values (?, ?, ?, 'TEACHER', 'ACTIVE', current_date)""", Ids.newId(), schoolId, id);
+		return id;
+	}
+
+	/** An ACTIVE managed student of the school (no phone or email, no class). */
+	public UUID newStudent(UUID schoolId, String label) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into users (id, account_type, given_name, display_name, status) values (?, 'MANAGED', ?, ?, 'ACTIVE')""",
+				id, label, label);
+		this.jdbc.update("insert into student_profiles (user_id) values (?)", id);
+		this.jdbc.update("""
+				insert into school_students (id, school_id, student_id, status, admission_on)
+				values (?, ?, ?, 'ACTIVE', current_date)""", Ids.newId(), schoolId, id);
+		return id;
+	}
+
+	/** Puts a teacher or student into a class with the given status (fixtures; the API path is tested separately). */
+	public void addTeacherToClass(UUID schoolId, UUID classId, UUID teacherId, String role, UUID subjectId) {
+		this.jdbc.update("""
+				insert into class_teachers (id, class_id, school_id, teacher_id, role, subject_id, status)
+				values (?, ?, ?, ?, ?, ?, 'ACTIVE')""", Ids.newId(), classId, schoolId, teacherId, role, subjectId);
+	}
+
+	public void addStudentToClass(UUID schoolId, UUID classId, UUID studentId) {
+		this.jdbc.update("""
+				insert into class_students (id, class_id, school_id, student_id, status) values (?, ?, ?, ?, 'ACTIVE')""",
+				Ids.newId(), classId, schoolId, studentId);
 	}
 
 	private UUID school(String country, UUID organization, String name) {
@@ -208,6 +309,29 @@ public class Personas {
 		add(Name.SCHOOL_ADMIN_A, RoleCodes.SCHOOL_ADMIN, AccessScope.school(f.schoolA()));
 		add(Name.SCHOOL_ADMIN_B, RoleCodes.SCHOOL_ADMIN, AccessScope.school(f.schoolB()));
 		add(Name.CAMPUS_ADMIN_A, RoleCodes.CAMPUS_ADMIN, AccessScope.campus(f.schoolA(), f.campusA()));
+		UUID leadA = newTeacher(f.schoolA(), "teacher-lead-a");
+		addTeacherToClass(f.schoolA(), f.class8A(), leadA, "LEAD", null);
+		this.personas.put(Name.TEACHER_LEAD_A, persona("teacher-lead-a", leadA));
+		UUID subjectTeacher = newTeacher(f.schoolA(), "teacher-subject-a");
+		addTeacherToClass(f.schoolA(), f.class8A(), subjectTeacher, "SUBJECT_TEACHER", f.subjectA());
+		this.personas.put(Name.TEACHER_SUBJECT_A, persona("teacher-subject-a", subjectTeacher));
+		UUID otherTeacher = newTeacher(f.schoolA(), "teacher-other-a");
+		addTeacherToClass(f.schoolA(), f.class7B(), otherTeacher, "LEAD", null);
+		this.personas.put(Name.TEACHER_OTHER_A, persona("teacher-other-a", otherTeacher));
+		UUID a1 = newStudent(f.schoolA(), "student-a1");
+		addStudentToClass(f.schoolA(), f.class8A(), a1);
+		this.personas.put(Name.STUDENT_A1, persona("student-a1", a1));
+		UUID a2 = newStudent(f.schoolA(), "student-a2");
+		addStudentToClass(f.schoolA(), f.class7B(), a2);
+		this.personas.put(Name.STUDENT_A2, persona("student-a2", a2));
+		UUID former = newStudent(f.schoolA(), "student-former-a");
+		this.jdbc.update("""
+				insert into class_students (id, class_id, school_id, student_id, status, left_at, left_reason)
+				values (?, ?, ?, ?, 'FORMER', now(), 'TRANSFERRED_CLASS')""", Ids.newId(), f.class8A(), f.schoolA(), former);
+		this.personas.put(Name.STUDENT_FORMER_A, persona("student-former-a", former));
+		UUID b1 = newStudent(f.schoolB(), "student-b1");
+		addStudentToClass(f.schoolB(), f.class9B(), b1);
+		this.personas.put(Name.STUDENT_B1, persona("student-b1", b1));
 		this.personas.put(Name.PLAIN_USER, newUser("plain-user"));
 		UUID suspended = createUser("suspended-user", "SUSPENDED");
 		this.personas.put(Name.SUSPENDED_USER, persona("suspended-user", suspended));

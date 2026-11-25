@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  * codes even though the code space is small.
  */
 @Component
-public class OtpCodes {
+public class OtpCodes implements com.nemaz.school.identity.CodeHasher {
 
 	static final int MIN_PEPPER_LENGTH = 32;
 
@@ -46,6 +46,11 @@ public class OtpCodes {
 
 	public String hash(UUID challengeId, String code) {
 		return HexFormat.of().formatHex(mac(challengeId + ":" + code));
+	}
+
+	@Override
+	public String hmac(String purpose, String value) {
+		return HexFormat.of().formatHex(mac(purpose + ":" + value));
 	}
 
 	/** Constant-time comparison of a submitted code with a stored hash. */

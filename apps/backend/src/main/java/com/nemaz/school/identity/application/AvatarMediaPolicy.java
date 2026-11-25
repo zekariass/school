@@ -25,8 +25,9 @@ import org.springframework.stereotype.Component;
  * <li><b>Create:</b> only the user, for themself.</li>
  * <li><b>Read:</b> the user; anyone holding a platform-scope role; anyone holding a role in a
  * school where the user also holds one (staff of the same school); and anyone who may read
- * such a school (a country or organization administrator over it). Memberships (teachers,
- * guardians, students, M3/M5) will extend "same school" to classmates and families.</li>
+ * such a school (a country or organization administrator over it); and, through school memberships
+ * (M3a), members of the subject's school: staff see every member, students and teachers see the
+ * students they share a class with. Guardians arrive with M5.</li>
  * </ul>
  * A user without any role is visible only to themself and platform roles for now.
  */
@@ -37,9 +38,13 @@ class AvatarMediaPolicy implements MediaPurposePolicy {
 
 	private final AccessControl access;
 
-	AvatarMediaPolicy(RoleAssignments assignments, AccessControl access) {
+	private final com.nemaz.school.common.security.SchoolMemberships memberships;
+
+	AvatarMediaPolicy(RoleAssignments assignments, AccessControl access,
+			com.nemaz.school.common.security.SchoolMemberships memberships) {
 		this.assignments = assignments;
 		this.access = access;
+		this.memberships = memberships;
 	}
 
 	@Override
@@ -59,6 +64,9 @@ class AvatarMediaPolicy implements MediaPurposePolicy {
 			return true;
 		}
 		if (user.grants().stream().anyMatch((g) -> g.scope().level() == ScopeLevel.PLATFORM)) {
+			return true;
+		}
+		if (this.memberships.mayViewAvatar(user.userId(), subject)) {
 			return true;
 		}
 		Set<UUID> subjectSchools = schoolsOf(this.assignments.activeGrants(subject).stream().toList());

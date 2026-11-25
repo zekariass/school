@@ -30,6 +30,16 @@ public interface RoleAssignments {
 	void grantAsSystem(UUID userId, String roleCode, AccessScope scope);
 
 	/**
+	 * Grants a role on behalf of an administrator who manages the people of the scope (staff provisioning) rather
+	 * than roles in general: no {@code platform.roles.manage} is needed, but there is no escalation either, since the
+	 * actor must hold every permission of the role at a scope covering it (otherwise 403
+	 * {@code role.assignment_not_allowed}). The caller has made its own permission check and audits its own action;
+	 * the grant itself is audited here. Joins the caller's transaction.
+	 */
+	void grantWithinScope(com.nemaz.school.common.security.CurrentUser actor, UUID userId, String roleCode,
+			AccessScope scope);
+
+	/**
 	 * {@code schoolSlug} and {@code schoolName} identify the school of a SCHOOL or CAMPUS scope
 	 * (null at the other levels), so clients can build school URLs.
 	 */
