@@ -30,3 +30,6 @@ Thumbs.db
 *.pem
 *.tsbuildinfo
 .vercel
+
+# Claude Code local state and agent worktrees
+.claude/worktrees/

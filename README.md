@@ -11,6 +11,7 @@ engagement, learning, and tutoring). npm workspaces + [Turborepo](https://turbo.
 | [docs/Spec_Review.md](docs/Spec_Review.md) | Spec inconsistencies, resolutions, confirmed decisions D1–D7 |
 | [docs/Database_Design.md](docs/Database_Design.md) | Full PostgreSQL schema (tables, fields, relationships, phases) |
 | [docs/Implementation_Plan.md](docs/Implementation_Plan.md) | Step-by-step delivery plan, Phase 0 → Phase 6 |
+| [docs/i18n/REVIEWING.md](docs/i18n/REVIEWING.md) | Amharic native-speaker review pack (spreadsheet, guide, `scripts/i18n/*` to export and apply) |
 
 ## Layout
 
