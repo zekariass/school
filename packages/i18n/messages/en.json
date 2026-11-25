@@ -80,6 +80,7 @@
     "classes": "Classes",
     "students": "Students",
     "teachers": "Teachers",
+    "import": "Import",
     "messages": "Messages",
     "calendar": "Calendar",
     "settings": "Settings",
@@ -1369,6 +1370,317 @@
       "yes": "Yes",
       "no": "No",
       "note": "Only the platform team can change features. Contact support to upgrade your plan."
+    },
+    "import": {
+      "title": "Import",
+      "subtitle": "Add grades, subjects, classes, teachers and students from a CSV or Excel file.",
+      "backToList": "All imports",
+      "loadFailed": "We couldn't load this import. Please try again.",
+      "notFound": {
+        "title": "We couldn't find this import",
+        "body": "It may have been deleted, or it belongs to another school."
+      },
+      "startedAt": "Started {date}",
+      "kind": {
+        "GRADE_LEVELS": {
+          "name": "Grade levels",
+          "help": "Grade 1, Grade 2, and so on."
+        },
+        "SUBJECTS": {
+          "name": "Subjects",
+          "help": "The subjects the school teaches."
+        },
+        "CLASSES": {
+          "name": "Classes",
+          "help": "Classes of the current school year, with their lead teacher."
+        },
+        "STAFF": {
+          "name": "Teachers and staff",
+          "help": "People who work at the school."
+        },
+        "STUDENTS": {
+          "name": "Students",
+          "help": "Students with their class and parent contacts."
+        },
+        "ENROLLMENTS": {
+          "name": "Class lists",
+          "help": "Put students that already exist into classes."
+        }
+      },
+      "status": {
+        "UPLOADED": "File uploaded",
+        "PREVIEWED": "Columns chosen",
+        "VALIDATING": "Checking",
+        "VALIDATED": "Ready to import",
+        "COMMITTING": "Importing",
+        "COMPLETED": "Finished",
+        "FAILED": "Stopped",
+        "CANCELLED": "Cancelled"
+      },
+      "steps": {
+        "label": "Import steps",
+        "done": "done",
+        "file": "File",
+        "columns": "Columns",
+        "check": "Check",
+        "review": "Review",
+        "apply": "Import"
+      },
+      "new": {
+        "title": "New import",
+        "subtitle": "Choose what to import, then upload your file. Nothing is added until you confirm.",
+        "button": "New import",
+        "kindLegend": "What do you want to import?",
+        "template": {
+          "title": "Start from a template",
+          "help": "Download the template, fill it in and upload it. The first row names the columns. A row that starts with # is an example and is ignored.",
+          "csv": "Download CSV template",
+          "xlsx": "Download Excel template",
+          "failed": "We couldn't download the template. Please try again."
+        },
+        "file": {
+          "title": "Upload your file",
+          "hint": "A CSV file or an Excel file (.xlsx), up to {size} MB.",
+          "choose": "Choose a file",
+          "change": "Choose another file",
+          "extension": "Use a CSV file or an Excel file saved as .xlsx.",
+          "privacy": "The file has children's data. It is used only for this import and is deleted afterwards.",
+          "continue": "Read the file",
+          "reading": "Reading the file…",
+          "createFailed": "We couldn't read this file. Please try again."
+        }
+      },
+      "history": {
+        "filterStatus": "Status",
+        "allStatuses": "All statuses",
+        "empty": "No imports yet. Start with a template.",
+        "emptyFiltered": "No imports with this status.",
+        "loadFailed": "We couldn't load the imports. Please try again.",
+        "result": "{created} added, {updated} updated, {skipped} left out",
+        "rows": "{count, plural, one {# row} other {# rows}}"
+      },
+      "actions": {
+        "cancel": "Cancel import",
+        "cancelTitle": "Cancel this import?",
+        "cancelBody": "Nothing will be added to the school. The rows of this file are deleted.",
+        "cancelled": "Import cancelled.",
+        "delete": "Delete",
+        "deleteTitle": "Delete this import?",
+        "deleteBody": "The file and its rows are deleted.",
+        "deleteDoneBody": "The file and its rows are deleted. What the import added to the school stays.",
+        "deleted": "Import deleted.",
+        "failed": "We couldn't do this. Please try again."
+      },
+      "columns": {
+        "title": "Match your columns",
+        "help": "Check which column of your file fills each field. Fields marked required must be matched.",
+        "loadFailed": "We couldn't read this file. Please try again.",
+        "or": "or",
+        "columnOption": "{letter}: {header}",
+        "saveFailed": "We couldn't start the check. Please try again.",
+        "check": "Check the file",
+        "checking": "Starting…",
+        "reading": {
+          "title": "How the file is read",
+          "detectedCsv": "Read as text. Encoding: {encoding}. Separator: {delimiter}.",
+          "detectedSheet": "Read from the sheet \"{sheet}\".",
+          "encoding": "Encoding",
+          "auto": "Detect automatically",
+          "delimiter": {
+            "label": "Separator",
+            "comma": "Comma (,)",
+            "semicolon": "Semicolon (;)",
+            "tab": "Tab",
+            "pipe": "Bar (|)"
+          },
+          "encodingHint": "If names look broken, for example with strange symbols, choose another encoding.",
+          "sheet": "Sheet",
+          "firstSheet": "First sheet",
+          "formulas": "{count, plural, one {# cell has a formula.} other {# cells have formulas.}} The value the spreadsheet saved is used.",
+          "merged": "{count, plural, one {# group of merged cells.} other {# groups of merged cells.}} Only the top-left cell of each holds a value."
+        },
+        "preview": {
+          "title": "The first rows of your file",
+          "empty": "The file has no rows below the headings.",
+          "row": "Row",
+          "noHeading": "(no heading)",
+          "example": "Example"
+        },
+        "mapping": {
+          "title": "Fields",
+          "help": "Each column of your file can fill one field.",
+          "required": "Required",
+          "oneOf": "One of these is needed",
+          "none": "Not in my file",
+          "columnFor": "Column for {field}",
+          "sample": "For example: {values}",
+          "missing": "Still to match: {fields}."
+        },
+        "options": {
+          "title": "Dates and saving",
+          "dateSystem": "Dates written as text are in the",
+          "GREGORIAN": "Gregorian calendar",
+          "ETHIOPIAN": "Ethiopian calendar",
+          "dateHint": "Date cells of a spreadsheet are always read as they are."
+        },
+        "profiles": {
+          "apply": "Use a saved match",
+          "choose": "Choose…",
+          "delete": "Delete saved match",
+          "deleteTitle": "Delete this saved match?",
+          "deleteBody": "Imports that already used it keep their columns.",
+          "deleteFailed": "We couldn't delete it. Please try again.",
+          "deleted": "Saved match deleted.",
+          "applied": "Used the saved match \"{name}\".",
+          "unmatched": "{count, plural, one {# field has no column with that heading in this file.} other {# fields have no column with that heading in this file.}}",
+          "saveAs": "Save this match as (optional)",
+          "saveHint": "Next time you upload a file with the same headings, the columns are matched for you."
+        }
+      },
+      "progress": {
+        "label": "Progress",
+        "rows": "{done} of {total} rows",
+        "starting": "Starting…",
+        "check": {
+          "title": "Checking your file…",
+          "body": "Nothing is added to the school yet. You can leave this page. The check keeps running, and you can come back to it from the Import list."
+        },
+        "apply": {
+          "title": "Importing…",
+          "body": "You can leave this page. The import keeps running, and you can come back to it from the Import list."
+        }
+      },
+      "checkFailed": {
+        "title": "The check stopped",
+        "row": "Row {row}",
+        "again": "Check again",
+        "changeColumns": "Change columns",
+        "failed": "We couldn't start the check. Please try again."
+      },
+      "review": {
+        "title": "Review before importing",
+        "help": "Nothing has been added yet. Look at the problems and decide the possible duplicates, then import.",
+        "recheckFailed": "We couldn't start the check. Please try again.",
+        "failedTitle": "The import stopped",
+        "failedRow": "Row {row}",
+        "failedHelp": "Rows that were already imported stay. Try again to continue with the rest.",
+        "purged": "The rows of this import were deleted after the retention period. Only the totals remain.",
+        "checkAgain": "Check again",
+        "changeColumns": "Change columns",
+        "counts": {
+          "total": "Rows in the file",
+          "create": "Will be added",
+          "update": "Will be updated",
+          "unchanged": "No change",
+          "invalid": "Have problems",
+          "duplicates": "Need your decision"
+        },
+        "commit": {
+          "title": "Import",
+          "skipInvalid": "{count, plural, one {Leave out the # row with problems and import the rest} other {Leave out the # rows with problems and import the rest}}",
+          "skipInvalidHint": "Rows with problems are not added. Download the problem report to fix them and import them later.",
+          "blocked": {
+            "duplicates": "{count, plural, one {Decide the # possible duplicate first.} other {Decide the # possible duplicates first.}}",
+            "invalid": "{count, plural, one {# row has a problem.} other {# rows have problems.}} Fix the file, or choose to leave them out.",
+            "nothing": "There is nothing to import."
+          },
+          "button": "Import…",
+          "resume": "Try again",
+          "resumeTitle": "Continue the import?",
+          "resumeBody": "The rows that were already imported are not added twice.",
+          "confirmTitle": "Import these rows?",
+          "confirmBody": "This changes the school. Check the numbers before you continue.",
+          "plan": {
+            "create": "{count, plural, one {# row will be added} other {# rows will be added}}",
+            "update": "{count, plural, one {# row will update an existing record} other {# rows will update existing records}}",
+            "unchanged": "{count, plural, one {# row changes nothing} other {# rows change nothing}}",
+            "skipped": "{count, plural, one {# row is left out} other {# rows are left out}}"
+          },
+          "contactsNote": "Parent contacts in the file are saved for a later invitation. Nobody is invited and no account is made.",
+          "failed": "We couldn't start the import. Please try again.",
+          "checkAgainHelp": "Check the file again before importing.",
+          "cancel": "Cancel",
+          "checkAgain": "Check again",
+          "confirm": "Import"
+        },
+        "report": {
+          "download": "Download problem report",
+          "failed": "We couldn't download the report. Please try again."
+        },
+        "filters": {
+          "label": "Show rows",
+          "ALL": "All",
+          "INVALID": "Problems",
+          "DUPLICATE": "Possible duplicates",
+          "VALID": "Ready",
+          "SKIPPED": "Left out"
+        },
+        "rows": {
+          "title": "Rows",
+          "loadFailed": "We couldn't load the rows. Please try again.",
+          "empty": "No rows here.",
+          "row": "Row {number}",
+          "errors": "Problems",
+          "warnings": "Warnings",
+          "original": "Show the row as in your file",
+          "applied": {
+            "CREATED": "Added",
+            "UPDATED": "Updated",
+            "UNCHANGED": "No change",
+            "SKIPPED": "Left out"
+          },
+          "decided": {
+            "LINK": "Same person",
+            "CREATE_NEW": "Add as new",
+            "SKIP": "Left out"
+          },
+          "status": {
+            "DUPLICATE": "Needs a decision",
+            "INVALID": "Has problems",
+            "SKIPPED": "Left out"
+          },
+          "action": {
+            "CREATE": "Will be added",
+            "UPDATE": "Will be updated",
+            "NONE": "No change"
+          }
+        },
+        "duplicates": {
+          "question": "Is this the same student as one that is already in the school?",
+          "number": "No. {number}",
+          "similarity": "{percent}% alike",
+          "sameBirth": "same date of birth",
+          "nearBirth": "born within a year",
+          "link": "Same person",
+          "createNew": "Add as a new student",
+          "skip": "Leave this row out",
+          "failed": "We couldn't save your decision. Please try again."
+        }
+      },
+      "done": {
+        "title": "The import is finished",
+        "created": "Added",
+        "updated": "Updated",
+        "unchanged": "No change",
+        "skipped": "Left out",
+        "contacts": "{count, plural, one {# parent contact saved for invitation} other {# parent contacts saved for invitation}}",
+        "contactsNote": "Nobody is invited yet and no account was made.",
+        "goTo": {
+          "STUDENTS": "Go to students",
+          "STAFF": "Go to teachers",
+          "CLASSES": "Go to classes",
+          "ENROLLMENTS": "Go to classes",
+          "GRADE_LEVELS": "Go to the academic year",
+          "SUBJECTS": "Go to the academic year"
+        },
+        "another": "Import another file",
+        "report": "Download problem report",
+        "reportFailed": "We couldn't download the report. Please try again."
+      },
+      "cancelled": {
+        "title": "This import was cancelled",
+        "body": "Nothing was added to the school. Start a new import to try again."
+      }
     }
   }
 }

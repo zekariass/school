@@ -8,6 +8,7 @@ const ADMIN = [
   "school.academic.manage",
   "school.staff.manage",
   "school.students.manage",
+  "school.import.manage",
   "class.manage",
 ];
 
@@ -22,10 +23,24 @@ describe("navItems", () => {
       "classes",
       "students",
       "teachers",
+      "import",
       "academic",
       "settings",
       "features",
     ]);
+  });
+
+  it("shows the import section only with school.import.manage", () => {
+    const withImport: MeLike = {
+      scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["school.import.manage"] }],
+    };
+    expect(navItems(schoolAccess(withImport, "sunrise"))).toEqual(["dashboard", "import"]);
+    const campusAdmin: MeLike = {
+      scopes: [{ scope: { type: "CAMPUS" }, schoolSlug: "sunrise", permissions: ["school.read", "class.manage"] }],
+    };
+    expect(navItems(schoolAccess(campusAdmin, "sunrise"))).not.toContain("import");
+    expect(navItems(schoolAccess(teacher, "sunrise"))).not.toContain("import");
+    expect(navItems(schoolAccess(withImport, "moon"))).not.toContain("import");
   });
 
   it("gives teachers the dashboard and their classes only", () => {
