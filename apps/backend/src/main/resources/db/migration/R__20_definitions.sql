@@ -101,7 +101,16 @@ from (values
   ('messaging.teacher_hours', 'messaging',
    '{"type": ["object", "null"], "properties": {"days": {"type": "array", "items": {"type": "integer", "minimum": 1, "maximum": 7}, "minItems": 1, "maxItems": 7}, "start": {"type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"}, "end": {"type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"}}, "required": ["days", "start", "end"], "additionalProperties": false}',
    'null',
-   'Optional office hours (ISO weekdays 1-7, school-local times); messages outside them are delivered silently')
+   'Optional office hours (ISO weekdays 1-7, school-local times); messages outside them are delivered silently'),
+  ('classes.teachers_can_create', 'classes',
+   '{"type": "boolean"}', 'true',
+   'Teachers of the school may create their own classes (they become the lead teacher)'),
+  ('students.login_code.ttl_days', 'students',
+   '{"type": "integer", "minimum": 1, "maximum": 730}', '365',
+   'Days a student QR or text login code stays valid when the issuer does not choose'),
+  ('students.password_login.enabled', 'students',
+   '{"type": "boolean"}', 'false',
+   'Managed students may sign in with a username and password (older students); otherwise only login codes work')
 ) as d(key, module, value_schema, default_value, description)
 on conflict (key) do update
   set module = excluded.module,

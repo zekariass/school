@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Guard Flyway migrations on a pull request.
 #
-#   1. Migrations that already exist on the base branch must not be modified,
-#      renamed or deleted (applied migrations are immutable).
+#   1. Versioned migrations (V*.sql) that already exist on the base branch must not be
+#      modified, renamed or deleted (applied migrations are immutable). Repeatable
+#      migrations (R__*.sql, the code-owned seed data) are meant to be edited and are exempt.
 #   2. New migrations must have a version strictly greater than the highest
 #      version on the base branch (no out-of-order migrations).
 #
@@ -25,7 +26,7 @@ status=0
 
 # --- 1. immutability ---------------------------------------------------------
 # -M so renames are reported as R (an unmodified rename is still a violation).
-violations="$(git diff --name-status -M --diff-filter=MDR "${BASE_REF}...HEAD" -- "${DIR}/")"
+violations="$(git diff --name-status -M --diff-filter=MDR "${BASE_REF}...HEAD" -- ":(glob)${DIR}/V*.sql")"
 if [[ -n "${violations}" ]]; then
   echo "::error title=Migration changed::Applied Flyway migrations are immutable; add a new migration instead."
   echo "These existing migrations were modified, renamed or deleted:" >&2

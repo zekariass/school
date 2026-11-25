@@ -13,6 +13,46 @@
     "bearer" : [ ]
   } ],
   "paths" : {
+    "/api/v1/auth/login-code" : {
+      "post" : {
+        "operationId" : "signInWithLoginCode",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginCodeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Sign in a student with the QR token or text code their teacher printed (case and hyphen are ignored); every failure is the same 400 auth.invalid_code",
+        "tags" : [ "auth" ]
+      }
+    },
     "/api/v1/auth/logout" : {
       "post" : {
         "operationId" : "logout",
@@ -357,6 +397,47 @@
           }
         },
         "summary" : "Use a READY AVATAR upload of mine as my avatar (the previous file is deleted)",
+        "tags" : [ "me" ]
+      }
+    },
+    "/api/v1/me/classes" : {
+      "get" : {
+        "operationId" : "listMyClasses",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "includeArchived",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MyClass"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The caller's classes as student or teacher across schools, with school and the caller's role (at most 200, active only unless includeArchived)",
         "tags" : [ "me" ]
       }
     },
@@ -2899,10 +2980,2731 @@
         "summary" : "A school's id, name and status from its slug; 404 when unknown or when the caller cannot read it",
         "tags" : [ "schools" ]
       }
+    },
+    "/api/v1/schools/{schoolId}/academic-years" : {
+      "get" : {
+        "operationId" : "listAcademicYears",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AcademicYearView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The school's academic years, newest first (a short list, no paging)",
+        "tags" : [ "academic-structure" ]
+      },
+      "post" : {
+        "operationId" : "createAcademicYear",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateYearRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AcademicYearView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Create an academic year (PLANNED unless stated); makeCurrent also makes it the school's current year",
+        "tags" : [ "academic-structure" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/academic-years/{yearId}" : {
+      "delete" : {
+        "operationId" : "deleteAcademicYear",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "yearId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a year with its periods; 409 when it is current or classes use it",
+        "tags" : [ "academic-structure" ]
+      },
+      "get" : {
+        "operationId" : "getAcademicYear",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "yearId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AcademicYearView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One academic year",
+        "tags" : [ "academic-structure" ]
+      },
+      "patch" : {
+        "operationId" : "updateAcademicYear",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "yearId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateYearRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AcademicYearView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change name, dates or status (absent fields stay); 409 when the new dates cut off a period or the current year would be closed",
+        "tags" : [ "academic-structure" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/academic-years/{yearId}/make-current" : {
+      "post" : {
+        "operationId" : "makeAcademicYearCurrent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "yearId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AcademicYearView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Make this the school's only current year (the previous current year stays as it is; a CLOSED year cannot be current)",
+        "tags" : [ "academic-structure" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/academic-years/{yearId}/periods" : {
+      "get" : {
+        "operationId" : "listAcademicPeriods",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "yearId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AcademicPeriodView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The year's periods in sequence order",
+        "tags" : [ "academic-structure" ]
+      },
+      "post" : {
+        "operationId" : "createAcademicPeriod",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "yearId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreatePeriodRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AcademicPeriodView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add a period: within the year, no overlap with other periods (409 academic.period_overlap), unique sequence (defaults to the next)",
+        "tags" : [ "academic-structure" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/academic-years/{yearId}/periods/{periodId}" : {
+      "delete" : {
+        "operationId" : "deleteAcademicPeriod",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "yearId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "periodId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a period",
+        "tags" : [ "academic-structure" ]
+      },
+      "patch" : {
+        "operationId" : "updateAcademicPeriod",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "yearId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "periodId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdatePeriodRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AcademicPeriodView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change a period (same rules as creating one)",
+        "tags" : [ "academic-structure" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes" : {
+      "get" : {
+        "operationId" : "listClasses",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "academicYearId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "gradeLevelId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "campusId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "ARCHIVED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "classType",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "HOMEROOM", "SUBJECT", "CLUB", "OTHER" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "mine",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        }, {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageClassView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Classes the caller may see (students and teachers: their own; administrators: all in scope), by name; filters year, grade, campus, status, type, mine, q",
+        "tags" : [ "classes" ]
+      },
+      "post" : {
+        "operationId" : "createClass",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateClassRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClassView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Create a class: needs class.manage, or be a teacher of the school while classes.teachers_can_create is on (the teacher becomes lead)",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}" : {
+      "delete" : {
+        "operationId" : "deleteClass",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a class that never had students (and no teacher besides its first lead); otherwise 409 class.not_empty, archive it instead",
+        "tags" : [ "classes" ]
+      },
+      "get" : {
+        "operationId" : "getClass",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClassView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One class the caller may see; 404 otherwise",
+        "tags" : [ "classes" ]
+      },
+      "patch" : {
+        "operationId" : "updateClass",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateClassRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClassView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change a class (lead teacher or class.manage; campus and year only with class.manage); subjectIds replaces the set",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/archive" : {
+      "post" : {
+        "operationId" : "archiveClass",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClassView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Archive a class: it stays readable and keeps its members, but its roster can no longer change",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/groups" : {
+      "get" : {
+        "operationId" : "listClassGroups",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/StudentGroupView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Saved student groups of the class (teachers of the class)",
+        "tags" : [ "classes" ]
+      },
+      "post" : {
+        "operationId" : "createClassGroup",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateGroupRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StudentGroupView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Save a group of the class's students (a result of the group maker)",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/groups/{groupId}" : {
+      "delete" : {
+        "operationId" : "deleteClassGroup",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "groupId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a saved group",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/login-codes" : {
+      "post" : {
+        "operationId" : "issueClassLoginCodes",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IssueCodesRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/IssuedCode"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Issue new login codes for students of the class (default: all ACTIVE students); their previous live codes are revoked. The plaintext codes are in this response only, with Cache-Control: no-store",
+        "tags" : [ "student-login-codes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/login-codes/{codeId}" : {
+      "delete" : {
+        "operationId" : "revokeClassLoginCode",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "codeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Revoke one login code of the class's sheet",
+        "tags" : [ "student-login-codes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/restore" : {
+      "post" : {
+        "operationId" : "restoreClass",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClassView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Make an archived class active again",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/students" : {
+      "get" : {
+        "operationId" : "listClassStudents",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RosterStudent"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The class's ACTIVE students by name (at most 500, no paging). Date of birth, gender and username only for teachers of the class and school.students.manage (accessLevel FULL); everybody else gets name and avatar",
+        "tags" : [ "classes" ]
+      },
+      "post" : {
+        "operationId" : "addClassStudents",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AddStudentsRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RosterStudent"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add students of the school to the class (all or none; 409 when one is not enrolled or already a member)",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/students/{studentId}" : {
+      "delete" : {
+        "operationId" : "removeClassStudent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "reason",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "REMOVED", "PROMOTED", "TRANSFERRED_CLASS", "LEFT_SCHOOL" ]
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "End a student's membership (history is kept); reason REMOVED (default) or PROMOTED",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/students/{studentId}/move" : {
+      "post" : {
+        "operationId" : "moveClassStudent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MoveStudentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Move a student to another class of the school: ends this membership (TRANSFERRED_CLASS) and starts the new one, atomically",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/teachers" : {
+      "get" : {
+        "operationId" : "listClassTeachers",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClassTeacherView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The class's ACTIVE teachers: lead first",
+        "tags" : [ "classes" ]
+      },
+      "post" : {
+        "operationId" : "addClassTeacher",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AddTeacherRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClassTeacherView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add a teacher of the school (lead teacher or class.manage); SUBJECT_TEACHER needs subjectId",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/teachers/{classTeacherId}" : {
+      "delete" : {
+        "operationId" : "removeClassTeacher",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classTeacherId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Remove a teacher row (lead or class.manage; any non-lead teacher may remove herself); the last lead cannot be removed (409 class.last_lead)",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/grade-levels" : {
+      "get" : {
+        "operationId" : "listGradeLevels",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/GradeLevelView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The school's grade levels in sequence order",
+        "tags" : [ "academic-structure" ]
+      },
+      "post" : {
+        "operationId" : "createGradeLevel",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateGradeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GradeLevelView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add a grade level (sequence defaults to the next; unique per school)",
+        "tags" : [ "academic-structure" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/grade-levels/{gradeId}" : {
+      "delete" : {
+        "operationId" : "deleteGradeLevel",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "gradeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a grade level; 409 when classes use it (deactivate it instead)",
+        "tags" : [ "academic-structure" ]
+      },
+      "patch" : {
+        "operationId" : "updateGradeLevel",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "gradeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateGradeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GradeLevelView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change a grade level, or deactivate it",
+        "tags" : [ "academic-structure" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff" : {
+      "get" : {
+        "operationId" : "listStaff",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "staffType",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "ADMINISTRATOR", "SUPPORT_STAFF" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "INVITED", "ACTIVE", "SUSPENDED", "FORMER" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "campusId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageStaffView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Staff by name; filters staffType, status, campusId, q. Managers see every status and masked contacts, other staff only ACTIVE colleagues",
+        "tags" : [ "staff" ]
+      },
+      "post" : {
+        "operationId" : "addStaff",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AddStaffRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add a person to the school's staff by phone or email: finds their account or creates one the administrator vouches for; 409 staff.already_member when they are staff already",
+        "tags" : [ "staff" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff/{staffId}" : {
+      "get" : {
+        "operationId" : "getStaff",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "staffId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One staff member",
+        "tags" : [ "staff" ]
+      },
+      "patch" : {
+        "operationId" : "updateStaff",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "staffId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateStaffRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change job title, campus or employee number (absent fields stay)",
+        "tags" : [ "staff" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff/{staffId}/deactivate" : {
+      "post" : {
+        "operationId" : "deactivateStaff",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "staffId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Mark the staff member FORMER (ended today) and end their class teaching; administrative roles are not touched",
+        "tags" : [ "staff" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students" : {
+      "get" : {
+        "operationId" : "listStudents",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "gradeLevelId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "campusId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "ACTIVE", "TRANSFERRED", "GRADUATED", "WITHDRAWN" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageStudentView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Students by name (ACTIVE unless status is given); filters classId, gradeLevelId, campusId, status, q. School.students.manage sees all, teachers the students of their classes",
+        "tags" : [ "students" ]
+      },
+      "post" : {
+        "operationId" : "createStudent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateStudentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StudentView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Create a school-managed student (no phone or email) and enroll them; optionally straight into a class. Needs school.students.manage, or be a teacher of that class",
+        "tags" : [ "students" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}" : {
+      "get" : {
+        "operationId" : "getStudent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StudentView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One student: FULL for managers, the student and their teachers; BASIC (name, avatar) for classmates and class administrators; 404 for everybody else",
+        "tags" : [ "students" ]
+      },
+      "patch" : {
+        "operationId" : "updateStudent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateStudentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StudentView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change a student's details (school.students.manage); the student themself may change only avatarConfig",
+        "tags" : [ "students" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/login-codes" : {
+      "get" : {
+        "operationId" : "listStudentLoginCodes",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/LoginCodeInfo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Metadata of the student's live login codes (never the codes); managers and teachers of the student",
+        "tags" : [ "students" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/login-codes/revoke" : {
+      "post" : {
+        "operationId" : "revokeStudentLoginCodes",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RevokedCodes"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Revoke every live login code of the student",
+        "tags" : [ "students" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/password" : {
+      "post" : {
+        "operationId" : "setStudentPassword",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SetPasswordRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Set an initial password (the student must change it); only while the school allows password sign-in (409 student.password_login_disabled) and the student has a username",
+        "tags" : [ "students" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/withdraw" : {
+      "post" : {
+        "operationId" : "withdrawStudent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/WithdrawRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StudentView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Withdraw a student from the school: class memberships end, login codes are revoked, history stays",
+        "tags" : [ "students" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/subjects" : {
+      "get" : {
+        "operationId" : "listSubjects",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SubjectView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The school's subjects by name",
+        "tags" : [ "academic-structure" ]
+      },
+      "post" : {
+        "operationId" : "createSubject",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateSubjectRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubjectView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add a subject (code unique per school, case-insensitive)",
+        "tags" : [ "academic-structure" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/subjects/{subjectId}" : {
+      "delete" : {
+        "operationId" : "deleteSubject",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "subjectId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a subject; 409 when classes use it (deactivate it instead)",
+        "tags" : [ "academic-structure" ]
+      },
+      "patch" : {
+        "operationId" : "updateSubject",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "subjectId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateSubjectRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubjectView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change a subject, or deactivate it",
+        "tags" : [ "academic-structure" ]
+      }
     }
   },
   "components" : {
     "schemas" : {
+      "AcademicPeriodView" : {
+        "type" : "object",
+        "properties" : {
+          "academicYearId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "endsOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "periodType" : {
+            "type" : "string",
+            "enum" : [ "TERM", "SEMESTER", "QUARTER", "CUSTOM" ]
+          },
+          "sequence" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "startsOn" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "academicYearId", "endsOn", "id", "name", "periodType", "sequence", "startsOn" ]
+      },
+      "AcademicYearView" : {
+        "type" : "object",
+        "properties" : {
+          "current" : {
+            "type" : "boolean",
+            "description" : "Exactly one year of a school is current"
+          },
+          "endsOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "startsOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PLANNED", "ACTIVE", "CLOSED" ]
+          }
+        },
+        "required" : [ "current", "endsOn", "id", "name", "startsOn", "status" ]
+      },
+      "AddStaffRequest" : {
+        "type" : "object",
+        "description" : "Set exactly one of phone or email (national phone formats are read in `country`, default ET). adminRole is only for ADMINISTRATOR.",
+        "properties" : {
+          "adminRole" : {
+            "type" : "string",
+            "enum" : [ "SCHOOL_ADMIN", "CAMPUS_ADMIN", "SCHOOL_STAFF" ]
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "country" : {
+            "type" : "string",
+            "pattern" : "^[A-Za-z]{2}$"
+          },
+          "displayName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "email" : {
+            "type" : "string",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "employeeNumber" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "familyName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "givenName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "jobTitle" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "phone" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "preferredLanguage" : {
+            "type" : "string",
+            "pattern" : "^[a-z]{2,3}$"
+          },
+          "staffType" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "ADMINISTRATOR", "SUPPORT_STAFF" ]
+          }
+        },
+        "required" : [ "givenName", "staffType" ]
+      },
+      "AddStudentsRequest" : {
+        "type" : "object",
+        "properties" : {
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 200,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "studentIds" ]
+      },
+      "AddTeacherRequest" : {
+        "type" : "object",
+        "properties" : {
+          "role" : {
+            "type" : "string",
+            "enum" : [ "LEAD", "CO_TEACHER", "SUBJECT_TEACHER", "ASSISTANT" ]
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "teacherId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "role", "teacherId" ]
+      },
       "AdministrativeAreaResponse" : {
         "type" : "object",
         "properties" : {
@@ -3102,6 +5904,120 @@
         },
         "required" : [ "channel", "enabled", "locked" ]
       },
+      "ClassTeacherView" : {
+        "type" : "object",
+        "properties" : {
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Roster row id, used to remove the teacher"
+          },
+          "joinedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "role" : {
+            "type" : "string",
+            "enum" : [ "LEAD", "CO_TEACHER", "SUBJECT_TEACHER", "ASSISTANT" ]
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "subjectName" : {
+            "type" : "string"
+          },
+          "teacherId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "displayName", "id", "joinedAt", "role", "teacherId" ]
+      },
+      "ClassView" : {
+        "type" : "object",
+        "properties" : {
+          "academicYearId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "academicYearName" : {
+            "type" : "string"
+          },
+          "archivedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classType" : {
+            "type" : "string",
+            "enum" : [ "HOMEROOM", "SUBJECT", "CLUB", "OTHER" ]
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "gradeLevelName" : {
+            "type" : "string"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "myMembership" : {
+            "type" : "string",
+            "description" : "How the caller belongs to this class; absent for administrators who only manage it",
+            "enum" : [ "STUDENT", "TEACHER" ]
+          },
+          "myTeacherRole" : {
+            "type" : "string",
+            "description" : "The caller's teacher role when myMembership is TEACHER",
+            "enum" : [ "LEAD", "CO_TEACHER", "SUBJECT_TEACHER", "ASSISTANT" ]
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "ARCHIVED" ]
+          },
+          "studentCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "subjectIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "teacherCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "academicYearId", "academicYearName", "classType", "id", "name", "schoolId", "status", "studentCount", "subjectIds", "teacherCount" ]
+      },
       "ContextRef" : {
         "type" : "object",
         "properties" : {
@@ -3230,6 +6146,102 @@
         },
         "required" : [ "name" ]
       },
+      "CreateClassRequest" : {
+        "type" : "object",
+        "properties" : {
+          "academicYearId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classType" : {
+            "type" : "string",
+            "enum" : [ "HOMEROOM", "SUBJECT", "CLUB", "OTHER" ]
+          },
+          "color" : {
+            "type" : "string",
+            "pattern" : "^#[0-9a-fA-F]{6}$"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "icon" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 200,
+            "minItems" : 0
+          },
+          "subjectIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "name" ]
+      },
+      "CreateGradeRequest" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "sequence" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 1000,
+            "minimum" : 0
+          }
+        },
+        "required" : [ "name" ]
+      },
+      "CreateGroupRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 200,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "name", "studentIds" ]
+      },
       "CreateOrganizationRequest" : {
         "type" : "object",
         "properties" : {
@@ -3256,6 +6268,35 @@
           }
         },
         "required" : [ "countryCode", "name", "slug" ]
+      },
+      "CreatePeriodRequest" : {
+        "type" : "object",
+        "properties" : {
+          "endsOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "periodType" : {
+            "type" : "string",
+            "enum" : [ "TERM", "SEMESTER", "QUARTER", "CUSTOM" ]
+          },
+          "sequence" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 100,
+            "minimum" : 1
+          },
+          "startsOn" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "endsOn", "name", "periodType", "startsOn" ]
       },
       "CreateRoleAssignmentRequest" : {
         "type" : "object",
@@ -3360,6 +6401,84 @@
         },
         "required" : [ "countryCode", "name", "slug" ]
       },
+      "CreateStudentRequest" : {
+        "type" : "object",
+        "properties" : {
+          "admissionOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "Avatar builder configuration, a JSON object owned by the clients"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "dateOfBirth" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "familyName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "gender" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "givenName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "middleName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "studentNumber" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "username" : {
+            "type" : "string",
+            "description" : "Lower case, starts with a letter, 3-31 of a-z 0-9 . _ - ; unique across the platform",
+            "maxLength" : 31,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "givenName" ]
+      },
+      "CreateSubjectRequest" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "color" : {
+            "type" : "string",
+            "pattern" : "^#[0-9a-fA-F]{6}$"
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "name" ]
+      },
       "CreateUserRequest" : {
         "type" : "object",
         "properties" : {
@@ -3398,6 +6517,32 @@
           }
         },
         "required" : [ "givenName" ]
+      },
+      "CreateYearRequest" : {
+        "type" : "object",
+        "properties" : {
+          "endsOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "makeCurrent" : {
+            "type" : "boolean"
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "startsOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PLANNED", "ACTIVE", "CLOSED" ]
+          }
+        },
+        "required" : [ "endsOn", "name", "startsOn" ]
       },
       "CreatedUserResponse" : {
         "type" : "object",
@@ -3485,6 +6630,22 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageClassView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ClassView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageNotificationView" : {
         "type" : "object",
         "properties" : {
@@ -3540,6 +6701,38 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/SchoolResponse"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageStaffView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StaffView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageStudentView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StudentView"
             }
           },
           "nextCursor" : {
@@ -3639,6 +6832,78 @@
         },
         "required" : [ "enabled", "entitled", "flagEnabled", "flagSource", "key" ]
       },
+      "GradeLevelView" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "sequence" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "active", "id", "name", "sequence" ]
+      },
+      "IssueCodesRequest" : {
+        "type" : "object",
+        "properties" : {
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 200,
+            "minItems" : 0
+          },
+          "ttlDays" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Days the codes stay valid (1-730); default setting students.login_code.ttl_days",
+            "maximum" : 730,
+            "minimum" : 1
+          },
+          "type" : {
+            "type" : "string",
+            "description" : "QR, TEXT or BOTH (default TEXT)",
+            "enum" : [ "QR", "TEXT", "BOTH" ]
+          }
+        }
+      },
+      "IssuedCode" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "qrToken" : {
+            "type" : "string"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "textCode" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayName", "expiresAt", "studentId" ]
+      },
       "JsonNode" : { },
       "LanguageResponse" : {
         "type" : "object",
@@ -3661,6 +6926,52 @@
           }
         },
         "required" : [ "code", "direction", "name", "nativeName" ]
+      },
+      "LoginCodeInfo" : {
+        "type" : "object",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "expired" : {
+            "type" : "boolean"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lastUsedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "type" : {
+            "type" : "string",
+            "description" : "QR or TEXT",
+            "enum" : [ "QR", "TEXT", "BOTH" ]
+          }
+        },
+        "required" : [ "createdAt", "expired", "id", "type" ]
+      },
+      "LoginCodeRequest" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "description" : "A QR token or a text code such as K7M2P-9XQ4T",
+            "maxLength" : 64,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "code" ]
       },
       "MarkedRead" : {
         "type" : "object",
@@ -3712,6 +7023,13 @@
             "type" : "string",
             "format" : "date-time"
           },
+          "memberships" : {
+            "type" : "array",
+            "description" : "ACTIVE school memberships as teacher, student or other staff (not administrative roles, which are in roleAssignments); clients build navigation and the mobile role from them",
+            "items" : {
+              "$ref" : "#/components/schemas/SchoolMembership"
+            }
+          },
           "middleName" : {
             "type" : "string"
           },
@@ -3748,7 +7066,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "accountType", "displayName", "emailVerified", "givenName", "hasPassword", "id", "phoneVerified", "roleAssignments", "scopes", "status" ]
+        "required" : [ "accountType", "displayName", "emailVerified", "givenName", "hasPassword", "id", "memberships", "phoneVerified", "roleAssignments", "scopes", "status" ]
       },
       "MediaResponse" : {
         "type" : "object",
@@ -3866,6 +7184,78 @@
           }
         },
         "required" : [ "apiVersion", "buildVersion", "serverTime", "service", "supportedLocales" ]
+      },
+      "MoveStudentRequest" : {
+        "type" : "object",
+        "properties" : {
+          "toClassId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "toClassId" ]
+      },
+      "MyClass" : {
+        "type" : "object",
+        "properties" : {
+          "classType" : {
+            "type" : "string",
+            "enum" : [ "HOMEROOM", "SUBJECT", "CLUB", "OTHER" ]
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "gradeLevelName" : {
+            "type" : "string"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "role" : {
+            "type" : "string",
+            "description" : "The caller's role in this class",
+            "enum" : [ "STUDENT", "TEACHER" ]
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolName" : {
+            "type" : "string"
+          },
+          "schoolSlug" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "ARCHIVED" ]
+          },
+          "studentCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "teacherRole" : {
+            "type" : "string",
+            "description" : "Teacher role when role is TEACHER",
+            "enum" : [ "LEAD", "CO_TEACHER", "SUBJECT_TEACHER", "ASSISTANT" ]
+          }
+        },
+        "required" : [ "classType", "id", "name", "role", "schoolId", "status", "studentCount" ]
       },
       "NotificationView" : {
         "type" : "object",
@@ -4286,6 +7676,16 @@
         },
         "required" : [ "platform", "provider", "token" ]
       },
+      "RevokedCodes" : {
+        "type" : "object",
+        "properties" : {
+          "revoked" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "revoked" ]
+      },
       "RoleAssignmentResponse" : {
         "type" : "object",
         "properties" : {
@@ -4390,6 +7790,48 @@
         },
         "required" : [ "type" ]
       },
+      "RosterStudent" : {
+        "type" : "object",
+        "properties" : {
+          "accessLevel" : {
+            "type" : "string",
+            "enum" : [ "BASIC", "FULL" ]
+          },
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "Avatar builder configuration (monster/avatar), client-defined"
+          },
+          "dateOfBirth" : {
+            "type" : "string",
+            "format" : "date",
+            "description" : "Only with accessLevel FULL"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "gender" : {
+            "type" : "string",
+            "description" : "Only with accessLevel FULL"
+          },
+          "joinedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "username" : {
+            "type" : "string",
+            "description" : "Only with accessLevel FULL"
+          }
+        },
+        "required" : [ "accessLevel", "displayName", "joinedAt", "studentId" ]
+      },
       "SchoolConfigurationResponse" : {
         "type" : "object",
         "properties" : {
@@ -4430,6 +7872,38 @@
           }
         },
         "required" : [ "code", "isDefault" ]
+      },
+      "SchoolMembership" : {
+        "type" : "object",
+        "properties" : {
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolName" : {
+            "type" : "string"
+          },
+          "schoolSlug" : {
+            "type" : "string"
+          },
+          "staffId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "STUDENT", "STAFF" ]
+          }
+        },
+        "required" : [ "schoolId", "schoolName", "schoolSlug", "type" ]
       },
       "SchoolResponse" : {
         "type" : "object",
@@ -4628,6 +8102,17 @@
         },
         "required" : [ "mediaId" ]
       },
+      "SetPasswordRequest" : {
+        "type" : "object",
+        "properties" : {
+          "password" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "password" ]
+      },
       "SettingDefinitionResponse" : {
         "type" : "object",
         "properties" : {
@@ -4719,6 +8204,208 @@
           }
         },
         "required" : [ "digestMode", "timezone" ]
+      },
+      "StaffView" : {
+        "type" : "object",
+        "properties" : {
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "employeeNumber" : {
+            "type" : "string",
+            "description" : "Only for school.staff.manage"
+          },
+          "endedOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "jobTitle" : {
+            "type" : "string"
+          },
+          "maskedEmail" : {
+            "type" : "string",
+            "description" : "Masked; only for school.staff.manage"
+          },
+          "maskedPhone" : {
+            "type" : "string",
+            "description" : "Masked; only for school.staff.manage"
+          },
+          "staffType" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "ADMINISTRATOR", "SUPPORT_STAFF" ]
+          },
+          "startedOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "INVITED", "ACTIVE", "SUSPENDED", "FORMER" ]
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The person's user id (a teacher's id in class rosters)"
+          }
+        },
+        "required" : [ "displayName", "id", "staffType", "status", "userId" ]
+      },
+      "StudentClassRef" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "name" ]
+      },
+      "StudentGroupView" : {
+        "type" : "object",
+        "properties" : {
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          }
+        },
+        "required" : [ "createdAt", "id", "name", "studentIds" ]
+      },
+      "StudentView" : {
+        "type" : "object",
+        "properties" : {
+          "accessLevel" : {
+            "type" : "string",
+            "enum" : [ "BASIC", "FULL" ]
+          },
+          "admissionOn" : {
+            "type" : "string",
+            "format" : "date",
+            "description" : "FULL only"
+          },
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "Avatar builder configuration, client-defined"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "FULL only"
+          },
+          "classes" : {
+            "type" : "array",
+            "description" : "FULL only: ACTIVE classes",
+            "items" : {
+              "$ref" : "#/components/schemas/StudentClassRef"
+            }
+          },
+          "dateOfBirth" : {
+            "type" : "string",
+            "format" : "date",
+            "description" : "FULL only"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "enrollmentId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "FULL only"
+          },
+          "familyName" : {
+            "type" : "string",
+            "description" : "FULL only"
+          },
+          "gender" : {
+            "type" : "string",
+            "description" : "FULL only"
+          },
+          "givenName" : {
+            "type" : "string",
+            "description" : "FULL only"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The student's user id; used in every path and roster"
+          },
+          "leftOn" : {
+            "type" : "string",
+            "format" : "date",
+            "description" : "FULL only"
+          },
+          "middleName" : {
+            "type" : "string",
+            "description" : "FULL only"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "FULL only",
+            "enum" : [ "PENDING", "ACTIVE", "TRANSFERRED", "GRADUATED", "WITHDRAWN" ]
+          },
+          "studentNumber" : {
+            "type" : "string",
+            "description" : "FULL only"
+          },
+          "username" : {
+            "type" : "string",
+            "description" : "FULL only"
+          }
+        },
+        "required" : [ "accessLevel", "displayName", "id" ]
+      },
+      "SubjectView" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "active", "id", "name" ]
       },
       "SubscriptionResponse" : {
         "type" : "object",
@@ -4867,6 +8554,74 @@
         },
         "required" : [ "name", "status" ]
       },
+      "UpdateClassRequest" : {
+        "type" : "object",
+        "properties" : {
+          "academicYearId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classType" : {
+            "type" : "string",
+            "enum" : [ "HOMEROOM", "SUBJECT", "CLUB", "OTHER" ]
+          },
+          "color" : {
+            "type" : "string",
+            "pattern" : "^#[0-9a-fA-F]{6}$"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "icon" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 1
+          },
+          "subjectIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        }
+      },
+      "UpdateGradeRequest" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 1
+          },
+          "sequence" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 1000,
+            "minimum" : 0
+          }
+        }
+      },
       "UpdateMeRequest" : {
         "type" : "object",
         "properties" : {
@@ -4910,6 +8665,34 @@
         },
         "required" : [ "name", "status" ]
       },
+      "UpdatePeriodRequest" : {
+        "type" : "object",
+        "properties" : {
+          "endsOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 1
+          },
+          "periodType" : {
+            "type" : "string",
+            "enum" : [ "TERM", "SEMESTER", "QUARTER", "CUSTOM" ]
+          },
+          "sequence" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 100,
+            "minimum" : 1
+          },
+          "startsOn" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
       "UpdatePreferencesRequest" : {
         "type" : "object",
         "properties" : {
@@ -4951,6 +8734,120 @@
             "type" : "string",
             "description" : "HH:mm in my timezone, or absent for no quiet hours",
             "pattern" : "^([01]\\d|2[0-3]):[0-5]\\d$"
+          }
+        }
+      },
+      "UpdateStaffRequest" : {
+        "type" : "object",
+        "properties" : {
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "employeeNumber" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "jobTitle" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        }
+      },
+      "UpdateStudentRequest" : {
+        "type" : "object",
+        "properties" : {
+          "admissionOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "dateOfBirth" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "familyName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "gender" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "givenName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 1
+          },
+          "middleName" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "studentNumber" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "username" : {
+            "type" : "string",
+            "maxLength" : 31,
+            "minLength" : 0
+          }
+        }
+      },
+      "UpdateSubjectRequest" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string",
+            "maxLength" : 32,
+            "minLength" : 0
+          },
+          "color" : {
+            "type" : "string",
+            "pattern" : "^#[0-9a-fA-F]{6}$"
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 1
+          }
+        }
+      },
+      "UpdateYearRequest" : {
+        "type" : "object",
+        "properties" : {
+          "endsOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 1
+          },
+          "startsOn" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PLANNED", "ACTIVE", "CLOSED" ]
           }
         }
       },
@@ -5088,6 +8985,16 @@
           }
         },
         "required" : [ "type" ]
+      },
+      "WithdrawRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          }
+        }
       }
     },
     "securitySchemes" : {

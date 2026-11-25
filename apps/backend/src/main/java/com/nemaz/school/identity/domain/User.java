@@ -95,6 +95,30 @@ public class User extends BaseEntity {
 		return user;
 	}
 
+	/** A MANAGED, ACTIVE school-managed account without phone or email (R-31). */
+	public static User createManaged(String givenName, String middleName, String familyName, String displayName,
+			LocalDate dateOfBirth, String gender, String username, String preferredLanguageCode) {
+		User user = createByAdmin(givenName, familyName, displayName, null, null, preferredLanguageCode);
+		user.accountType = AccountType.MANAGED;
+		user.middleName = middleName;
+		user.dateOfBirth = dateOfBirth;
+		user.gender = gender;
+		user.username = username;
+		return user;
+	}
+
+	/** Replaces the personal fields of a managed account (callers pass the complete new values). */
+	public void updateManaged(String givenName, String middleName, String familyName, String displayName,
+			LocalDate dateOfBirth, String gender, String username) {
+		this.givenName = givenName;
+		this.middleName = middleName;
+		this.familyName = familyName;
+		this.displayName = displayName;
+		this.dateOfBirth = dateOfBirth;
+		this.gender = gender;
+		this.username = username;
+	}
+
 	public User verifyEmail(Instant at) {
 		this.emailVerifiedAt = at;
 		return this;
@@ -164,6 +188,14 @@ public class User extends BaseEntity {
 
 	public String getGivenName() {
 		return this.givenName;
+	}
+
+	public LocalDate getDateOfBirth() {
+		return this.dateOfBirth;
+	}
+
+	public String getGender() {
+		return this.gender;
 	}
 
 	public String getMiddleName() {

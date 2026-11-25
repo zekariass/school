@@ -34,6 +34,13 @@ import static com.nemaz.school.support.Personas.Name.COUNTRY_ADMIN_ET;
 import static com.nemaz.school.support.Personas.Name.COUNTRY_ADMIN_KE;
 import static com.nemaz.school.support.Personas.Name.ORG_ADMIN;
 import static com.nemaz.school.support.Personas.Name.PLAIN_USER;
+import static com.nemaz.school.support.Personas.Name.STUDENT_A1;
+import static com.nemaz.school.support.Personas.Name.STUDENT_A2;
+import static com.nemaz.school.support.Personas.Name.STUDENT_B1;
+import static com.nemaz.school.support.Personas.Name.STUDENT_FORMER_A;
+import static com.nemaz.school.support.Personas.Name.TEACHER_LEAD_A;
+import static com.nemaz.school.support.Personas.Name.TEACHER_OTHER_A;
+import static com.nemaz.school.support.Personas.Name.TEACHER_SUBJECT_A;
 import static com.nemaz.school.support.Personas.Name.PLATFORM_ADMIN;
 import static com.nemaz.school.support.Personas.Name.SCHOOL_ADMIN_A;
 import static com.nemaz.school.support.Personas.Name.SCHOOL_ADMIN_B;
@@ -101,7 +108,8 @@ class AuthorizationMatrixTest {
 	}
 
 	private static final Name[] EVERY_ACTIVE_PERSONA = { PLATFORM_ADMIN, COUNTRY_ADMIN_ET, COUNTRY_ADMIN_KE, ORG_ADMIN,
-			SCHOOL_ADMIN_A, SCHOOL_ADMIN_B, CAMPUS_ADMIN_A, PLAIN_USER };
+			SCHOOL_ADMIN_A, SCHOOL_ADMIN_B, CAMPUS_ADMIN_A, PLAIN_USER, TEACHER_LEAD_A, TEACHER_SUBJECT_A,
+			TEACHER_OTHER_A, STUDENT_A1, STUDENT_A2, STUDENT_FORMER_A, STUDENT_B1 };
 
 	private static final Name[] READERS_OF_SCHOOL_A = { PLATFORM_ADMIN, COUNTRY_ADMIN_ET, ORG_ADMIN, SCHOOL_ADMIN_A,
 			CAMPUS_ADMIN_A };
@@ -110,6 +118,7 @@ class AuthorizationMatrixTest {
 
 	List<Case> cases() {
 		List<Case> cases = new ArrayList<>();
+		cases.addAll(schoolCases());
 		// --- account and reference data: any signed-in user
 		cases.add(new Case("GET /me", HttpMethod.GET, (f) -> "/api/v1/me", null, allow(200, EVERY_ACTIVE_PERSONA)));
 		cases.add(new Case("GET /reference/countries", HttpMethod.GET, (f) -> "/api/v1/reference/countries", null,
@@ -330,6 +339,252 @@ class AuthorizationMatrixTest {
 		cases.add(new Case("GET audit logs", HttpMethod.GET, (f) -> PLATFORM + "/audit-logs?limit=5", null,
 				allow(200, PLATFORM_ADMIN)));
 		return cases;
+	}
+
+
+	// ---- school structure, people and classes (M3a) ---------------------------------------------------
+
+	private static final String SCHOOLS = "/api/v1/schools/";
+
+	/** Hold the school-operations permissions over school A (platform, its country, its organization, the school). */
+	private static final Name[] SCHOOL_A_MANAGERS = { PLATFORM_ADMIN, COUNTRY_ADMIN_ET, ORG_ADMIN, SCHOOL_ADMIN_A };
+
+	/** See school A (school.read) but run nothing in it (the campus administrator manages classes of campus A only). */
+	private static final Name[] SCHOOL_A_VISITING_ADMINS = { CAMPUS_ADMIN_A };
+
+	private static final Name[] SCHOOL_A_MEMBERS = { TEACHER_LEAD_A, TEACHER_SUBJECT_A, TEACHER_OTHER_A, STUDENT_A1,
+			STUDENT_A2, STUDENT_FORMER_A };
+
+	private static final Name[] SCHOOL_A_TEACHERS = { TEACHER_LEAD_A, TEACHER_SUBJECT_A, TEACHER_OTHER_A };
+
+	private static final Name[] SCHOOL_A_STUDENTS = { STUDENT_A1, STUDENT_A2, STUDENT_FORMER_A };
+
+	@SafeVarargs
+	private static Map<Name, Integer> merge(Map<Name, Integer>... maps) {
+		Map<Name, Integer> merged = new EnumMap<>(Name.class);
+		for (Map<Name, Integer> map : maps) {
+			merged.putAll(map);
+		}
+		return merged;
+	}
+
+	private static Name[] concat(Name[]... groups) {
+		return java.util.Arrays.stream(groups).flatMap(java.util.Arrays::stream).toArray(Name[]::new);
+	}
+
+	/** Visible people of school A without the permission get 403, everybody else (not named) 404. */
+	private static Case school(String name, HttpMethod method, Function<Fixture, String> url,
+			Function<Fixture, Object> body, int success, Name[] allowed, Name[]... forbidden) {
+		Map<Name, Integer> expected = merge(allow(success, allowed), allow(403, concat(forbidden)));
+		return new Case(name, method, url, body, expected, 404);
+	}
+
+	private UUID userOf(Name name) {
+		return this.personas.get(name).userId();
+	}
+
+	/** A class of school A with the lead (TEACHER_LEAD_A), a subject teacher and student A1, fresh per call. */
+	private UUID freshClass(Fixture f) {
+		UUID id = Ids.newId();
+		this.jdbc.update("insert into classes (id, school_id, academic_year_id, name) values (?, ?, ?, ?)", id, f.schoolA(),
+				f.yearA(), "Matrix " + id.toString().substring(24));
+		this.personas.addTeacherToClass(f.schoolA(), id, userOf(TEACHER_LEAD_A), "LEAD", null);
+		this.personas.addTeacherToClass(f.schoolA(), id, userOf(TEACHER_SUBJECT_A), "SUBJECT_TEACHER", f.subjectA());
+		this.personas.addStudentToClass(f.schoolA(), id, userOf(STUDENT_A1));
+		return id;
+	}
+
+	private UUID freshYear(Fixture f) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into academic_years (id, school_id, name, starts_on, ends_on) values (?, ?, 'Matrix year', date '2030-01-01',
+				                                                                              date '2030-12-31')""", id, f.schoolA());
+		return id;
+	}
+
+	private UUID staffIdOf(Name name) {
+		return this.jdbc.queryForObject("select id from school_staff where user_id = ?", UUID.class, userOf(name));
+	}
+
+	List<Case> schoolCases() {
+		List<Case> cases = new ArrayList<>();
+		Name[] readers = concat(READERS_OF_SCHOOL_A, SCHOOL_A_MEMBERS);
+		Name[] teachingMembers = { TEACHER_LEAD_A, TEACHER_SUBJECT_A };
+
+		// --- academic structure: members read, school.academic.manage writes
+		cases.add(school("GET academic years", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/academic-years", null, 200,
+				readers));
+		cases.add(school("POST academic year", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/academic-years",
+				(f) -> Map.of("name", "Matrix", "startsOn", "2031-01-01", "endsOn", "2031-12-31"), 201, SCHOOL_A_MANAGERS,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET academic year", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/academic-years/" + f.yearA(), null, 200, readers));
+		cases.add(school("PATCH academic year", HttpMethod.PATCH,
+				(f) -> SCHOOLS + f.schoolA() + "/academic-years/" + f.yearA(), (f) -> Map.of("name", "Persona year"), 200,
+				SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST make year current", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/academic-years/" + f.yearA() + "/make-current", null, 200,
+				SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("DELETE academic year", HttpMethod.DELETE,
+				(f) -> SCHOOLS + f.schoolA() + "/academic-years/" + freshYear(f), null, 204, SCHOOL_A_MANAGERS,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET periods", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/academic-years/" + f.yearA() + "/periods", null, 200, readers));
+		cases.add(school("POST period", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/academic-years/" + freshYear(f) + "/periods",
+				(f) -> Map.of("name", "Term 1", "periodType", "TERM", "startsOn", "2030-02-01", "endsOn", "2030-03-01"), 201,
+				SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET grade levels", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/grade-levels", null, 200,
+				readers));
+		cases.add(school("POST grade level", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/grade-levels",
+				(f) -> Map.of("name", "Matrix grade"), 201, SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET subjects", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/subjects", null, 200, readers));
+		cases.add(school("POST subject", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/subjects",
+				(f) -> Map.of("name", "Matrix subject"), 201, SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS,
+				SCHOOL_A_MEMBERS));
+
+		// --- classes
+		Name[] classAdmins = SCHOOL_A_MANAGERS;
+		Name[] classViewers8A = concat(classAdmins, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A, STUDENT_A1 });
+		cases.add(school("GET classes (filtered to what the caller may see)", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/classes", null, 200, readers));
+		cases.add(school("POST class", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/classes",
+				(f) -> Map.of("name", "Matrix class"), 201, concat(classAdmins, SCHOOL_A_TEACHERS),
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		cases.add(school("GET class 8A", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A(), null,
+				200, classViewers8A));
+		cases.add(school("PATCH class 8A", HttpMethod.PATCH, (f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A(),
+				(f) -> Map.of("name", "8A"), 200, concat(classAdmins, new Name[] { TEACHER_LEAD_A }),
+				new Name[] { TEACHER_SUBJECT_A, STUDENT_A1 }));
+		cases.add(school("POST archive class", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/archive", null, 200,
+				concat(classAdmins, new Name[] { TEACHER_LEAD_A }), new Name[] { TEACHER_SUBJECT_A, STUDENT_A1 }));
+		cases.add(school("POST restore class", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/restore", null, 200,
+				concat(classAdmins, new Name[] { TEACHER_LEAD_A }), new Name[] { TEACHER_SUBJECT_A, STUDENT_A1 }));
+		cases.add(school("DELETE empty class", HttpMethod.DELETE, (f) -> {
+			UUID id = Ids.newId();
+			this.jdbc.update("insert into classes (id, school_id, academic_year_id, name) values (?, ?, ?, 'Empty')", id,
+					f.schoolA(), f.yearA());
+			return SCHOOLS + f.schoolA() + "/classes/" + id;
+		}, null, 204, classAdmins));
+
+		// --- rosters
+		Name[] classTeachers = concat(classAdmins, teachingMembers);
+		cases.add(school("GET class students", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A() + "/students", null, 200, classViewers8A));
+		cases.add(school("POST class students", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/students",
+				(f) -> Map.of("studentIds", List.of(this.personas.newStudent(f.schoolA(), "matrix-new"))), 200,
+				classTeachers, new Name[] { STUDENT_A1 }));
+		cases.add(school("DELETE class student", HttpMethod.DELETE,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/students/" + userOf(STUDENT_A1), null, 204,
+				classTeachers, new Name[] { STUDENT_A1 }));
+		cases.add(school("POST move class student", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/students/" + userOf(STUDENT_A1) + "/move",
+				(f) -> Map.of("toClassId", freshClassWithoutStudents(f)), 204, classTeachers,
+				new Name[] { STUDENT_A1 }));
+		cases.add(school("GET class teachers", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A() + "/teachers", null, 200, classViewers8A));
+		cases.add(school("POST class teacher", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/teachers",
+				(f) -> Map.of("teacherId", this.personas.newTeacher(f.schoolA(), "matrix-co-teacher"), "role", "CO_TEACHER"),
+				200,
+				concat(classAdmins, new Name[] { TEACHER_LEAD_A }), new Name[] { TEACHER_SUBJECT_A, STUDENT_A1 }));
+		cases.add(school("DELETE class teacher (the subject teacher's own row)", HttpMethod.DELETE, (f) -> {
+			UUID id = freshClass(f);
+			UUID row = this.jdbc.queryForObject(
+					"select id from class_teachers where class_id = ? and role = 'SUBJECT_TEACHER'", UUID.class, id);
+			return SCHOOLS + f.schoolA() + "/classes/" + id + "/teachers/" + row;
+		}, null, 204, concat(classAdmins, teachingMembers), new Name[] { STUDENT_A1 }));
+		cases.add(school("GET class groups", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + f.class8A() + "/groups", null, 200, classTeachers,
+				new Name[] { STUDENT_A1 }));
+		cases.add(school("POST class group", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/groups",
+				(f) -> Map.of("name", "Group", "studentIds", List.of(userOf(STUDENT_A1))), 201, classTeachers,
+				new Name[] { STUDENT_A1 }));
+		cases.add(school("DELETE class group", HttpMethod.DELETE, (f) -> {
+			UUID id = freshClass(f);
+			UUID group = Ids.newId();
+			this.jdbc.update("insert into student_groups (id, class_id, school_id, name, created_by) values (?, ?, ?, 'G', ?)",
+					group, id, f.schoolA(), userOf(TEACHER_LEAD_A));
+			return SCHOOLS + f.schoolA() + "/classes/" + id + "/groups/" + group;
+		}, null, 204, classTeachers, new Name[] { STUDENT_A1 }));
+		cases.add(school("POST class login codes", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/classes/" + freshClass(f) + "/login-codes", (f) -> Map.of("type", "TEXT"),
+				200, classTeachers, new Name[] { STUDENT_A1 }));
+		cases.add(school("DELETE class login code", HttpMethod.DELETE, (f) -> {
+			UUID id = freshClass(f);
+			UUID code = Ids.newId();
+			this.jdbc.update("""
+					insert into student_login_codes (id, student_id, school_id, class_id, code_type, code_hash, issued_by)
+					values (?, ?, ?, ?, 'TEXT', ?, ?)""", code, userOf(STUDENT_A1), f.schoolA(), id, "matrix-" + code,
+					userOf(TEACHER_LEAD_A));
+			return SCHOOLS + f.schoolA() + "/classes/" + id + "/login-codes/" + code;
+		}, null, 204, classTeachers, new Name[] { STUDENT_A1 }));
+		cases.add(new Case("GET my classes", HttpMethod.GET, (f) -> "/api/v1/me/classes", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+
+		// --- staff
+		Name[] colleagues = SCHOOL_A_TEACHERS;
+		cases.add(school("POST staff", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/staff",
+				(f) -> Map.of("phone", Personas.newPhone(), "givenName", "Matrix", "staffType", "TEACHER"), 201,
+				SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET staff", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/staff", null, 200,
+				concat(SCHOOL_A_MANAGERS, colleagues), SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		cases.add(school("GET one staff member", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/staff/" + staffIdOf(TEACHER_LEAD_A), null, 200,
+				concat(SCHOOL_A_MANAGERS, colleagues), SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		cases.add(school("PATCH staff", HttpMethod.PATCH,
+				(f) -> SCHOOLS + f.schoolA() + "/staff/" + staffIdOf(TEACHER_OTHER_A), (f) -> Map.of("jobTitle", "Teacher"),
+				200, SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST deactivate staff", HttpMethod.POST, (f) -> {
+			UUID teacher = this.personas.newTeacher(f.schoolA(), "matrix-leaver");
+			UUID staff = this.jdbc.queryForObject("select id from school_staff where user_id = ?", UUID.class, teacher);
+			return SCHOOLS + f.schoolA() + "/staff/" + staff + "/deactivate";
+		}, null, 200, SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+
+		// --- students
+		Name[] studentsOf8A = concat(SCHOOL_A_MANAGERS, teachingMembers);
+		cases.add(school("POST student (no class)", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/students",
+				(f) -> Map.of("givenName", "Matrix"), 201, SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST student into class 8A", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/students",
+				(f) -> Map.of("givenName", "Matrix", "classId", f.class8A()), 201, studentsOf8A, new Name[] { STUDENT_A1 }));
+		cases.add(school("GET students", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/students", null, 200,
+				concat(SCHOOL_A_MANAGERS, colleagues), SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		cases.add(school("GET student A1", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1), null, 200,
+				concat(studentsOf8A, new Name[] { STUDENT_A1 })));
+		cases.add(school("PATCH student A1", HttpMethod.PATCH,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1),
+				(f) -> Map.of("studentNumber", "M-" + Ids.newId()), 200, SCHOOL_A_MANAGERS,
+				new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A, STUDENT_A1 }));
+		cases.add(school("PATCH own avatar (student A1)", HttpMethod.PATCH,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1),
+				(f) -> Map.of("avatarConfig", Map.of("hat", "red")), 200, concat(SCHOOL_A_MANAGERS, new Name[] { STUDENT_A1 }),
+				new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A }));
+		cases.add(school("POST withdraw student", HttpMethod.POST, (f) -> {
+			UUID student = this.personas.newStudent(f.schoolA(), "matrix-leaver");
+			return SCHOOLS + f.schoolA() + "/students/" + student + "/withdraw";
+		}, null, 200, SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST student password (school setting is off)", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/password",
+				(f) -> Map.of("password", "a-long-password"), 409, studentsOf8A, new Name[] { STUDENT_A1 }));
+		cases.add(school("GET student login codes", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/login-codes", null, 200, studentsOf8A,
+				new Name[] { STUDENT_A1 }));
+		cases.add(school("POST revoke student login codes", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/login-codes/revoke", null, 200,
+				studentsOf8A, new Name[] { STUDENT_A1 }));
+		return cases;
+	}
+
+	/** An empty class of school A (a move target); the lead is the teacher of the fresh source class. */
+	private UUID freshClassWithoutStudents(Fixture f) {
+		UUID id = freshClass(f);
+		this.jdbc.update("delete from class_students where class_id = ?", id);
+		return id;
 	}
 
 	/** A branding media row of school A uploaded by its administrator, in the given status (a fresh one per call). */

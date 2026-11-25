@@ -37,10 +37,21 @@ public final class Permissions {
 
 	public static final String AUDIT_READ = "audit.read";
 
+	/** Academic years, periods, grade levels and subjects of a school. */
+	public static final String SCHOOL_ACADEMIC_MANAGE = "school.academic.manage";
+
+	public static final String SCHOOL_STAFF_MANAGE = "school.staff.manage";
+
+	public static final String SCHOOL_STUDENTS_MANAGE = "school.students.manage";
+
+	/** Every class of the covered school or campus (rosters, teachers, login codes). */
+	public static final String CLASS_MANAGE = "class.manage";
+
 	/** Every permission code, in seed order. */
 	public static final List<String> ALL = List.of(PLATFORM_ORGANIZATIONS_MANAGE, PLATFORM_SCHOOLS_MANAGE,
 			PLATFORM_SUBSCRIPTIONS_MANAGE, PLATFORM_FEATURES_MANAGE, PLATFORM_SETTINGS_MANAGE, PLATFORM_ROLES_MANAGE,
-			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ);
+			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ, SCHOOL_ACADEMIC_MANAGE, SCHOOL_STAFF_MANAGE,
+			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE);
 
 	private Permissions() {
 	}

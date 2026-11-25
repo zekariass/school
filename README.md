@@ -250,6 +250,17 @@ deployed; `CORS_ALLOWED_ORIGINS` is also its allowed-origin list). Apps connect 
 load balancer the WebSocket path needs upgrade support and idle timeouts above 30 seconds (the
 heartbeat is 10 seconds); instances share events through Redis pub/sub (`rt:user-events`).
 
+### Schools, classes and student sign-in
+
+Under `/api/v1/schools/{schoolId}/...`: academic years and periods, grade levels, subjects, classes with
+rosters, staff and students (see the OpenAPI document). Teachers and students have no role assignments; the
+web and mobile apps read `GET /api/v1/me` -> `memberships` and `GET /api/v1/me/classes`. Young students sign in
+with a QR or text code that a teacher issues per class (`POST .../classes/{classId}/login-codes`, shown once)
+at `POST /api/v1/auth/login-code`; codes are stored only as an HMAC with `SCHOOL_AUTH_OTP_PEPPER`, so changing
+the pepper invalidates every issued code. Optional settings (platform, country, organization or school level):
+`classes.teachers_can_create`, `students.login_code.ttl_days`, `students.password_login.enabled`; the session
+lifetime of code sign-ins is `school.auth.sessions.login-code-absolute-ttl` / `login-code-idle-ttl`.
+
 **Changing the API:** after editing controllers or DTOs, run
 `npm run openapi:export -w school-backend` (writes
 `packages/api-client/openapi/openapi.json`) and then `npm run codegen`

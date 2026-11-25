@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import com.nemaz.school.audit.AuditEntry;
@@ -132,6 +133,19 @@ public class RoleAssignmentService implements RoleAssignments {
 		Role role = role(roleCode);
 		AccessScope normalized = normalize(scope, role);
 		save(userId, role, normalized, null);
+	}
+
+	@Override
+	public void grantWithinScope(CurrentUser actor, UUID userId, String roleCode, AccessScope scope) {
+		Role role = role(roleCode);
+		if (scope.level() != role.getScopeLevel()) {
+			throw ApiException.badRequest("role.scope_mismatch", role.getScopeLevel());
+		}
+		Set<String> permissions = this.rolePermissions.of(role.getCode());
+		if (!permissions.stream().allMatch((p) -> this.authorization.can(actor, p, scope))) {
+			throw ApiException.forbidden("role.assignment_not_allowed");
+		}
+		save(userId, role, normalize(scope, role), actor.userId());
 	}
 
 	// --- API operations ---------------------------------------------------------------

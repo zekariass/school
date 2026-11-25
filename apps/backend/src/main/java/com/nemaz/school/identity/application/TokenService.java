@@ -103,10 +103,11 @@ public class TokenService {
 		Instant now = this.clock.instant();
 		UUID familyId = Ids.newId();
 		String refreshToken = newRefreshToken();
-		Instant expiresAt = now.plus(this.props.sessions().absoluteTtl());
+		Instant expiresAt = now.plus((method == AuthMethod.LOGIN_CODE) ? this.props.sessions().loginCodeAbsoluteTtl()
+				: this.props.sessions().absoluteTtl());
 		this.sessions.insert(Ids.newId(), userId, Hashes.sha256Hex(refreshToken), familyId, method.name(),
 				ClientRequests.userAgent(), ClientRequests.ip(), now, expiresAt);
-		return pair(userId, familyId, refreshToken, now, expiresAt);
+		return pair(userId, familyId, refreshToken, now, expiresAt, method.name());
 	}
 
 	/** Rotates a refresh token. See the class comment for reuse detection. */
@@ -187,7 +188,7 @@ public class TokenService {
 		}
 		Instant lastUse = (session.lastSeenAt() != null) ? session.lastSeenAt() : session.createdAt();
 		boolean expired = !session.expiresAt().isAfter(now)
-				|| !lastUse.plus(this.props.sessions().idleTtl()).isAfter(now);
+				|| !lastUse.plus(idleTtl(session.authMethod())).isAfter(now);
 		if (expired) {
 			this.sessions.revoke(session.id(), "EXPIRED", now);
 			return RefreshResult.of(Outcome.INVALID);
@@ -203,10 +204,11 @@ public class TokenService {
 		this.sessions.insert(Ids.newId(), session.userId(), Hashes.sha256Hex(next), session.familyId(),
 				session.authMethod(), ClientRequests.userAgent(), ClientRequests.ip(), now, session.expiresAt());
 		return new RefreshResult(Outcome.ROTATED,
-				pair(session.userId(), session.familyId(), next, now, session.expiresAt()));
+				pair(session.userId(), session.familyId(), next, now, session.expiresAt(), session.authMethod()));
 	}
 
-	private TokenPair pair(UUID userId, UUID familyId, String refreshToken, Instant now, Instant familyExpiresAt) {
+	private TokenPair pair(UUID userId, UUID familyId, String refreshToken, Instant now, Instant familyExpiresAt,
+			String method) {
 		Duration accessTtl = this.props.jwt().accessTokenTtl();
 		JwtClaimsSet claims = JwtClaimsSet.builder()
 			.issuer(this.props.jwt().issuer())
@@ -220,8 +222,13 @@ public class TokenService {
 		JwsHeader header = JwsHeader.with(SignatureAlgorithm.ES256).keyId(this.keys.signingKeyId()).type("at+jwt").build();
 		String accessToken = this.encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
 		long refreshSeconds = Math.min(Duration.between(now, familyExpiresAt).toSeconds(),
-				this.props.sessions().idleTtl().toSeconds());
+				idleTtl(method).toSeconds());
 		return new TokenPair(accessToken, accessTtl.toSeconds(), refreshToken, Math.max(0, refreshSeconds));
+	}
+
+	private Duration idleTtl(String authMethod) {
+		return AuthMethod.LOGIN_CODE.name().equals(authMethod) ? this.props.sessions().loginCodeIdleTtl()
+				: this.props.sessions().idleTtl();
 	}
 
 	private String newRefreshToken() {

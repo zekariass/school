@@ -45,8 +45,21 @@ class RolesAndPermissionsSeedTest {
 						Permissions.AUDIT_READ);
 		}
 		assertThat(permissionsOf("SCHOOL_ADMIN")).containsExactlyInAnyOrder(Permissions.SCHOOL_READ,
-				Permissions.SCHOOL_MANAGE, Permissions.SCHOOL_SETTINGS_MANAGE);
-		assertThat(permissionsOf("CAMPUS_ADMIN")).containsExactly(Permissions.SCHOOL_READ);
+				Permissions.SCHOOL_MANAGE, Permissions.SCHOOL_SETTINGS_MANAGE, Permissions.SCHOOL_ACADEMIC_MANAGE,
+				Permissions.SCHOOL_STAFF_MANAGE, Permissions.SCHOOL_STUDENTS_MANAGE, Permissions.CLASS_MANAGE);
+		// A campus administrator reads the school and manages the classes of its own campus (M3a).
+		assertThat(permissionsOf("CAMPUS_ADMIN")).containsExactlyInAnyOrder(Permissions.SCHOOL_READ,
+				Permissions.CLASS_MANAGE);
+		assertThat(permissionsOf("SCHOOL_STAFF")).containsExactly(Permissions.SCHOOL_READ);
+	}
+
+	@Test
+	void everyAdministratorWhoCanGrantSchoolAdminHoldsItsPermissions() {
+		// No escalation: granting SCHOOL_ADMIN needs every permission of the role at that scope.
+		for (String role : List.of("COUNTRY_ADMIN", "ORGANIZATION_ADMIN")) {
+			assertThat(permissionsOf(role)).as(role)
+				.containsAll(permissionsOf("SCHOOL_ADMIN"));
+		}
 	}
 
 	private List<String> permissionsOf(String role) {

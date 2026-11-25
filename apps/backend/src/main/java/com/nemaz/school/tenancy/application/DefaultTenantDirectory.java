@@ -42,7 +42,8 @@ class DefaultTenantDirectory implements TenantDirectory {
 			return Optional.empty();
 		}
 		return this.schools.findById(schoolId)
-			.map((s) -> new SchoolRef(s.getId(), s.getCountryCode(), s.getOrganizationId(), s.getName(), s.getSlug()));
+			.map((s) -> new SchoolRef(s.getId(), s.getCountryCode(), s.getOrganizationId(), s.getName(), s.getSlug(),
+					s.getStatus().name(), s.getDefaultLanguageCode()));
 	}
 
 	@Override
@@ -50,7 +51,8 @@ class DefaultTenantDirectory implements TenantDirectory {
 		if (campusId == null) {
 			return Optional.empty();
 		}
-		return this.campuses.findById(campusId).map((c) -> new CampusRef(c.getId(), c.getSchoolId(), c.getName()));
+		return this.campuses.findById(campusId)
+			.map((c) -> new CampusRef(c.getId(), c.getSchoolId(), c.getName(), c.getStatus().name()));
 	}
 
 }

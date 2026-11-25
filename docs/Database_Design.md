@@ -631,6 +631,8 @@ create table invitations (
 ```
 Accepting a GUARDIAN_LINK invitation creates `student_guardians` with status PENDING. It becomes ACTIVE only after school verification, unless the school's setting `guardians.auto_verify_invite` allows the invite itself to count as verification.
 
+*As built (M3a, `V3_02`, `V3_03`):* `guardian_profiles`, `student_guardians` and `invitations` are not created yet (M5); `tutor_profiles` waits for P4. `school_students` also has `unique (id, school_id)`. Enumerations carry CHECK constraints. Staff are provisioned directly (no `INVITED` rows yet). Managed students (`users.account_type = MANAGED`) have a `student_profiles` row (`avatar_config` is a jsonb object) and a `school_students` row per enrollment; API paths use the student's user id, and the latest live enrollment of the school is "the" enrollment.
+
 ### 4.5 Academic structure (P1)
 
 ```sql
@@ -767,6 +769,8 @@ create table student_group_members (
   primary key (group_id, student_id)
 );
 ```
+
+*As built (M3a, `V3_01`, `V3_03`):* `grade_levels.academic_level_id` and `subjects.curriculum_subject_id` are omitted until the curriculum tables exist (P2). CHECKs on all enumerations and hex colours; `academic_periods` has an exclusion constraint (`btree_gist`, same year, overlapping `daterange` of start and end, inclusive) next to `unique (academic_year_id, sequence)`; `subjects` has a unique lower-cased `code` per school; `class_students` and `class_teachers` require `left_at` exactly when the status is no longer PENDING/ACTIVE, and `class_students.left_reason` is checked against TRANSFERRED_CLASS, LEFT_SCHOOL, PROMOTED, REMOVED. REMOVED is used when a teacher removes a student by hand; FORMER for moves, promotion and withdrawal. All new tables carry the std columns except the append-only/link tables (`class_subjects`, `student_group_members`, `student_login_codes`), and every tenant row has its composite `(…, school_id)` FK. `student_login_codes.class_id` references `classes (id, school_id)`; the code itself is never stored (`code_hash` = HMAC-SHA256 with the OTP pepper).
 
 ### 4.6 Attendance & offline sync (P1)
 

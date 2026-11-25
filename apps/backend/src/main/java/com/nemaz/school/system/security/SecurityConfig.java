@@ -52,7 +52,7 @@ public class SecurityConfig {
 
 	/** Unauthenticated endpoints of the identity module (POST only). */
 	public static final String[] PUBLIC_AUTH_ENDPOINTS = { "/api/v1/auth/otp/request", "/api/v1/auth/otp/verify",
-			"/api/v1/auth/password", "/api/v1/auth/refresh", "/api/v1/auth/logout" };
+			"/api/v1/auth/password", "/api/v1/auth/login-code", "/api/v1/auth/refresh", "/api/v1/auth/logout" };
 
 	@Bean
 	SecurityFilterChain apiSecurity(HttpSecurity http, ProblemSecurityHandlers handlers, SchoolProperties props,

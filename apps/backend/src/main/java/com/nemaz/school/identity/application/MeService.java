@@ -19,6 +19,8 @@ import com.nemaz.school.authorization.RoleAssignments;
 import com.nemaz.school.authorization.RoleAssignments.AssignmentView;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.common.security.CurrentUser;
+import com.nemaz.school.identity.AccountMemberships;
+import com.nemaz.school.identity.AccountMemberships.SchoolMembership;
 import com.nemaz.school.identity.domain.PasswordCredential;
 import com.nemaz.school.identity.domain.User;
 import com.nemaz.school.identity.infrastructure.AuthSessionStore;
@@ -66,11 +68,14 @@ public class MeService {
 
 	private final MediaService media;
 
+	private final List<AccountMemberships> memberships;
+
 	private final Clock clock;
 
 	MeService(UserRepository users, PasswordCredentialRepository credentials, RoleAssignments roleAssignments,
 			ReferenceData reference, UserSnapshotCache snapshots, AuthSessionStore sessions, TokenService tokens,
-			PasswordEncoder encoder, AuditLog audit, MediaService media, Clock clock) {
+			PasswordEncoder encoder, AuditLog audit, MediaService media, List<AccountMemberships> memberships,
+			Clock clock) {
 		this.users = users;
 		this.credentials = credentials;
 		this.roleAssignments = roleAssignments;
@@ -81,6 +86,7 @@ public class MeService {
 		this.encoder = encoder;
 		this.audit = audit;
 		this.media = media;
+		this.memberships = memberships;
 		this.clock = clock;
 	}
 
@@ -165,7 +171,8 @@ public class MeService {
 		MediaSummary avatar = (user.getAvatarMediaId() != null) ? this.media.summary(user.getAvatarMediaId()).orElse(null)
 				: null;
 		return new Me(user, this.credentials.existsById(user.getId()),
-				this.roleAssignments.activeAssignments(user.getId(), locale), avatar);
+				this.roleAssignments.activeAssignments(user.getId(), locale), avatar,
+				this.memberships.stream().flatMap((m) -> m.activeFor(user.getId()).stream()).toList());
 	}
 
 	/**
@@ -219,7 +226,8 @@ public class MeService {
 			String calendarPreference) {
 	}
 
-	public record Me(User user, boolean hasPassword, List<AssignmentView> assignments, MediaSummary avatar) {
+	public record Me(User user, boolean hasPassword, List<AssignmentView> assignments, MediaSummary avatar,
+			List<SchoolMembership> memberships) {
 	}
 
 }

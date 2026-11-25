@@ -34,8 +34,13 @@ public record IdentityProperties(@DefaultValue Jwt jwt, @DefaultValue Otp otp, @
 	public record Otp(String pepper, @DefaultValue("PT5M") Duration ttl, @DefaultValue("5") int maxAttempts) {
 	}
 
-	/** Refresh-token sessions: absolute lifetime from sign-in, and how long an unused session survives. */
-	public record Sessions(@DefaultValue("P30D") Duration absoluteTtl, @DefaultValue("P14D") Duration idleTtl) {
+	/**
+	 * Refresh-token sessions: absolute lifetime from sign-in, and how long an unused session survives.
+	 * Sessions started with a student login code are deliberately shorter (a shared classroom tablet):
+	 * {@code loginCodeAbsoluteTtl} and {@code loginCodeIdleTtl}.
+	 */
+	public record Sessions(@DefaultValue("P30D") Duration absoluteTtl, @DefaultValue("P14D") Duration idleTtl,
+			@DefaultValue("P7D") Duration loginCodeAbsoluteTtl, @DefaultValue("P2D") Duration loginCodeIdleTtl) {
 	}
 
 	/** Password lockout: after {@code maxFailures} consecutive failures, refuse for {@code lockDuration}. */
