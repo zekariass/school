@@ -946,6 +946,14 @@ Badge, leaderboard and public-ranking toggles are `settings`: `engagement.badges
 
 **Fixed rule (D2):** HOME-context transactions are excluded from every class or school aggregate: class and school totals, leaderboards, school badge criteria and reports. They appear only on the child's own profile and in the guardian's view. Badge criteria evaluate `context in ('CLASS','SCHOOL')` only. Parents can award only from HOME categories, so `context = 'HOME'` exactly when `awarder_role = 'GUARDIAN'` (enforced by CHECK).
 
+*As built (M6a, `V6_01`, `R__70_engagement_templates`):*
+- **`point_categories`:** adds `template_code` (the stable key of a platform template and of the school copy made from it; unique per scope), `(id, school_id)` unique (ledger rows reference their own school's category), CHECKs (HOME categories are school-level and POSITIVE only; a class category needs `school_id`). Platform templates (`school_id` null) are the default set; a school gets its own editable copy on first use (idempotent `insert … select … on conflict do nothing`), so later template changes reach new schools only.
+- **`point_transactions`:** adds `polarity` (copied from the category; a reversal copies the original) so balances and reports need no join, and CHECKs tying the sign of `points` to it (AWARD: positive for POSITIVE, negative for NEEDS_WORK; REVERSAL the opposite), `abs(points) <= 10`, `awarded_by is null` exactly for SYSTEM awards, `academic_year_id` is `not null` (a class award uses the class's year, SCHOOL and HOME awards the school's current year) and class, category and year reference their parent through `(…, school_id)`. Two unique indexes make writes idempotent: one reversal per transaction (`ux_points_reversal_once`) and one row per (awarder, `client_op_id`, student, type) (`ux_points_client_op`, system awards counted as one awarder). A whole-class or multi-student award shares `award_batch_id`; its reversal rows keep it.
+- **`point_balances`:** as designed, rewritten per (student, year, context, class) from the ledger by an idempotent listener and verified nightly. `needs_work_total` is negative; a student's total is `positive_total + needs_work_total`. The per-category split of totals is read from the ledger (no category column).
+- **`badges`:** adds `icon` (a client icon key), `sort_order`, `created_by`, the std columns and `unique (id, school_id)`; criteria by type: `POINTS_TOTAL {threshold, context?}`, `CATEGORY_TOTAL {threshold, categoryId | templateCode}`, `ATTENDANCE_STREAK {days}` (granted by the attendance module, M7, through `PointsApi.grantBadge`), `MANUAL`. Platform templates are copied per school like categories. **`student_badges`:** `unique (badge_id, student_id)` (a grant is idempotent), composite `(badge_id, school_id)` FK.
+- **Settings:** the four `engagement.*` toggles of this section exist since M1 (badges on, leaderboard off, public rankings off, needs-work on); M6a adds `engagement.points.undo_window_seconds` (default 120). `engagement.public_rankings.enabled` is reserved: no endpoint shows school-wide rankings yet.
+- **Permissions:** `school.points.manage` (categories, badges, school-wide awards, reversing any point, school-wide activity templates) and `school.points.read` (school-wide reports and any student's points), both held by every administrator who may grant SCHOOL_ADMIN.
+
 ### 4.8 Teacher toolkit (P1)
 
 ```sql
@@ -964,6 +972,8 @@ create table classroom_activity_templates (      -- §126 routines, checklists, 
   -- + std
 );
 ```
+
+*As built (M6a, `V6_01`):* `classroom_activity_templates` adds `class_id` and the visibility `CLASS` (PRIVATE: the owner; CLASS: the teachers of that class; SCHOOL: every teacher of the school), the std columns and composite `(…, school_id)` FKs for class, subject and grade level (`school_id` is always set by the API). `items` is a jsonb array of `{text, minutes?}`. Saved groups (`student_groups`) are unchanged; the API gained rename/replace-members and saving a whole set at once.
 
 ### 4.9 Media (P1)
 

@@ -658,6 +658,7 @@ class AuthorizationMatrixTest {
 				(f) -> SCHOOLS + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/login-codes/revoke", null, 200,
 				studentsOf8A, new Name[] { STUDENT_A1 }));
 		cases.addAll(guardianCases());
+		cases.addAll(pointsCases());
 		return cases;
 	}
 
@@ -928,6 +929,196 @@ class AuthorizationMatrixTest {
 				insert into media_variants (media_id, variant, object_key, mime_type, width, height, size_bytes)
 				values (?, 'THUMB', ?, 'image/jpeg', 100, 100, 500)""", id, key.replace("original", "thumb"));
 		return id;
+	}
+
+	// ---- classroom engagement (M6a) ----------------------------------------------------------------
+
+	@Autowired
+	com.nemaz.school.tenancy.SettingsService settingsService;
+
+	/** School A's own copy of a default category (the first call makes the copy, as the API does). */
+	private UUID pointCategory(Fixture f, String code) {
+		try {
+			this.mvc.perform(request(HttpMethod.GET, SCHOOLS + f.schoolA() + "/point-categories")
+				.with(this.personas.get(SCHOOL_ADMIN_A).bearer())).andReturn();
+		}
+		catch (Exception ex) {
+			throw new IllegalStateException(ex);
+		}
+		return this.jdbc.queryForObject("select id from point_categories where school_id = ? and template_code = ?", UUID.class,
+				f.schoolA(), code);
+	}
+
+	/** An AWARD row of student A1 in the class, written by the lead teacher (fixtures; the API path is tested elsewhere). */
+	private UUID ledgerRow(Fixture f, UUID classId, UUID batch) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into point_transactions (id, school_id, student_id, context, class_id, academic_year_id, category_id, polarity,
+				                                points, transaction_type, awarded_by, awarder_role, award_batch_id)
+				values (?, ?, ?, 'CLASS', ?, ?, ?, 'POSITIVE', 1, 'AWARD', ?, 'TEACHER', ?)""", id, f.schoolA(), userOf(STUDENT_A1),
+				classId, f.yearA(), pointCategory(f, "kindness"), userOf(TEACHER_LEAD_A), batch);
+		return id;
+	}
+
+	private UUID classCategory(Fixture f, UUID classId) {
+		UUID id = Ids.newId();
+		this.jdbc.update("insert into point_categories (id, school_id, class_id, name_i18n) values (?, ?, ?, '{\"en\": \"Matrix\"}')",
+				id, f.schoolA(), classId);
+		return id;
+	}
+
+	private UUID matrixTemplate(Fixture f, String visibility) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into classroom_activity_templates (id, school_id, owner_id, template_type, title, visibility)
+				values (?, ?, ?, 'ROUTINE', 'Matrix routine', ?)""", id, f.schoolA(), userOf(TEACHER_OTHER_A), visibility);
+		return id;
+	}
+
+	List<Case> pointsCases() {
+		List<Case> cases = new ArrayList<>();
+		String schools = SCHOOLS;
+		Name[] managers = SCHOOL_A_MANAGERS;
+		Name[] visitorsAndMembers = concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS);
+		Name[] classTeachers = { TEACHER_LEAD_A, TEACHER_SUBJECT_A };
+		Name[] classBystanders = { STUDENT_A1, GUARDIAN_A1 };
+		Name[] staffAndManagers = concat(managers, SCHOOL_A_TEACHERS);
+
+		// --- categories
+		cases.add(school("GET point categories", HttpMethod.GET, (f) -> schools + f.schoolA() + "/point-categories", null, 200,
+				staffAndManagers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		cases.add(school("GET point categories of a class", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/point-categories?classId=" + freshClass(f), null, 200,
+				concat(managers, classTeachers), classBystanders));
+		cases.add(school("POST point category", HttpMethod.POST, (f) -> schools + f.schoolA() + "/point-categories",
+				(f) -> Map.of("names", Map.of("en", "Matrix skill")), 201, managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("PATCH point category", HttpMethod.PATCH,
+				(f) -> schools + f.schoolA() + "/point-categories/" + pointCategory(f, "helping"), (f) -> Map.of("sortOrder", 11),
+				200, managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST class point category", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/point-categories",
+				(f) -> Map.of("names", Map.of("en", "Matrix class skill")), 201, concat(managers, new Name[] { TEACHER_LEAD_A }),
+				new Name[] { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("PATCH class point category", HttpMethod.PATCH, (f) -> {
+			UUID classId = freshClass(f);
+			return schools + f.schoolA() + "/classes/" + classId + "/point-categories/" + classCategory(f, classId);
+		}, (f) -> Map.of("active", false), 200, concat(managers, new Name[] { TEACHER_LEAD_A }),
+				new Name[] { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 }));
+
+		// --- awards: teachers of the class and managers; students and guardians of the class see it and may not
+		cases.add(school("POST class points award", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/points/awards",
+				(f) -> Map.of("categoryId", pointCategory(f, "kindness"), "studentIds", List.of(userOf(STUDENT_A1))), 201,
+				concat(managers, classTeachers), classBystanders));
+		cases.add(school("POST school-wide points award", HttpMethod.POST, (f) -> schools + f.schoolA() + "/points/awards",
+				(f) -> Map.of("categoryId", pointCategory(f, "kindness"), "studentIds", List.of(userOf(STUDENT_A1))), 201,
+				managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		// home points: only an ACTIVE, unrestricted guardian of the child with can_award_points; everybody else is told nothing
+		cases.add(new Case("GET home point categories", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/home-point-categories", null,
+				allow(200, GUARDIAN_A1), 404));
+		cases.add(new Case("POST home points", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/home-points",
+				(f) -> Map.of("categoryId", pointCategory(f, "home_homework")), allow(201, GUARDIAN_A1), 404));
+
+		// --- undo: the awarder (lead teacher here) and managers; another class teacher sees it and may not; the rest cannot find it
+		cases.add(new Case("POST reverse a point transaction", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/points/transactions/" + ledgerRow(f, freshClass(f), null) + "/reverse", null,
+				merge(allow(201, managers), allow(201, TEACHER_LEAD_A), allow(403, TEACHER_SUBJECT_A)), 404));
+		cases.add(new Case("POST reverse a point batch", HttpMethod.POST, (f) -> {
+			UUID classId = freshClass(f);
+			UUID batch = Ids.newId();
+			ledgerRow(f, classId, batch);
+			ledgerRow(f, classId, batch);
+			return schools + f.schoolA() + "/points/batches/" + batch + "/reverse";
+		}, null, merge(allow(201, managers), allow(201, TEACHER_LEAD_A), allow(403, TEACHER_SUBJECT_A)), 404));
+
+		// --- reads
+		cases.add(school("GET class points overview", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/points", null, 200,
+				concat(managers, classTeachers), classBystanders));
+		cases.add(school("GET class leaderboard (off by default)", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/leaderboard", null, 403,
+				concat(managers, classTeachers, new Name[] { STUDENT_A1 })));
+		cases.add(school("GET class leaderboard (switched on): never for guardians", HttpMethod.GET, (f) -> {
+			this.settingsService.set("engagement.leaderboard.enabled", com.nemaz.school.tenancy.SettingScope.school(f.schoolA()),
+					this.json.valueToTree(true), this.personas.platformAdmin().userId());
+			return schools + f.schoolA() + "/classes/" + freshClass(f) + "/leaderboard";
+		}, null, 200, concat(managers, classTeachers, new Name[] { STUDENT_A1 })));
+		String studentPoints = "/students/";
+		Name[] childAndFamilyAndTeachers = concat(managers, classTeachers, new Name[] { STUDENT_A1, GUARDIAN_A1 });
+		cases.add(new Case("GET student points", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + studentPoints + userOf(STUDENT_A1) + "/points", null,
+				allow(200, childAndFamilyAndTeachers), 404));
+		cases.add(new Case("GET student point transactions", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + studentPoints + userOf(STUDENT_A1) + "/points/transactions", null,
+				allow(200, childAndFamilyAndTeachers), 404));
+		cases.add(new Case("GET student HOME point transactions: family only", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + studentPoints + userOf(STUDENT_A1) + "/points/transactions?section=HOME", null,
+				merge(allow(200, STUDENT_A1, GUARDIAN_A1), allow(403, concat(managers, classTeachers))), 404));
+
+		// --- badges
+		cases.add(school("GET badges", HttpMethod.GET, (f) -> schools + f.schoolA() + "/badges", null, 200,
+				concat(managers, visitorsAndMembers)));
+		cases.add(school("POST badge", HttpMethod.POST, (f) -> schools + f.schoolA() + "/badges",
+				(f) -> Map.of("code", "matrix_" + Ids.newId().toString().substring(24), "names", Map.of("en", "Matrix badge"),
+						"criteriaType", "MANUAL"),
+				201, managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("PATCH badge", HttpMethod.PATCH, (f) -> {
+			pointCategory(f, "helping");
+			UUID badge = this.jdbc.queryForObject("select id from badges where school_id = ? and code = 'teachers_pick'", UUID.class,
+					f.schoolA());
+			return schools + f.schoolA() + "/badges/" + badge;
+		}, (f) -> Map.of("sortOrder", 95), 200, managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(new Case("POST manual badge", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/badges", (f) -> {
+					pointCategory(f, "helping");
+					return Map.of("badgeId", this.jdbc.queryForObject(
+							"select id from badges where school_id = ? and code = 'teachers_pick'", UUID.class, f.schoolA()));
+				}, merge(allow(200, concat(managers, classTeachers)), allow(403, STUDENT_A1, GUARDIAN_A1)), 404));
+
+		// --- reports
+		cases.add(school("GET points report of a class", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/points/report?classId=" + freshClass(f), null, 200,
+				concat(managers, classTeachers), classBystanders));
+		cases.add(school("GET points report of the school", HttpMethod.GET, (f) -> schools + f.schoolA() + "/points/report", null,
+				200, managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET points report CSV of a class", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/points/report.csv?classId=" + freshClass(f), null, 200,
+				concat(managers, classTeachers), classBystanders));
+		cases.add(school("GET points report CSV of the school", HttpMethod.GET, (f) -> schools + f.schoolA() + "/points/report.csv",
+				null, 200, managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+
+		// --- toolkit: saved groups and activity templates
+		cases.add(school("POST class group set", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/group-sets",
+				(f) -> Map.of("groups", List.of(Map.of("name", "Matrix group", "studentIds", List.of(userOf(STUDENT_A1))))), 201,
+				concat(managers, classTeachers), classBystanders));
+		cases.add(school("PATCH class group", HttpMethod.PATCH, (f) -> {
+			UUID classId = freshClass(f);
+			UUID group = Ids.newId();
+			this.jdbc.update("insert into student_groups (id, class_id, school_id, name, created_by) values (?, ?, ?, 'Matrix', ?)",
+					group, classId, f.schoolA(), userOf(TEACHER_LEAD_A));
+			return schools + f.schoolA() + "/classes/" + classId + "/groups/" + group;
+		}, (f) -> Map.of("name", "Renamed"), 200, concat(managers, classTeachers), classBystanders));
+		String templates = "/activity-templates";
+		cases.add(school("GET activity templates", HttpMethod.GET, (f) -> schools + f.schoolA() + templates, null, 200,
+				staffAndManagers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		cases.add(school("POST activity template", HttpMethod.POST, (f) -> schools + f.schoolA() + templates,
+				(f) -> Map.of("templateType", "CHECKLIST", "title", "Matrix checklist"), 201, staffAndManagers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		cases.add(school("GET activity template", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + templates + "/" + matrixTemplate(f, "SCHOOL"), null, 200, staffAndManagers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		cases.add(school("PATCH activity template (owner or points manager)", HttpMethod.PATCH,
+				(f) -> schools + f.schoolA() + templates + "/" + matrixTemplate(f, "SCHOOL"), (f) -> Map.of("title", "Renamed"), 200,
+				concat(managers, new Name[] { TEACHER_OTHER_A }),
+				concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A })));
+		cases.add(school("DELETE activity template (owner or points manager)", HttpMethod.DELETE,
+				(f) -> schools + f.schoolA() + templates + "/" + matrixTemplate(f, "SCHOOL"), null, 204,
+				concat(managers, new Name[] { TEACHER_OTHER_A }),
+				concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A })));
+		return cases;
 	}
 
 	@TestFactory

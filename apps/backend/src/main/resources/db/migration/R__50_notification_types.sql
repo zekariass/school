@@ -22,7 +22,8 @@ insert into notification_types (code, category, default_channels, can_be_urgent,
   ('STAFF_ADDED',             'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'The user was added to a school as staff'),
   ('TEST_NOTIFICATION',       'ACCOUNT',   '{IN_APP,PUSH}', true,  true,  'Sent by the "send me a test" button of the platform console'),
   ('GUARDIAN_LINK_REQUESTED', 'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian asked to be linked to a student (to the school''s verifiers)'),
-  ('GUARDIAN_LINK_REJECTED',  'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian link request was not approved')
+  ('GUARDIAN_LINK_REJECTED',  'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian link request was not approved'),
+  ('BADGE_AWARDED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student earned a badge')
 on conflict (code) do update
   set category = excluded.category,
       default_channels = excluded.default_channels,
