@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { View } from 'react-native';
 
 import { useMediaUrl } from '@/lib/media/use-media';
+import { avatarColor, initialsOf } from '@/lib/people/avatar';
 import { useAppTheme } from '@/lib/theme/theme-provider';
 
 import { Text } from './ui';
@@ -11,13 +12,22 @@ export interface AvatarProps {
   name: string;
   size?: number;
   accessibilityLabel?: string;
+  /** Picks the placeholder colour (the person's id); the name is used when absent. */
+  seed?: string | undefined;
+  /** The student's `avatarConfig`: a `color` (`#rrggbb`) in it sets the placeholder colour. */
+  config?: Record<string, unknown> | null | undefined;
+  /** Letters on the placeholder (1 or 2). */
+  maxInitials?: 1 | 2;
 }
 
-/** A round profile photo fetched through a signed link, or the person's initial when there is none. */
-export function Avatar({ mediaId, name, size = 96, accessibilityLabel }: AvatarProps) {
+/**
+ * A round picture: the signed-link photo when there is one, otherwise a colourful placeholder
+ * with initials (same colour every time for the same person, so a class wall looks friendly and
+ * stable). The label is the person's name for screen readers.
+ */
+export function Avatar({ mediaId, name, size = 96, accessibilityLabel, seed, config, maxInitials = 2 }: AvatarProps) {
   const { colors } = useAppTheme();
   const url = useMediaUrl(mediaId, size > 160 ? 'MEDIUM' : 'SMALL');
-  const initial = name.trim().charAt(0).toUpperCase();
   const frame = { width: size, height: size, borderRadius: size / 2 };
 
   if (mediaId && url.data) {
@@ -33,13 +43,17 @@ export function Avatar({ mediaId, name, size = 96, accessibilityLabel }: AvatarP
       />
     );
   }
+  const initials = initialsOf(name, maxInitials) || '?';
   return (
     <View
       accessible
       accessibilityLabel={accessibilityLabel ?? name}
-      style={[frame, { backgroundColor: colors.muted, alignItems: 'center', justifyContent: 'center' }]}>
-      <Text variant="title" tone="muted" style={{ fontSize: size / 2.4, lineHeight: size / 2 }}>
-        {initial}
+      style={[frame, { backgroundColor: avatarColor(seed ?? name, config), alignItems: 'center', justifyContent: 'center' }]}>
+      <Text
+        variant="title"
+        allowFontScaling={false}
+        style={{ color: '#FFFFFF', fontSize: size / (initials.length > 1 ? 2.8 : 2.2), lineHeight: size / 1.9 }}>
+        {initials}
       </Text>
     </View>
   );

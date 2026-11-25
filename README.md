@@ -113,6 +113,15 @@ Or run workspace scripts directly:
 npm run dev --workspace=school-web
 ```
 
+## School workspace (web)
+
+`/{locale}/s/{slug}` is the school workspace. Its menu comes from `GET /me` (`lib/school/access.ts`): administrators see
+Dashboard, Classes, Students, Teachers, Academic year, Settings and Features; a teacher (a membership, no role) sees the
+Dashboard and My classes; a student-only account is sent to `/student-app` ("students sign in with the School app").
+Student login codes are generated on a class's *Login codes* tab and printed from
+`/{locale}/s/{slug}/classes/{classId}/login-codes/print`. The plaintext codes live only in the React state of the issuing
+tab (never in URLs, storage or query caches), so reloading the print page asks you to issue them again.
+
 ## Web configuration
 
 - `API_ORIGIN` (server-only) is the School API origin. It defaults to

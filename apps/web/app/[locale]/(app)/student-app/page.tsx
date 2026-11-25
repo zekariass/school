@@ -1,0 +1,43 @@
+import { SmartphoneIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
+import { SignOutButton } from "@/components/sign-out-button";
+import { SiteHeader } from "@/components/site-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { requireSession } from "@/lib/server/dal";
+
+export async function generateMetadata() {
+  const t = await getTranslations("school.studentApp");
+  return { title: t("title") };
+}
+
+/** Students sign in with the School app, not on the web: friendly explanation instead of a workspace. */
+export default function StudentAppPage() {
+  return (
+    <Suspense fallback={<SiteHeader />}>
+      <StudentApp />
+    </Suspense>
+  );
+}
+
+async function StudentApp() {
+  const me = await requireSession();
+  const t = await getTranslations("school.studentApp");
+  return (
+    <>
+      <SiteHeader user={{ name: me.displayName }} />
+      <main id="main" className="mx-auto flex w-full max-w-lg flex-1 items-center px-4 py-10">
+        <Card className="w-full">
+          <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+            <span className="grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary">
+              <SmartphoneIcon className="size-7" aria-hidden />
+            </span>
+            <h1 className="text-2xl font-bold">{t("title")}</h1>
+            <p className="max-w-sm text-muted-foreground">{t("body")}</p>
+            <SignOutButton />
+          </CardContent>
+        </Card>
+      </main>
+    </>
+  );
+}

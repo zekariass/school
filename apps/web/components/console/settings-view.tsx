@@ -222,7 +222,7 @@ function SettingRow({
 }
 
 /** An input matching the definition's type. All values travel as text and are parsed on save. */
-function ValueEditor({
+export function ValueEditor({
   id,
   kind,
   text,

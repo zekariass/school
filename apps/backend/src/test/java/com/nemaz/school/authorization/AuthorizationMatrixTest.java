@@ -545,6 +545,9 @@ class AuthorizationMatrixTest {
 			return SCHOOLS + f.schoolA() + "/staff/" + staff + "/deactivate";
 		}, null, 200, SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
 
+		cases.add(school("GET school summary", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/summary", null, 200,
+				concat(SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS), SCHOOL_A_MEMBERS));
+
 		// --- students
 		Name[] studentsOf8A = concat(SCHOOL_A_MANAGERS, teachingMembers);
 		cases.add(school("POST student (no class)", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/students",

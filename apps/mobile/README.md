@@ -22,6 +22,12 @@ The app needs a **development build** (SQLite, secure store, camera, embedded fo
 - `src/components/ui/`: theme-aware primitives (`Screen`, `Text`, `Button`, `Card`, `TextField`, `EmptyState`, `SegmentedControl`).
 - `src/lib/`: session, API client, i18n (`use-intl` + `@school/i18n`), theme (`@school/design-tokens`), preferences, query cache, local SQLite store. Files imported by `*.test.ts` are pure TypeScript (no React Native imports).
 
+## Teachers and students (M3b)
+
+- **Roles** come from `GET /me` memberships: a TEACHER membership opens the teacher tabs (Classes, Messages, Calendar, Profile), a STUDENT membership the student tabs (Home, Portfolio, Profile). An account with both gets a role switcher in Settings; the last role is remembered. Administrators and STAFF are web-only.
+- **Students sign in with a class code** (`(auth)/student-code`): scan the QR code with the camera or type the text code (`XXXXX-XXXXX`). Simulators have no camera, so use the text field there. Teachers show a student's code from the roster (student, "Show login code"); the plaintext code lives only in that screen's state. Class-code sessions are short (7 days, 2 idle), and an ended one returns to the code screen.
+- Seed a school for manual testing with the dev admin (`+251900000001`): create a school, year, grade, a teacher through `POST /schools/{id}/staff`, a class, students (`POST /schools/{id}/students` with `classId`) and issue codes with `POST /schools/{id}/classes/{classId}/login-codes` (the OTP prints in the backend log as `[console SMS]`).
+
 ## Scripts
 
 `npm run lint | typecheck | test` (vitest, pure modules only). `npx expo-doctor` should report no issues.

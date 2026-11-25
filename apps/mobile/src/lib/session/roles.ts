@@ -54,11 +54,17 @@ export type SessionStatus = 'loading' | 'signedOut' | 'signedIn' | 'unreachable'
 
 /**
  * Where the root `index` route sends the user. `hasProfile` is true for a real signed-in
- * account, which may have no role shell to show.
+ * account, which may have no role shell to show. `signedOutTo` is where a signed-out user lands
+ * (see `signedOutRoute`).
  */
-export function entryRoute(status: SessionStatus, activeRole: Role | null, hasProfile = false): string | null {
+export function entryRoute(
+  status: SessionStatus,
+  activeRole: Role | null,
+  hasProfile = false,
+  signedOutTo: string = SIGN_IN_ROUTE,
+): string | null {
   if (status === 'loading' || status === 'unreachable') return null;
-  if (status === 'signedOut') return SIGN_IN_ROUTE;
+  if (status === 'signedOut') return signedOutTo;
   if (activeRole) return ROLE_HOME_ROUTE[activeRole];
   return hasProfile ? NO_APP_ROLE_ROUTE : SIGN_IN_ROUTE;
 }

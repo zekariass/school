@@ -4,6 +4,7 @@ import { notFound, redirect, unstable_rethrow } from "next/navigation";
 import { connection } from "next/server";
 import { getLocale } from "next-intl/server";
 import type { components } from "@school/api-client";
+import { SP, schoolAccess } from "@/lib/school/access";
 import { createServerApi } from "./api";
 import { getAccessToken, getRefreshToken } from "./session";
 
@@ -82,6 +83,29 @@ export const getSchoolBySlug = cache(async (slug: string): Promise<SchoolSummary
   if (result.response.status === 401) return signInRedirect();
   if (result.response.status === 404 || result.response.status === 403) notFound();
   throw new Error("The School API is unavailable.");
+});
+
+/** The school a workspace page shows: what the layout, dashboard and client components need. */
+export interface WorkspaceSchool {
+  id: string;
+  slug: string;
+  name: string;
+  logo?: SchoolSummary["logo"];
+}
+
+/**
+ * The school behind a workspace slug for the signed-in user. People who may read the
+ * school (`school.read`) get it from `GET /schools/by-slug` (unknown or forbidden is
+ * 404). Teachers and other members have no `school.read`, so for them the id, name and
+ * slug come from their `memberships` in `GET /me`. No membership and no grant: 404.
+ */
+export const getWorkspaceSchool = cache(async (slug: string): Promise<WorkspaceSchool> => {
+  const me = await requireSession();
+  const access = schoolAccess(me, slug);
+  if (access.permissions.has(SP.read)) return getSchoolBySlug(slug);
+  const membership = me.memberships.find((m) => m.schoolSlug === slug);
+  if (!membership) notFound();
+  return { id: membership.schoolId, slug: membership.schoolSlug, name: membership.schoolName };
 });
 
 /** Permission codes the user holds at any scope. */

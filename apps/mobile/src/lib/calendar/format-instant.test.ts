@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeClockSkewMs, defaultCalendarFor, formatInstant, isCalendarPreference } from './format-instant';
+import { computeClockSkewMs, defaultCalendarFor, formatCivilDate, formatInstant, isCalendarPreference } from './format-instant';
 
 // 2025-09-11T09:30:00Z is Ethiopian New Year (Meskerem 1, 2018) at 12:30 in Addis Ababa (UTC+3).
 const NEW_YEAR = '2025-09-11T09:30:00Z';
@@ -54,5 +54,17 @@ describe('computeClockSkewMs', () => {
     const start = Date.parse('2025-01-01T00:00:00.000Z');
     expect(computeClockSkewMs('2025-01-01T00:00:01.000Z', start, start + 200)).toBe(900);
     expect(computeClockSkewMs('2024-12-31T23:59:59.000Z', start, start + 200)).toBe(-1100);
+  });
+});
+
+describe('formatCivilDate', () => {
+  it('formats a date of birth in both calendars without a time zone shift', () => {
+    expect(formatCivilDate('2015-09-11', { locale: 'en', calendar: 'gregorian' })).toBe('September 11, 2015');
+    expect(formatCivilDate('2025-09-11', { locale: 'en', calendar: 'ethiopian' })).toBe('Meskerem 1, 2018 E.C.');
+  });
+
+  it('returns an empty string for anything that is not a real date', () => {
+    expect(formatCivilDate('2015-02-30', { locale: 'en', calendar: 'gregorian' })).toBe('');
+    expect(formatCivilDate('soon', { locale: 'en', calendar: 'gregorian' })).toBe('');
   });
 });

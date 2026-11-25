@@ -1,7 +1,12 @@
+import { redirect } from "next/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SchoolShell, SchoolShellSkeleton } from "@/components/app-shell/school-shell";
-import { getSchoolBySlug, requireSession } from "@/lib/server/dal";
+import { IssuedCodesProvider } from "@/components/school/issued-codes-context";
+import { SchoolProvider } from "@/components/school/school-context";
 import { roleNamesForSchool } from "@/lib/roles";
+import { isStudentOnly, navItems, schoolAccess } from "@/lib/school/access";
+import { getWorkspaceSchool, requireSession } from "@/lib/server/dal";
 
 export default function SchoolLayout({ children, params }: LayoutProps<"/[locale]/s/[school]">) {
   // `school` is runtime data (not in generateStaticParams), so it's read inside
@@ -22,16 +27,34 @@ async function Workspace({
 }) {
   const { school: slug } = await params;
   const me = await requireSession();
-  // 404 for unknown slugs and for schools this user may not read (same answer).
-  const school = await getSchoolBySlug(slug);
+  // 404 for unknown slugs and for schools this user has no part in (same answer).
+  const school = await getWorkspaceSchool(slug);
+  const access = schoolAccess(me, school.slug);
+  // Students use the mobile app: there is no web workspace for them.
+  if (isStudentOnly(access)) redirect(`/${await getLocale()}/student-app`);
+
+  const tRoles = await getTranslations("roles");
   const roles = roleNamesForSchool(me.roleAssignments, school.slug);
+  if (access.isTeacher && !roles.length) roles.push(tRoles("teacher"));
+
   return (
-    <SchoolShell
-      slug={school.slug}
-      schoolName={school.name}
-      user={{ name: me.displayName, detail: roles.join(", ") || undefined }}
+    <SchoolProvider
+      school={{ id: school.id, slug: school.slug, name: school.name }}
+      userId={me.id}
+      permissions={[...access.permissions].sort()}
+      isTeacher={access.isTeacher}
+      isStaff={access.isStaff}
     >
-      {children}
-    </SchoolShell>
+      <IssuedCodesProvider>
+        <SchoolShell
+          slug={school.slug}
+          schoolName={school.name}
+          items={navItems(access)}
+          user={{ name: me.displayName, detail: roles.join(", ") || undefined }}
+        >
+          {children}
+        </SchoolShell>
+      </IssuedCodesProvider>
+    </SchoolProvider>
   );
 }

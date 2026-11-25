@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { useLocale } from "next-intl";
 import { useLocalStorageValue } from "@/lib/use-local-storage";
+import { formatCivilDate } from "@/lib/school/dates";
 import {
   defaultCalendarFor,
   formatInstant,
@@ -41,4 +42,11 @@ export function useFormatInstant(): (instant: string | Date) => string {
     (instant) => formatInstant(instant, { locale, calendar }),
     [locale, calendar],
   );
+}
+
+/** Formats a calendar date ("2026-09-01", no time zone) per the viewer's calendar preference and UI locale. */
+export function useFormatDate(): (isoDate: string | null | undefined) => string {
+  const locale = useLocale();
+  const { calendar } = useCalendarPreference();
+  return useCallback((isoDate) => formatCivilDate(isoDate, { locale, calendar }), [locale, calendar]);
 }

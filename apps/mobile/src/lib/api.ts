@@ -17,17 +17,3 @@ export const api = createApiClient({
   getLocale: getCurrentLocale,
   fetch: authFetch,
 });
-
-/**
- * Minimal view of the client for endpoints that exist on the backend roadmap but not yet
- * in the generated OpenAPI types (`/api/v1/auth/login-code`, M3). Remove once
- * `npm run codegen` knows the path and call `api.POST(...)` directly.
- */
-interface UntypedClient {
-  POST(
-    path: string,
-    init: { body: unknown },
-  ): Promise<{ data?: unknown; error?: unknown; response: Response }>;
-}
-
-export const untypedApi = api as unknown as UntypedClient;

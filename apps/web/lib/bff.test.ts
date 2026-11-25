@@ -91,6 +91,13 @@ describe("buildUpstreamHeaders", () => {
   });
 });
 
+describe("login-code responses are not cacheable", () => {
+  it("passes the API's no-store and pragma intent through to the browser", () => {
+    const out = filterResponseHeaders(new Headers({ "cache-control": "no-store", pragma: "no-cache" }));
+    expect(out.get("cache-control")).toBe("no-store");
+  });
+});
+
 describe("filterResponseHeaders", () => {
   it("keeps allowlisted headers and drops cookies and hop-by-hop headers", () => {
     const out = filterResponseHeaders(

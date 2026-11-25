@@ -23,6 +23,11 @@ export function verifyOtp(phone: string, code: string): Promise<IssuedTokens> {
   return request(async () => unwrap(await authApi.POST('/api/v1/auth/otp/verify', { body: { phone, code } })));
 }
 
+/** Exchanges a class QR token or text code for a token pair (400 `auth.invalid_code`, 429 `auth.rate_limited`). */
+export function signInWithLoginCode(code: string): Promise<IssuedTokens> {
+  return request(async () => unwrap(await authApi.POST('/api/v1/auth/login-code', { body: { code } })));
+}
+
 /** The signed-in user's profile and grants. Goes through the authenticated client. */
 export function loadMe() {
   return request(async () => unwrap(await api.GET('/api/v1/me')));
