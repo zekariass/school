@@ -1292,6 +1292,248 @@ export interface paths {
         patch: operations["updateGradeLevel"];
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Import history, newest first; filters status and importType */
+        get: operations["listImports"];
+        put?: never;
+        /** Start an import from an uploaded file (media purpose IMPORT_FILE, READY): reads the header and the first rows, detects encoding and delimiter, suggests the column mapping */
+        post: operations["createImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/mapping-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved column mappings, optionally of one import type */
+        get: operations["listImportMappingProfiles"];
+        put?: never;
+        /** Save a column mapping (field key to header text) for an import type; 409 import.profile_name_taken */
+        post: operations["createImportMappingProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/mapping-profiles/{profileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename a profile or replace its mapping */
+        put: operations["updateImportMappingProfile"];
+        post?: never;
+        /** Delete a profile (imports that used it keep their mapping) */
+        delete: operations["deleteImportMappingProfile"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/templates/{importType}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A template for the import type: header row of machine keys, an example row starting with # (ignored), instructions in English and Amharic (xlsx also has lists of the school's classes, grade levels and campuses) */
+        get: operations["downloadImportTemplate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The kinds of file that can be imported, with their columns (labels in the reader's language) and required fields */
+        get: operations["listImportTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/{importId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One import: status, progress (poll while VALIDATING or COMMITTING), row counts, commit result, failure */
+        get: operations["getImport"];
+        put?: never;
+        post?: never;
+        /** Delete an import with its rows and uploaded file at once (409 while it runs) */
+        delete: operations["deleteImport"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/{importId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel an import that was not committed yet; its rows are purged at once */
+        post: operations["cancelImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/{importId}/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply a VALIDATED import in the background: needs no unresolved duplicates, an unchanged file and mapping since the dry run, and no invalid rows unless skipInvalidRows. Poll until COMPLETED. After a FAILED commit the same call resumes */
+        post: operations["commitImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/{importId}/dry-run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check every row in the background (nothing is written to the school); poll the import until VALIDATED or FAILED. Allowed again after a change of mapping or a failure */
+        post: operations["startImportDryRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/{importId}/error-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** CSV of every problem: the file's columns plus row_number, severity, field, message (UTF-8 with BOM, CRLF, formula-safe cells). Not cached */
+        get: operations["downloadImportErrorReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/{importId}/mapping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save the column mapping (field key to column index) and reading options; the file is read again with them and the job is PREVIEWED. 400 import.mapping_incomplete lists what is missing. Optionally saves the mapping as a profile */
+        put: operations["saveImportMapping"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/{importId}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The preview again (headers, first rows, mapping so far), for reloading the mapping step */
+        get: operations["previewImport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/{importId}/rows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The checked rows in file order (keyset by row number); filter status VALID, INVALID, DUPLICATE or SKIPPED. Errors and warnings are in the reader's language */
+        get: operations["listImportRows"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/imports/{importId}/rows/{rowId}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide a possible duplicate: LINK to an existing student (studentId), CREATE_NEW or SKIP. SKIP is also allowed for any row that was not applied yet */
+        post: operations["resolveImportRow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/staff": {
         parameters: {
             query?: never;
@@ -1576,6 +1818,11 @@ export interface components {
             /** Format: uuid */
             parentId?: string;
         };
+        AppliedProfile: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
         AssignSubscriptionRequest: {
             /** Format: date-time */
             currentPeriodEnd?: string;
@@ -1696,6 +1943,21 @@ export interface components {
             /** Format: int32 */
             teacherCount: number;
         };
+        CommitRequest: {
+            /** @description Apply the valid rows and leave the invalid ones out */
+            skipInvalidRows?: boolean;
+        };
+        /** @description What the commit did; present from COMMITTING on */
+        CommitResult: {
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            skipped: number;
+            /** Format: int32 */
+            unchanged: number;
+            /** Format: int32 */
+            updated: number;
+        };
         ContextRef: {
             /** Format: uuid */
             id: string;
@@ -1764,6 +2026,21 @@ export interface components {
             name: string;
             studentIds: string[];
         };
+        CreateImportRequest: {
+            /** @enum {string} */
+            importType: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
+            /**
+             * Format: uuid
+             * @description A saved mapping profile to apply; otherwise the newest matching profile or the header synonyms are used
+             */
+            mappingProfileId?: string;
+            /**
+             * Format: uuid
+             * @description A READY media of purpose IMPORT_FILE in this school
+             */
+            mediaId: string;
+            options?: components["schemas"]["ImportOptions"];
+        };
         CreateOrganizationRequest: {
             countryCode: string;
             legalName?: string;
@@ -1780,6 +2057,15 @@ export interface components {
             sequence?: number;
             /** Format: date */
             startsOn: string;
+        };
+        CreateProfileRequest: {
+            /** @description Field key to the header text of the column in the school's files */
+            columnMapping: {
+                [key: string]: string;
+            };
+            /** @enum {string} */
+            importType: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
+            name: string;
         };
         CreateRoleAssignmentRequest: {
             roleCode: string;
@@ -1888,6 +2174,16 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageImportJobView: {
+            items: components["schemas"]["ImportJobView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageImportRowView: {
+            items: components["schemas"]["ImportRowView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageNotificationView: {
             items: components["schemas"]["NotificationView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -1922,6 +2218,26 @@ export interface components {
             features: components["schemas"]["FeatureDefinitionResponse"][];
             settings: components["schemas"]["SettingDefinitionResponse"][];
         };
+        Detected: {
+            date1904: boolean;
+            delimiter?: string;
+            encoding?: string;
+            format: string;
+            /** Format: int32 */
+            formulaCells: number;
+            /** Format: int32 */
+            mergedRegions: number;
+            sheet?: string;
+            sheetNames: string[];
+        };
+        /** @description Why a job is FAILED: the phase (VALIDATE or COMMIT), the first failing row if any, and a localized message */
+        Failure: {
+            code: string;
+            message: string;
+            phase: string;
+            /** Format: int32 */
+            rowNumber?: number;
+        };
         FeatureDefinitionResponse: {
             defaultEnabled: boolean;
             description?: string;
@@ -1952,6 +2268,13 @@ export interface components {
              */
             limit?: number;
         };
+        FieldView: {
+            key: string;
+            label: string;
+            /** @description At least one field of the same group must be mapped */
+            oneOf?: string;
+            required: boolean;
+        };
         GradeLevelView: {
             active: boolean;
             code?: string;
@@ -1960,6 +2283,102 @@ export interface components {
             name: string;
             /** Format: int32 */
             sequence: number;
+        };
+        ImportJobView: {
+            /** @description Field key to zero-based column index */
+            columnMapping: {
+                [key: string]: number;
+            };
+            /** Format: date-time */
+            completedAt?: string;
+            /** Format: date-time */
+            createdAt: string;
+            failure?: components["schemas"]["Failure"];
+            filename: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            importType: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
+            /** Format: uuid */
+            initiatedBy: string;
+            /** Format: uuid */
+            mappingProfileId?: string;
+            /** Format: uuid */
+            mediaId: string;
+            options: components["schemas"]["ImportOptions"];
+            progress: components["schemas"]["Progress"];
+            result?: components["schemas"]["CommitResult"];
+            rows?: components["schemas"]["RowCounts"];
+            /** @description True once the raw rows and the uploaded file were purged (retention) */
+            rowsPurged: boolean;
+            /** Format: date-time */
+            startedAt?: string;
+            /** @enum {string} */
+            status: "UPLOADED" | "PREVIEWED" | "VALIDATING" | "VALIDATED" | "COMMITTING" | "COMPLETED" | "FAILED" | "CANCELLED";
+        };
+        ImportOptions: {
+            /**
+             * @description GREGORIAN (default) or ETHIOPIAN
+             * @enum {string}
+             */
+            dateSystem?: "GREGORIAN" | "ETHIOPIAN";
+            delimiter?: string;
+            encoding?: string;
+            sheet?: string;
+            /** @description Commit only: apply the valid rows and skip the invalid ones */
+            skipInvalidRows?: boolean;
+        };
+        /** @description The first lines of the file with what was detected and the suggested column mapping */
+        ImportPreview: {
+            appliedProfile?: components["schemas"]["AppliedProfile"];
+            detected: components["schemas"]["Detected"];
+            fields: components["schemas"]["FieldView"][];
+            headers: string[];
+            job: components["schemas"]["ImportJobView"];
+            /** @description Required fields still missing from the mapping */
+            missingFields: string[];
+            previewRows: components["schemas"]["PreviewRow"][];
+            /** @description What must be mapped: required fields, and 'a|b' where one of a, b is enough */
+            requiredFields: string[];
+            /** @description The job's current mapping: the suggestion until the user saves one */
+            suggestedMapping: {
+                [key: string]: number;
+            };
+        };
+        ImportRowView: {
+            /** @description CREATED, UPDATED, UNCHANGED or SKIPPED after the commit */
+            applyResult?: string;
+            /** @description Original cells in column order; absent after the purge */
+            cells?: string[];
+            /** @description Existing students that may be the same person (possible duplicates) */
+            duplicateCandidates: {
+                [key: string]: unknown;
+            }[];
+            /** Format: uuid */
+            entityId?: string;
+            errors: components["schemas"]["ProblemView"][];
+            /** Format: uuid */
+            id: string;
+            /** @description What the commit applies, as understood from the cells; absent after the purge */
+            normalized?: {
+                [key: string]: unknown;
+            };
+            /** @enum {string} */
+            plannedAction?: "CREATE" | "UPDATE" | "NONE";
+            /** @description LINK, CREATE_NEW or SKIP once a possible duplicate was decided */
+            resolution?: string;
+            /** Format: int32 */
+            rowNumber: number;
+            /** @enum {string} */
+            status: "VALID" | "INVALID" | "DUPLICATE" | "SKIPPED";
+            warnings: components["schemas"]["ProblemView"][];
+        };
+        ImportTypeView: {
+            fields: components["schemas"]["FieldView"][];
+            label: string;
+            requiredFields: string[];
+            /** @enum {string} */
+            type: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
         };
         IssueCodesRequest: {
             studentIds?: string[];
@@ -2211,6 +2630,13 @@ export interface components {
         Preferences: {
             categories: components["schemas"]["CategoryView"][];
         };
+        PreviewRow: {
+            cells: string[];
+            /** @description A row starting with # is an example or comment: it is ignored */
+            example: boolean;
+            /** Format: int32 */
+            rowNumber: number;
+        };
         /** @description RFC 9457 problem details returned by every failing endpoint. */
         ProblemDetail: {
             /** @description Stable machine-readable error code */
@@ -2230,6 +2656,30 @@ export interface components {
             title: string;
             /** Format: uri */
             type: string;
+        };
+        ProblemView: {
+            code: string;
+            column?: string;
+            message: string;
+        };
+        ProfileView: {
+            /** @description Field key to the header text of the column */
+            columnMapping: {
+                [key: string]: string;
+            };
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            importType: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
+            name: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Progress: {
+            /** Format: int32 */
+            done: number;
+            /** Format: int32 */
+            total: number;
         };
         PurposePolicy: {
             contextTypes: ("USER" | "SCHOOL" | "ORGANIZATION")[];
@@ -2280,6 +2730,18 @@ export interface components {
             /** @enum {string} */
             provider: "EXPO" | "FCM" | "APNS" | "WEBPUSH";
             token: string;
+        };
+        ResolveRequest: {
+            /**
+             * @description How a possible duplicate is decided: LINK to an existing student (studentId), CREATE_NEW, or SKIP the row
+             * @enum {string}
+             */
+            resolution: "LINK" | "CREATE_NEW" | "SKIP";
+            /**
+             * Format: uuid
+             * @description The existing student to link to (LINK only)
+             */
+            studentId?: string;
         };
         RevokedCodes: {
             /** Format: int32 */
@@ -2351,6 +2813,40 @@ export interface components {
             studentId: string;
             /** @description Only with accessLevel FULL */
             username?: string;
+        };
+        /** @description Counts of the checked rows; present from VALIDATED on. The last four are absent in history lists and after the purge */
+        RowCounts: {
+            /**
+             * Format: int32
+             * @description Possible duplicates still waiting for a decision
+             */
+            duplicates: number;
+            /** Format: int32 */
+            invalid: number;
+            /** Format: int32 */
+            skipped?: number;
+            /** Format: int32 */
+            toCreate?: number;
+            /** Format: int32 */
+            toUpdate?: number;
+            /** Format: int32 */
+            total: number;
+            /**
+             * Format: int32
+             * @description Valid rows that would change nothing
+             */
+            unchanged?: number;
+            /** Format: int32 */
+            valid: number;
+        };
+        SaveMappingRequest: {
+            /** @description Field key to zero-based column index */
+            columnMapping: {
+                [key: string]: number;
+            };
+            options?: components["schemas"]["ImportOptions"];
+            /** @description Also save this mapping as a profile with this name */
+            saveAsProfile?: string;
         };
         SchoolConfigurationResponse: {
             features: components["schemas"]["FeatureStateResponse"][];
@@ -2726,6 +3222,12 @@ export interface components {
         };
         UpdatePreferencesRequest: {
             changes: components["schemas"]["PreferenceChange"][];
+        };
+        UpdateProfileRequest: {
+            columnMapping: {
+                [key: string]: string;
+            };
+            name: string;
         };
         UpdateSchoolStatusRequest: {
             /** @enum {string} */
@@ -6214,6 +6716,612 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GradeLevelView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listImports: {
+        parameters: {
+            query?: {
+                status?: "UPLOADED" | "PREVIEWED" | "VALIDATING" | "VALIDATED" | "COMMITTING" | "COMPLETED" | "FAILED" | "CANCELLED";
+                importType?: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageImportJobView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreview"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listImportMappingProfiles: {
+        parameters: {
+            query?: {
+                importType?: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createImportMappingProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateImportMappingProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteImportMappingProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    downloadImportTemplate: {
+        parameters: {
+            query?: {
+                format?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                importType: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    "text/csv": string;
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listImportTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportTypeView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    cancelImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    commitImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CommitRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    startImportDryRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportJobView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    downloadImportErrorReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    saveImportMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveMappingRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreview"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    previewImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreview"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listImportRows: {
+        parameters: {
+            query?: {
+                status?: "VALID" | "INVALID" | "DUPLICATE" | "SKIPPED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageImportRowView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    resolveImportRow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                importId: string;
+                rowId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportRowView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

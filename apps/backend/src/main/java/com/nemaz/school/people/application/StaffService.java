@@ -137,6 +137,44 @@ public class StaffService {
 
 	public StaffView add(CurrentUser actor, UUID schoolId, AddStaff r) {
 		this.gate.require(actor, schoolId, Permissions.SCHOOL_STAFF_MANAGE);
+		Provisioned provisioned = provision(actor, actor.userId(), schoolId, r, null);
+		return get(actor, schoolId, provisioned.staffId());
+	}
+
+	/**
+	 * Adds a person to the staff for the roster import, which checked {@code school.import.manage}: the same
+	 * provisioning as {@link #add} (account found or created by phone or email, profile, notification, welcome
+	 * message) but never an administrative role.
+	 */
+	public Provisioned addForImport(UUID actorId, UUID schoolId, AddStaff r, String externalRef) {
+		if (r.adminRole() != null) {
+			throw ApiException.badRequest("staff.admin_role_not_allowed");
+		}
+		return provision(null, actorId, schoolId, r, externalRef);
+	}
+
+	/** Changes details of a staff member for the roster import (absent fields stay). */
+	public void updateForImport(UUID actorId, UUID schoolId, UUID staffId, String jobTitle, UUID campusId,
+			String externalRef) {
+		StaffRow before = find(schoolId, staffId);
+		UUID campus = (campusId != null) ? validCampus(schoolId, campusId) : before.campusId();
+		this.jdbc.sql("""
+				update school_staff set job_title = :title, campus_id = :campus, external_ref = coalesce(:ext, external_ref),
+				       updated_at = now(), version = version + 1 where id = :id""")
+			.param("title", (jobTitle != null) ? blankToNull(jobTitle) : before.jobTitle())
+			.param("campus", campus)
+			.param("ext", blankToNull(externalRef))
+			.param("id", staffId)
+			.update();
+		this.audit.record(AuditEntry.of("staff.update", AuditOutcome.SUCCESS)
+			.actor(actorId)
+			.target("school_staff", staffId)
+			.school(schoolId)
+			.metadata("by", "import"));
+	}
+
+	/** {@code roleGrantor} is the acting user for an administrative role, null when no role may be granted. */
+	private Provisioned provision(CurrentUser roleGrantor, UUID actorId, UUID schoolId, AddStaff r, String externalRef) {
 		SchoolRef school = this.directory.school(schoolId).orElseThrow(() -> ApiException.notFound("school.not_found"));
 		UUID campusId = validCampus(schoolId, r.campusId());
 		if (r.adminRole() != null && r.staffType() != StaffType.ADMINISTRATOR) {
@@ -164,9 +202,9 @@ public class StaffService {
 		UUID staffId = Ids.newId();
 		try {
 			this.jdbc.sql("""
-					insert into school_staff (id, school_id, user_id, campus_id, staff_type, job_title, employee_number, status,
-					                          started_on)
-					values (:id, :s, :u, :campus, :type, :title, :number, 'ACTIVE', :today)""")
+					insert into school_staff (id, school_id, user_id, campus_id, staff_type, job_title, employee_number, external_ref,
+					                          status, started_on)
+					values (:id, :s, :u, :campus, :type, :title, :number, :ext, 'ACTIVE', :today)""")
 				.param("id", staffId)
 				.param("s", schoolId)
 				.param("u", person.id())
@@ -174,6 +212,7 @@ public class StaffService {
 				.param("type", r.staffType().name())
 				.param("title", blankToNull(r.jobTitle()))
 				.param("number", blankToNull(r.employeeNumber()))
+				.param("ext", blankToNull(externalRef))
 				.param("today", LocalDate.now(this.clock))
 				.update();
 		}
@@ -186,12 +225,13 @@ public class StaffService {
 		if (r.adminRole() != null) {
 			AccessScope scope = (r.adminRole() == AdminRole.CAMPUS_ADMIN) ? AccessScope.campus(schoolId, campusId)
 					: AccessScope.school(schoolId);
-			this.roles.grantWithinScope(actor, person.id(), r.adminRole().name(), scope);
+			this.roles.grantWithinScope(roleGrantor, person.id(), r.adminRole().name(), scope);
 		}
 		notifyAdded(school, staffId, person, r.staffType(), language);
 		this.events.publishEvent(new StaffAdded(schoolId, staffId, person.id(), r.staffType().name(), person.created(),
-				actor.userId()));
+				actorId));
 		this.audit.record(AuditEntry.of("staff.add", AuditOutcome.SUCCESS)
+			.actor(actorId)
 			.target("school_staff", staffId)
 			.school(schoolId)
 			.metadata("userId", person.id().toString())
@@ -200,7 +240,10 @@ public class StaffService {
 			.metadata("accountCreated", person.created())
 			.metadata("phone", Masking.phone(person.phoneE164()))
 			.metadata("email", Masking.email(person.email())));
-		return get(actor, schoolId, staffId);
+		return new Provisioned(staffId, person.id(), person.created());
+	}
+
+	public record Provisioned(UUID staffId, UUID userId, boolean accountCreated) {
 	}
 
 	@Transactional(readOnly = true)

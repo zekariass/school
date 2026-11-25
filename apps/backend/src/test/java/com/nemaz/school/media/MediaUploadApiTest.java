@@ -50,7 +50,7 @@ class MediaUploadApiTest extends MediaTestSupport {
 	void unsupportedPurposesAreRefusedUntilTheirMilestone() throws Exception {
 		Persona user = this.personas.newUser("purposes");
 		for (String purpose : List.of("POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "LIBRARY", "COURSE", "RECORDING",
-				"VERIFICATION_DOC", "IMPORT_FILE", "REPORT")) {
+				"VERIFICATION_DOC", "REPORT")) {
 			requestUpload(user, purpose, "a.jpg", "image/jpeg", 100, school(this.personas.fixture().schoolA()))
 				.andExpect(status().isForbidden())
 				.andExpect(jsonPath("$.code").value("media.purpose_not_supported"));

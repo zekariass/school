@@ -1514,6 +1514,8 @@ create table sync_runs (                         -- future vendor connectors
 );
 ```
 
+*As built (M4a, `V4_01`):* `import_jobs` is one row that walks a state machine (`UPLOADED`, `PREVIEWED`, `VALIDATING`, `VALIDATED`, `COMMITTING`, `COMPLETED`, `FAILED`, `CANCELLED`), so `mode` and `dry_run_job_id` are dropped (`validated_hash` pins the file fingerprint, mapping and options a dry run saw); added `content_fingerprint`, `options`, `detected`, `headers`, `unchanged_count`, `progress_done/total`, lease columns, failure columns, `rows_purged_at`/`file_purged_at`; `error_report_media_id` is omitted (the report is rendered on demand). `import_type` is `STUDENTS|STAFF|CLASSES|SUBJECTS|GRADE_LEVELS|ENROLLMENTS` (guardian contacts are columns of the student file, academic years are not imported). `column_mapping` of a job is field to column index; of a profile field to header text. `import_job_rows` gains `school_id` (composite FK), `warnings`, `row_hash`, `duplicate_candidates`, `resolution`, `resolved_entity_id`, `apply_result`, `applied_at`; status is `VALID|INVALID|DUPLICATE|SKIPPED` (what the commit did is `apply_result`); raw and normalized payloads are nulled by the retention job. `sync_runs` is not created. New `guardian_contact_candidates` (staged by the student import, consumed by M5 invitations; never a guardian link) and `student_profiles.name_fold` (comparison key, GIN trigram index).
+
 ### 4.16 Portfolios (P1 basic; collections, objectives and feedback P2)
 
 ```sql

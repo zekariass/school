@@ -1,5 +1,6 @@
 package com.nemaz.school.tenancy;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,6 +18,9 @@ public interface TenantDirectory {
 
 	Optional<CampusRef> campus(UUID campusId);
 
+	/** Every campus of the school (any status) with its short code, by name. */
+	List<CampusEntry> campusesOf(UUID schoolId);
+
 	record OrganizationRef(UUID id, String countryCode, String name) {
 	}
 
@@ -28,6 +32,10 @@ public interface TenantDirectory {
 			return "ACTIVE".equals(this.status);
 		}
 
+	}
+
+	/** A campus as a lookup row: {@code code} may be null, {@code status} is ACTIVE or ARCHIVED. */
+	record CampusEntry(UUID id, String name, String code, String status) {
 	}
 
 	/** {@code status} is ACTIVE or ARCHIVED. */

@@ -10,6 +10,9 @@ import java.util.Set;
  */
 final class MagicBytes {
 
+	/** What delimited text may be declared as: clients differ (text/csv, text/plain, the Excel type with a .csv name). */
+	private static final Set<String> TEXT_TYPES = Set.of(MimeCatalog.CSV, MimeCatalog.TEXT_PLAIN, MimeCatalog.MS_EXCEL);
+
 	/** Bytes the sniffer needs. */
 	static final int SNIFF_LENGTH = 4096;
 
@@ -50,16 +53,33 @@ final class MagicBytes {
 			return Set.of(MimeCatalog.XLSX);
 		}
 		if (isPlainText(head)) {
-			return Set.of(MimeCatalog.CSV);
+			return TEXT_TYPES;
 		}
 		return Set.of();
 	}
 
 	/** Text has no signature: it is plain text when there is no NUL or other control byte (tab, CR and LF are fine). */
 	private static boolean isPlainText(byte[] head) {
+		if (startsWith(head, 0xFF, 0xFE) || startsWith(head, 0xFE, 0xFF)) {
+			return isUtf16Text(head);
+		}
 		for (byte b : head) {
 			int v = b & 0xFF;
 			if (v == 0 || (v < 0x20 && v != '\t' && v != '\r' && v != '\n')) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** Excel's "Unicode Text" export: a UTF-16 byte order mark and then characters without control codes (tab, CR, LF aside). */
+	private static boolean isUtf16Text(byte[] head) {
+		boolean littleEndian = (head[0] & 0xFF) == 0xFF;
+		int end = head.length - ((head.length - 2) % 2);
+		for (int i = 2; i + 1 < end; i += 2) {
+			int unit = littleEndian ? ((head[i] & 0xFF) | ((head[i + 1] & 0xFF) << 8))
+					: (((head[i] & 0xFF) << 8) | (head[i + 1] & 0xFF));
+			if (unit < 0x20 && unit != '\t' && unit != '\r' && unit != '\n') {
 				return false;
 			}
 		}

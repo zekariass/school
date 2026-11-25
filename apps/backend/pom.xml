@@ -24,6 +24,8 @@
 		<twelvemonkeys.version>3.15.3</twelvemonkeys.version>
 		<pdfbox.version>3.0.8</pdfbox.version>
 		<commons-imaging.version>1.0.0-alpha6</commons-imaging.version>
+		<poi.version>6.0.0</poi.version>
+		<commons-csv.version>1.14.1</commons-csv.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -175,6 +177,18 @@
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
 			<version>${pdfbox.version}</version>
+		</dependency>
+
+		<!-- Roster import (M4): XLSX read with POI's event API (never a loaded workbook) and written for templates; CSV -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>${poi.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>${commons-csv.version}</version>
 		</dependency>
 
 		<dependency>

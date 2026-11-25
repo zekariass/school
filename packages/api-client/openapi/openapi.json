@@ -4652,6 +4652,923 @@
         "tags" : [ "academic-structure" ]
       }
     },
+    "/api/v1/schools/{schoolId}/imports" : {
+      "get" : {
+        "operationId" : "listImports",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "UPLOADED", "PREVIEWED", "VALIDATING", "VALIDATED", "COMMITTING", "COMPLETED", "FAILED", "CANCELLED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "importType",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "GRADE_LEVELS", "SUBJECTS", "CLASSES", "STAFF", "STUDENTS", "ENROLLMENTS" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageImportJobView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Import history, newest first; filters status and importType",
+        "tags" : [ "imports" ]
+      },
+      "post" : {
+        "operationId" : "createImport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateImportRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportPreview"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Start an import from an uploaded file (media purpose IMPORT_FILE, READY): reads the header and the first rows, detects encoding and delimiter, suggests the column mapping",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/mapping-profiles" : {
+      "get" : {
+        "operationId" : "listImportMappingProfiles",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "importType",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "GRADE_LEVELS", "SUBJECTS", "CLASSES", "STAFF", "STUDENTS", "ENROLLMENTS" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProfileView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Saved column mappings, optionally of one import type",
+        "tags" : [ "imports" ]
+      },
+      "post" : {
+        "operationId" : "createImportMappingProfile",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateProfileRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProfileView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Save a column mapping (field key to header text) for an import type; 409 import.profile_name_taken",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/mapping-profiles/{profileId}" : {
+      "delete" : {
+        "operationId" : "deleteImportMappingProfile",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "profileId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a profile (imports that used it keep their mapping)",
+        "tags" : [ "imports" ]
+      },
+      "put" : {
+        "operationId" : "updateImportMappingProfile",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "profileId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProfileView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Rename a profile or replace its mapping",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/templates/{importType}" : {
+      "get" : {
+        "operationId" : "downloadImportTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importType",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "GRADE_LEVELS", "SUBJECTS", "CLASSES", "STAFF", "STUDENTS", "ENROLLMENTS" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "format",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "csv"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              },
+              "text/csv" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A template for the import type: header row of machine keys, an example row starting with # (ignored), instructions in English and Amharic (xlsx also has lists of the school's classes, grade levels and campuses)",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/types" : {
+      "get" : {
+        "operationId" : "listImportTypes",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ImportTypeView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The kinds of file that can be imported, with their columns (labels in the reader's language) and required fields",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/{importId}" : {
+      "delete" : {
+        "operationId" : "deleteImport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete an import with its rows and uploaded file at once (409 while it runs)",
+        "tags" : [ "imports" ]
+      },
+      "get" : {
+        "operationId" : "getImport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportJobView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One import: status, progress (poll while VALIDATING or COMMITTING), row counts, commit result, failure",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/{importId}/cancel" : {
+      "post" : {
+        "operationId" : "cancelImport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportJobView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Cancel an import that was not committed yet; its rows are purged at once",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/{importId}/commit" : {
+      "post" : {
+        "operationId" : "commitImport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CommitRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportJobView"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Apply a VALIDATED import in the background: needs no unresolved duplicates, an unchanged file and mapping since the dry run, and no invalid rows unless skipInvalidRows. Poll until COMPLETED. After a FAILED commit the same call resumes",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/{importId}/dry-run" : {
+      "post" : {
+        "operationId" : "startImportDryRun",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportJobView"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Check every row in the background (nothing is written to the school); poll the import until VALIDATED or FAILED. Allowed again after a change of mapping or a failure",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/{importId}/error-report" : {
+      "get" : {
+        "operationId" : "downloadImportErrorReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/csv" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "CSV of every problem: the file's columns plus row_number, severity, field, message (UTF-8 with BOM, CRLF, formula-safe cells). Not cached",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/{importId}/mapping" : {
+      "put" : {
+        "operationId" : "saveImportMapping",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SaveMappingRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportPreview"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Save the column mapping (field key to column index) and reading options; the file is read again with them and the job is PREVIEWED. 400 import.mapping_incomplete lists what is missing. Optionally saves the mapping as a profile",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/{importId}/preview" : {
+      "get" : {
+        "operationId" : "previewImport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportPreview"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The preview again (headers, first rows, mapping so far), for reloading the mapping step",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/{importId}/rows" : {
+      "get" : {
+        "operationId" : "listImportRows",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "VALID", "INVALID", "DUPLICATE", "SKIPPED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageImportRowView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The checked rows in file order (keyset by row number); filter status VALID, INVALID, DUPLICATE or SKIPPED. Errors and warnings are in the reader's language",
+        "tags" : [ "imports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/imports/{importId}/rows/{rowId}/resolve" : {
+      "post" : {
+        "operationId" : "resolveImportRow",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "importId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "rowId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ResolveRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportRowView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Decide a possible duplicate: LINK to an existing student (studentId), CREATE_NEW or SKIP. SKIP is also allowed for any row that was not applied yet",
+        "tags" : [ "imports" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/staff" : {
       "get" : {
         "operationId" : "listStaff",
@@ -5773,6 +6690,19 @@
         },
         "required" : [ "countryCode", "id", "level", "nameI18n" ]
       },
+      "AppliedProfile" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "name" ]
+      },
       "AssignSubscriptionRequest" : {
         "type" : "object",
         "properties" : {
@@ -6056,6 +6986,38 @@
         },
         "required" : [ "academicYearId", "academicYearName", "classType", "id", "name", "schoolId", "status", "studentCount", "subjectIds", "teacherCount" ]
       },
+      "CommitRequest" : {
+        "type" : "object",
+        "properties" : {
+          "skipInvalidRows" : {
+            "type" : "boolean",
+            "description" : "Apply the valid rows and leave the invalid ones out"
+          }
+        }
+      },
+      "CommitResult" : {
+        "type" : "object",
+        "description" : "What the commit did; present from COMMITTING on",
+        "properties" : {
+          "created" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "skipped" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "unchanged" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "updated" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "created", "skipped", "unchanged", "updated" ]
+      },
       "ContextRef" : {
         "type" : "object",
         "properties" : {
@@ -6280,6 +7242,29 @@
         },
         "required" : [ "name", "studentIds" ]
       },
+      "CreateImportRequest" : {
+        "type" : "object",
+        "properties" : {
+          "importType" : {
+            "type" : "string",
+            "enum" : [ "GRADE_LEVELS", "SUBJECTS", "CLASSES", "STAFF", "STUDENTS", "ENROLLMENTS" ]
+          },
+          "mappingProfileId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "A saved mapping profile to apply; otherwise the newest matching profile or the header synonyms are used"
+          },
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "A READY media of purpose IMPORT_FILE in this school"
+          },
+          "options" : {
+            "$ref" : "#/components/schemas/ImportOptions"
+          }
+        },
+        "required" : [ "importType", "mediaId" ]
+      },
       "CreateOrganizationRequest" : {
         "type" : "object",
         "properties" : {
@@ -6335,6 +7320,28 @@
           }
         },
         "required" : [ "endsOn", "name", "periodType", "startsOn" ]
+      },
+      "CreateProfileRequest" : {
+        "type" : "object",
+        "properties" : {
+          "columnMapping" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Field key to the header text of the column in the school's files"
+          },
+          "importType" : {
+            "type" : "string",
+            "enum" : [ "GRADE_LEVELS", "SUBJECTS", "CLASSES", "STAFF", "STUDENTS", "ENROLLMENTS" ]
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "columnMapping", "importType", "name" ]
       },
       "CreateRoleAssignmentRequest" : {
         "type" : "object",
@@ -6684,6 +7691,38 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageImportJobView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ImportJobView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageImportRowView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ImportRowView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageNotificationView" : {
         "type" : "object",
         "properties" : {
@@ -6798,6 +7837,61 @@
         },
         "required" : [ "features", "settings" ]
       },
+      "Detected" : {
+        "type" : "object",
+        "properties" : {
+          "date1904" : {
+            "type" : "boolean"
+          },
+          "delimiter" : {
+            "type" : "string"
+          },
+          "encoding" : {
+            "type" : "string"
+          },
+          "format" : {
+            "type" : "string"
+          },
+          "formulaCells" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "mergedRegions" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sheet" : {
+            "type" : "string"
+          },
+          "sheetNames" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "date1904", "format", "formulaCells", "mergedRegions", "sheetNames" ]
+      },
+      "Failure" : {
+        "type" : "object",
+        "description" : "Why a job is FAILED: the phase (VALIDATE or COMMIT), the first failing row if any, and a localized message",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "phase" : {
+            "type" : "string"
+          },
+          "rowNumber" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "code", "message", "phase" ]
+      },
       "FeatureDefinitionResponse" : {
         "type" : "object",
         "properties" : {
@@ -6870,6 +7964,25 @@
         },
         "required" : [ "enabled", "entitled", "flagEnabled", "flagSource", "key" ]
       },
+      "FieldView" : {
+        "type" : "object",
+        "properties" : {
+          "key" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "oneOf" : {
+            "type" : "string",
+            "description" : "At least one field of the same group must be mapped"
+          },
+          "required" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "key", "label", "required" ]
+      },
       "GradeLevelView" : {
         "type" : "object",
         "properties" : {
@@ -6892,6 +8005,253 @@
           }
         },
         "required" : [ "active", "id", "name", "sequence" ]
+      },
+      "ImportJobView" : {
+        "type" : "object",
+        "properties" : {
+          "columnMapping" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "description" : "Field key to zero-based column index"
+          },
+          "completedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "failure" : {
+            "$ref" : "#/components/schemas/Failure"
+          },
+          "filename" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "importType" : {
+            "type" : "string",
+            "enum" : [ "GRADE_LEVELS", "SUBJECTS", "CLASSES", "STAFF", "STUDENTS", "ENROLLMENTS" ]
+          },
+          "initiatedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "mappingProfileId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "options" : {
+            "$ref" : "#/components/schemas/ImportOptions"
+          },
+          "progress" : {
+            "$ref" : "#/components/schemas/Progress"
+          },
+          "result" : {
+            "$ref" : "#/components/schemas/CommitResult"
+          },
+          "rows" : {
+            "$ref" : "#/components/schemas/RowCounts"
+          },
+          "rowsPurged" : {
+            "type" : "boolean",
+            "description" : "True once the raw rows and the uploaded file were purged (retention)"
+          },
+          "startedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "UPLOADED", "PREVIEWED", "VALIDATING", "VALIDATED", "COMMITTING", "COMPLETED", "FAILED", "CANCELLED" ]
+          }
+        },
+        "required" : [ "columnMapping", "createdAt", "filename", "id", "importType", "initiatedBy", "mediaId", "options", "progress", "rowsPurged", "status" ]
+      },
+      "ImportOptions" : {
+        "type" : "object",
+        "properties" : {
+          "dateSystem" : {
+            "type" : "string",
+            "description" : "GREGORIAN (default) or ETHIOPIAN",
+            "enum" : [ "GREGORIAN", "ETHIOPIAN" ]
+          },
+          "delimiter" : {
+            "type" : "string",
+            "maxLength" : 3,
+            "minLength" : 0
+          },
+          "encoding" : {
+            "type" : "string",
+            "pattern" : "^(?i)(utf-?8|utf-?16(le|be)?|windows-1252|cp1252|latin1|iso-8859-1)$"
+          },
+          "sheet" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "skipInvalidRows" : {
+            "type" : "boolean",
+            "description" : "Commit only: apply the valid rows and skip the invalid ones"
+          }
+        }
+      },
+      "ImportPreview" : {
+        "type" : "object",
+        "description" : "The first lines of the file with what was detected and the suggested column mapping",
+        "properties" : {
+          "appliedProfile" : {
+            "$ref" : "#/components/schemas/AppliedProfile"
+          },
+          "detected" : {
+            "$ref" : "#/components/schemas/Detected"
+          },
+          "fields" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FieldView"
+            }
+          },
+          "headers" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "job" : {
+            "$ref" : "#/components/schemas/ImportJobView"
+          },
+          "missingFields" : {
+            "type" : "array",
+            "description" : "Required fields still missing from the mapping",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "previewRows" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PreviewRow"
+            }
+          },
+          "requiredFields" : {
+            "type" : "array",
+            "description" : "What must be mapped: required fields, and 'a|b' where one of a, b is enough",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "suggestedMapping" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "description" : "The job's current mapping: the suggestion until the user saves one"
+          }
+        },
+        "required" : [ "detected", "fields", "headers", "job", "missingFields", "previewRows", "requiredFields", "suggestedMapping" ]
+      },
+      "ImportRowView" : {
+        "type" : "object",
+        "properties" : {
+          "applyResult" : {
+            "type" : "string",
+            "description" : "CREATED, UPDATED, UNCHANGED or SKIPPED after the commit"
+          },
+          "cells" : {
+            "type" : "array",
+            "description" : "Original cells in column order; absent after the purge",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "duplicateCandidates" : {
+            "type" : "array",
+            "description" : "Existing students that may be the same person (possible duplicates)",
+            "items" : {
+              "type" : "object",
+              "additionalProperties" : { }
+            }
+          },
+          "entityId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "errors" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ProblemView"
+            }
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "normalized" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "What the commit applies, as understood from the cells; absent after the purge"
+          },
+          "plannedAction" : {
+            "type" : "string",
+            "enum" : [ "CREATE", "UPDATE", "NONE" ]
+          },
+          "resolution" : {
+            "type" : "string",
+            "description" : "LINK, CREATE_NEW or SKIP once a possible duplicate was decided"
+          },
+          "rowNumber" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "VALID", "INVALID", "DUPLICATE", "SKIPPED" ]
+          },
+          "warnings" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ProblemView"
+            }
+          }
+        },
+        "required" : [ "duplicateCandidates", "errors", "id", "rowNumber", "status", "warnings" ]
+      },
+      "ImportTypeView" : {
+        "type" : "object",
+        "properties" : {
+          "fields" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FieldView"
+            }
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "requiredFields" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "GRADE_LEVELS", "SUBJECTS", "CLASSES", "STAFF", "STUDENTS", "ENROLLMENTS" ]
+          }
+        },
+        "required" : [ "fields", "label", "requiredFields", "type" ]
       },
       "IssueCodesRequest" : {
         "type" : "object",
@@ -7519,6 +8879,26 @@
         },
         "required" : [ "categories" ]
       },
+      "PreviewRow" : {
+        "type" : "object",
+        "properties" : {
+          "cells" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "example" : {
+            "type" : "boolean",
+            "description" : "A row starting with # is an example or comment: it is ignored"
+          },
+          "rowNumber" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "cells", "example", "rowNumber" ]
+      },
       "ProblemDetail" : {
         "type" : "object",
         "description" : "RFC 9457 problem details returned by every failing endpoint.",
@@ -7569,6 +8949,63 @@
           }
         },
         "required" : [ "code", "status", "title", "type" ]
+      },
+      "ProblemView" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "column" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "message" ]
+      },
+      "ProfileView" : {
+        "type" : "object",
+        "properties" : {
+          "columnMapping" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Field key to the header text of the column"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "importType" : {
+            "type" : "string",
+            "enum" : [ "GRADE_LEVELS", "SUBJECTS", "CLASSES", "STAFF", "STUDENTS", "ENROLLMENTS" ]
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "columnMapping", "id", "importType", "name", "updatedAt" ]
+      },
+      "Progress" : {
+        "type" : "object",
+        "properties" : {
+          "done" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "done", "total" ]
       },
       "PurposePolicy" : {
         "type" : "object",
@@ -7713,6 +9150,22 @@
           }
         },
         "required" : [ "platform", "provider", "token" ]
+      },
+      "ResolveRequest" : {
+        "type" : "object",
+        "properties" : {
+          "resolution" : {
+            "type" : "string",
+            "description" : "How a possible duplicate is decided: LINK to an existing student (studentId), CREATE_NEW, or SKIP the row",
+            "enum" : [ "LINK", "CREATE_NEW", "SKIP" ]
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The existing student to link to (LINK only)"
+          }
+        },
+        "required" : [ "resolution" ]
       },
       "RevokedCodes" : {
         "type" : "object",
@@ -7869,6 +9322,70 @@
           }
         },
         "required" : [ "accessLevel", "displayName", "joinedAt", "studentId" ]
+      },
+      "RowCounts" : {
+        "type" : "object",
+        "description" : "Counts of the checked rows; present from VALIDATED on. The last four are absent in history lists and after the purge",
+        "properties" : {
+          "duplicates" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Possible duplicates still waiting for a decision"
+          },
+          "invalid" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "skipped" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "toCreate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "toUpdate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "unchanged" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Valid rows that would change nothing"
+          },
+          "valid" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "duplicates", "invalid", "total", "valid" ]
+      },
+      "SaveMappingRequest" : {
+        "type" : "object",
+        "properties" : {
+          "columnMapping" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "description" : "Field key to zero-based column index"
+          },
+          "options" : {
+            "$ref" : "#/components/schemas/ImportOptions"
+          },
+          "saveAsProfile" : {
+            "type" : "string",
+            "description" : "Also save this mapping as a profile with this name",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "columnMapping" ]
       },
       "SchoolConfigurationResponse" : {
         "type" : "object",
@@ -8781,6 +10298,23 @@
           }
         },
         "required" : [ "changes" ]
+      },
+      "UpdateProfileRequest" : {
+        "type" : "object",
+        "properties" : {
+          "columnMapping" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "columnMapping", "name" ]
       },
       "UpdateSchoolStatusRequest" : {
         "type" : "object",

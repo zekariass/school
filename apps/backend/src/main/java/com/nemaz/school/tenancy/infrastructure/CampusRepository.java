@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface CampusRepository extends JpaRepository<Campus, UUID>, JpaSpecificationExecutor<Campus> {
 
+	java.util.List<Campus> findBySchoolIdOrderByNameAscIdAsc(UUID schoolId);
+
 	boolean existsBySchoolIdAndCode(UUID schoolId, String code);
 
 	boolean existsBySchoolIdAndCodeAndIdNot(UUID schoolId, String code, UUID id);

@@ -23,6 +23,12 @@ public interface MediaService {
 	 */
 	MediaInfo requireAttachable(UUID mediaId, MediaPurpose purpose, MediaContext context, CurrentUser user);
 
+	/**
+	 * Opens the original bytes of READY media of any kind (the roster import reads its upload this way). Not an
+	 * access check: the caller has made it through {@link #requireAttachable}. Empty for unknown or not-ready media.
+	 */
+	Optional<MediaContent> content(UUID mediaId);
+
 	/** Deletes media that is no longer referenced (soft delete, then its objects are removed). Unknown ids are ignored. */
 	void discard(UUID mediaId);
 

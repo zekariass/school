@@ -81,8 +81,10 @@ public class MediaReads {
 
 	/**
 	 * A signed GET link for one rendition. Images need a variant ({@code THUMB}, {@code SMALL},
-	 * {@code MEDIUM}); documents and videos default to the original.
+	 * {@code MEDIUM}); documents and videos default to the original. Not read-only: the purposes whose reads are
+	 * audited (roster import files) write an audit row.
 	 */
+	@Transactional
 	public SignedUrl url(CurrentUser user, UUID mediaId, RequestedVariant requested) {
 		Media m = visible(user, mediaId);
 		if (m.getStatus() != MediaStatus.READY) {

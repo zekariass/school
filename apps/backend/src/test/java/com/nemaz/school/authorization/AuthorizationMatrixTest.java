@@ -548,6 +548,68 @@ class AuthorizationMatrixTest {
 		cases.add(school("GET school summary", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/summary", null, 200,
 				concat(SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS), SCHOOL_A_MEMBERS));
 
+		// --- roster imports: school.import.manage (administrators); members get 403, outsiders 404
+		String imports = "/imports";
+		Name[] importers = SCHOOL_A_MANAGERS;
+		cases.add(school("GET import types", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + imports + "/types", null, 200,
+				importers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET import template", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/templates/STUDENTS?format=csv", null, 200, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET imports", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + imports, null, 200, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST import", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + imports,
+				(f) -> Map.of("importType", "STUDENTS", "mediaId", importMedia(f)), 201, importers, SCHOOL_A_VISITING_ADMINS,
+				SCHOOL_A_MEMBERS));
+		cases.add(school("GET import", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + imports + "/" + importJob(f, "PREVIEWED"),
+				null, 200, importers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET import preview", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/" + importJob(f, "PREVIEWED") + "/preview", null, 200, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("PUT import mapping", HttpMethod.PUT,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/" + importJob(f, "PREVIEWED") + "/mapping",
+				(f) -> Map.of("columnMapping", Map.of("given_name", 0, "father_name", 1, "date_of_birth", 2)), 200, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST import dry run", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/" + importJob(f, "PREVIEWED") + "/dry-run", null, 202, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET import rows", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/" + importJob(f, "VALIDATED") + "/rows", null, 200, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST resolve import row", HttpMethod.POST, (f) -> {
+			UUID job = importJob(f, "VALIDATED");
+			UUID row = this.jdbc.queryForObject("select id from import_job_rows where import_job_id = ?", UUID.class, job);
+			return SCHOOLS + f.schoolA() + imports + "/" + job + "/rows/" + row + "/resolve";
+		}, (f) -> Map.of("resolution", "SKIP"), 200, importers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET import error report", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/" + importJob(f, "VALIDATED") + "/error-report", null, 200, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		// the job's hash does not match its mapping: the permission passes, the state refuses (409)
+		cases.add(school("POST import commit (changed since the dry run)", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/" + importJob(f, "VALIDATED") + "/commit", null, 409, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST cancel import", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/" + importJob(f, "PREVIEWED") + "/cancel", null, 200, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("DELETE import", HttpMethod.DELETE,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/" + importJob(f, "PREVIEWED"), null, 204, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET import mapping profiles", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + imports + "/mapping-profiles",
+				null, 200, importers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("POST import mapping profile", HttpMethod.POST,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/mapping-profiles",
+				(f) -> Map.of("name", "Matrix " + Ids.newId(), "importType", "STUDENTS", "columnMapping",
+						Map.of("given_name", "a", "father_name", "b", "date_of_birth", "c")), 201, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("PUT import mapping profile", HttpMethod.PUT,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/mapping-profiles/" + importProfile(f),
+				(f) -> Map.of("name", "Matrix " + Ids.newId(), "columnMapping",
+						Map.of("given_name", "a", "father_name", "b", "date_of_birth", "c")), 200, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("DELETE import mapping profile", HttpMethod.DELETE,
+				(f) -> SCHOOLS + f.schoolA() + imports + "/mapping-profiles/" + importProfile(f), null, 204, importers,
+				SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+
 		// --- students
 		Name[] studentsOf8A = concat(SCHOOL_A_MANAGERS, teachingMembers);
 		cases.add(school("POST student (no class)", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/students",
@@ -587,6 +649,54 @@ class AuthorizationMatrixTest {
 	private UUID freshClassWithoutStudents(Fixture f) {
 		UUID id = freshClass(f);
 		this.jdbc.update("delete from class_students where class_id = ?", id);
+		return id;
+	}
+
+	@Autowired
+	com.nemaz.school.media.domain.ObjectStorage storage;
+
+	private static final String IMPORT_CSV = "given_name,father_name,date_of_birth\nAbebe,Kebede,2012-05-14\n";
+
+	/** A READY import file of school A, uploaded by its administrator, with its bytes in storage (a fresh one per call). */
+	private String importMedia(Fixture f) {
+		UUID id = Ids.newId();
+		String key = "schools/" + f.schoolA() + "/import-file/" + id + "/original";
+		this.storage.put(key, IMPORT_CSV.getBytes(java.nio.charset.StandardCharsets.UTF_8), "text/csv");
+		this.jdbc.update("""
+				insert into media (id, owner_id, school_id, purpose, context_type, context_id, bucket, object_key, mime_type,
+				                   media_kind, size_bytes, status, original_filename)
+				values (?, ?, ?, 'IMPORT_FILE', 'SCHOOL', ?, 'school-media-test', ?, 'text/csv', 'OTHER', ?, 'READY', 'matrix.csv')""",
+				id, this.personas.get(SCHOOL_ADMIN_A).userId(), f.schoolA(), f.schoolA(), key, IMPORT_CSV.length());
+		return id.toString();
+	}
+
+	/** An import job of school A in the given state (a VALIDATED one has a row that is a possible duplicate). */
+	private UUID importJob(Fixture f, String status) {
+		UUID media = UUID.fromString(importMedia(f));
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into import_jobs (id, school_id, import_type, source_media_id, source_filename, content_fingerprint,
+				                         column_mapping, headers, status, initiated_by, total_rows, progress_total, validated_hash,
+				                         valid_rows, error_rows, duplicate_rows)
+				values (?, ?, 'STUDENTS', ?, 'matrix.csv', repeat('a', 64), '{"given_name":0,"father_name":1,"date_of_birth":2}'::jsonb,
+				        '["given_name","father_name","date_of_birth"]'::jsonb, ?, ?, 1, 1, ?, 0, 0, 1)""", id, f.schoolA(), media, status,
+				this.personas.get(SCHOOL_ADMIN_A).userId(), "VALIDATED".equals(status) ? "not-the-real-hash" : null);
+		if ("VALIDATED".equals(status)) {
+			this.jdbc.update("""
+					insert into import_job_rows (import_job_id, school_id, row_number, raw_data, normalized_data, status,
+					                             duplicate_candidates)
+					values (?, ?, 2, '["Abebe","Kebede","2012-05-14"]'::jsonb, '{"givenName":"Abebe"}'::jsonb, 'DUPLICATE',
+					        '[{"studentId":"00000000-0000-0000-0000-000000000001"}]'::jsonb)""", id, f.schoolA());
+		}
+		return id;
+	}
+
+	private UUID importProfile(Fixture f) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into import_mapping_profiles (id, school_id, name, import_type, column_mapping, created_by)
+				values (?, ?, ?, 'STUDENTS', '{"given_name":"a","father_name":"b","date_of_birth":"c"}'::jsonb, ?)""", id,
+				f.schoolA(), "Matrix profile " + id, this.personas.get(SCHOOL_ADMIN_A).userId());
 		return id;
 	}
 

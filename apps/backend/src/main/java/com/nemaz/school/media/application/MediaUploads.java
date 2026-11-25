@@ -103,6 +103,9 @@ public class MediaUploads {
 		if (!rule.allows(mimeType)) {
 			throw ApiException.badRequest("media.type_not_allowed");
 		}
+		if (!PurposeRules.acceptsFilename(r.purpose(), mimeType, r.filename())) {
+			throw ApiException.badRequest("media.type_not_allowed");
+		}
 		if (r.sizeBytes() < 1) {
 			throw ApiException.badRequest("media.empty");
 		}

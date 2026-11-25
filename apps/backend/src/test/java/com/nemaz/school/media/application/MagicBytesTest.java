@@ -33,9 +33,28 @@ class MagicBytesTest {
 	}
 
 	@Test
-	void plainTextIsOnlyCsv() {
-		assertThat(MagicBytes.detect("name,grade\nAbebe,5\n".getBytes())).containsExactly("text/csv");
+	void plainTextMayBeDeclaredAsCsvPlainTextOrTheExcelType() {
+		assertThat(MagicBytes.detect("name,grade\nAbebe,5\n".getBytes())).containsExactlyInAnyOrder("text/csv",
+				"text/plain", "application/vnd.ms-excel");
 		assertThat(MagicBytes.detect("<?php echo 1; \0".getBytes())).isEmpty();
+	}
+
+	@Test
+	void utf16TextWithAByteOrderMarkIsText_butOtherNulHeavyBytesAreNot() {
+		byte[] utf16 = ("\uFEFFname\tgrade\r\nAbebe\t5\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_16LE);
+		assertThat(utf16[0] & 0xFF).isEqualTo(0xFF);
+		assertThat(MagicBytes.detect(utf16)).contains("text/csv");
+		byte[] withoutBom = "name\tgrade\r\n".getBytes(java.nio.charset.StandardCharsets.UTF_16LE);
+		assertThat(MagicBytes.detect(withoutBom)).isEmpty();
+		assertThat(MagicBytes.detect(new byte[] { (byte) 0xFF, (byte) 0xFE, 1, 0, 2, 0, 0, 0 })).isEmpty();
+	}
+
+	@Test
+	void anXlsxIsAZipAndTheOldBinaryWorkbookIsRefused() {
+		assertThat(MagicBytes.detect(new byte[] { 'P', 'K', 3, 4, 0, 0 })).containsExactly(
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		byte[] ole2 = { (byte) 0xD0, (byte) 0xCF, 0x11, (byte) 0xE0, (byte) 0xA1, (byte) 0xB1, 0x1A, (byte) 0xE1 };
+		assertThat(MagicBytes.detect(ole2)).isEmpty();
 	}
 
 	@Test
