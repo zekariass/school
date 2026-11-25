@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.nemaz.school.academic.ClassMembershipView.TeacherRole;
 import com.nemaz.school.academic.application.ClassRosterService;
 import com.nemaz.school.academic.application.ClassRosterService.ClassTeacherView;
+import com.nemaz.school.academic.application.ClassRosterService.GroupDraft;
 import com.nemaz.school.academic.application.ClassRosterService.LeftReason;
 import com.nemaz.school.academic.application.ClassRosterService.RosterStudent;
 import com.nemaz.school.academic.application.ClassRosterService.StudentGroupView;
@@ -195,6 +196,27 @@ public class ClassController {
 		return this.roster.createGroup(CurrentUser.require(), schoolId, classId, r.name(), r.studentIds());
 	}
 
+	@PostMapping("/{classId}/group-sets")
+	@ResponseStatus(HttpStatus.CREATED)
+	@Idempotent
+	@Operation(operationId = "createClassGroupSet",
+			summary = "Save a whole group set (one run of the group maker) at once: all groups are created or none. 409 class.group_member_not_in_class when a member is not an ACTIVE student of the class")
+	public List<StudentGroupView> createGroupSet(@PathVariable UUID schoolId, @PathVariable UUID classId,
+			@Valid @RequestBody CreateGroupSetRequest r) {
+		return this.roster.createGroupSet(CurrentUser.require(), schoolId, classId, r.groups()
+			.stream()
+			.map((g) -> new GroupDraft(g.name(), g.studentIds()))
+			.toList());
+	}
+
+	@PatchMapping("/{classId}/groups/{groupId}")
+	@Operation(operationId = "updateClassGroup",
+			summary = "Rename a saved group and/or replace its members (absent fields stay)")
+	public StudentGroupView updateGroup(@PathVariable UUID schoolId, @PathVariable UUID classId, @PathVariable UUID groupId,
+			@Valid @RequestBody UpdateGroupRequest r) {
+		return this.roster.updateGroup(CurrentUser.require(), schoolId, classId, groupId, r.name(), r.studentIds());
+	}
+
 	@DeleteMapping("/{classId}/groups/{groupId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@Operation(operationId = "deleteClassGroup", summary = "Delete a saved group")
@@ -229,6 +251,14 @@ public class ClassController {
 
 	public record AddTeacherRequest(@NotNull(message = "validation.required") UUID teacherId,
 			@NotNull(message = "validation.required") TeacherRole role, UUID subjectId) {
+	}
+
+	public record CreateGroupSetRequest(
+			@NotEmpty(message = "validation.required") @Size(max = 50, message = "validation.tooLong") List<@Valid @NotNull CreateGroupRequest> groups) {
+	}
+
+	public record UpdateGroupRequest(@Size(min = 1, max = 100, message = "validation.tooLong") String name,
+			@Size(min = 1, max = 200, message = "validation.tooLong") List<@NotNull UUID> studentIds) {
 	}
 
 	public record CreateGroupRequest(

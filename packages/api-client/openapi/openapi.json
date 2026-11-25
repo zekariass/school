@@ -3781,6 +3781,417 @@
         "tags" : [ "academic-structure" ]
       }
     },
+    "/api/v1/schools/{schoolId}/activity-templates" : {
+      "get" : {
+        "operationId" : "listActivityTemplates",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "templateType",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ROUTINE", "CHECKLIST", "ACTIVITY", "LESSON_PREP" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "mine",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageTemplateView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The templates the caller may use: their own, those shared with a class they teach and the school-wide ones, newest first. Teachers and points managers; filters classId, templateType, mine",
+        "tags" : [ "toolkit" ]
+      },
+      "post" : {
+        "operationId" : "createActivityTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TemplateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TemplateView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Save a routine, checklist or activity (visibility PRIVATE by default; CLASS needs classId of a class the caller teaches; SCHOOL shares it with every teacher)",
+        "tags" : [ "toolkit" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/activity-templates/{templateId}" : {
+      "delete" : {
+        "operationId" : "deleteActivityTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "templateId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a template; its owner or a points manager",
+        "tags" : [ "toolkit" ]
+      },
+      "get" : {
+        "operationId" : "getActivityTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "templateId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TemplateView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One template (404 when the caller may not see it)",
+        "tags" : [ "toolkit" ]
+      },
+      "patch" : {
+        "operationId" : "updateActivityTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "templateId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TemplatePatchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TemplateView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change a template (absent fields stay; items replace the list); its owner or a points manager",
+        "tags" : [ "toolkit" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/badges" : {
+      "get" : {
+        "operationId" : "listBadges",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "includeInactive",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/BadgeView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The school's badges (its copies of the default set and its own), in the caller's language; managers can include inactive ones. School members only",
+        "tags" : [ "badges" ]
+      },
+      "post" : {
+        "operationId" : "createBadge",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BadgeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BadgeView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Define a badge (school.points.manage). criteria by type: POINTS_TOTAL {threshold, context?}, CATEGORY_TOTAL {threshold, categoryId or templateCode}, ATTENDANCE_STREAK {days} (granted by attendance, M7), MANUAL (none)",
+        "tags" : [ "badges" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/badges/{badgeId}" : {
+      "patch" : {
+        "operationId" : "updateBadge",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "badgeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BadgePatchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BadgeView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Rename, change the rule's parameters or (de)activate a badge (school.points.manage); badges already granted stay",
+        "tags" : [ "badges" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/classes" : {
       "get" : {
         "operationId" : "listClasses",
@@ -4167,6 +4578,65 @@
         "tags" : [ "consent" ]
       }
     },
+    "/api/v1/schools/{schoolId}/classes/{classId}/group-sets" : {
+      "post" : {
+        "operationId" : "createClassGroupSet",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateGroupSetRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/StudentGroupView"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Save a whole group set (one run of the group maker) at once: all groups are created or none. 409 class.group_member_not_in_class when a member is not an ACTIVE student of the class",
+        "tags" : [ "classes" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/classes/{classId}/groups" : {
       "get" : {
         "operationId" : "listClassGroups",
@@ -4315,6 +4785,114 @@
         },
         "summary" : "Delete a saved group",
         "tags" : [ "classes" ]
+      },
+      "patch" : {
+        "operationId" : "updateClassGroup",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "groupId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateGroupRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StudentGroupView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Rename a saved group and/or replace its members (absent fields stay)",
+        "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/leaderboard" : {
+      "get" : {
+        "operationId" : "getClassLeaderboard",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Leaderboard"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Top positive class totals (at most 10, ties share a rank). 403 points.leaderboard_disabled unless the school turned engagement.leaderboard.enabled on (default off); members of the class roster only, never guardians",
+        "tags" : [ "points" ]
       }
     },
     "/api/v1/schools/{schoolId}/classes/{classId}/login-codes" : {
@@ -4478,6 +5056,228 @@
         },
         "summary" : "Print parent codes (home connection) for students of the class (default: all ACTIVE students): one code per student for up to guardians.parent_code.max_uses adults within guardians.parent_code.ttl_days; the student's previous live code is revoked. Links made with a code are always PENDING. The codes are in this response only (Cache-Control: no-store); do not send an Idempotency-Key",
         "tags" : [ "guardian-invitations" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/point-categories" : {
+      "post" : {
+        "operationId" : "createClassPointCategory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CategoryRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CategoryView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add a category used in this class only (the class's LEAD or CO_TEACHER, class managers, points managers). 409 points.category_limit beyond 40 active ones",
+        "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/point-categories/{categoryId}" : {
+      "patch" : {
+        "operationId" : "updateClassPointCategory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "categoryId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CategoryPatchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CategoryView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Change or (de)activate one of the class's own categories (who may add them)",
+        "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/points" : {
+      "get" : {
+        "operationId" : "getClassPoints",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClassPoints"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The class overview: every ACTIVE student with their class total (from the balance projection), plus the class settings the award screen needs. ACTIVE teachers of the class and class managers only (403 for students and guardians who see the class, 404 otherwise)",
+        "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/points/awards" : {
+      "post" : {
+        "operationId" : "awardClassPoints",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AwardRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AwardResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Award points to one student, several (studentIds) or the whole class (wholeClass: true) in a category of the school or of the class. Teachers of the class (ACTIVE) and class managers; the students must be ACTIVE in the class; NEEDS_WORK categories only while the school allows them. Several students share one batchId. 201 new, 200 replay of a clientOpId",
+        "tags" : [ "points" ]
       }
     },
     "/api/v1/schools/{schoolId}/classes/{classId}/restore" : {
@@ -6334,6 +7134,486 @@
         "tags" : [ "imports" ]
       }
     },
+    "/api/v1/schools/{schoolId}/point-categories" : {
+      "get" : {
+        "operationId" : "listPointCategories",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "context",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "CLASS", "SCHOOL", "HOME" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "includeInactive",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CategoryView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The skills a teacher can award: the school's active CLASS categories plus, with classId, that class's own (teachers of the class); without classId for any teacher or points manager (managers also see HOME categories). NEEDS_WORK categories are left out while the school switched them off, unless an editor asks with includeInactive",
+        "tags" : [ "points" ]
+      },
+      "post" : {
+        "operationId" : "createPointCategory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CategoryRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CategoryView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add a school-level category (school.points.manage). context HOME makes a category for guardians (POSITIVE only)",
+        "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/point-categories/{categoryId}" : {
+      "patch" : {
+        "operationId" : "updatePointCategory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "categoryId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CategoryPatchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CategoryView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Rename, recolor, reorder, change default points or (de)activate a school-level category (school.points.manage). Never deleted: the ledger refers to it",
+        "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/points/awards" : {
+      "post" : {
+        "operationId" : "awardSchoolPoints",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AwardRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AwardResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Award points school-wide (SCHOOL context, school-level categories) to ACTIVE students of the school (school.points.manage)",
+        "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/points/batches/{batchId}/reverse" : {
+      "post" : {
+        "operationId" : "reversePointBatch",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "batchId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ReverseRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AwardResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Undo a whole multi-student or whole-class award (every row not reversed yet), with the same rules as reversing one transaction",
+        "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/points/report" : {
+      "get" : {
+        "operationId" : "getPointsReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "categoryId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageReportRow"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Net points per student and category for CLASS and SCHOOL points (home points are never included), over from..to (school-local dates, inclusive), keyset paged in student then category id order. With classId: teachers of that class and school.points.read; without: school.points.read",
+        "tags" : [ "points-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/points/report.csv" : {
+      "get" : {
+        "operationId" : "exportPointsReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "categoryId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/csv" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The same report as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized, sorted by student name. Audited, rate limited (10 per 10 minutes, 429 points.export_rate_limited), at most 50000 rows",
+        "tags" : [ "points-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/points/transactions/{transactionId}/reverse" : {
+      "post" : {
+        "operationId" : "reversePointTransaction",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "transactionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ReverseRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AwardResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Undo one award with a REVERSAL row. The awarder within the undo window (engagement.points.undo_window_seconds, default 120), the class's lead teacher, class managers and points managers any time; home points only by the guardian who awarded them, inside the window. 409 points.already_reversed, 403 points.undo_window_expired",
+        "tags" : [ "points" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/policies" : {
       "get" : {
         "operationId" : "listSchoolPolicies",
@@ -7165,6 +8445,62 @@
         "tags" : [ "students" ]
       }
     },
+    "/api/v1/schools/{schoolId}/students/{studentId}/badges" : {
+      "post" : {
+        "operationId" : "awardBadge",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AwardBadgeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StudentBadgeView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Hand a MANUAL badge to a student: their teachers and points managers. Repeating it returns the existing award; the student and their guardians are notified once. 409 points.badge_not_manual, points.badges_disabled",
+        "tags" : [ "badges" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/students/{studentId}/consents" : {
       "get" : {
         "operationId" : "listStudentConsents",
@@ -7471,6 +8807,111 @@
         "tags" : [ "guardian-links" ]
       }
     },
+    "/api/v1/schools/{schoolId}/students/{studentId}/home-point-categories" : {
+      "get" : {
+        "operationId" : "listHomePointCategories",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CategoryView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The HOME categories a guardian may award to their own child: an ACTIVE, not custody-restricted link with can_award_points (404 for anybody else linked to nothing, 403 without the flag)",
+        "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/home-points" : {
+      "post" : {
+        "operationId" : "awardHomePoints",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AwardRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AwardResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A guardian awards home points to their own child (HOME context, HOME category, never counted in class or school totals). Needs an ACTIVE, not custody-restricted link with can_award_points; at most 60 a day. 201 new, 200 replay of a clientOpId",
+        "tags" : [ "points" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/students/{studentId}/login-codes" : {
       "get" : {
         "operationId" : "listStudentLoginCodes",
@@ -7613,6 +9054,138 @@
         },
         "summary" : "Set an initial password (the student must change it); only while the school allows password sign-in (409 student.password_login_disabled) and the student has a username",
         "tags" : [ "students" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/points" : {
+      "get" : {
+        "operationId" : "getStudentPoints",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "academicYearId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StudentPoints"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A student's totals by category and the badges earned: the school section (CLASS and SCHOOL points) and, for the student and their ACTIVE guardians only, a separate home section that is never added into class or school totals. Callers: the student, their guardians with can_view_academics, teachers (the classes they teach), school.points.read. academicYearId defaults to the school's current year",
+        "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/points/transactions" : {
+      "get" : {
+        "operationId" : "listStudentPointTransactions",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "section",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "SCHOOL",
+            "enum" : [ "SCHOOL", "HOME" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "academicYearId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageTimelineItem"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The points timeline of one section (SCHOOL or HOME), newest first, keyset paged; HOME only for the student and their guardians (403 otherwise). Reversals are rows of their own and awards that were undone say so",
+        "tags" : [ "points" ]
       }
     },
     "/api/v1/schools/{schoolId}/students/{studentId}/withdraw" : {
@@ -8171,6 +9744,207 @@
         },
         "required" : [ "action", "id", "occurredAt", "outcome" ]
       },
+      "AwardBadgeRequest" : {
+        "type" : "object",
+        "properties" : {
+          "badgeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "badgeId" ]
+      },
+      "AwardRequest" : {
+        "type" : "object",
+        "description" : "Exactly one of studentIds or wholeClass: true (home awards ignore both: the student is in the path)",
+        "properties" : {
+          "categoryId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "clientOpId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Client-made id of this user action; repeating it never awards twice"
+          },
+          "note" : {
+            "type" : "string",
+            "description" : "A note (child data: shown only to those who may see the award)",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "points" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "1 to 10; defaults to the category's default points. The sign comes from the category",
+            "maximum" : 10,
+            "minimum" : 1
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 500,
+            "minItems" : 0
+          },
+          "wholeClass" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "categoryId" ]
+      },
+      "AwardResult" : {
+        "type" : "object",
+        "properties" : {
+          "batchId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Shared by the rows of a multi-student award; also the key to reverse the whole batch"
+          },
+          "replayed" : {
+            "type" : "boolean",
+            "description" : "True when the client operation id was used before: these are the original rows, nothing new was written"
+          },
+          "transactions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TransactionView"
+            }
+          },
+          "undoableUntil" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "The awarder may undo until this instant (absent when the quick undo is off or for reversals)"
+          }
+        },
+        "required" : [ "transactions" ]
+      },
+      "BadgePatchRequest" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "criteria" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          },
+          "descriptions" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "icon" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "names" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "BadgeRequest" : {
+        "type" : "object",
+        "description" : "names and descriptions: language code to text",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "minLength" : 1,
+            "pattern" : "^[a-z][a-z0-9_]{1,40}$"
+          },
+          "criteria" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          },
+          "criteriaType" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "descriptions" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "icon" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "names" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "minProperties" : 1
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "code", "criteriaType", "names" ]
+      },
+      "BadgeView" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "criteria" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "Rule parameters: threshold, context, categoryId or templateCode, days"
+          },
+          "criteriaType" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "descriptions" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "names" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "code", "criteria", "criteriaType", "descriptions", "id", "name", "names" ]
+      },
       "CampusResponse" : {
         "type" : "object",
         "properties" : {
@@ -8209,6 +9983,116 @@
           }
         },
         "required" : [ "createdAt", "id", "name", "schoolId", "status", "updatedAt", "version" ]
+      },
+      "CategoryPatchRequest" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "color" : {
+            "type" : "string",
+            "pattern" : "^#[0-9a-fA-F]{6}$"
+          },
+          "defaultPoints" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 10,
+            "minimum" : 1
+          },
+          "icon" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "names" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 10000,
+            "minimum" : 0
+          }
+        }
+      },
+      "CategoryRequest" : {
+        "type" : "object",
+        "description" : "names: language code to text, e.g. {\"en\": \"Kindness\", \"am\": \"...\"} (at least one)",
+        "properties" : {
+          "color" : {
+            "type" : "string",
+            "pattern" : "^#[0-9a-fA-F]{6}$"
+          },
+          "context" : {
+            "type" : "string",
+            "description" : "CLASS (default) or HOME; class-level categories are always CLASS",
+            "enum" : [ "CLASS", "SCHOOL", "HOME" ]
+          },
+          "defaultPoints" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 10,
+            "minimum" : 1
+          },
+          "icon" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "names" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "minProperties" : 1
+          },
+          "polarity" : {
+            "type" : "string",
+            "enum" : [ "POSITIVE", "NEEDS_WORK" ]
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 10000,
+            "minimum" : 0
+          }
+        },
+        "required" : [ "names" ]
+      },
+      "CategoryTotal" : {
+        "type" : "object",
+        "properties" : {
+          "awards" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "categoryId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "points" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "polarity" : {
+            "type" : "string",
+            "enum" : [ "POSITIVE", "NEEDS_WORK" ]
+          }
+        },
+        "required" : [ "categoryId", "name", "polarity" ]
       },
       "CategoryView" : {
         "type" : "object",
@@ -8397,6 +10281,41 @@
           }
         },
         "required" : [ "classes", "schoolId", "schoolName", "schoolSlug" ]
+      },
+      "ClassPoints" : {
+        "type" : "object",
+        "properties" : {
+          "academicYearId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "needsWorkTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "positiveTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "settings" : {
+            "$ref" : "#/components/schemas/EngagementSettingsView"
+          },
+          "students" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StudentTotal"
+            }
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "academicYearId", "classId", "settings", "students" ]
       },
       "ClassTeacher" : {
         "type" : "object",
@@ -8887,6 +10806,20 @@
           }
         },
         "required" : [ "name", "studentIds" ]
+      },
+      "CreateGroupSetRequest" : {
+        "type" : "object",
+        "properties" : {
+          "groups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CreateGroupRequest"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "groups" ]
       },
       "CreateGuardianRequest" : {
         "type" : "object",
@@ -9490,6 +11423,22 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageReportRow" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ReportRow"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageRoleAssignmentResponse" : {
         "type" : "object",
         "properties" : {
@@ -9545,6 +11494,38 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/StudentView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageTemplateView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TemplateView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageTimelineItem" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TimelineItem"
             }
           },
           "nextCursor" : {
@@ -9641,6 +11622,25 @@
           }
         },
         "required" : [ "id", "policyType", "title" ]
+      },
+      "EngagementSettingsView" : {
+        "type" : "object",
+        "properties" : {
+          "badgesEnabled" : {
+            "type" : "boolean"
+          },
+          "leaderboardEnabled" : {
+            "type" : "boolean"
+          },
+          "needsWorkEnabled" : {
+            "type" : "boolean"
+          },
+          "undoWindowSeconds" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Seconds in which the awarder may undo an award; 0 when the quick undo is off"
+          }
+        }
       },
       "Failure" : {
         "type" : "object",
@@ -10400,6 +12400,23 @@
         },
         "required" : [ "childFirstName", "code", "expiresAt", "invitationId", "maxUses", "studentId" ]
       },
+      "ItemRequest" : {
+        "type" : "object",
+        "properties" : {
+          "minutes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 600,
+            "minimum" : 0
+          },
+          "text" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "text" ]
+      },
       "JsonNode" : { },
       "LanguageResponse" : {
         "type" : "object",
@@ -10422,6 +12439,46 @@
           }
         },
         "required" : [ "code", "direction", "name", "nativeName" ]
+      },
+      "Leaderboard" : {
+        "type" : "object",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "rows" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LeaderboardRow"
+            }
+          }
+        },
+        "required" : [ "classId", "rows" ]
+      },
+      "LeaderboardRow" : {
+        "type" : "object",
+        "properties" : {
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "rank" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "displayName", "studentId" ]
       },
       "LinkPermissions" : {
         "type" : "object",
@@ -11515,6 +13572,43 @@
         },
         "required" : [ "platform", "provider", "token" ]
       },
+      "ReportRow" : {
+        "type" : "object",
+        "properties" : {
+          "awards" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "categoryId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "categoryName" : {
+            "type" : "string"
+          },
+          "points" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Net points: awards plus reversals (needs-work points are negative)"
+          },
+          "polarity" : {
+            "type" : "string",
+            "enum" : [ "POSITIVE", "NEEDS_WORK" ]
+          },
+          "reversals" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentName" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "categoryId", "categoryName", "polarity", "studentId", "studentName" ]
+      },
       "ResolveRequest" : {
         "type" : "object",
         "properties" : {
@@ -11530,6 +13624,20 @@
           }
         },
         "required" : [ "resolution" ]
+      },
+      "ReverseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "clientOpId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "note" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          }
+        }
       },
       "RevokedCodes" : {
         "type" : "object",
@@ -12044,6 +14152,30 @@
         },
         "required" : [ "type" ]
       },
+      "Section" : {
+        "type" : "object",
+        "properties" : {
+          "categories" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CategoryTotal"
+            }
+          },
+          "needsWorkTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "positiveTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "categories" ]
+      },
       "SetAvatarRequest" : {
         "type" : "object",
         "properties" : {
@@ -12266,6 +14398,32 @@
         },
         "required" : [ "displayName", "id", "staffType", "status", "userId" ]
       },
+      "StudentBadgeView" : {
+        "type" : "object",
+        "properties" : {
+          "awardedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "badgeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "awardedAt", "badgeId", "code", "name" ]
+      },
       "StudentClassRef" : {
         "type" : "object",
         "properties" : {
@@ -12343,6 +14501,88 @@
           }
         },
         "required" : [ "createdAt", "id", "name", "studentIds" ]
+      },
+      "StudentPoints" : {
+        "type" : "object",
+        "properties" : {
+          "academicYearId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The year the totals cover (the school's current year by default); absent when it has none"
+          },
+          "accessLevel" : {
+            "type" : "string",
+            "enum" : [ "BASIC", "FULL" ]
+          },
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "Avatar builder configuration, client-defined"
+          },
+          "badges" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StudentBadgeView"
+            }
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "home" : {
+            "$ref" : "#/components/schemas/Section",
+            "description" : "Home points: only for the student and their guardians; never part of class or school totals"
+          },
+          "school" : {
+            "$ref" : "#/components/schemas/Section",
+            "description" : "CLASS and SCHOOL points the caller may see"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "accessLevel", "badges", "displayName", "school", "studentId" ]
+      },
+      "StudentTotal" : {
+        "type" : "object",
+        "properties" : {
+          "accessLevel" : {
+            "type" : "string",
+            "enum" : [ "BASIC", "FULL" ]
+          },
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "Avatar builder configuration, client-defined"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "needsWorkTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "positiveTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "positiveTotal + needsWorkTotal (needs-work points are negative)"
+          }
+        },
+        "required" : [ "accessLevel", "displayName", "studentId" ]
       },
       "StudentView" : {
         "type" : "object",
@@ -12490,6 +14730,166 @@
         },
         "required" : [ "createdAt", "id", "planCode", "schoolId", "status" ]
       },
+      "TemplateItem" : {
+        "type" : "object",
+        "properties" : {
+          "minutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "text" : {
+            "type" : "string"
+          }
+        }
+      },
+      "TemplatePatchRequest" : {
+        "type" : "object",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "instructions" : {
+            "type" : "string",
+            "maxLength" : 5000,
+            "minLength" : 0
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ItemRequest"
+            },
+            "maxItems" : 100,
+            "minItems" : 0
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "templateType" : {
+            "type" : "string",
+            "enum" : [ "ROUTINE", "CHECKLIST", "ACTIVITY", "LESSON_PREP" ]
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 1
+          },
+          "visibility" : {
+            "type" : "string",
+            "enum" : [ "PRIVATE", "CLASS", "SCHOOL" ]
+          }
+        }
+      },
+      "TemplateRequest" : {
+        "type" : "object",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "instructions" : {
+            "type" : "string",
+            "maxLength" : 5000,
+            "minLength" : 0
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ItemRequest"
+            },
+            "maxItems" : 100,
+            "minItems" : 0
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "templateType" : {
+            "type" : "string",
+            "enum" : [ "ROUTINE", "CHECKLIST", "ACTIVITY", "LESSON_PREP" ]
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "visibility" : {
+            "type" : "string",
+            "enum" : [ "PRIVATE", "CLASS", "SCHOOL" ]
+          }
+        },
+        "required" : [ "templateType", "title" ]
+      },
+      "TemplateView" : {
+        "type" : "object",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "instructions" : {
+            "type" : "string"
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TemplateItem"
+            }
+          },
+          "mine" : {
+            "type" : "boolean",
+            "description" : "True when the caller wrote it (and may change or delete it)"
+          },
+          "ownerId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "ownerName" : {
+            "type" : "string"
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "templateType" : {
+            "type" : "string",
+            "enum" : [ "ROUTINE", "CHECKLIST", "ACTIVITY", "LESSON_PREP" ]
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "visibility" : {
+            "type" : "string",
+            "enum" : [ "PRIVATE", "CLASS", "SCHOOL" ]
+          }
+        },
+        "required" : [ "createdAt", "id", "items", "ownerId", "ownerName", "templateType", "title", "updatedAt", "visibility" ]
+      },
       "TestNotificationResponse" : {
         "type" : "object",
         "properties" : {
@@ -12513,6 +14913,74 @@
           }
         },
         "required" : [ "expiresIn", "ticket" ]
+      },
+      "TimelineItem" : {
+        "type" : "object",
+        "properties" : {
+          "awardedByName" : {
+            "type" : "string"
+          },
+          "awarderRole" : {
+            "type" : "string"
+          },
+          "categoryId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "categoryName" : {
+            "type" : "string"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "className" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "context" : {
+            "type" : "string",
+            "enum" : [ "CLASS", "SCHOOL", "HOME" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "note" : {
+            "type" : "string",
+            "description" : "The awarder's note (child data: only where the caller may see this row)"
+          },
+          "points" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "polarity" : {
+            "type" : "string",
+            "enum" : [ "POSITIVE", "NEEDS_WORK" ]
+          },
+          "reversed" : {
+            "type" : "boolean",
+            "description" : "True when a later REVERSAL row undid this award"
+          },
+          "reversesTransactionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "AWARD", "REVERSAL", "CORRECTION" ]
+          }
+        },
+        "required" : [ "awarderRole", "categoryId", "categoryName", "context", "createdAt", "id", "polarity", "type" ]
       },
       "TokenResponse" : {
         "type" : "object",
@@ -12540,6 +15008,57 @@
           }
         },
         "required" : [ "accessToken", "accessTokenExpiresIn", "refreshToken", "refreshTokenExpiresIn", "tokenType" ]
+      },
+      "TransactionView" : {
+        "type" : "object",
+        "properties" : {
+          "awardBatchId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "categoryId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "context" : {
+            "type" : "string",
+            "enum" : [ "CLASS", "SCHOOL", "HOME" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "points" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Signed: negative for needs-work awards and for the reversal of a positive award"
+          },
+          "polarity" : {
+            "type" : "string",
+            "enum" : [ "POSITIVE", "NEEDS_WORK" ]
+          },
+          "reversesTransactionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "AWARD", "REVERSAL", "CORRECTION" ]
+          }
+        },
+        "required" : [ "categoryId", "context", "createdAt", "id", "polarity", "studentId", "type" ]
       },
       "TypeView" : {
         "type" : "object",
@@ -12665,6 +15184,25 @@
             "format" : "int32",
             "maximum" : 1000,
             "minimum" : 0
+          }
+        }
+      },
+      "UpdateGroupRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 1
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 200,
+            "minItems" : 1
           }
         }
       },

@@ -357,6 +357,66 @@ public class ClassRosterService {
 		return groups(user, schoolId, classId).stream().filter((g) -> g.id().equals(id)).findFirst().orElseThrow();
 	}
 
+	/**
+	 * Saves a whole group set (the result of one run of the group maker) in one transaction: every group is created
+	 * or none is. The members of a group must be ACTIVE students of the class; a student may be in several groups
+	 * (different sets over time), not twice in one.
+	 */
+	public List<StudentGroupView> createGroupSet(CurrentUser user, UUID schoolId, UUID classId,
+			List<GroupDraft> drafts) {
+		List<StudentGroupView> created = new ArrayList<>();
+		for (GroupDraft draft : drafts) {
+			created.add(createGroup(user, schoolId, classId, draft.name(), draft.studentIds()));
+		}
+		return created;
+	}
+
+	/** Renames a saved group and/or replaces its members (absent fields stay). */
+	public StudentGroupView updateGroup(CurrentUser user, UUID schoolId, UUID classId, UUID groupId, String name,
+			List<UUID> studentIds) {
+		ClassRef ref = this.lookups.teachable(user, schoolId, classId);
+		this.lookups.lockActive(ref);
+		boolean exists = this.jdbc.sql("select exists (select 1 from student_groups where id = :g and class_id = :c)")
+			.param("g", groupId)
+			.param("c", classId)
+			.query(Boolean.class)
+			.single();
+		if (!exists) {
+			throw ApiException.notFound("class.group_not_found");
+		}
+		if (studentIds != null) {
+			Set<UUID> ids = new LinkedHashSet<>(studentIds);
+			Set<UUID> members = new LinkedHashSet<>(this.jdbc
+				.sql("select student_id from class_students where class_id = :c and status = 'ACTIVE' and student_id in (:ids)")
+				.param("c", classId)
+				.param("ids", ids)
+				.query(UUID.class)
+				.list());
+			if (ids.isEmpty() || members.size() != ids.size()) {
+				throw ApiException.conflict("class.group_member_not_in_class");
+			}
+			this.jdbc.sql("delete from student_group_members where group_id = :g").param("g", groupId).update();
+			for (UUID studentId : ids) {
+				this.jdbc.sql("insert into student_group_members (group_id, student_id) values (:g, :st)")
+					.param("g", groupId)
+					.param("st", studentId)
+					.update();
+			}
+		}
+		if (name != null) {
+			this.jdbc.sql("update student_groups set name = :n where id = :g").param("n", name.trim()).param("g", groupId).update();
+		}
+		this.jdbc.sql("update student_groups set updated_at = now(), version = version + 1 where id = :g")
+			.param("g", groupId)
+			.update();
+		this.audit.record(AuditEntry.of("class.group.update", AuditOutcome.SUCCESS)
+			.target("student_group", groupId)
+			.school(schoolId)
+			.metadata("classId", classId.toString())
+			.metadata("members", (studentIds != null) ? studentIds.size() : null));
+		return groups(user, schoolId, classId).stream().filter((g) -> g.id().equals(groupId)).findFirst().orElseThrow();
+	}
+
 	public void deleteGroup(CurrentUser user, UUID schoolId, UUID classId, UUID groupId) {
 		this.lookups.teachable(user, schoolId, classId);
 		this.jdbc.sql("delete from student_group_members where group_id = :g and exists (select 1 from student_groups where id = :g and class_id = :c)")
@@ -419,6 +479,10 @@ public class ClassRosterService {
 	public record ClassTeacherView(@NotNull @Schema(description = "Roster row id, used to remove the teacher") UUID id,
 			@NotNull UUID teacherId, @NotNull String displayName, MediaSummary avatar, @NotNull TeacherRole role,
 			UUID subjectId, String subjectName, @NotNull Instant joinedAt) {
+	}
+
+	/** One group of a set to save: a name and its members. */
+	public record GroupDraft(String name, List<UUID> studentIds) {
 	}
 
 	public record StudentGroupView(@NotNull UUID id, @NotNull String name, @NotNull List<UUID> studentIds,

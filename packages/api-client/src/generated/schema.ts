@@ -1149,6 +1149,78 @@ export interface paths {
         patch: operations["updateAcademicPeriod"];
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/activity-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The templates the caller may use: their own, those shared with a class they teach and the school-wide ones, newest first. Teachers and points managers; filters classId, templateType, mine */
+        get: operations["listActivityTemplates"];
+        put?: never;
+        /** Save a routine, checklist or activity (visibility PRIVATE by default; CLASS needs classId of a class the caller teaches; SCHOOL shares it with every teacher) */
+        post: operations["createActivityTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/activity-templates/{templateId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One template (404 when the caller may not see it) */
+        get: operations["getActivityTemplate"];
+        put?: never;
+        post?: never;
+        /** Delete a template; its owner or a points manager */
+        delete: operations["deleteActivityTemplate"];
+        options?: never;
+        head?: never;
+        /** Change a template (absent fields stay; items replace the list); its owner or a points manager */
+        patch: operations["updateActivityTemplate"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/badges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The school's badges (its copies of the default set and its own), in the caller's language; managers can include inactive ones. School members only */
+        get: operations["listBadges"];
+        put?: never;
+        /** Define a badge (school.points.manage). criteria by type: POINTS_TOTAL {threshold, context?}, CATEGORY_TOTAL {threshold, categoryId or templateCode}, ATTENDANCE_STREAK {days} (granted by attendance, M7), MANUAL (none) */
+        post: operations["createBadge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/badges/{badgeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Rename, change the rule's parameters or (de)activate a badge (school.points.manage); badges already granted stay */
+        patch: operations["updateBadge"];
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/classes": {
         parameters: {
             query?: never;
@@ -1220,6 +1292,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/classes/{classId}/group-sets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save a whole group set (one run of the group maker) at once: all groups are created or none. 409 class.group_member_not_in_class when a member is not an ACTIVE student of the class */
+        post: operations["createClassGroupSet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/classes/{classId}/groups": {
         parameters: {
             query?: never;
@@ -1250,6 +1339,24 @@ export interface paths {
         post?: never;
         /** Delete a saved group */
         delete: operations["deleteClassGroup"];
+        options?: never;
+        head?: never;
+        /** Rename a saved group and/or replace its members (absent fields stay) */
+        patch: operations["updateClassGroup"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Top positive class totals (at most 10, ties share a rank). 403 points.leaderboard_disabled unless the school turned engagement.leaderboard.enabled on (default off); members of the class roster only, never guardians */
+        get: operations["getClassLeaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1300,6 +1407,74 @@ export interface paths {
         put?: never;
         /** Print parent codes (home connection) for students of the class (default: all ACTIVE students): one code per student for up to guardians.parent_code.max_uses adults within guardians.parent_code.ttl_days; the student's previous live code is revoked. Links made with a code are always PENDING. The codes are in this response only (Cache-Control: no-store); do not send an Idempotency-Key */
         post: operations["issueParentCodes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/point-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a category used in this class only (the class's LEAD or CO_TEACHER, class managers, points managers). 409 points.category_limit beyond 40 active ones */
+        post: operations["createClassPointCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/point-categories/{categoryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change or (de)activate one of the class's own categories (who may add them) */
+        patch: operations["updateClassPointCategory"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The class overview: every ACTIVE student with their class total (from the balance projection), plus the class settings the award screen needs. ACTIVE teachers of the class and class managers only (403 for students and guardians who see the class, 404 otherwise) */
+        get: operations["getClassPoints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/points/awards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Award points to one student, several (studentIds) or the whole class (wholeClass: true) in a category of the school or of the class. Teachers of the class (ACTIVE) and class managers; the students must be ACTIVE in the class; NEEDS_WORK categories only while the school allows them. Several students share one batchId. 201 new, 200 replay of a clientOpId */
+        post: operations["awardClassPoints"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1790,6 +1965,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/point-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The skills a teacher can award: the school's active CLASS categories plus, with classId, that class's own (teachers of the class); without classId for any teacher or points manager (managers also see HOME categories). NEEDS_WORK categories are left out while the school switched them off, unless an editor asks with includeInactive */
+        get: operations["listPointCategories"];
+        put?: never;
+        /** Add a school-level category (school.points.manage). context HOME makes a category for guardians (POSITIVE only) */
+        post: operations["createPointCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/point-categories/{categoryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Rename, recolor, reorder, change default points or (de)activate a school-level category (school.points.manage). Never deleted: the ledger refers to it */
+        patch: operations["updatePointCategory"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/points/awards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Award points school-wide (SCHOOL context, school-level categories) to ACTIVE students of the school (school.points.manage) */
+        post: operations["awardSchoolPoints"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/points/batches/{batchId}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undo a whole multi-student or whole-class award (every row not reversed yet), with the same rules as reversing one transaction */
+        post: operations["reversePointBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/points/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Net points per student and category for CLASS and SCHOOL points (home points are never included), over from..to (school-local dates, inclusive), keyset paged in student then category id order. With classId: teachers of that class and school.points.read; without: school.points.read */
+        get: operations["getPointsReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/points/report.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The same report as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized, sorted by student name. Audited, rate limited (10 per 10 minutes, 429 points.export_rate_limited), at most 50000 rows */
+        get: operations["exportPointsReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/points/transactions/{transactionId}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undo one award with a REVERSAL row. The awarder within the undo window (engagement.points.undo_window_seconds, default 120), the class's lead teacher, class managers and points managers any time; home points only by the guardian who awarded them, inside the window. 409 points.already_reversed, 403 points.undo_window_expired */
+        post: operations["reversePointTransaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/policies": {
         parameters: {
             query?: never;
@@ -1965,6 +2260,23 @@ export interface paths {
         patch: operations["updateStudent"];
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/students/{studentId}/badges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hand a MANUAL badge to a student: their teachers and points managers. Repeating it returns the existing award; the student and their guardians are notified once. 409 points.badge_not_manual, points.badges_disabled */
+        post: operations["awardBadge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/students/{studentId}/consents": {
         parameters: {
             query?: never;
@@ -2019,6 +2331,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/students/{studentId}/home-point-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The HOME categories a guardian may award to their own child: an ACTIVE, not custody-restricted link with can_award_points (404 for anybody else linked to nothing, 403 without the flag) */
+        get: operations["listHomePointCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/home-points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A guardian awards home points to their own child (HOME context, HOME category, never counted in class or school totals). Needs an ACTIVE, not custody-restricted link with can_award_points; at most 60 a day. 201 new, 200 replay of a clientOpId */
+        post: operations["awardHomePoints"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/students/{studentId}/login-codes": {
         parameters: {
             query?: never;
@@ -2064,6 +2410,40 @@ export interface paths {
         put?: never;
         /** Set an initial password (the student must change it); only while the school allows password sign-in (409 student.password_login_disabled) and the student has a username */
         post: operations["setStudentPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A student's totals by category and the badges earned: the school section (CLASS and SCHOOL points) and, for the student and their ACTIVE guardians only, a separate home section that is never added into class or school totals. Callers: the student, their guardians with can_view_academics, teachers (the classes they teach), school.points.read. academicYearId defaults to the school's current year */
+        get: operations["getStudentPoints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/points/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The points timeline of one section (SCHOOL or HOME), newest first, keyset paged; HOME only for the student and their guardians (403 otherwise). Reversals are rows of their own and awards that were undone say so */
+        get: operations["listStudentPointTransactions"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2251,6 +2631,98 @@ export interface components {
             targetType?: string;
             userAgent?: string;
         };
+        AwardBadgeRequest: {
+            /** Format: uuid */
+            badgeId: string;
+        };
+        /** @description Exactly one of studentIds or wholeClass: true (home awards ignore both: the student is in the path) */
+        AwardRequest: {
+            /** Format: uuid */
+            categoryId: string;
+            /**
+             * Format: uuid
+             * @description Client-made id of this user action; repeating it never awards twice
+             */
+            clientOpId?: string;
+            /** @description A note (child data: shown only to those who may see the award) */
+            note?: string;
+            /**
+             * Format: int32
+             * @description 1 to 10; defaults to the category's default points. The sign comes from the category
+             */
+            points?: number;
+            studentIds?: string[];
+            wholeClass?: boolean;
+        };
+        AwardResult: {
+            /**
+             * Format: uuid
+             * @description Shared by the rows of a multi-student award; also the key to reverse the whole batch
+             */
+            batchId?: string;
+            /** @description True when the client operation id was used before: these are the original rows, nothing new was written */
+            replayed?: boolean;
+            transactions: components["schemas"]["TransactionView"][];
+            /**
+             * Format: date-time
+             * @description The awarder may undo until this instant (absent when the quick undo is off or for reversals)
+             */
+            undoableUntil?: string;
+        };
+        BadgePatchRequest: {
+            active?: boolean;
+            criteria?: {
+                [key: string]: unknown;
+            };
+            descriptions?: {
+                [key: string]: string;
+            };
+            icon?: string;
+            names?: {
+                [key: string]: string;
+            };
+            /** Format: int32 */
+            sortOrder?: number;
+        };
+        /** @description names and descriptions: language code to text */
+        BadgeRequest: {
+            code: string;
+            criteria?: {
+                [key: string]: unknown;
+            };
+            criteriaType: string;
+            descriptions?: {
+                [key: string]: string;
+            };
+            icon?: string;
+            names: {
+                [key: string]: string;
+            };
+            /** Format: int32 */
+            sortOrder?: number;
+        };
+        BadgeView: {
+            active?: boolean;
+            code: string;
+            /** @description Rule parameters: threshold, context, categoryId or templateCode, days */
+            criteria: {
+                [key: string]: unknown;
+            };
+            criteriaType: string;
+            description?: string;
+            descriptions: {
+                [key: string]: string;
+            };
+            icon?: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            names: {
+                [key: string]: string;
+            };
+            /** Format: int32 */
+            sortOrder?: number;
+        };
         CampusResponse: {
             code?: string;
             /** Format: date-time */
@@ -2267,6 +2739,50 @@ export interface components {
             updatedAt: string;
             /** Format: int32 */
             version: number;
+        };
+        CategoryPatchRequest: {
+            active?: boolean;
+            color?: string;
+            /** Format: int32 */
+            defaultPoints?: number;
+            icon?: string;
+            names?: {
+                [key: string]: string;
+            };
+            /** Format: int32 */
+            sortOrder?: number;
+        };
+        /** @description names: language code to text, e.g. {"en": "Kindness", "am": "..."} (at least one) */
+        CategoryRequest: {
+            color?: string;
+            /**
+             * @description CLASS (default) or HOME; class-level categories are always CLASS
+             * @enum {string}
+             */
+            context?: "CLASS" | "SCHOOL" | "HOME";
+            /** Format: int32 */
+            defaultPoints?: number;
+            icon?: string;
+            names: {
+                [key: string]: string;
+            };
+            /** @enum {string} */
+            polarity?: "POSITIVE" | "NEEDS_WORK";
+            /** Format: int32 */
+            sortOrder?: number;
+        };
+        CategoryTotal: {
+            /** Format: int32 */
+            awards?: number;
+            /** Format: uuid */
+            categoryId: string;
+            color?: string;
+            icon?: string;
+            name: string;
+            /** Format: int32 */
+            points?: number;
+            /** @enum {string} */
+            polarity: "POSITIVE" | "NEEDS_WORK";
         };
         CategoryView: {
             code: string;
@@ -2333,6 +2849,20 @@ export interface components {
             schoolName: string;
             schoolSlug: string;
             studentNumber?: string;
+        };
+        ClassPoints: {
+            /** Format: uuid */
+            academicYearId: string;
+            /** Format: uuid */
+            classId: string;
+            /** Format: int32 */
+            needsWorkTotal?: number;
+            /** Format: int32 */
+            positiveTotal?: number;
+            settings: components["schemas"]["EngagementSettingsView"];
+            students: components["schemas"]["StudentTotal"][];
+            /** Format: int32 */
+            total?: number;
         };
         ClassTeacher: {
             displayName: string;
@@ -2533,6 +3063,9 @@ export interface components {
             name: string;
             studentIds: string[];
         };
+        CreateGroupSetRequest: {
+            groups: components["schemas"]["CreateGroupRequest"][];
+        };
         /** @description Exactly one of phone or email. National phone formats are read in `country` (default: the school's country). */
         CreateGuardianRequest: {
             country?: string;
@@ -2728,6 +3261,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageReportRow: {
+            items: components["schemas"]["ReportRow"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageRoleAssignmentResponse: {
             items: components["schemas"]["RoleAssignmentResponse"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -2745,6 +3283,16 @@ export interface components {
         };
         CursorPageStudentView: {
             items: components["schemas"]["StudentView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageTemplateView: {
+            items: components["schemas"]["TemplateView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageTimelineItem: {
+            items: components["schemas"]["TimelineItem"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -2777,6 +3325,16 @@ export interface components {
             /** Format: uuid */
             schoolId?: string;
             title: string;
+        };
+        EngagementSettingsView: {
+            badgesEnabled?: boolean;
+            leaderboardEnabled?: boolean;
+            needsWorkEnabled?: boolean;
+            /**
+             * Format: int32
+             * @description Seconds in which the awarder may undo an award; 0 when the quick undo is off
+             */
+            undoWindowSeconds?: number;
         };
         /** @description Why a job is FAILED: the phase (VALIDATE or COMMIT), the first failing row if any, and a localized message */
         Failure: {
@@ -3078,6 +3636,11 @@ export interface components {
             /** Format: uuid */
             studentId: string;
         };
+        ItemRequest: {
+            /** Format: int32 */
+            minutes?: number;
+            text: string;
+        };
         JsonNode: unknown;
         LanguageResponse: {
             code: string;
@@ -3086,6 +3649,21 @@ export interface components {
             name: string;
             nativeName: string;
             script?: string;
+        };
+        Leaderboard: {
+            /** Format: uuid */
+            classId: string;
+            rows: components["schemas"]["LeaderboardRow"][];
+        };
+        LeaderboardRow: {
+            avatar?: components["schemas"]["MediaSummary"];
+            displayName: string;
+            /** Format: int32 */
+            rank?: number;
+            /** Format: uuid */
+            studentId: string;
+            /** Format: int32 */
+            total?: number;
         };
         LinkPermissions: {
             canAwardPoints: boolean;
@@ -3511,6 +4089,25 @@ export interface components {
             provider: "EXPO" | "FCM" | "APNS" | "WEBPUSH";
             token: string;
         };
+        ReportRow: {
+            /** Format: int32 */
+            awards?: number;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            /**
+             * Format: int32
+             * @description Net points: awards plus reversals (needs-work points are negative)
+             */
+            points?: number;
+            /** @enum {string} */
+            polarity: "POSITIVE" | "NEEDS_WORK";
+            /** Format: int32 */
+            reversals?: number;
+            /** Format: uuid */
+            studentId: string;
+            studentName: string;
+        };
         ResolveRequest: {
             /**
              * @description How a possible duplicate is decided: LINK to an existing student (studentId), CREATE_NEW, or SKIP the row
@@ -3522,6 +4119,11 @@ export interface components {
              * @description The existing student to link to (LINK only)
              */
             studentId?: string;
+        };
+        ReverseRequest: {
+            /** Format: uuid */
+            clientOpId?: string;
+            note?: string;
         };
         RevokedCodes: {
             /** Format: int32 */
@@ -3739,6 +4341,15 @@ export interface components {
             /** @enum {string} */
             type: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL";
         };
+        Section: {
+            categories: components["schemas"]["CategoryTotal"][];
+            /** Format: int32 */
+            needsWorkTotal?: number;
+            /** Format: int32 */
+            positiveTotal?: number;
+            /** Format: int32 */
+            total?: number;
+        };
         SetAvatarRequest: {
             /** Format: uuid */
             mediaId: string;
@@ -3834,6 +4445,16 @@ export interface components {
              */
             userId: string;
         };
+        StudentBadgeView: {
+            /** Format: date-time */
+            awardedAt: string;
+            /** Format: uuid */
+            badgeId: string;
+            code: string;
+            description?: string;
+            icon?: string;
+            name: string;
+        };
         StudentClassRef: {
             /** Format: uuid */
             id: string;
@@ -3860,6 +4481,49 @@ export interface components {
             id: string;
             name: string;
             studentIds: string[];
+        };
+        StudentPoints: {
+            /**
+             * Format: uuid
+             * @description The year the totals cover (the school's current year by default); absent when it has none
+             */
+            academicYearId?: string;
+            /** @enum {string} */
+            accessLevel: "BASIC" | "FULL";
+            avatar?: components["schemas"]["MediaSummary"];
+            /** @description Avatar builder configuration, client-defined */
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            badges: components["schemas"]["StudentBadgeView"][];
+            displayName: string;
+            /** @description Home points: only for the student and their guardians; never part of class or school totals */
+            home?: components["schemas"]["Section"];
+            /** @description CLASS and SCHOOL points the caller may see */
+            school: components["schemas"]["Section"];
+            /** Format: uuid */
+            studentId: string;
+        };
+        StudentTotal: {
+            /** @enum {string} */
+            accessLevel: "BASIC" | "FULL";
+            avatar?: components["schemas"]["MediaSummary"];
+            /** @description Avatar builder configuration, client-defined */
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            displayName: string;
+            /** Format: int32 */
+            needsWorkTotal?: number;
+            /** Format: int32 */
+            positiveTotal?: number;
+            /** Format: uuid */
+            studentId: string;
+            /**
+             * Format: int32
+             * @description positiveTotal + needsWorkTotal (needs-work points are negative)
+             */
+            total?: number;
         };
         StudentView: {
             /** @enum {string} */
@@ -3945,6 +4609,67 @@ export interface components {
             /** Format: date-time */
             trialEndsAt?: string;
         };
+        TemplateItem: {
+            /** Format: int32 */
+            minutes?: number;
+            text?: string;
+        };
+        TemplatePatchRequest: {
+            /** Format: uuid */
+            classId?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            instructions?: string;
+            items?: components["schemas"]["ItemRequest"][];
+            /** Format: uuid */
+            subjectId?: string;
+            /** @enum {string} */
+            templateType?: "ROUTINE" | "CHECKLIST" | "ACTIVITY" | "LESSON_PREP";
+            title?: string;
+            /** @enum {string} */
+            visibility?: "PRIVATE" | "CLASS" | "SCHOOL";
+        };
+        TemplateRequest: {
+            /** Format: uuid */
+            classId?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            instructions?: string;
+            items?: components["schemas"]["ItemRequest"][];
+            /** Format: uuid */
+            subjectId?: string;
+            /** @enum {string} */
+            templateType: "ROUTINE" | "CHECKLIST" | "ACTIVITY" | "LESSON_PREP";
+            title: string;
+            /** @enum {string} */
+            visibility?: "PRIVATE" | "CLASS" | "SCHOOL";
+        };
+        TemplateView: {
+            /** Format: uuid */
+            classId?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            /** Format: uuid */
+            id: string;
+            instructions?: string;
+            items: components["schemas"]["TemplateItem"][];
+            /** @description True when the caller wrote it (and may change or delete it) */
+            mine?: boolean;
+            /** Format: uuid */
+            ownerId: string;
+            ownerName: string;
+            /** Format: uuid */
+            subjectId?: string;
+            /** @enum {string} */
+            templateType: "ROUTINE" | "CHECKLIST" | "ACTIVITY" | "LESSON_PREP";
+            title: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @enum {string} */
+            visibility: "PRIVATE" | "CLASS" | "SCHOOL";
+        };
         TestNotificationResponse: {
             /** Format: uuid */
             notificationId: string;
@@ -3956,6 +4681,36 @@ export interface components {
              */
             expiresIn: number;
             ticket: string;
+        };
+        TimelineItem: {
+            awardedByName?: string;
+            awarderRole: string;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            /** Format: uuid */
+            classId?: string;
+            className?: string;
+            color?: string;
+            /** @enum {string} */
+            context: "CLASS" | "SCHOOL" | "HOME";
+            /** Format: date-time */
+            createdAt: string;
+            icon?: string;
+            /** Format: uuid */
+            id: string;
+            /** @description The awarder's note (child data: only where the caller may see this row) */
+            note?: string;
+            /** Format: int32 */
+            points?: number;
+            /** @enum {string} */
+            polarity: "POSITIVE" | "NEEDS_WORK";
+            /** @description True when a later REVERSAL row undid this award */
+            reversed?: boolean;
+            /** Format: uuid */
+            reversesTransactionId?: string;
+            /** @enum {string} */
+            type: "AWARD" | "REVERSAL" | "CORRECTION";
         };
         TokenResponse: {
             accessToken: string;
@@ -3973,6 +4728,33 @@ export interface components {
             refreshTokenExpiresIn: number;
             /** @enum {string} */
             tokenType: "Bearer";
+        };
+        TransactionView: {
+            /** Format: uuid */
+            awardBatchId?: string;
+            /** Format: uuid */
+            categoryId: string;
+            /** Format: uuid */
+            classId?: string;
+            /** @enum {string} */
+            context: "CLASS" | "SCHOOL" | "HOME";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int32
+             * @description Signed: negative for needs-work awards and for the reversal of a positive award
+             */
+            points?: number;
+            /** @enum {string} */
+            polarity: "POSITIVE" | "NEEDS_WORK";
+            /** Format: uuid */
+            reversesTransactionId?: string;
+            /** Format: uuid */
+            studentId: string;
+            /** @enum {string} */
+            type: "AWARD" | "REVERSAL" | "CORRECTION";
         };
         TypeView: {
             canBeUrgent: boolean;
@@ -4012,6 +4794,10 @@ export interface components {
             name?: string;
             /** Format: int32 */
             sequence?: number;
+        };
+        UpdateGroupRequest: {
+            name?: string;
+            studentIds?: string[];
         };
         UpdateLinkRequest: {
             custodyRestricted?: boolean;
@@ -7067,6 +7853,280 @@ export interface operations {
             };
         };
     };
+    listActivityTemplates: {
+        parameters: {
+            query?: {
+                classId?: string;
+                templateType?: "ROUTINE" | "CHECKLIST" | "ACTIVITY" | "LESSON_PREP";
+                mine?: boolean;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageTemplateView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createActivityTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getActivityTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteActivityTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateActivityTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                templateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TemplatePatchRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listBadges: {
+        parameters: {
+            query?: {
+                includeInactive?: boolean;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadgeView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createBadge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BadgeRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadgeView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateBadge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                badgeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BadgePatchRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadgeView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listClasses: {
         parameters: {
             query?: {
@@ -7305,6 +8365,42 @@ export interface operations {
             };
         };
     };
+    createClassGroupSet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGroupSetRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentGroupView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listClassGroups: {
         parameters: {
             query?: never;
@@ -7392,6 +8488,75 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateClassGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+                groupId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateGroupRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentGroupView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getClassLeaderboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Leaderboard"];
+                };
             };
             /** @description Error (RFC 9457 problem details) */
             default: {
@@ -7494,6 +8659,147 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IssuedParentCode"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createClassPointCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateClassPointCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryPatchRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getClassPoints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassPoints"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    awardClassPoints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AwardRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AwardResult"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -8723,6 +10029,293 @@ export interface operations {
             };
         };
     };
+    listPointCategories: {
+        parameters: {
+            query?: {
+                classId?: string;
+                context?: "CLASS" | "SCHOOL" | "HOME";
+                includeInactive?: boolean;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createPointCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updatePointCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryPatchRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    awardSchoolPoints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AwardRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AwardResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reversePointBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                batchId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReverseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AwardResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getPointsReport: {
+        parameters: {
+            query?: {
+                classId?: string;
+                from?: string;
+                to?: string;
+                categoryId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageReportRow"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    exportPointsReport: {
+        parameters: {
+            query?: {
+                classId?: string;
+                from?: string;
+                to?: string;
+                categoryId?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reversePointTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                transactionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReverseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AwardResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listSchoolPolicies: {
         parameters: {
             query?: never;
@@ -9246,6 +10839,42 @@ export interface operations {
             };
         };
     };
+    awardBadge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AwardBadgeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentBadgeView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listStudentConsents: {
         parameters: {
             query?: never;
@@ -9450,6 +11079,74 @@ export interface operations {
             };
         };
     };
+    listHomePointCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    awardHomePoints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AwardRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AwardResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listStudentLoginCodes: {
         parameters: {
             query?: never;
@@ -9536,6 +11233,77 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getStudentPoints: {
+        parameters: {
+            query?: {
+                academicYearId?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentPoints"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStudentPointTransactions: {
+        parameters: {
+            query?: {
+                section?: "SCHOOL" | "HOME";
+                academicYearId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageTimelineItem"];
+                };
             };
             /** @description Error (RFC 9457 problem details) */
             default: {
