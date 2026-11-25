@@ -3299,6 +3299,162 @@
         "tags" : [ "schools" ]
       }
     },
+    "/api/v1/schools/{schoolId}/absence-reports/{reportId}/acknowledge" : {
+      "post" : {
+        "operationId" : "acknowledgeAbsenceReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "reportId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AbsenceDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbsenceReportView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A lead, co or subject teacher of the student's class (or an attendance manager) acknowledges a SUBMITTED report: the roll shows it for those dates and markAllPresent pre-fills EXCUSED. Audited. 409 absence.already_decided",
+        "tags" : [ "absence-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/absence-reports/{reportId}/cancel" : {
+      "post" : {
+        "operationId" : "cancelAbsenceReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "reportId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbsenceReportView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The guardian who filed a SUBMITTED or ACKNOWLEDGED report withdraws it",
+        "tags" : [ "absence-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/absence-reports/{reportId}/decline" : {
+      "post" : {
+        "operationId" : "declineAbsenceReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "reportId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AbsenceDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbsenceReportView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Declines a SUBMITTED report (same people as acknowledge), with an optional note for the record. Audited. 409 absence.already_decided",
+        "tags" : [ "absence-reports" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/academic-years" : {
       "get" : {
         "operationId" : "listAcademicYears",
@@ -4041,6 +4197,229 @@
         "tags" : [ "toolkit" ]
       }
     },
+    "/api/v1/schools/{schoolId}/attendance/dashboard" : {
+      "get" : {
+        "operationId" : "getAttendanceDashboard",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "date",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "slot",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AttendanceDashboard"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot, students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403",
+        "tags" : [ "attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/report" : {
+      "get" : {
+        "operationId" : "getAttendanceReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "studentId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAttendanceReportRow"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Marks counted per student and class over from..to (school-local dates, inclusive, default the last 30 days, at most 400), keyset paged in student name order. With classId: teachers of that class and school.attendance.read/manage; without: school.attendance.read/manage (studentId narrows to one student). Teachers' notes and absence reports are not part of it",
+        "tags" : [ "attendance-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/report.csv" : {
+      "get" : {
+        "operationId" : "exportAttendanceReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "studentId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/csv" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The same report as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized, sorted by student name. Audited, rate limited (10 per 10 minutes, 429 attendance.export_rate_limited), at most 50000 rows",
+        "tags" : [ "attendance-reports" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/badges" : {
       "get" : {
         "operationId" : "listBadges",
@@ -4483,6 +4862,90 @@
         "tags" : [ "classes" ]
       }
     },
+    "/api/v1/schools/{schoolId}/classes/{classId}/absence-reports" : {
+      "get" : {
+        "operationId" : "listClassAbsenceReports",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAbsenceReportView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Absence reports of the students ACTIVE in the class touching from..to (default a week back to 60 days ahead), SUBMITTED and ACKNOWLEDGED unless status says otherwise, oldest first, keyset paged. Reason and note only for the lead, co and subject teachers and attendance managers. Teachers of the class, class managers, school.attendance.read/manage",
+        "tags" : [ "absence-reports" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/classes/{classId}/archive" : {
       "post" : {
         "operationId" : "archiveClass",
@@ -4527,6 +4990,121 @@
         },
         "summary" : "Archive a class: it stays readable and keeps its members, but its roster can no longer change",
         "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/attendance" : {
+      "get" : {
+        "operationId" : "getClassAttendance",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "date",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "slot",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AttendanceRollView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The roll of a class for a school-local date (default today) and slot (default the school's first): every student who belonged to the class that day with their record, suggestedStatus (EXCUSED for an acknowledged absence report) and the absence-report annotation (reason and note only for the lead, co and subject teachers and attendance managers). ACTIVE teachers of the class, class managers and school.attendance.read/manage (403 for students and guardians who see the class, 404 for everybody else)",
+        "tags" : [ "attendance" ]
+      },
+      "put" : {
+        "operationId" : "takeClassAttendance",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AttendanceRollRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AttendanceWriteResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage",
+        "tags" : [ "attendance" ]
       }
     },
     "/api/v1/schools/{schoolId}/classes/{classId}/consent-summary" : {
@@ -8445,6 +9023,206 @@
         "tags" : [ "students" ]
       }
     },
+    "/api/v1/schools/{schoolId}/students/{studentId}/absence-reports" : {
+      "get" : {
+        "operationId" : "listStudentAbsenceReports",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAbsenceReportView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The absence reports of a student, newest first, keyset paged: a guardian sees the ones they filed (with reason and note); the student's lead, co and subject teachers and school.attendance.manage see all (with reason and note). 403 for other teachers and attendance readers, 404 for everybody else",
+        "tags" : [ "absence-reports" ]
+      },
+      "post" : {
+        "operationId" : "reportAbsence",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AbsenceReportRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbsenceReportView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A guardian (ACTIVE, not custody-restricted link) reports that the child will be away from..to (school-local dates, at most 7 days back, 90 ahead, 61 long) for ILLNESS, FAMILY, APPOINTMENT or OTHER, with an optional note (health related: never shown to the child, other guardians or assistants, never in notifications). The student's teachers are notified without the reason. 404 for anybody who is not the child's guardian; at most 20 a day (429)",
+        "tags" : [ "absence-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/attendance" : {
+      "get" : {
+        "operationId" : "listStudentAttendance",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAttendanceHistoryItem"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A student's attendance history, newest first, keyset paged, optionally by class and school-local date range. The student and their ACTIVE guardians with can_view_academics see status, lateness, date and class (no teacher note); teachers see the classes they teach (with notes); school.attendance.read sees everything. 403 for others who can see the student, 404 for the rest",
+        "tags" : [ "attendance" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/students/{studentId}/badges" : {
       "post" : {
         "operationId" : "awardBadge",
@@ -9460,10 +10238,169 @@
         "summary" : "Counts of active students, teachers and classes plus what is already set up (current year, grade levels, subjects); needs school.read",
         "tags" : [ "school-summary" ]
       }
+    },
+    "/api/v1/sync" : {
+      "post" : {
+        "operationId" : "syncOperations",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SyncBatchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SyncBatchResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Applies a batch of operations queued by a device (at most 100, 1 MiB; ATTENDANCE_MARK, POINT_AWARD) in order and returns one result per operation, in the same order: APPLIED, DUPLICATE (the operation was seen before: the first outcome is returned, so replaying a whole batch is safe), CONFLICT (the data changed under the client: nothing was overwritten, state says what is there) or REJECTED (cannot succeed as sent: problem.code says why, do not resend). A failing operation never fails the batch or blocks the next one. Always 200 when the request itself is well formed (400 malformed, 413 too large, 429 rate limited). Operations are authorized exactly like their online endpoints, when applied",
+        "tags" : [ "sync" ]
+      }
     }
   },
   "components" : {
     "schemas" : {
+      "AbsenceAnnotationView" : {
+        "type" : "object",
+        "description" : "An absence report that covers the date. status SUBMITTED (waiting for a teacher) or ACKNOWLEDGED. reasonCode and note only for the student's lead, co and subject teachers and attendance managers",
+        "properties" : {
+          "fromDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "reasonCode" : {
+            "type" : "string"
+          },
+          "reportId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "toDate" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "fromDate", "reportId", "status", "toDate" ]
+      },
+      "AbsenceDecisionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "note" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          }
+        }
+      },
+      "AbsenceReportRequest" : {
+        "type" : "object",
+        "description" : "A guardian's absence report. reasonCode ILLNESS, FAMILY, APPOINTMENT or OTHER",
+        "properties" : {
+          "fromDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "note" : {
+            "type" : "string",
+            "description" : "Health related: read only by the reporter, the student's lead, co and subject teachers and attendance managers",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "reasonCode" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "toDate" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "fromDate", "reasonCode", "toDate" ]
+      },
+      "AbsenceReportView" : {
+        "type" : "object",
+        "properties" : {
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "decidedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "decidedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "decisionNote" : {
+            "type" : "string"
+          },
+          "fromDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "note" : {
+            "type" : "string",
+            "description" : "Only for the reporter, the student's lead, co and subject teachers and attendance managers"
+          },
+          "reasonCode" : {
+            "type" : "string",
+            "description" : "Only for the reporter, the student's lead, co and subject teachers and attendance managers"
+          },
+          "reportedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "SUBMITTED, ACKNOWLEDGED, DECLINED or CANCELLED"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentName" : {
+            "type" : "string"
+          },
+          "toDate" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "createdAt", "fromDate", "id", "reportedBy", "status", "studentId", "toDate" ]
+      },
       "AcademicPeriodView" : {
         "type" : "object",
         "properties" : {
@@ -9681,6 +10618,457 @@
           }
         },
         "required" : [ "planCode" ]
+      },
+      "AttendanceCounts" : {
+        "type" : "object",
+        "properties" : {
+          "absent" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "excused" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "late" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "leftEarly" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "marked" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "present" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "students" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "unmarked" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "AttendanceDashboard" : {
+        "type" : "object",
+        "properties" : {
+          "classes" : {
+            "$ref" : "#/components/schemas/CursorPageDashboardClass"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "slot" : {
+            "type" : "string"
+          },
+          "timeZone" : {
+            "type" : "string"
+          },
+          "totals" : {
+            "$ref" : "#/components/schemas/DashboardTotals",
+            "description" : "Over every class the caller sees, not just this page"
+          }
+        },
+        "required" : [ "classes", "date", "slot", "timeZone", "totals" ]
+      },
+      "AttendanceHistoryItem" : {
+        "type" : "object",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "className" : {
+            "type" : "string"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "note" : {
+            "type" : "string",
+            "description" : "The teacher's note: staff only"
+          },
+          "recordId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "recordedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "slot" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "EXCUSED", "LEFT_EARLY" ]
+          }
+        },
+        "required" : [ "classId", "className", "date", "recordId", "recordedAt", "slot", "status" ]
+      },
+      "AttendanceMarkInput" : {
+        "type" : "object",
+        "properties" : {
+          "expectedVersion" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "The version of the student's record you edited from. Required to change an existing record that holds something else; omit for a student who has no record yet"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Minutes late, 1 to 600, only with LATE"
+          },
+          "note" : {
+            "type" : "string",
+            "description" : "A short note about this mark (visible to staff, never to the student or guardians)",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "EXCUSED", "LEFT_EARLY" ]
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "status", "studentId" ]
+      },
+      "AttendanceRecordOutcome" : {
+        "type" : "object",
+        "description" : "What happened to one submitted mark: APPLIED (written, record has the new version), UNCHANGED (the record already held exactly this) or CONFLICT (the record changed since you read it: nothing was overwritten, record is what is stored now and submitted is what you sent)",
+        "properties" : {
+          "outcome" : {
+            "type" : "string"
+          },
+          "record" : {
+            "$ref" : "#/components/schemas/AttendanceRecordView"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "submitted" : {
+            "$ref" : "#/components/schemas/AttendanceSubmittedMark"
+          }
+        },
+        "required" : [ "outcome", "record", "studentId" ]
+      },
+      "AttendanceRecordView" : {
+        "type" : "object",
+        "properties" : {
+          "absenceReportId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "note" : {
+            "type" : "string",
+            "description" : "Staff only: absent for students and guardians"
+          },
+          "recordedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "recordedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "source" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "EXCUSED", "LEFT_EARLY" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "id", "recordedAt", "recordedBy", "source", "status" ]
+      },
+      "AttendanceReportRow" : {
+        "type" : "object",
+        "properties" : {
+          "absent" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "className" : {
+            "type" : "string"
+          },
+          "excused" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "late" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "leftEarly" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "marked" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Marks in the range (every status)"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total minutes late"
+          },
+          "present" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentName" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "classId", "className", "studentId", "studentName" ]
+      },
+      "AttendanceRollRequest" : {
+        "type" : "object",
+        "description" : "Take or correct a roll. records: the marks to write (students left out are not touched: unmarked stay unmarked). markAllPresent: additionally marks every student of the class on that date who has no record yet and is not in records (PRESENT, or EXCUSED when an acknowledged absence report covers the date); existing records are never touched by it",
+        "properties" : {
+          "baseVersion" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "The roll's version you read (the sessionVersion): your marks for students whose record has not changed since are applied even without a per-record expectedVersion"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date",
+            "description" : "School-local calendar date (the school's or campus's time zone), not in the future beyond a small tolerance"
+          },
+          "markAllPresent" : {
+            "type" : "boolean",
+            "description" : "Mark everyone without a record present (see the description above)"
+          },
+          "overrideReason" : {
+            "type" : "string",
+            "description" : "Required to edit a locked roll (lead teacher, class manager or attendance manager); audited",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "records" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AttendanceMarkInput"
+            },
+            "maxItems" : 500,
+            "minItems" : 0
+          },
+          "slot" : {
+            "type" : "string",
+            "description" : "DAY (default), AM, PM or P1..P8; must be one the school enabled (attendance.slots)",
+            "maxLength" : 3,
+            "minLength" : 0
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Subject of a period roll (optional; only used when the roll is created)"
+          }
+        },
+        "required" : [ "date" ]
+      },
+      "AttendanceRollStudent" : {
+        "type" : "object",
+        "properties" : {
+          "absence" : {
+            "$ref" : "#/components/schemas/AbsenceAnnotationView"
+          },
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "record" : {
+            "$ref" : "#/components/schemas/AttendanceRecordView"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "suggestedStatus" : {
+            "type" : "string",
+            "description" : "EXCUSED when an acknowledged absence report covers the date and there is no record yet; the client may pre-select it",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "EXCUSED", "LEFT_EARLY" ]
+          }
+        },
+        "required" : [ "displayName", "studentId" ]
+      },
+      "AttendanceRollView" : {
+        "type" : "object",
+        "description" : "The roll of a class for a date and slot: every student who belonged to the class that day, with the record (if any) and the absence-report annotation",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "counts" : {
+            "$ref" : "#/components/schemas/AttendanceCounts"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "locked" : {
+            "type" : "boolean",
+            "description" : "True once the lock window has passed: only the lead teacher, class managers and attendance managers may edit, with a reason"
+          },
+          "locksAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "mayEditLocked" : {
+            "type" : "boolean"
+          },
+          "sessionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "sessionVersion" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "The roll's version: send it as baseVersion; null while nobody has taken the roll"
+          },
+          "slot" : {
+            "type" : "string"
+          },
+          "slots" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "students" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AttendanceRollStudent"
+            }
+          },
+          "takenAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "takenBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "timeZone" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "classId", "counts", "date", "locksAt", "slot", "slots", "students", "timeZone" ]
+      },
+      "AttendanceSubmittedMark" : {
+        "type" : "object",
+        "properties" : {
+          "expectedVersion" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "EXCUSED", "LEFT_EARLY" ]
+          }
+        },
+        "required" : [ "status" ]
+      },
+      "AttendanceWriteResult" : {
+        "type" : "object",
+        "description" : "The result of taking a roll. conflicts > 0 means some marks were not written (the others were); the online endpoint then answers 409 with this same body",
+        "properties" : {
+          "applied" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "conflicts" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "outcomes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AttendanceRecordOutcome"
+            }
+          },
+          "overridden" : {
+            "type" : "boolean",
+            "description" : "True when a locked roll was edited with an override reason"
+          },
+          "sessionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "sessionVersion" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "slot" : {
+            "type" : "string"
+          },
+          "unchanged" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "classId", "date", "outcomes", "sessionId", "slot" ]
       },
       "AuditLogResponse" : {
         "type" : "object",
@@ -11279,6 +12667,22 @@
         },
         "required" : [ "code", "minorUnits", "name" ]
       },
+      "CursorPageAbsenceReportView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AbsenceReportView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageAdministrativeAreaResponse" : {
         "type" : "object",
         "properties" : {
@@ -11286,6 +12690,38 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/AdministrativeAreaResponse"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageAttendanceHistoryItem" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AttendanceHistoryItem"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageAttendanceReportRow" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AttendanceReportRow"
             }
           },
           "nextCursor" : {
@@ -11334,6 +12770,22 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/ClassView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageDashboardClass" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DashboardClass"
             }
           },
           "nextCursor" : {
@@ -11534,6 +12986,113 @@
           }
         },
         "required" : [ "items" ]
+      },
+      "DashboardClass" : {
+        "type" : "object",
+        "properties" : {
+          "absent" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "className" : {
+            "type" : "string"
+          },
+          "excused" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "late" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "leftEarly" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "marked" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "present" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "students" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "taken" : {
+            "type" : "boolean"
+          },
+          "takenAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "takenBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "unmarked" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "classId", "className" ]
+      },
+      "DashboardTotals" : {
+        "type" : "object",
+        "properties" : {
+          "absent" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "classes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Classes that have students on the date"
+          },
+          "classesNotTaken" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Classes with students whose roll was not taken yet"
+          },
+          "classesTaken" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "excused" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "late" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "leftEarly" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "marked" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "present" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "students" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "unmarked" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
       },
       "DecisionRequest" : {
         "type" : "object",
@@ -14784,6 +16343,146 @@
           }
         },
         "required" : [ "createdAt", "id", "planCode", "schoolId", "status" ]
+      },
+      "SyncBatchRequest" : {
+        "type" : "object",
+        "description" : "A batch of queued operations, applied in order",
+        "properties" : {
+          "operations" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SyncOperationRequest"
+            },
+            "maxItems" : 1000,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "operations" ]
+      },
+      "SyncBatchResponse" : {
+        "type" : "object",
+        "properties" : {
+          "results" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SyncOperationResult"
+            }
+          }
+        },
+        "required" : [ "results" ]
+      },
+      "SyncOperationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "baseVersion" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "The version of the entity the client edited from (ATTENDANCE_MARK: the roll's session version, null when the client had no roll)"
+          },
+          "clientCreatedAt" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "Device time of the user's action"
+          },
+          "clientOperationId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "A UUID the app makes once per queued operation and keeps until it has the result"
+          },
+          "deviceId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "A UUID the app makes once at install and keeps; with the user and clientOperationId it identifies the operation"
+          },
+          "entityType" : {
+            "type" : "string",
+            "description" : "ATTENDANCE_SESSION for ATTENDANCE_MARK, POINT_TRANSACTION for POINT_AWARD",
+            "maxLength" : 40,
+            "minLength" : 1
+          },
+          "operationType" : {
+            "type" : "string",
+            "description" : "ATTENDANCE_MARK or POINT_AWARD",
+            "maxLength" : 40,
+            "minLength" : 1
+          },
+          "payload" : {
+            "$ref" : "#/components/schemas/JsonNode",
+            "description" : "The operation's data; its shape depends on operationType"
+          }
+        },
+        "required" : [ "clientCreatedAt", "clientOperationId", "deviceId", "entityType", "operationType", "payload" ]
+      },
+      "SyncOperationResult" : {
+        "type" : "object",
+        "description" : "The outcome of one operation, in the order of the request",
+        "properties" : {
+          "clientOperationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "deviceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "entityId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "entityType" : {
+            "type" : "string"
+          },
+          "operationType" : {
+            "type" : "string"
+          },
+          "originalStatus" : {
+            "type" : "string",
+            "description" : "For DUPLICATE: the status of the first time (APPLIED, CONFLICT, REJECTED)",
+            "enum" : [ "APPLIED", "DUPLICATE", "CONFLICT", "REJECTED" ]
+          },
+          "problem" : {
+            "$ref" : "#/components/schemas/SyncProblemView",
+            "description" : "Why a REJECTED operation can never succeed as sent"
+          },
+          "retryable" : {
+            "type" : "boolean",
+            "description" : "True when the failure was transient (rate limit, server error): nothing was stored, send the same operation again"
+          },
+          "state" : {
+            "$ref" : "#/components/schemas/JsonNode",
+            "description" : "The server state to show: after an APPLIED, the current state with your rejected values for a CONFLICT. Replays return the first answer unchanged; the retention job removes it later"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "APPLIED", "DUPLICATE", "CONFLICT", "REJECTED" ]
+          },
+          "timeAdjusted" : {
+            "type" : "boolean",
+            "description" : "True when the device time was in the future and the receipt time was used"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "The entity's version after the operation, when it has one"
+          }
+        },
+        "required" : [ "clientOperationId", "deviceId", "entityType", "operationType", "status" ]
+      },
+      "SyncProblemView" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "detail" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "code", "detail" ]
       },
       "TemplateItem" : {
         "type" : "object",

@@ -1059,6 +1059,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/absence-reports/{reportId}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A lead, co or subject teacher of the student's class (or an attendance manager) acknowledges a SUBMITTED report: the roll shows it for those dates and markAllPresent pre-fills EXCUSED. Audited. 409 absence.already_decided */
+        post: operations["acknowledgeAbsenceReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/absence-reports/{reportId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The guardian who filed a SUBMITTED or ACKNOWLEDGED report withdraws it */
+        post: operations["cancelAbsenceReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/absence-reports/{reportId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Declines a SUBMITTED report (same people as acknowledge), with an optional note for the record. Audited. 409 absence.already_decided */
+        post: operations["declineAbsenceReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/academic-years": {
         parameters: {
             query?: never;
@@ -1186,6 +1237,57 @@ export interface paths {
         patch: operations["updateActivityTemplate"];
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/attendance/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot, students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403 */
+        get: operations["getAttendanceDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Marks counted per student and class over from..to (school-local dates, inclusive, default the last 30 days, at most 400), keyset paged in student name order. With classId: teachers of that class and school.attendance.read/manage; without: school.attendance.read/manage (studentId narrows to one student). Teachers' notes and absence reports are not part of it */
+        get: operations["getAttendanceReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/report.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The same report as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized, sorted by student name. Audited, rate limited (10 per 10 minutes, 429 attendance.export_rate_limited), at most 50000 rows */
+        get: operations["exportAttendanceReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/badges": {
         parameters: {
             query?: never;
@@ -1258,6 +1360,23 @@ export interface paths {
         patch: operations["updateClass"];
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/classes/{classId}/absence-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Absence reports of the students ACTIVE in the class touching from..to (default a week back to 60 days ahead), SUBMITTED and ACKNOWLEDGED unless status says otherwise, oldest first, keyset paged. Reason and note only for the lead, co and subject teachers and attendance managers. Teachers of the class, class managers, school.attendance.read/manage */
+        get: operations["listClassAbsenceReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/classes/{classId}/archive": {
         parameters: {
             query?: never;
@@ -1269,6 +1388,24 @@ export interface paths {
         put?: never;
         /** Archive a class: it stays readable and keeps its members, but its roster can no longer change */
         post: operations["archiveClass"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The roll of a class for a school-local date (default today) and slot (default the school's first): every student who belonged to the class that day with their record, suggestedStatus (EXCUSED for an acknowledged absence report) and the absence-report annotation (reason and note only for the lead, co and subject teachers and attendance managers). ACTIVE teachers of the class, class managers and school.attendance.read/manage (403 for students and guardians who see the class, 404 for everybody else) */
+        get: operations["getClassAttendance"];
+        /** Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage */
+        put: operations["takeClassAttendance"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2260,6 +2397,41 @@ export interface paths {
         patch: operations["updateStudent"];
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/students/{studentId}/absence-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The absence reports of a student, newest first, keyset paged: a guardian sees the ones they filed (with reason and note); the student's lead, co and subject teachers and school.attendance.manage see all (with reason and note). 403 for other teachers and attendance readers, 404 for everybody else */
+        get: operations["listStudentAbsenceReports"];
+        put?: never;
+        /** A guardian (ACTIVE, not custody-restricted link) reports that the child will be away from..to (school-local dates, at most 7 days back, 90 ahead, 61 long) for ILLNESS, FAMILY, APPOINTMENT or OTHER, with an optional note (health related: never shown to the child, other guardians or assistants, never in notifications). The student's teachers are notified without the reason. 404 for anybody who is not the child's guardian; at most 20 a day (429) */
+        post: operations["reportAbsence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A student's attendance history, newest first, keyset paged, optionally by class and school-local date range. The student and their ACTIVE guardians with can_view_academics see status, lateness, date and class (no teacher note); teachers see the classes they teach (with notes); school.attendance.read sees everything. 403 for others who can see the student, 404 for the rest */
+        get: operations["listStudentAttendance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/students/{studentId}/badges": {
         parameters: {
             query?: never;
@@ -2520,10 +2692,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Applies a batch of operations queued by a device (at most 100, 1 MiB; ATTENDANCE_MARK, POINT_AWARD) in order and returns one result per operation, in the same order: APPLIED, DUPLICATE (the operation was seen before: the first outcome is returned, so replaying a whole batch is safe), CONFLICT (the data changed under the client: nothing was overwritten, state says what is there) or REJECTED (cannot succeed as sent: problem.code says why, do not resend). A failing operation never fails the batch or blocks the next one. Always 200 when the request itself is well formed (400 malformed, 413 too large, 429 rate limited). Operations are authorized exactly like their online endpoints, when applied */
+        post: operations["syncOperations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description An absence report that covers the date. status SUBMITTED (waiting for a teacher) or ACKNOWLEDGED. reasonCode and note only for the student's lead, co and subject teachers and attendance managers */
+        AbsenceAnnotationView: {
+            /** Format: date */
+            fromDate: string;
+            note?: string;
+            reasonCode?: string;
+            /** Format: uuid */
+            reportId: string;
+            status: string;
+            /** Format: date */
+            toDate: string;
+        };
+        AbsenceDecisionRequest: {
+            note?: string;
+        };
+        /** @description A guardian's absence report. reasonCode ILLNESS, FAMILY, APPOINTMENT or OTHER */
+        AbsenceReportRequest: {
+            /** Format: date */
+            fromDate: string;
+            /** @description Health related: read only by the reporter, the student's lead, co and subject teachers and attendance managers */
+            note?: string;
+            reasonCode: string;
+            /** Format: date */
+            toDate: string;
+        };
+        AbsenceReportView: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt?: string;
+            /** Format: uuid */
+            decidedBy?: string;
+            decisionNote?: string;
+            /** Format: date */
+            fromDate: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Only for the reporter, the student's lead, co and subject teachers and attendance managers */
+            note?: string;
+            /** @description Only for the reporter, the student's lead, co and subject teachers and attendance managers */
+            reasonCode?: string;
+            /** Format: uuid */
+            reportedBy: string;
+            /** @description SUBMITTED, ACKNOWLEDGED, DECLINED or CANCELLED */
+            status: string;
+            /** Format: uuid */
+            studentId: string;
+            studentName?: string;
+            /** Format: date */
+            toDate: string;
+        };
         AcademicPeriodView: {
             /** Format: uuid */
             academicYearId: string;
@@ -2605,6 +2845,223 @@ export interface components {
             planCode: string;
             /** @enum {string} */
             status?: "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELLED" | "EXPIRED";
+        };
+        AttendanceCounts: {
+            /** Format: int32 */
+            absent?: number;
+            /** Format: int32 */
+            excused?: number;
+            /** Format: int32 */
+            late?: number;
+            /** Format: int32 */
+            leftEarly?: number;
+            /** Format: int32 */
+            marked?: number;
+            /** Format: int32 */
+            present?: number;
+            /** Format: int32 */
+            students?: number;
+            /** Format: int32 */
+            unmarked?: number;
+        };
+        AttendanceDashboard: {
+            classes: components["schemas"]["CursorPageDashboardClass"];
+            /** Format: date */
+            date: string;
+            slot: string;
+            timeZone: string;
+            /** @description Over every class the caller sees, not just this page */
+            totals: components["schemas"]["DashboardTotals"];
+        };
+        AttendanceHistoryItem: {
+            /** Format: uuid */
+            classId: string;
+            className: string;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            minutesLate?: number;
+            /** @description The teacher's note: staff only */
+            note?: string;
+            /** Format: uuid */
+            recordId: string;
+            /** Format: date-time */
+            recordedAt: string;
+            slot: string;
+            /** @enum {string} */
+            status: "PRESENT" | "ABSENT" | "LATE" | "EXCUSED" | "LEFT_EARLY";
+        };
+        AttendanceMarkInput: {
+            /**
+             * Format: int32
+             * @description The version of the student's record you edited from. Required to change an existing record that holds something else; omit for a student who has no record yet
+             */
+            expectedVersion?: number;
+            /**
+             * Format: int32
+             * @description Minutes late, 1 to 600, only with LATE
+             */
+            minutesLate?: number;
+            /** @description A short note about this mark (visible to staff, never to the student or guardians) */
+            note?: string;
+            /** @enum {string} */
+            status: "PRESENT" | "ABSENT" | "LATE" | "EXCUSED" | "LEFT_EARLY";
+            /** Format: uuid */
+            studentId: string;
+        };
+        /** @description What happened to one submitted mark: APPLIED (written, record has the new version), UNCHANGED (the record already held exactly this) or CONFLICT (the record changed since you read it: nothing was overwritten, record is what is stored now and submitted is what you sent) */
+        AttendanceRecordOutcome: {
+            outcome: string;
+            record: components["schemas"]["AttendanceRecordView"];
+            /** Format: uuid */
+            studentId: string;
+            submitted?: components["schemas"]["AttendanceSubmittedMark"];
+        };
+        AttendanceRecordView: {
+            /** Format: uuid */
+            absenceReportId?: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            minutesLate?: number;
+            /** @description Staff only: absent for students and guardians */
+            note?: string;
+            /** Format: date-time */
+            recordedAt: string;
+            /** Format: uuid */
+            recordedBy: string;
+            source: string;
+            /** @enum {string} */
+            status: "PRESENT" | "ABSENT" | "LATE" | "EXCUSED" | "LEFT_EARLY";
+            /** Format: int32 */
+            version?: number;
+        };
+        AttendanceReportRow: {
+            /** Format: int32 */
+            absent?: number;
+            /** Format: uuid */
+            classId: string;
+            className: string;
+            /** Format: int32 */
+            excused?: number;
+            /** Format: int32 */
+            late?: number;
+            /** Format: int32 */
+            leftEarly?: number;
+            /**
+             * Format: int32
+             * @description Marks in the range (every status)
+             */
+            marked?: number;
+            /**
+             * Format: int64
+             * @description Total minutes late
+             */
+            minutesLate?: number;
+            /** Format: int32 */
+            present?: number;
+            /** Format: uuid */
+            studentId: string;
+            studentName: string;
+        };
+        /** @description Take or correct a roll. records: the marks to write (students left out are not touched: unmarked stay unmarked). markAllPresent: additionally marks every student of the class on that date who has no record yet and is not in records (PRESENT, or EXCUSED when an acknowledged absence report covers the date); existing records are never touched by it */
+        AttendanceRollRequest: {
+            /**
+             * Format: int32
+             * @description The roll's version you read (the sessionVersion): your marks for students whose record has not changed since are applied even without a per-record expectedVersion
+             */
+            baseVersion?: number;
+            /**
+             * Format: date
+             * @description School-local calendar date (the school's or campus's time zone), not in the future beyond a small tolerance
+             */
+            date: string;
+            /** @description Mark everyone without a record present (see the description above) */
+            markAllPresent?: boolean;
+            /** @description Required to edit a locked roll (lead teacher, class manager or attendance manager); audited */
+            overrideReason?: string;
+            records?: components["schemas"]["AttendanceMarkInput"][];
+            /** @description DAY (default), AM, PM or P1..P8; must be one the school enabled (attendance.slots) */
+            slot?: string;
+            /**
+             * Format: uuid
+             * @description Subject of a period roll (optional; only used when the roll is created)
+             */
+            subjectId?: string;
+        };
+        AttendanceRollStudent: {
+            absence?: components["schemas"]["AbsenceAnnotationView"];
+            avatar?: components["schemas"]["MediaSummary"];
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            displayName: string;
+            record?: components["schemas"]["AttendanceRecordView"];
+            /** Format: uuid */
+            studentId: string;
+            /**
+             * @description EXCUSED when an acknowledged absence report covers the date and there is no record yet; the client may pre-select it
+             * @enum {string}
+             */
+            suggestedStatus?: "PRESENT" | "ABSENT" | "LATE" | "EXCUSED" | "LEFT_EARLY";
+        };
+        /** @description The roll of a class for a date and slot: every student who belonged to the class that day, with the record (if any) and the absence-report annotation */
+        AttendanceRollView: {
+            /** Format: uuid */
+            classId: string;
+            counts: components["schemas"]["AttendanceCounts"];
+            /** Format: date */
+            date: string;
+            /** @description True once the lock window has passed: only the lead teacher, class managers and attendance managers may edit, with a reason */
+            locked?: boolean;
+            /** Format: date-time */
+            locksAt: string;
+            mayEditLocked?: boolean;
+            /** Format: uuid */
+            sessionId?: string;
+            /**
+             * Format: int32
+             * @description The roll's version: send it as baseVersion; null while nobody has taken the roll
+             */
+            sessionVersion?: number;
+            slot: string;
+            slots: string[];
+            students: components["schemas"]["AttendanceRollStudent"][];
+            /** Format: date-time */
+            takenAt?: string;
+            /** Format: uuid */
+            takenBy?: string;
+            timeZone: string;
+        };
+        AttendanceSubmittedMark: {
+            /** Format: int32 */
+            expectedVersion?: number;
+            /** Format: int32 */
+            minutesLate?: number;
+            note?: string;
+            /** @enum {string} */
+            status: "PRESENT" | "ABSENT" | "LATE" | "EXCUSED" | "LEFT_EARLY";
+        };
+        /** @description The result of taking a roll. conflicts > 0 means some marks were not written (the others were); the online endpoint then answers 409 with this same body */
+        AttendanceWriteResult: {
+            /** Format: int32 */
+            applied?: number;
+            /** Format: uuid */
+            classId: string;
+            /** Format: int32 */
+            conflicts?: number;
+            /** Format: date */
+            date: string;
+            outcomes: components["schemas"]["AttendanceRecordOutcome"][];
+            /** @description True when a locked roll was edited with an override reason */
+            overridden?: boolean;
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: int32 */
+            sessionVersion?: number;
+            slot: string;
+            /** Format: int32 */
+            unchanged?: number;
         };
         AuditLogResponse: {
             action: string;
@@ -3216,8 +3673,23 @@ export interface components {
             name: string;
             symbol?: string;
         };
+        CursorPageAbsenceReportView: {
+            items: components["schemas"]["AbsenceReportView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageAdministrativeAreaResponse: {
             items: components["schemas"]["AdministrativeAreaResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageAttendanceHistoryItem: {
+            items: components["schemas"]["AttendanceHistoryItem"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageAttendanceReportRow: {
+            items: components["schemas"]["AttendanceReportRow"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -3233,6 +3705,11 @@ export interface components {
         };
         CursorPageClassView: {
             items: components["schemas"]["ClassView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageDashboardClass: {
+            items: components["schemas"]["DashboardClass"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -3295,6 +3772,62 @@ export interface components {
             items: components["schemas"]["TimelineItem"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
+        };
+        DashboardClass: {
+            /** Format: int32 */
+            absent?: number;
+            /** Format: uuid */
+            classId: string;
+            className: string;
+            /** Format: int32 */
+            excused?: number;
+            /** Format: int32 */
+            late?: number;
+            /** Format: int32 */
+            leftEarly?: number;
+            /** Format: int32 */
+            marked?: number;
+            /** Format: int32 */
+            present?: number;
+            /** Format: int32 */
+            students?: number;
+            taken?: boolean;
+            /** Format: date-time */
+            takenAt?: string;
+            /** Format: uuid */
+            takenBy?: string;
+            /** Format: int32 */
+            unmarked?: number;
+        };
+        DashboardTotals: {
+            /** Format: int32 */
+            absent?: number;
+            /**
+             * Format: int32
+             * @description Classes that have students on the date
+             */
+            classes?: number;
+            /**
+             * Format: int32
+             * @description Classes with students whose roll was not taken yet
+             */
+            classesNotTaken?: number;
+            /** Format: int32 */
+            classesTaken?: number;
+            /** Format: int32 */
+            excused?: number;
+            /** Format: int32 */
+            late?: number;
+            /** Format: int32 */
+            leftEarly?: number;
+            /** Format: int32 */
+            marked?: number;
+            /** Format: int32 */
+            present?: number;
+            /** Format: int32 */
+            students?: number;
+            /** Format: int32 */
+            unmarked?: number;
         };
         DecisionRequest: {
             /** @description Internal to the school */
@@ -4636,6 +5169,78 @@ export interface components {
             status: "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELLED" | "EXPIRED";
             /** Format: date-time */
             trialEndsAt?: string;
+        };
+        /** @description A batch of queued operations, applied in order */
+        SyncBatchRequest: {
+            operations: components["schemas"]["SyncOperationRequest"][];
+        };
+        SyncBatchResponse: {
+            results: components["schemas"]["SyncOperationResult"][];
+        };
+        SyncOperationRequest: {
+            /**
+             * Format: int32
+             * @description The version of the entity the client edited from (ATTENDANCE_MARK: the roll's session version, null when the client had no roll)
+             */
+            baseVersion?: number;
+            /**
+             * Format: date-time
+             * @description Device time of the user's action
+             */
+            clientCreatedAt: string;
+            /**
+             * Format: uuid
+             * @description A UUID the app makes once per queued operation and keeps until it has the result
+             */
+            clientOperationId: string;
+            /**
+             * Format: uuid
+             * @description A UUID the app makes once at install and keeps; with the user and clientOperationId it identifies the operation
+             */
+            deviceId: string;
+            /** @description ATTENDANCE_SESSION for ATTENDANCE_MARK, POINT_TRANSACTION for POINT_AWARD */
+            entityType: string;
+            /** @description ATTENDANCE_MARK or POINT_AWARD */
+            operationType: string;
+            /** @description The operation's data; its shape depends on operationType */
+            payload: components["schemas"]["JsonNode"];
+        };
+        /** @description The outcome of one operation, in the order of the request */
+        SyncOperationResult: {
+            /** Format: uuid */
+            clientOperationId: string;
+            /** Format: uuid */
+            deviceId: string;
+            /** Format: uuid */
+            entityId?: string;
+            entityType: string;
+            operationType: string;
+            /**
+             * @description For DUPLICATE: the status of the first time (APPLIED, CONFLICT, REJECTED)
+             * @enum {string}
+             */
+            originalStatus?: "APPLIED" | "DUPLICATE" | "CONFLICT" | "REJECTED";
+            /** @description Why a REJECTED operation can never succeed as sent */
+            problem?: components["schemas"]["SyncProblemView"];
+            /** @description True when the failure was transient (rate limit, server error): nothing was stored, send the same operation again */
+            retryable?: boolean;
+            /** @description The server state to show: after an APPLIED, the current state with your rejected values for a CONFLICT. Replays return the first answer unchanged; the retention job removes it later */
+            state?: components["schemas"]["JsonNode"];
+            /** @enum {string} */
+            status: "APPLIED" | "DUPLICATE" | "CONFLICT" | "REJECTED";
+            /** @description True when the device time was in the future and the receipt time was used */
+            timeAdjusted?: boolean;
+            /**
+             * Format: int32
+             * @description The entity's version after the operation, when it has one
+             */
+            version?: number;
+        };
+        SyncProblemView: {
+            code: string;
+            detail: string;
+            /** Format: int32 */
+            status?: number;
         };
         TemplateItem: {
             /** Format: int32 */
@@ -7549,6 +8154,110 @@ export interface operations {
             };
         };
     };
+    acknowledgeAbsenceReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                reportId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AbsenceDecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AbsenceReportView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    cancelAbsenceReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                reportId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AbsenceReportView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    declineAbsenceReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                reportId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AbsenceDecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AbsenceReportView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listAcademicYears: {
         parameters: {
             query?: never;
@@ -8051,6 +8760,116 @@ export interface operations {
             };
         };
     };
+    getAttendanceDashboard: {
+        parameters: {
+            query?: {
+                date?: string;
+                slot?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceDashboard"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getAttendanceReport: {
+        parameters: {
+            query?: {
+                classId?: string;
+                studentId?: string;
+                from?: string;
+                to?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAttendanceReportRow"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    exportAttendanceReport: {
+        parameters: {
+            query?: {
+                classId?: string;
+                studentId?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listBadges: {
         parameters: {
             query?: {
@@ -8329,6 +9148,44 @@ export interface operations {
             };
         };
     };
+    listClassAbsenceReports: {
+        parameters: {
+            query?: {
+                status?: string;
+                from?: string;
+                to?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAbsenceReportView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     archiveClass: {
         parameters: {
             query?: never;
@@ -8348,6 +9205,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClassView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getClassAttendance: {
+        parameters: {
+            query?: {
+                date?: string;
+                slot?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceRollView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    takeClassAttendance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceRollRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceWriteResult"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -10867,6 +11795,115 @@ export interface operations {
             };
         };
     };
+    listStudentAbsenceReports: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAbsenceReportView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reportAbsence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AbsenceReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AbsenceReportView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStudentAttendance: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                classId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAttendanceHistoryItem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     awardBadge: {
         parameters: {
             query?: never;
@@ -11530,6 +12567,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SchoolCounts"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    syncOperations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncBatchRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncBatchResponse"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

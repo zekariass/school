@@ -329,6 +329,19 @@ public class BadgeService {
 			.optional();
 	}
 
+	/** Active ATTENDANCE_STREAK badges of the school the student does not hold yet. */
+	List<Badge> streakCandidates(UUID schoolId, UUID studentId) {
+		this.seeding.ensure(schoolId);
+		return this.jdbc.sql(SELECT + """
+				 where school_id = :s and is_active and criteria_type = 'ATTENDANCE_STREAK'
+				  and not exists (select 1 from student_badges sb where sb.badge_id = badges.id and sb.student_id = :st)
+				order by sort_order, code""")
+			.param("s", schoolId)
+			.param("st", studentId)
+			.query(this::row)
+			.list();
+	}
+
 	/** Active, rule-driven badges of the school the student does not hold yet. */
 	List<Badge> candidates(UUID schoolId, UUID studentId) {
 		return this.jdbc.sql(SELECT + """

@@ -144,16 +144,27 @@ class DefaultClassAccess implements ClassAccess {
 		return predicate(user, a, false);
 	}
 
+	@Override
+	public SqlFragment teachableClasses(CurrentUser user, String a) {
+		return predicate(user, a, false, false);
+	}
+
 	/** Members and managers; plus the contributed rules when {@code withRules} (view, not roster). */
 	private SqlFragment predicate(CurrentUser user, String a, boolean withRules) {
+		return predicate(user, a, withRules, true);
+	}
+
+	private SqlFragment predicate(CurrentUser user, String a, boolean withRules, boolean withStudents) {
 		if (user == null) {
 			return SqlFragment.never();
 		}
 		Map<String, Object> params = new HashMap<>();
 		List<String> any = new ArrayList<>();
 		params.put("ca_user", user.userId());
-		any.add("exists (select 1 from class_students ca_cs where ca_cs.class_id = " + a + ".id"
-				+ " and ca_cs.student_id = :ca_user and ca_cs.status = 'ACTIVE')");
+		if (withStudents) {
+			any.add("exists (select 1 from class_students ca_cs where ca_cs.class_id = " + a + ".id"
+					+ " and ca_cs.student_id = :ca_user and ca_cs.status = 'ACTIVE')");
+		}
 		any.add("exists (select 1 from class_teachers ca_ct where ca_ct.class_id = " + a + ".id"
 				+ " and ca_ct.teacher_id = :ca_user and ca_ct.status = 'ACTIVE')");
 		AccessibleScopes managed = this.access.accessible(user, Permissions.CLASS_MANAGE);

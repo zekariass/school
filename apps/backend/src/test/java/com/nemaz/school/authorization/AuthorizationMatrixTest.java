@@ -659,6 +659,7 @@ class AuthorizationMatrixTest {
 				studentsOf8A, new Name[] { STUDENT_A1 }));
 		cases.addAll(guardianCases());
 		cases.addAll(pointsCases());
+		cases.addAll(attendanceCases());
 		return cases;
 	}
 
@@ -1118,6 +1119,83 @@ class AuthorizationMatrixTest {
 				(f) -> schools + f.schoolA() + templates + "/" + matrixTemplate(f, "SCHOOL"), null, 204,
 				concat(managers, new Name[] { TEACHER_OTHER_A }),
 				concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A })));
+		return cases;
+	}
+
+	// ---- attendance, absence reports and offline sync (M7a) --------------------------------------------
+
+	private java.time.LocalDate matrixToday() {
+		return java.time.LocalDate.now(java.time.ZoneId.of("Africa/Addis_Ababa"));
+	}
+
+	/** A SUBMITTED absence report of student A1 filed by guardian A1 (fixtures; the API path is tested elsewhere). */
+	private UUID absenceReport(Fixture f) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into absence_reports (id, school_id, student_id, reported_by, from_date, to_date, reason_code)
+				values (?, ?, ?, ?, ?, ?, 'ILLNESS')""", id, f.schoolA(), userOf(STUDENT_A1), userOf(GUARDIAN_A1),
+				java.sql.Date.valueOf(matrixToday()), java.sql.Date.valueOf(matrixToday()));
+		return id;
+	}
+
+	List<Case> attendanceCases() {
+		List<Case> cases = new ArrayList<>();
+		String schools = SCHOOLS;
+		Name[] managers = SCHOOL_A_MANAGERS;
+		Name[] classTeachers = { TEACHER_LEAD_A, TEACHER_SUBJECT_A };
+		Name[] classBystanders = { STUDENT_A1, GUARDIAN_A1 };
+
+		// --- rolls: the class's teachers and attendance managers; children and guardians who see the class may not; the rest cannot find it
+		cases.add(school("GET class roll", HttpMethod.GET, (f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/attendance",
+				null, 200, concat(managers, classTeachers), classBystanders));
+		cases.add(school("PUT class roll", HttpMethod.PUT, (f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/attendance",
+				(f) -> Map.of("date", matrixToday().toString(), "markAllPresent", true), 200, concat(managers, classTeachers),
+				classBystanders));
+
+		// --- a student's history: the child, their guardians, their teachers and attendance readers; nobody else is told the child exists
+		cases.add(new Case("GET student attendance history", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/attendance", null,
+				allow(200, concat(managers, classTeachers, classBystanders)), 404));
+
+		// --- dashboard and reports
+		cases.add(school("GET attendance dashboard", HttpMethod.GET, (f) -> schools + f.schoolA() + "/attendance/dashboard", null,
+				200, concat(managers, SCHOOL_A_TEACHERS), SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		cases.add(school("GET attendance report of the school", HttpMethod.GET, (f) -> schools + f.schoolA() + "/attendance/report",
+				null, 200, managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS));
+		cases.add(school("GET attendance report of a class", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/attendance/report?classId=" + freshClass(f), null, 200,
+				concat(managers, classTeachers), classBystanders));
+		cases.add(school("GET attendance report CSV of the school", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/attendance/report.csv", null, 200, managers, SCHOOL_A_VISITING_ADMINS,
+				SCHOOL_A_MEMBERS));
+		cases.add(school("GET attendance report CSV of a class", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/attendance/report.csv?classId=" + freshClass(f), null, 200,
+				concat(managers, classTeachers), classBystanders));
+
+		// --- absence reports: only the child's own guardian files; the student's teachers and attendance managers decide
+		cases.add(new Case("POST absence report", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/absence-reports",
+				(f) -> Map.of("fromDate", matrixToday().toString(), "toDate", matrixToday().plusDays(1).toString(), "reasonCode",
+						"ILLNESS", "note", "matrix"),
+				allow(201, GUARDIAN_A1), 404));
+		cases.add(new Case("GET student absence reports", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/absence-reports", null,
+				allow(200, concat(managers, classTeachers, new Name[] { GUARDIAN_A1 })), 404));
+		cases.add(school("GET class absence reports", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/absence-reports", null, 200,
+				concat(managers, classTeachers), classBystanders));
+		for (String verb : List.of("acknowledge", "decline")) {
+			cases.add(new Case("POST " + verb + " absence report", HttpMethod.POST,
+					(f) -> schools + f.schoolA() + "/absence-reports/" + absenceReport(f) + "/" + verb, null,
+					merge(allow(200, concat(managers, classTeachers)), allow(403, GUARDIAN_A1)), 404));
+		}
+		cases.add(new Case("POST cancel absence report", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/absence-reports/" + absenceReport(f) + "/cancel", null,
+				merge(allow(200, GUARDIAN_A1), allow(403, concat(managers, classTeachers))), 404));
+
+		// --- sync: open to every signed-in user; each operation is authorized as its online endpoint (SyncApiTest)
+		cases.add(new Case("POST sync", HttpMethod.POST, (f) -> "/api/v1/sync", (f) -> Map.of("operations", List.of()),
+				allow(200, EVERY_ACTIVE_PERSONA)));
 		return cases;
 	}
 

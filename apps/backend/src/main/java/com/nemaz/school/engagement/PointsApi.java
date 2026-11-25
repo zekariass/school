@@ -1,5 +1,6 @@
 package com.nemaz.school.engagement;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,5 +35,16 @@ public interface PointsApi {
 	 * @return true when the badge was newly granted
 	 */
 	boolean grantBadge(UUID schoolId, UUID studentId, String badgeCode, Map<String, Object> source);
+
+	/**
+	 * The school's active ATTENDANCE_STREAK badges (criteria {@code {"days": n}}) the student does not hold yet; empty
+	 * while the school switched badges off. The attendance module asks this to know which streaks to look for, so the
+	 * rule (the number of days) stays in the badge definition.
+	 */
+	List<StreakBadge> attendanceStreakBadges(UUID schoolId, UUID studentId);
+
+	/** An ATTENDANCE_STREAK badge: its code and the consecutive perfect school days it asks for. */
+	record StreakBadge(String code, int days) {
+	}
 
 }
