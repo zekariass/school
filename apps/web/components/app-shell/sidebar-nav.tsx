@@ -2,38 +2,38 @@
 
 import {
   BookOpenIcon,
-  CalendarDaysIcon,
+  CalendarRangeIcon,
   LayoutDashboardIcon,
-  MessageCircleIcon,
   SettingsIcon,
+  SlidersHorizontalIcon,
   SmileIcon,
   UsersIcon,
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
+import { NAV_PATH, type NavId } from "@/lib/school/access";
 import { cn } from "@/lib/utils";
 
-const ITEMS: ReadonlyArray<{
-  slug: string;
-  labelKey: "dashboard" | "classes" | "students" | "teachers" | "messages" | "calendar" | "settings";
-  icon: LucideIcon;
-}> = [
-  { slug: "", labelKey: "dashboard", icon: LayoutDashboardIcon },
-  { slug: "classes", labelKey: "classes", icon: BookOpenIcon },
-  { slug: "students", labelKey: "students", icon: SmileIcon },
-  { slug: "teachers", labelKey: "teachers", icon: UsersIcon },
-  { slug: "messages", labelKey: "messages", icon: MessageCircleIcon },
-  { slug: "calendar", labelKey: "calendar", icon: CalendarDaysIcon },
-  { slug: "settings", labelKey: "settings", icon: SettingsIcon },
-];
+const ICONS: Record<NavId, LucideIcon> = {
+  dashboard: LayoutDashboardIcon,
+  classes: BookOpenIcon,
+  myClasses: BookOpenIcon,
+  students: SmileIcon,
+  teachers: UsersIcon,
+  academic: CalendarRangeIcon,
+  settings: SettingsIcon,
+  features: SlidersHorizontalIcon,
+};
 
-/** Vertical list in the desktop sidebar, horizontal scroller on small screens. */
+/** Vertical list in the desktop sidebar, horizontal scroller on small screens. Only the items the caller may use. */
 export function SidebarNav({
   school,
+  items,
   orientation,
 }: {
   school: string;
+  items: readonly NavId[];
   orientation: "vertical" | "horizontal";
 }) {
   const t = useTranslations("nav");
@@ -48,11 +48,13 @@ export function SidebarNav({
           orientation === "vertical" ? "flex-col" : "overflow-x-auto px-3 py-2",
         )}
       >
-        {ITEMS.map(({ slug, labelKey, icon: Icon }) => {
+        {items.map((id) => {
+          const Icon = ICONS[id];
+          const slug = NAV_PATH[id];
           const href = slug ? `${base}/${slug}` : base;
           const active = slug ? pathname.startsWith(href) : pathname === base;
           return (
-            <li key={labelKey} className="shrink-0">
+            <li key={id} className="shrink-0">
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
@@ -64,7 +66,7 @@ export function SidebarNav({
                 )}
               >
                 <Icon className="size-5" aria-hidden />
-                {t(labelKey)}
+                {t(id)}
               </Link>
             </li>
           );

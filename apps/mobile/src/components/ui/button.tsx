@@ -6,7 +6,7 @@ import { Text } from './text';
 
 export interface ButtonProps extends Omit<PressableProps, 'children' | 'style'> {
   label: string;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive';
   loading?: boolean;
   /** Stretch to the container width (default) or hug the label. */
   fullWidth?: boolean;
@@ -28,6 +28,7 @@ export function Button({
     primary: { bg: colors.primary, pressed: colors.ring, fg: colors.primaryForeground, border: 'transparent' },
     secondary: { bg: colors.secondary, pressed: colors.warning, fg: colors.secondaryForeground, border: 'transparent' },
     ghost: { bg: 'transparent', pressed: colors.muted, fg: colors.primary, border: colors.border },
+    destructive: { bg: 'transparent', pressed: colors.muted, fg: colors.destructive, border: colors.destructive },
   }[variant];
 
   return (

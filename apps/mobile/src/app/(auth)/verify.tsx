@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { useRef, useState, type ComponentRef } from 'react';
 import { TextInput, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
@@ -16,20 +16,11 @@ import {
   sanitizeCode,
   secondsLeft,
 } from '@/lib/auth/otp-timer';
+import { useNow } from '@/lib/auth/use-now';
 import { useSession } from '@/lib/session/session-provider';
 import { useAppTheme } from '@/lib/theme/theme-provider';
 
 const DEFAULT_EXPIRES_IN = 300;
-
-/** Re-renders once a second while mounted (countdowns). */
-function useNow(): number {
-  const [now, setNow] = useState(nowMs);
-  useEffect(() => {
-    const timer = setInterval(() => setNow(nowMs()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-  return now;
-}
 
 interface Failure {
   message: AuthMessage;

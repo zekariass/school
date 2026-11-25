@@ -85,7 +85,10 @@
     "settings": "Settings",
     "home": "Home",
     "profile": "Profile",
-    "portfolio": "Portfolio"
+    "portfolio": "Portfolio",
+    "academic": "Academic year",
+    "myClasses": "My classes",
+    "features": "Features"
   },
   "locale": {
     "label": "Language"
@@ -144,14 +147,30 @@
     },
     "studentCode": {
       "title": "Student sign-in",
-      "subtitle": "Scan the QR code your teacher showed you, or type your class code.",
+      "subtitle": "Scan the QR code your teacher gave you.",
       "permissionBody": "We use the camera only to read your class QR code. Nothing is recorded or saved.",
       "allowCamera": "Allow camera",
       "permissionDenied": "Camera access is turned off. You can turn it on in Settings, or type your class code below.",
       "openSettings": "Open phone settings",
       "cameraUnavailable": "The camera isn't available on this device. Type your class code below instead.",
       "manualLabel": "Class code",
-      "manualHint": "Ask your teacher if you don't have one."
+      "manualHint": "Ask your teacher if you don't have one.",
+      "scanHint": "Hold the QR code inside the frame.",
+      "found": "Got it!",
+      "notACode": "That isn't a class code. Try your own code.",
+      "typeInstead": "Or type your code",
+      "submit": "Let's go!",
+      "teacherLink": "I'm a teacher or parent",
+      "sessionEndedTitle": "Time to sign in again",
+      "sessionEndedBody": "Scan your QR code or type your code to come back.",
+      "gotIt": "OK",
+      "errors": {
+        "invalid": "That code didn't work. Ask your teacher for a new one.",
+        "rateLimited": "Too many tries. Wait {seconds} s, then try again.",
+        "inactive": "This account is not active. Ask your teacher.",
+        "network": "We can't reach School right now. Check the internet and try again.",
+        "generic": "Something went wrong. Please try again."
+      }
     },
     "empty": {
       "teacherClasses": {
@@ -272,6 +291,115 @@
       "noneTitle": "Your account is not set up yet",
       "noneBody": "Your account isn't linked to a school, class or child yet. Ask your school to add you, then sign in again.",
       "signedInAs": "Signed in as {name}"
+    },
+    "student": {
+      "greeting": "Hi, {name}!",
+      "greetingNoName": "Hi!",
+      "myClasses": "My classes",
+      "emptyTitle": "Your teacher hasn't added you to a class yet",
+      "emptyBody": "When your teacher adds you, your class will show up here.",
+      "errorTitle": "We couldn't load your classes",
+      "errorBody": "Check the internet and pull down to try again.",
+      "withTeachers": "Teacher: {names}"
+    },
+    "profile": {
+      "school": "School",
+      "schools": "Schools"
+    },
+    "classes": {
+      "title": "My classes",
+      "classTitle": "Class",
+      "errorTitle": "We couldn't load your classes",
+      "errorBody": "Check your connection and pull down to try again.",
+      "studentCount": "Students: {count}",
+      "archived": "Archived",
+      "archivedNote": "This class is archived. Its student list can't be changed.",
+      "notFoundTitle": "Class not found",
+      "notFoundBody": "This class isn't in your list any more.",
+      "teachersLine": "Teachers: {names}",
+      "addStudents": "Add students",
+      "rosterTitle": "Students",
+      "rosterErrorTitle": "We couldn't load the students",
+      "rosterErrorBody": "Check your connection and try again.",
+      "rosterEmptyTitle": "No students yet",
+      "rosterEmptyBody": "Add students from your school, or create a new student.",
+      "printHint": "Want to print login codes for the whole class? Do it on the School website.",
+      "forbiddenTitle": "You can't do that",
+      "forbiddenBody": "Only teachers of this class can change it.",
+      "actionFailed": "That didn't work. Please try again.",
+      "add": {
+        "title": "Add students",
+        "searchLabel": "Search by name",
+        "errorTitle": "We couldn't load the students",
+        "errorBody": "Check your connection and try again.",
+        "selected": "Selected: {count}",
+        "selectAll": "Select all",
+        "noMatchTitle": "No one found",
+        "noMatchBody": "Try another name, or create a new student.",
+        "emptyTitle": "No one to add yet",
+        "emptyBody": "Everyone you can see is already in this class. You can create a new student instead.",
+        "submit": "Add selected ({count})",
+        "submitNone": "Add students"
+      },
+      "newStudent": {
+        "title": "New student",
+        "action": "Add a new student",
+        "intro": "This student will join {class}.",
+        "givenName": "First name",
+        "fatherName": "Father's name",
+        "dateOfBirth": "Date of birth (optional)",
+        "dateHint": "Year, month, day: for example 2015-03-24",
+        "submit": "Add to class",
+        "note": "Your school manages this account. Afterwards you can show the student their login code.",
+        "errors": {
+          "required": "Please enter a first name.",
+          "tooLong": "That is too long.",
+          "format": "Use the form 2015-03-24, with a real date.",
+          "future": "The date can't be in the future.",
+          "tooOld": "Please check the year."
+        }
+      },
+      "student": {
+        "title": "Student",
+        "notFoundTitle": "Student not found",
+        "notFoundBody": "This student isn't in the class any more.",
+        "dateOfBirth": "Date of birth",
+        "gender": "Gender",
+        "username": "Username",
+        "number": "Student number",
+        "classes": "Classes",
+        "privateNote": "Only this student's teachers and the school can see these details.",
+        "showCode": "Show login code",
+        "move": "Move to another class",
+        "remove": "Remove from class"
+      },
+      "remove": {
+        "title": "Remove {name}?",
+        "body": "{name} will no longer be in {class}. You can add them again later.",
+        "confirm": "Remove"
+      },
+      "move": {
+        "title": "Move to another class",
+        "intro": "Choose the class {name} moves to.",
+        "confirmTitle": "Move {name} to {class}?",
+        "confirmBody": "{name} leaves {from} and joins {to}. Their history is kept.",
+        "confirm": "Move",
+        "emptyTitle": "No other class",
+        "emptyBody": "You don't teach another active class at this school."
+      },
+      "code": {
+        "title": "Login code",
+        "confirmTitle": "Show a new login code for {name}?",
+        "confirmBody": "This replaces {name}'s old code. The old code stops working right away.",
+        "confirmAction": "Show new code",
+        "failed": "We couldn't make a code. Please try again.",
+        "forStudent": "{name}'s code",
+        "giveTo": "Give this to the student",
+        "qrLabel": "QR login code for {name}",
+        "orType": "or type this code",
+        "validUntil": "Works until {date}",
+        "shownOnce": "This code is shown only once. It disappears when you close this screen."
+      }
     }
   },
   "schoolPicker": {
@@ -620,6 +748,627 @@
       "hint": "Checks that notifications reach you live, in the app and on your phone.",
       "sent": "Test notification sent.",
       "failed": "We couldn't send the test notification."
+    }
+  },
+  "school": {
+    "common": {
+      "noAccessTitle": "This page isn't available to you",
+      "noAccessBody": "Your role at this school doesn't include this section. If you think it should, ask a school administrator."
+    },
+    "validation": {
+      "required": "This field is required.",
+      "invalid": "This value isn't valid.",
+      "tooLong": "This is too long.",
+      "future": "The date can't be in the future.",
+      "order": "The end must be after the start.",
+      "contactOne": "Enter a phone number or an email address, not both and not neither.",
+      "short": "This is too short."
+    },
+    "studentApp": {
+      "title": "Students sign in with the School app",
+      "body": "Students use the School app on their phone or tablet. Ask your teacher for your class code, then open the app and sign in with it."
+    },
+    "teacherRole": {
+      "LEAD": "Lead teacher",
+      "CO_TEACHER": "Co-teacher",
+      "SUBJECT_TEACHER": "Subject teacher",
+      "ASSISTANT": "Assistant"
+    },
+    "dashboard": {
+      "loadFailed": "We couldn't load the school summary.",
+      "students": "Students",
+      "teachers": "Teachers",
+      "classes": "Classes",
+      "checklistTitle": "Set up your school",
+      "checklistProgress": "{done} of {total} done",
+      "done": "Done",
+      "todo": "Still to do",
+      "items": {
+        "year": "Choose the current academic year",
+        "grades": "Add your grade levels",
+        "subjects": "Add subjects",
+        "teacher": "Add your first teacher",
+        "class": "Create your first class",
+        "students": "Add students"
+      },
+      "myClasses": "My classes",
+      "allClasses": "See all classes",
+      "noClasses": "You aren't teaching any class yet. Create one, or ask an administrator to add you to a class."
+    },
+    "academic": {
+      "title": "Academic year",
+      "subtitle": "Years and terms, grade levels and subjects for your school.",
+      "tabs": {
+        "years": "Years & periods",
+        "grades": "Grade levels",
+        "subjects": "Subjects"
+      },
+      "years": {
+        "intro": "Exactly one year is the current year. New classes start in it.",
+        "add": "Add academic year",
+        "loadFailed": "We couldn't load the academic years.",
+        "empty": "No academic year yet. Add the first one to start creating classes.",
+        "current": "Current",
+        "status": {
+          "PLANNED": "Planned",
+          "ACTIVE": "Active",
+          "CLOSED": "Closed"
+        },
+        "makeCurrent": "Make current",
+        "madeCurrent": "This is now the current year.",
+        "edit": "Edit {name}",
+        "delete": "Delete {name}",
+        "deleted": "Academic year deleted.",
+        "deleteTitle": "Delete {name}?",
+        "deleteBody": "Its terms are deleted with it. A year with classes, or the current year, can't be deleted.",
+        "deleteConfirm": "Delete year",
+        "saveFailed": "We couldn't save the academic year.",
+        "saved": "Academic year saved.",
+        "editTitle": "Edit academic year",
+        "fields": {
+          "name": "Name",
+          "nameHint": "For example 2018 E.C. or 2025/26.",
+          "startsOn": "Starts on",
+          "endsOn": "Ends on",
+          "status": "Status",
+          "makeCurrent": "Make this the current year"
+        }
+      },
+      "periods": {
+        "title": "Terms and periods",
+        "add": "Add period",
+        "loadFailed": "We couldn't load the periods.",
+        "empty": "No terms yet.",
+        "deleted": "Period deleted.",
+        "saveFailed": "We couldn't save the period.",
+        "edit": "Edit {name}",
+        "delete": "Delete {name}",
+        "deleteTitle": "Delete {name}?",
+        "deleteBody": "This removes the period from the year.",
+        "deleteConfirm": "Delete period",
+        "type": {
+          "TERM": "Term",
+          "SEMESTER": "Semester",
+          "QUARTER": "Quarter",
+          "CUSTOM": "Custom"
+        },
+        "saved": "Period saved.",
+        "editTitle": "Edit period",
+        "withinYear": "Within {name}: {from} – {to}. Periods can't overlap.",
+        "fields": {
+          "name": "Name",
+          "type": "Type",
+          "sequence": "Order",
+          "sequenceHint": "Leave empty to add it last.",
+          "startsOn": "Starts on",
+          "endsOn": "Ends on"
+        }
+      },
+      "grades": {
+        "intro": "Grade levels in the order students move through them.",
+        "add": "Add grade level",
+        "loadFailed": "We couldn't load the grade levels.",
+        "empty": "No grade levels yet. Add Grade 1, Grade 2 and so on.",
+        "inactive": "Inactive",
+        "edit": "Edit {name}",
+        "delete": "Delete {name}",
+        "deleted": "Grade level deleted.",
+        "deleteTitle": "Delete {name}?",
+        "deleteBody": "A grade level used by classes can't be deleted: make it inactive instead.",
+        "deleteConfirm": "Delete grade level",
+        "saveFailed": "We couldn't save the grade level.",
+        "saved": "Grade level saved.",
+        "editTitle": "Edit grade level",
+        "fields": {
+          "name": "Name",
+          "nameHint": "For example Grade 8 or KG 2.",
+          "code": "Short code",
+          "sequence": "Order",
+          "sequenceHint": "Lower numbers come first. Each number is used once.",
+          "active": "Active"
+        }
+      },
+      "subjects": {
+        "intro": "The subjects your school teaches.",
+        "add": "Add subject",
+        "loadFailed": "We couldn't load the subjects.",
+        "empty": "No subjects yet.",
+        "inactive": "Inactive",
+        "edit": "Edit {name}",
+        "delete": "Delete {name}",
+        "deleted": "Subject deleted.",
+        "deleteTitle": "Delete {name}?",
+        "deleteBody": "A subject used by classes can't be deleted: make it inactive instead.",
+        "deleteConfirm": "Delete subject",
+        "saveFailed": "We couldn't save the subject.",
+        "saved": "Subject saved.",
+        "editTitle": "Edit subject",
+        "fields": {
+          "name": "Name",
+          "code": "Short code",
+          "color": "Color",
+          "active": "Active"
+        }
+      }
+    },
+    "teachers": {
+      "title": "Teachers and staff",
+      "subtitle": "The people who work at your school.",
+      "add": "Add staff",
+      "search": "Search staff",
+      "filters": {
+        "type": "Role",
+        "status": "Status",
+        "allTypes": "All roles",
+        "allStatuses": "All statuses"
+      },
+      "type": {
+        "TEACHER": "Teacher",
+        "ADMINISTRATOR": "Administrator",
+        "SUPPORT_STAFF": "Support staff"
+      },
+      "status": {
+        "ACTIVE": "Active",
+        "INVITED": "Invited",
+        "SUSPENDED": "Suspended",
+        "FORMER": "Former"
+      },
+      "loadFailed": "We couldn't load the staff list.",
+      "empty": "No staff yet. Add your first teacher.",
+      "emptyFiltered": "Nobody matches these filters.",
+      "adminRole": {
+        "SCHOOL_ADMIN": "School administrator",
+        "CAMPUS_ADMIN": "Campus administrator",
+        "SCHOOL_STAFF": "School staff (read-only)"
+      },
+      "addDialog": {
+        "title": "Add a staff member",
+        "description": "If the person already has an account here, they are simply added to your school.",
+        "submit": "Add to school",
+        "added": "Staff member added.",
+        "failed": "We couldn't add this person.",
+        "alreadyMember": "This person already works at your school.",
+        "givenName": "First name",
+        "familyName": "Last name",
+        "phone": "Phone number",
+        "phoneHint": "For example 0911 234 567.",
+        "email": "Email",
+        "smsNote": "New people get an SMS (or an email) with the school's name and how to sign in. They sign in with the phone number or email you enter.",
+        "staffType": "Role",
+        "adminRole": "Administrative access",
+        "adminRoleHint": "Optional. You can only give access you hold yourself.",
+        "noAdminRole": "None",
+        "jobTitle": "Job title",
+        "campus": "Campus",
+        "noCampus": "Whole school"
+      },
+      "detail": {
+        "title": "Staff member",
+        "loading": "Loading…",
+        "loadFailed": "We couldn't load this person.",
+        "contact": "Contact",
+        "started": "Started",
+        "ended": "Ended",
+        "jobTitle": "Job title",
+        "employeeNumber": "Employee number",
+        "campus": "Campus",
+        "noCampus": "Whole school",
+        "saved": "Changes saved.",
+        "saveFailed": "We couldn't save the changes.",
+        "deactivated": "Staff member deactivated.",
+        "deactivate": "Deactivate",
+        "close": "Close",
+        "saving": "Saving…",
+        "save": "Save",
+        "deactivateTitle": "Deactivate {name}?",
+        "deactivateBody": "They stop teaching their classes and lose access as a teacher. Their history stays. Administrative roles are not removed.",
+        "deactivateConfirm": "Deactivate"
+      }
+    },
+    "students": {
+      "title": "Students",
+      "subtitle": "Everyone enrolled at your school.",
+      "add": "Add student",
+      "search": "Search students",
+      "filters": {
+        "class": "Class",
+        "grade": "Grade",
+        "status": "Status",
+        "allClasses": "All classes",
+        "allGrades": "All grades",
+        "allStatuses": "All statuses"
+      },
+      "status": {
+        "ACTIVE": "Active",
+        "PENDING": "Pending",
+        "TRANSFERRED": "Transferred",
+        "GRADUATED": "Graduated",
+        "WITHDRAWN": "Withdrawn"
+      },
+      "loadFailed": "We couldn't load the students.",
+      "empty": "No students yet. Add the first one, or add students while creating a class.",
+      "emptyFiltered": "No student matches these filters.",
+      "gender": {
+        "FEMALE": "Girl",
+        "MALE": "Boy",
+        "OTHER": "Other"
+      },
+      "form": {
+        "addTitle": "Add a student",
+        "addDescription": "Students don't need a phone or email. They sign in with a class code.",
+        "editTitle": "Edit student",
+        "create": "Add student",
+        "created": "Student added.",
+        "updated": "Student updated.",
+        "failed": "We couldn't save this student.",
+        "givenName": "First name",
+        "middleName": "Middle name",
+        "familyName": "Last name",
+        "dateOfBirth": "Date of birth",
+        "gender": "Gender",
+        "noGender": "Not set",
+        "studentNumber": "Student number",
+        "studentNumberHint": "Optional. Each number is used once at your school.",
+        "numberTaken": "Another student already has this number.",
+        "username": "Username",
+        "usernameHint": "Optional, for older students: lowercase letters, numbers, dots, dashes and underscores (3 to 31).",
+        "usernameTaken": "This username is taken.",
+        "class": "Class",
+        "classHint": "Optional. You can add them to a class later.",
+        "noClass": "No class yet"
+      },
+      "detail": {
+        "back": "Back",
+        "loadFailed": "We couldn't load this student.",
+        "edit": "Edit",
+        "setPassword": "Set password",
+        "withdraw": "Withdraw",
+        "studentNumber": "Student number",
+        "username": "Username",
+        "dateOfBirth": "Date of birth",
+        "gender": "Gender",
+        "admission": "Admitted",
+        "left": "Left",
+        "basicNote": "You can see this student's name and picture. More details are only visible to their teachers and school administrators."
+      },
+      "withdraw": {
+        "title": "Withdraw {name}?",
+        "body": "They leave their classes, their login codes stop working and they are signed out. Their history stays.",
+        "confirm": "Withdraw student",
+        "reason": "Reason",
+        "reasonHint": "Optional.",
+        "done": "Student withdrawn.",
+        "failed": "We couldn't withdraw this student."
+      },
+      "password": {
+        "title": "Set a password for {name}",
+        "body": "For older students who sign in with a username. They have to change it the first time they sign in.",
+        "confirm": "Set password",
+        "label": "New password",
+        "hint": "At least 8 characters. Tell the student in person.",
+        "done": "Password set.",
+        "failed": "We couldn't set the password."
+      },
+      "codes": {
+        "title": "Login codes",
+        "intro": "Students sign in to the School app with a QR code or a text code.",
+        "loadFailed": "We couldn't load the login codes.",
+        "none": "This student has no live login code.",
+        "created": "Issued {date}",
+        "expired": "Expired",
+        "expires": "Valid until {date}",
+        "lastUsed": "Last used {date}",
+        "neverUsed": "Never used",
+        "needsClass": "Add this student to a class first: login codes are issued per class.",
+        "class": "Class",
+        "kind": "Code type",
+        "issue": "Issue code",
+        "issueNew": "Issue new code",
+        "revoke": "Revoke codes",
+        "revoked": "Login codes revoked.",
+        "failed": "We couldn't complete this.",
+        "replaceNote": "Issuing a new code replaces the old one. The code is shown only once.",
+        "revokeTitle": "Revoke the codes of {name}?",
+        "revokeBody": "The student can no longer sign in with their current codes until you issue a new one.",
+        "revokeConfirm": "Revoke"
+      }
+    },
+    "codes": {
+      "kind": {
+        "QR": "QR code",
+        "TEXT": "Text code",
+        "BOTH": "QR and text code"
+      },
+      "title": "Student login codes",
+      "intro": "Make a printable sheet with one card per student. Students scan the QR code or type the code in the School app.",
+      "replaceWarning": "Generating new codes replaces every earlier code of these students. The codes are shown only now: print them before you leave the page.",
+      "kindLabel": "What to print",
+      "ttlLabel": "Valid for (days)",
+      "ttlHint": "Leave empty for the school default: {days} days.",
+      "ttlHintUnknown": "Leave empty for the school default. At most 730 days.",
+      "ttlInvalid": "Enter a whole number of days from 1 to 730.",
+      "generate": "Generate codes for all students",
+      "noStudents": "Add students to the class first.",
+      "openLast": "Open the sheet again ({count, plural, one {# card} other {# cards}})",
+      "failed": "We couldn't generate the codes.",
+      "confirmTitle": "Generate new codes for {class}?",
+      "confirmBody": "{count, plural, one {The login code of # student} other {The login codes of # students}} will be replaced. Printed sheets from before stop working.",
+      "confirm": "Generate codes",
+      "issued": {
+        "title": "New code for {name}",
+        "expires": "Valid until {date}",
+        "warning": "This code is shown only now. Write it down or print it before closing: issuing a new code replaces this one.",
+        "textCodeLabel": "Text code",
+        "qrLabel": "QR code of {name}",
+        "copy": "Copy code",
+        "copied": "Copied",
+        "print": "Print card",
+        "done": "Done"
+      }
+    },
+    "classes": {
+      "title": "Classes",
+      "titleMine": "My classes",
+      "subtitle": "Every class at your school, with its teachers and students.",
+      "subtitleMine": "The classes you teach.",
+      "create": "New class",
+      "search": "Search classes",
+      "filters": {
+        "year": "Academic year",
+        "allYears": "All years",
+        "grade": "Grade",
+        "allGrades": "All grades",
+        "status": "Status",
+        "allStatuses": "All statuses",
+        "mine": "Only my classes"
+      },
+      "status": {
+        "ACTIVE": "Active",
+        "ARCHIVED": "Archived"
+      },
+      "loadFailed": "We couldn't load the classes.",
+      "empty": "No classes yet. Create the first one in a minute.",
+      "emptyMine": "You aren't teaching a class yet. Create one, or ask an administrator to add you.",
+      "emptyFiltered": "No class matches these filters.",
+      "noGrade": "No grade",
+      "noTeachers": "No teacher yet",
+      "moreTeachers": "+{count}",
+      "studentCount": "{count, plural, one {# student} other {# students}}",
+      "teacherCount": "{count, plural, one {# teacher} other {# teachers}}",
+      "archivedBadge": "Archived",
+      "type": {
+        "HOMEROOM": "Homeroom",
+        "SUBJECT": "Subject class",
+        "CLUB": "Club",
+        "OTHER": "Other"
+      },
+      "form": {
+        "createTitle": "Create a class",
+        "createDescription": "Pick a name, an icon and a color. You can add students and teachers afterwards.",
+        "editTitle": "Edit class",
+        "create": "Create class",
+        "created": "Class created.",
+        "updated": "Class updated.",
+        "failed": "We couldn't save this class.",
+        "forbiddenCreate": "Teachers can't create classes at this school. Ask a school administrator to create the class or to allow teachers to create classes in the school settings.",
+        "name": "Class name",
+        "nameHint": "For example 8A or Reading club.",
+        "icon": "Icon",
+        "color": "Color",
+        "grade": "Grade level",
+        "noGrade": "No grade",
+        "type": "Type",
+        "year": "Academic year",
+        "yearHint": "Defaults to the current year.",
+        "currentYear": "Current year",
+        "subjects": "Subjects",
+        "students": "Add students now (optional)"
+      }
+    },
+    "classDetail": {
+      "loadFailed": "We couldn't load this class.",
+      "back": "All classes",
+      "archived": "Archived",
+      "archivedNote": "This class is archived. Everyone stays in it, but the roster is frozen. Restore it under Settings to make changes.",
+      "students": "{count, plural, one {# student} other {# students}}",
+      "tabs": {
+        "roster": "Students",
+        "teachers": "Teachers",
+        "groups": "Groups",
+        "codes": "Login codes",
+        "settings": "Settings"
+      }
+    },
+    "roster": {
+      "addExisting": "Add students",
+      "createNew": "Create a new student",
+      "loadFailed": "We couldn't load the students of this class.",
+      "empty": "No students in this class yet.",
+      "add": {
+        "title": "Add students to {name}",
+        "description": "Search the school's students and tick the ones to add.",
+        "label": "Students",
+        "submit": "{count, plural, =0 {Add} one {Add # student} other {Add # students}}",
+        "done": "Students added.",
+        "failed": "We couldn't add these students."
+      },
+      "drawer": {
+        "title": "Student",
+        "description": "Details of this student and what you can do with them in this class.",
+        "loadFailed": "We couldn't load this student.",
+        "move": "Move to another class",
+        "remove": "Remove from this class",
+        "removed": "Student removed from the class.",
+        "failed": "We couldn't complete this.",
+        "removeTitle": "Remove {name}?",
+        "removeBody": "They leave {class}. They stay at the school and their history is kept.",
+        "removeConfirm": "Remove"
+      },
+      "move": {
+        "title": "Move {name}",
+        "description": "They leave {class} and join the class you choose, in one step.",
+        "submit": "Move student",
+        "target": "New class",
+        "choose": "Choose a class",
+        "noOtherClass": "There is no other active class to move to.",
+        "done": "Student moved.",
+        "failed": "We couldn't move this student."
+      }
+    },
+    "classTeachers": {
+      "add": "Add a teacher",
+      "loadFailed": "We couldn't load the teachers.",
+      "empty": "No teacher in this class.",
+      "remove": "Remove",
+      "leave": "Leave class",
+      "removed": "Teacher removed from the class.",
+      "failed": "We couldn't complete this.",
+      "removeTitle": "Remove {name}?",
+      "removeBody": "They stop teaching {class}.",
+      "removeConfirm": "Remove",
+      "lastLead": "Every class needs a lead teacher. Make someone else the lead first.",
+      "addDialog": {
+        "title": "Add a teacher to {name}",
+        "description": "Choose a teacher of your school and their role in this class.",
+        "search": "Search teachers",
+        "teacher": "Teacher",
+        "loading": "Loading…",
+        "choose": "Choose a teacher",
+        "noTeachers": "No teacher matches. Add teachers under Teachers first.",
+        "role": "Role",
+        "subject": "Subject",
+        "chooseSubjectPlaceholder": "Choose a subject",
+        "chooseTeacher": "Choose a teacher.",
+        "chooseSubject": "Choose the subject this teacher teaches.",
+        "submit": "Add teacher",
+        "done": "Teacher added.",
+        "failed": "We couldn't add this teacher."
+      }
+    },
+    "groups": {
+      "intro": "Saved groups of students, for example for group work.",
+      "create": "New group",
+      "loadFailed": "We couldn't load the groups.",
+      "empty": "No saved groups yet.",
+      "members": "{count, plural, one {# student} other {# students}}",
+      "delete": "Delete {name}",
+      "deleted": "Group deleted.",
+      "failed": "We couldn't complete this.",
+      "deleteTitle": "Delete {name}?",
+      "deleteBody": "Only the group is deleted. The students stay in the class.",
+      "deleteConfirm": "Delete group",
+      "dialog": {
+        "title": "New group",
+        "name": "Group name",
+        "members": "Students in the group",
+        "needMembers": "Choose at least one student.",
+        "saved": "Group saved.",
+        "failed": "We couldn't save the group."
+      }
+    },
+    "classSettings": {
+      "details": "Name, icon and color",
+      "detailsBody": "Change how this class looks and which grade and subjects it has.",
+      "edit": "Edit class",
+      "restoreTitle": "Restore this class",
+      "restoreBody": "Make the class active again so its roster can change.",
+      "archiveTitle": "Archive this class",
+      "archiveBody": "Archiving freezes the roster. Everyone keeps their place and the class stays readable.",
+      "restore": "Restore class",
+      "archive": "Archive class",
+      "restored": "Class restored.",
+      "archivedDone": "Class archived.",
+      "deleteTitle": "Delete this class",
+      "deleteBody": "Only a class that never had students can be deleted. Otherwise archive it.",
+      "delete": "Delete class",
+      "deleted": "Class deleted.",
+      "failed": "We couldn't complete this.",
+      "archiveConfirmTitle": "Archive {name}?",
+      "archiveConfirmBody": "The roster is frozen until you restore the class.",
+      "deleteConfirmTitle": "Delete {name}?",
+      "deleteConfirmBody": "This can't be undone.",
+      "notEmpty": "This class has had students, so it can't be deleted. Archive it instead."
+    },
+    "picker": {
+      "selected": "Selected students",
+      "remove": "Remove {name}",
+      "search": "Search students",
+      "loading": "Loading…",
+      "failed": "We couldn't load the students.",
+      "none": "No student found."
+    },
+    "print": {
+      "title": "Login code sheet",
+      "lostTitle": "These codes aren't available any more",
+      "lostBody": "For safety, login codes are shown only once and never saved. Issue new codes to print a sheet.",
+      "issueAgain": "Issue codes again",
+      "back": "Back to {class}",
+      "heading": "Login codes for {class}",
+      "summary": "{count, plural, one {# card} other {# cards}} on {pages, plural, one {# page} other {# pages}}",
+      "validUntil": "valid until {date}",
+      "language": "Instructions in",
+      "print": "Print",
+      "done": "Done",
+      "warning": "These codes are shown only now. Issuing new codes replaces the old ones. Cut along the dotted lines and hand each card to the right student.",
+      "missing": "Not printed (no code of this type): {names}.",
+      "page": "Page {number}",
+      "instruction": "Open the School app, choose “Sign in with a code”, then scan the QR code or type the code.",
+      "instructionQr": "Open the School app, choose “Sign in with a code”, then scan the QR code.",
+      "instructionText": "Open the School app, choose “Sign in with a code”, then type the code.",
+      "validUntilShort": "Valid until",
+      "qrCaption": "Scan me",
+      "textCaption": "Or type this code"
+    },
+    "settings": {
+      "title": "School settings",
+      "subtitle": "Values you set here apply to your school. Anything you don't set follows your organization, your country or the platform.",
+      "loadFailed": "We couldn't load the settings.",
+      "saved": "Saved {key}.",
+      "saveFailed": "We couldn't save this setting.",
+      "resetDone": "{key} now follows the inherited value.",
+      "effectiveFrom": "Value from",
+      "save": "Save",
+      "saving": "Saving…",
+      "reset": "Reset to inherited",
+      "default": "Default: {value}",
+      "ownNote": "Set for your school.",
+      "inheritedNote": "Inherited: change it to set your own value.",
+      "invalidValue": "This value isn't valid for this setting."
+    },
+    "features": {
+      "title": "Features",
+      "subtitle": "What your school can use right now. Features follow your plan and the platform's settings.",
+      "loadFailed": "We couldn't load the features.",
+      "plan": "Plan",
+      "freeFallback": "No subscription yet: free plan",
+      "feature": "Feature",
+      "available": "Available",
+      "flag": "Switched on",
+      "limit": "Limit",
+      "source": "Set at",
+      "yes": "Yes",
+      "no": "No",
+      "note": "Only the platform team can change features. Contact support to upgrade your plan."
     }
   }
 }

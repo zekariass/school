@@ -1485,6 +1485,23 @@ export interface paths {
         patch: operations["updateSubject"];
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Counts of active students, teachers and classes plus what is already set up (current year, grade levels, subjects); needs school.read */
+        get: operations["getSchoolSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2343,6 +2360,23 @@ export interface components {
             /** Format: uuid */
             schoolId: string;
             settings: components["schemas"]["SettingStateResponse"][];
+        };
+        SchoolCounts: {
+            /** Format: int64 */
+            academicYears: number;
+            /** Format: int64 */
+            classes: number;
+            /** Format: int64 */
+            gradeLevels: number;
+            hasCurrentYear: boolean;
+            /** Format: int64 */
+            staff: number;
+            /** Format: int64 */
+            students: number;
+            /** Format: int64 */
+            subjects: number;
+            /** Format: int64 */
+            teachers: number;
         };
         SchoolLanguageResponse: {
             code: string;
@@ -6761,6 +6795,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubjectView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getSchoolSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolCounts"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

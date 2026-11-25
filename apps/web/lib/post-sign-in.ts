@@ -8,6 +8,8 @@ export interface GrantsLike {
     schoolSlug?: string | null;
     schoolName?: string | null;
   }>;
+  /** School memberships (teachers, staff, students); they carry no role assignment. */
+  memberships?: ReadonlyArray<{ type: string; schoolSlug: string; schoolName: string }>;
 }
 
 export interface SchoolChoice {
@@ -22,12 +24,20 @@ export function hasConsoleAccess(me: GrantsLike): boolean {
   return me.roleAssignments.some((a) => CONSOLE_SCOPES.has(a.scope.type));
 }
 
-/** The distinct schools the user holds a SCHOOL or CAMPUS role at, by name. */
+/** Membership types that get a web workspace; students use the mobile app. */
+const WORKSPACE_MEMBERSHIPS = new Set(["TEACHER", "STAFF"]);
+
+/** The distinct schools the user holds a SCHOOL or CAMPUS role or a teacher/staff membership at, by name. */
 export function schoolChoices(me: GrantsLike): SchoolChoice[] {
   const bySlug = new Map<string, SchoolChoice>();
   for (const a of me.roleAssignments) {
     if ((a.scope.type === "SCHOOL" || a.scope.type === "CAMPUS") && a.schoolSlug) {
       bySlug.set(a.schoolSlug, { slug: a.schoolSlug, name: a.schoolName ?? a.schoolSlug });
+    }
+  }
+  for (const m of me.memberships ?? []) {
+    if (WORKSPACE_MEMBERSHIPS.has(m.type) && m.schoolSlug && !bySlug.has(m.schoolSlug)) {
+      bySlug.set(m.schoolSlug, { slug: m.schoolSlug, name: m.schoolName || m.schoolSlug });
     }
   }
   return [...bySlug.values()].sort((x, y) => x.name.localeCompare(y.name));
@@ -38,13 +48,19 @@ function isLocalizedPath(path: string): boolean {
   return LOCALE_CODES.some((code) => new RegExp(`^/${code}([/?#]|$)`).test(path));
 }
 
+/** True when the user is enrolled as a student somewhere. */
+export function hasStudentMembership(me: GrantsLike): boolean {
+  return (me.memberships ?? []).some((m) => m.type === "STUDENT");
+}
+
 /**
  * Where to send a user right after sign-in:
  *  1. a safe `next` path, if the page that sent them to sign-in gave one;
  *  2. platform / country / organization administrators: the console;
  *  3. exactly one school: that school's workspace;
  *  4. several schools: the school picker;
- *  5. nothing yet: the "no access" page.
+ *  5. only a student membership: the "students use the School app" page;
+ *  6. nothing yet: the "no access" page.
  */
 export function resolvePostSignInPath(input: {
   me: GrantsLike;
@@ -58,5 +74,6 @@ export function resolvePostSignInPath(input: {
   const schools = schoolChoices(input.me);
   if (schools.length === 1 && schools[0]) return `${base}/s/${encodeURIComponent(schools[0].slug)}`;
   if (schools.length > 1) return `${base}/schools`;
+  if (hasStudentMembership(input.me)) return `${base}/student-app`;
   return `${base}/no-access`;
 }

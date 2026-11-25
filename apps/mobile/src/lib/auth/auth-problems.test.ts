@@ -4,7 +4,7 @@ import { messages } from '@school/i18n';
 
 import { ApiRequestError } from '@/lib/api-error';
 
-import { authMessageFor, endNoticeKey, retryAfterOf } from './auth-problems';
+import { authMessageFor, endNoticeKey, retryAfterOf, studentCodeMessageFor, studentCodeRetryAfter } from './auth-problems';
 import { endReasonFor, isTerminalSessionCode } from './session-events';
 
 function problemError(status: number, code: string, retryAfterSeconds?: number) {
@@ -83,5 +83,29 @@ describe('session end', () => {
     for (const reason of ['expired', 'revoked', 'inactive'] as const) {
       expect(resolve(endNoticeKey(reason))).toBeTypeOf('string');
     }
+  });
+});
+
+describe('studentCodeMessageFor', () => {
+  it('gives every wrong, expired or revoked code the same friendly answer', () => {
+    expect(studentCodeMessageFor(problemError(400, 'auth.invalid_code'))).toEqual({ key: 'mobile.studentCode.errors.invalid' });
+    expect(resolve('mobile.studentCode.errors.invalid')).toBe("That code didn't work. Ask your teacher for a new one.");
+  });
+
+  it('counts down the rate limit', () => {
+    expect(studentCodeMessageFor(problemError(429, 'auth.rate_limited', 90))).toEqual({
+      key: 'mobile.studentCode.errors.rateLimited',
+      values: { seconds: 90 },
+    });
+    expect(studentCodeRetryAfter(problemError(429, 'auth.rate_limited', 90))).toBe(90);
+    expect(studentCodeRetryAfter(problemError(429, 'something_else'))).toBe(60);
+    expect(studentCodeRetryAfter(problemError(400, 'auth.invalid_code'))).toBeUndefined();
+  });
+
+  it('separates network trouble from other failures', () => {
+    expect(studentCodeMessageFor(new ApiRequestError(undefined))).toEqual({ key: 'mobile.studentCode.errors.network' });
+    expect(studentCodeMessageFor(problemError(503, 'unavailable'))).toEqual({ key: 'mobile.studentCode.errors.network' });
+    expect(studentCodeMessageFor(problemError(403, 'auth.account_inactive'))).toEqual({ key: 'mobile.studentCode.errors.inactive' });
+    expect(studentCodeMessageFor(new Error('boom'))).toEqual({ key: 'mobile.studentCode.errors.generic' });
   });
 });

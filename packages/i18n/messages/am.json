@@ -85,7 +85,10 @@
     "settings": "ቅንብሮች",
     "home": "መነሻ",
     "profile": "መገለጫ",
-    "portfolio": "ስብስብ"
+    "portfolio": "ስብስብ",
+    "academic": "የትምህርት ዘመን",
+    "myClasses": "የእኔ ክፍሎች",
+    "features": "ባህሪያት"
   },
   "locale": {
     "label": "ቋንቋ"
@@ -144,14 +147,30 @@
     },
     "studentCode": {
       "title": "የተማሪ መግቢያ",
-      "subtitle": "መምህርዎ ያሳዩዎትን የQR ኮድ ይቃኙ ወይም የክፍል ኮድዎን ይጻፉ።",
+      "subtitle": "መምህርዎ የሰጡዎትን የQR ኮድ ይቃኙ።",
       "permissionBody": "ካሜራውን የምንጠቀመው የክፍልዎን የQR ኮድ ለማንበብ ብቻ ነው። ምንም አይቀዳም ወይም አይቀመጥም።",
       "allowCamera": "ካሜራ ፍቀድ",
       "permissionDenied": "የካሜራ መዳረሻ ጠፍቷል። በቅንብሮች ውስጥ ማብራት ይችላሉ፣ ወይም ከታች የክፍል ኮድዎን ይጻፉ።",
       "openSettings": "የስልክ ቅንብሮችን ክፈት",
       "cameraUnavailable": "ካሜራ በዚህ መሣሪያ ላይ የለም። በምትኩ ከታች የክፍል ኮድዎን ይጻፉ።",
       "manualLabel": "የክፍል ኮድ",
-      "manualHint": "ከሌለዎት መምህርዎን ይጠይቁ።"
+      "manualHint": "ከሌለዎት መምህርዎን ይጠይቁ።",
+      "scanHint": "የQR ኮዱን በፍሬሙ ውስጥ ያድርጉት።",
+      "found": "አገኘነው!",
+      "notACode": "ይህ የክፍል ኮድ አይደለም። የራስዎን ኮድ ይሞክሩ።",
+      "typeInstead": "ወይም ኮድዎን ይጻፉ",
+      "submit": "እንግባ!",
+      "teacherLink": "እኔ መምህር ወይም ወላጅ ነኝ",
+      "sessionEndedTitle": "እንደገና የሚገቡበት ጊዜ ነው",
+      "sessionEndedBody": "ለመመለስ የQR ኮድዎን ይቃኙ ወይም ኮድዎን ይጻፉ።",
+      "gotIt": "እሺ",
+      "errors": {
+        "invalid": "ይህ ኮድ አልሠራም። መምህርዎን አዲስ ኮድ ይጠይቁ።",
+        "rateLimited": "ብዙ ጊዜ ሞክረዋል። {seconds} ሰከንድ ይጠብቁ፣ ከዚያ እንደገና ይሞክሩ።",
+        "inactive": "ይህ መለያ ንቁ አይደለም። መምህርዎን ይጠይቁ።",
+        "network": "አሁን ከSchool ጋር መገናኘት አልቻልንም። ኢንተርኔትዎን አይተው እንደገና ይሞክሩ።",
+        "generic": "የሆነ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።"
+      }
     },
     "empty": {
       "teacherClasses": {
@@ -272,6 +291,115 @@
       "noneTitle": "መለያዎ ገና አልተዘጋጀም",
       "noneBody": "መለያዎ ገና ከትምህርት ቤት፣ ከክፍል ወይም ከልጅ ጋር አልተገናኘም። ትምህርት ቤትዎ እንዲያክልዎ ይጠይቁ፣ ከዚያ እንደገና ይግቡ።",
       "signedInAs": "እንደ {name} ገብተዋል"
+    },
+    "student": {
+      "greeting": "ሰላም፣ {name}!",
+      "greetingNoName": "ሰላም!",
+      "myClasses": "ክፍሎቼ",
+      "emptyTitle": "መምህርዎ ወደ ክፍል ገና አላስገቡዎትም",
+      "emptyBody": "መምህርዎ ሲያስገቡዎት ክፍልዎ እዚህ ይታያል።",
+      "errorTitle": "ክፍሎችዎን መጫን አልቻልንም",
+      "errorBody": "ኢንተርኔትዎን አይተው እንደገና ለመሞከር ወደ ታች ይጎትቱ።",
+      "withTeachers": "መምህር፦ {names}"
+    },
+    "profile": {
+      "school": "ትምህርት ቤት",
+      "schools": "ትምህርት ቤቶች"
+    },
+    "classes": {
+      "title": "ክፍሎቼ",
+      "classTitle": "ክፍል",
+      "errorTitle": "ክፍሎችዎን መጫን አልቻልንም",
+      "errorBody": "ግንኙነትዎን አይተው እንደገና ለመሞከር ወደ ታች ይጎትቱ።",
+      "studentCount": "ተማሪዎች፦ {count}",
+      "archived": "በማህደር የተቀመጠ",
+      "archivedNote": "ይህ ክፍል በማህደር ተቀምጧል። የተማሪዎቹ ዝርዝር ሊቀየር አይችልም።",
+      "notFoundTitle": "ክፍሉ አልተገኘም",
+      "notFoundBody": "ይህ ክፍል ከእንግዲህ በዝርዝርዎ ውስጥ የለም።",
+      "teachersLine": "መምህራን፦ {names}",
+      "addStudents": "ተማሪዎችን ጨምር",
+      "rosterTitle": "ተማሪዎች",
+      "rosterErrorTitle": "ተማሪዎቹን መጫን አልቻልንም",
+      "rosterErrorBody": "ግንኙነትዎን አይተው እንደገና ይሞክሩ።",
+      "rosterEmptyTitle": "እስካሁን ተማሪ የለም",
+      "rosterEmptyBody": "ከትምህርት ቤትዎ ተማሪዎችን ይጨምሩ ወይም አዲስ ተማሪ ይፍጠሩ።",
+      "printHint": "የመላውን ክፍል የመግቢያ ኮዶች ማተም ይፈልጋሉ? በSchool ድረ ገጽ ላይ ያድርጉት።",
+      "forbiddenTitle": "ይህን ማድረግ አይችሉም",
+      "forbiddenBody": "ይህን ክፍል መቀየር የሚችሉት የክፍሉ መምህራን ብቻ ናቸው።",
+      "actionFailed": "አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+      "add": {
+        "title": "ተማሪዎችን ጨምር",
+        "searchLabel": "በስም ፈልግ",
+        "errorTitle": "ተማሪዎቹን መጫን አልቻልንም",
+        "errorBody": "ግንኙነትዎን አይተው እንደገና ይሞክሩ።",
+        "selected": "የተመረጡ፦ {count}",
+        "selectAll": "ሁሉንም ምረጥ",
+        "noMatchTitle": "ማንም አልተገኘም",
+        "noMatchBody": "ሌላ ስም ይሞክሩ ወይም አዲስ ተማሪ ይፍጠሩ።",
+        "emptyTitle": "የሚጨመር ሰው የለም",
+        "emptyBody": "የሚያዩዋቸው ሁሉ ቀድሞውኑ በዚህ ክፍል ውስጥ አሉ። በምትኩ አዲስ ተማሪ መፍጠር ይችላሉ።",
+        "submit": "የተመረጡትን ጨምር ({count})",
+        "submitNone": "ተማሪዎችን ጨምር"
+      },
+      "newStudent": {
+        "title": "አዲስ ተማሪ",
+        "action": "አዲስ ተማሪ ጨምር",
+        "intro": "ይህ ተማሪ {class} ን ይቀላቀላል።",
+        "givenName": "ስም",
+        "fatherName": "የአባት ስም",
+        "dateOfBirth": "የትውልድ ቀን (አማራጭ)",
+        "dateHint": "ዓመት፣ ወር፣ ቀን፦ ለምሳሌ 2015-03-24",
+        "submit": "ወደ ክፍሉ ጨምር",
+        "note": "ይህን መለያ ትምህርት ቤትዎ ያስተዳድረዋል። ከዚያ በኋላ ለተማሪው የመግቢያ ኮዱን ማሳየት ይችላሉ።",
+        "errors": {
+          "required": "እባክዎ ስም ያስገቡ።",
+          "tooLong": "ይህ በጣም ረጅም ነው።",
+          "format": "እንደ 2015-03-24 ያለ እውነተኛ ቀን ይጠቀሙ።",
+          "future": "ቀኑ ወደፊት ሊሆን አይችልም።",
+          "tooOld": "እባክዎ ዓመቱን ያረጋግጡ።"
+        }
+      },
+      "student": {
+        "title": "ተማሪ",
+        "notFoundTitle": "ተማሪው አልተገኘም",
+        "notFoundBody": "ይህ ተማሪ ከእንግዲህ በክፍሉ ውስጥ የለም።",
+        "dateOfBirth": "የትውልድ ቀን",
+        "gender": "ጾታ",
+        "username": "የተጠቃሚ ስም",
+        "number": "የተማሪ ቁጥር",
+        "classes": "ክፍሎች",
+        "privateNote": "እነዚህን ዝርዝሮች የዚህ ተማሪ መምህራንና ትምህርት ቤቱ ብቻ ያያሉ።",
+        "showCode": "የመግቢያ ኮድ አሳይ",
+        "move": "ወደ ሌላ ክፍል አዛውር",
+        "remove": "ከክፍሉ አውጣ"
+      },
+      "remove": {
+        "title": "{name} ከክፍሉ ይውጡ?",
+        "body": "{name} ከእንግዲህ በ{class} ውስጥ አይሆኑም። በኋላ እንደገና ማስገባት ይችላሉ።",
+        "confirm": "አውጣ"
+      },
+      "move": {
+        "title": "ወደ ሌላ ክፍል አዛውር",
+        "intro": "{name} የሚዛወሩበትን ክፍል ይምረጡ።",
+        "confirmTitle": "{name} ወደ {class} ይዛወሩ?",
+        "confirmBody": "{name} ከ{from} ወጥተው {to} ን ይቀላቀላሉ። ታሪካቸው ይቀመጣል።",
+        "confirm": "አዛውር",
+        "emptyTitle": "ሌላ ክፍል የለም",
+        "emptyBody": "በዚህ ትምህርት ቤት ውስጥ የሚያስተምሩት ሌላ ንቁ ክፍል የለም።"
+      },
+      "code": {
+        "title": "የመግቢያ ኮድ",
+        "confirmTitle": "ለ{name} አዲስ የመግቢያ ኮድ ይታይ?",
+        "confirmBody": "ይህ የ{name}ን የቀድሞ ኮድ ይተካል። የቀድሞው ኮድ ወዲያውኑ መሥራት ያቆማል።",
+        "confirmAction": "አዲስ ኮድ አሳይ",
+        "failed": "ኮድ መፍጠር አልቻልንም። እባክዎ እንደገና ይሞክሩ።",
+        "forStudent": "የ{name} ኮድ",
+        "giveTo": "ይህን ለተማሪው ይስጡ",
+        "qrLabel": "የ{name} የQR መግቢያ ኮድ",
+        "orType": "ወይም ይህን ኮድ ይጻፉ",
+        "validUntil": "እስከ {date} ድረስ ይሠራል",
+        "shownOnce": "ይህ ኮድ የሚታየው አንድ ጊዜ ብቻ ነው። ይህን ገጽ ሲዘጉ ይጠፋል።"
+      }
     }
   },
   "schoolPicker": {
@@ -620,6 +748,627 @@
       "hint": "ማሳወቂያዎች በቀጥታ በመተግበሪያውና በስልክዎ እንደሚደርሱዎት ያረጋግጣል።",
       "sent": "የሙከራ ማሳወቂያ ተልኳል።",
       "failed": "የሙከራ ማሳወቂያውን መላክ አልተቻለም።"
+    }
+  },
+  "school": {
+    "common": {
+      "noAccessTitle": "ይህ ገጽ ለእርስዎ አይገኝም",
+      "noAccessBody": "በዚህ ትምህርት ቤት ያለዎት ሚና ይህን ክፍል አያካትትም። ሊኖርዎት ይገባል ብለው ካሰቡ የትምህርት ቤቱን አስተዳዳሪ ይጠይቁ።"
+    },
+    "validation": {
+      "required": "ይህ መስክ ያስፈልጋል።",
+      "invalid": "ይህ ዋጋ ትክክል አይደለም።",
+      "tooLong": "ይህ በጣም ረጅም ነው።",
+      "future": "ቀኑ ወደፊት ሊሆን አይችልም።",
+      "order": "መጨረሻው ከመጀመሪያው በኋላ መሆን አለበት።",
+      "contactOne": "የስልክ ቁጥር ወይም የኢሜይል አድራሻ ያስገቡ፤ ሁለቱንም ወይም ምንም አይሁን።",
+      "short": "ይህ በጣም አጭር ነው።"
+    },
+    "studentApp": {
+      "title": "ተማሪዎች በSchool መተግበሪያ ይገባሉ",
+      "body": "ተማሪዎች School መተግበሪያን በስልካቸው ወይም በታብሌታቸው ይጠቀማሉ። የክፍል ኮዳችሁን ከመምህራችሁ ጠይቁ፣ ከዚያ መተግበሪያውን ከፍታችሁ በኮዱ ግቡ።"
+    },
+    "teacherRole": {
+      "LEAD": "ዋና መምህር",
+      "CO_TEACHER": "ተባባሪ መምህር",
+      "SUBJECT_TEACHER": "የትምህርት መምህር",
+      "ASSISTANT": "ረዳት"
+    },
+    "dashboard": {
+      "loadFailed": "የትምህርት ቤቱን ማጠቃለያ መጫን አልተቻለም።",
+      "students": "ተማሪዎች",
+      "teachers": "መምህራን",
+      "classes": "ክፍሎች",
+      "checklistTitle": "ትምህርት ቤትዎን ያዘጋጁ",
+      "checklistProgress": "ከ{total} {done} ተጠናቋል",
+      "done": "ተጠናቋል",
+      "todo": "የሚቀር",
+      "items": {
+        "year": "የአሁኑን የትምህርት ዘመን ይምረጡ",
+        "grades": "የክፍል ደረጃዎችን ያክሉ",
+        "subjects": "ትምህርቶችን ያክሉ",
+        "teacher": "የመጀመሪያ መምህርዎን ያክሉ",
+        "class": "የመጀመሪያ ክፍልዎን ይፍጠሩ",
+        "students": "ተማሪዎችን ያክሉ"
+      },
+      "myClasses": "የእኔ ክፍሎች",
+      "allClasses": "ሁሉንም ክፍሎች ይመልከቱ",
+      "noClasses": "እስካሁን ምንም ክፍል አያስተምሩም። አንድ ይፍጠሩ፣ ወይም አስተዳዳሪው ወደ ክፍል እንዲያክልዎ ይጠይቁ።"
+    },
+    "academic": {
+      "title": "የትምህርት ዘመን",
+      "subtitle": "የትምህርት ቤትዎ ዘመናት እና ወቅቶች፣ የክፍል ደረጃዎች እና ትምህርቶች።",
+      "tabs": {
+        "years": "ዘመናት እና ወቅቶች",
+        "grades": "የክፍል ደረጃዎች",
+        "subjects": "ትምህርቶች"
+      },
+      "years": {
+        "intro": "አንድ ዘመን ብቻ የአሁኑ ዘመን ነው። አዳዲስ ክፍሎች በእሱ ውስጥ ይጀምራሉ።",
+        "add": "የትምህርት ዘመን ያክሉ",
+        "loadFailed": "የትምህርት ዘመናትን መጫን አልተቻለም።",
+        "empty": "እስካሁን የትምህርት ዘመን የለም። ክፍሎችን መፍጠር ለመጀመር የመጀመሪያውን ያክሉ።",
+        "current": "የአሁኑ",
+        "status": {
+          "PLANNED": "የታቀደ",
+          "ACTIVE": "ንቁ",
+          "CLOSED": "የተዘጋ"
+        },
+        "makeCurrent": "የአሁኑ አድርግ",
+        "madeCurrent": "ይህ አሁን የአሁኑ ዘመን ነው።",
+        "edit": "{name}ን ያርሙ",
+        "delete": "{name}ን ይሰርዙ",
+        "deleted": "የትምህርት ዘመኑ ተሰርዟል።",
+        "deleteTitle": "{name} ይሰረዝ?",
+        "deleteBody": "ወቅቶቹም አብረው ይሰረዛሉ። ክፍሎች ያሉት ዘመን ወይም የአሁኑ ዘመን መሰረዝ አይችልም።",
+        "deleteConfirm": "ዘመኑን ሰርዝ",
+        "saveFailed": "የትምህርት ዘመኑን ማስቀመጥ አልተቻለም።",
+        "saved": "የትምህርት ዘመኑ ተቀምጧል።",
+        "editTitle": "የትምህርት ዘመን ያርሙ",
+        "fields": {
+          "name": "ስም",
+          "nameHint": "ለምሳሌ 2018 ዓ.ም. ወይም 2025/26።",
+          "startsOn": "የሚጀምርበት ቀን",
+          "endsOn": "የሚያበቃበት ቀን",
+          "status": "ሁኔታ",
+          "makeCurrent": "ይህን የአሁኑ ዘመን አድርግ"
+        }
+      },
+      "periods": {
+        "title": "ወቅቶች",
+        "add": "ወቅት ያክሉ",
+        "loadFailed": "ወቅቶቹን መጫን አልተቻለም።",
+        "empty": "እስካሁን ወቅት የለም።",
+        "deleted": "ወቅቱ ተሰርዟል።",
+        "saveFailed": "ወቅቱን ማስቀመጥ አልተቻለም።",
+        "edit": "{name}ን ያርሙ",
+        "delete": "{name}ን ይሰርዙ",
+        "deleteTitle": "{name} ይሰረዝ?",
+        "deleteBody": "ይህ ወቅቱን ከዘመኑ ያስወግዳል።",
+        "deleteConfirm": "ወቅቱን ሰርዝ",
+        "type": {
+          "TERM": "ወቅት",
+          "SEMESTER": "ሴሚስተር",
+          "QUARTER": "ሩብ ዓመት",
+          "CUSTOM": "ብጁ"
+        },
+        "saved": "ወቅቱ ተቀምጧል።",
+        "editTitle": "ወቅት ያርሙ",
+        "withinYear": "በ{name} ውስጥ፦ {from} – {to}። ወቅቶች መደራረብ አይችሉም።",
+        "fields": {
+          "name": "ስም",
+          "type": "ዓይነት",
+          "sequence": "ቅደም ተከተል",
+          "sequenceHint": "በመጨረሻ ለማከል ባዶ ይተዉ።",
+          "startsOn": "የሚጀምርበት ቀን",
+          "endsOn": "የሚያበቃበት ቀን"
+        }
+      },
+      "grades": {
+        "intro": "ተማሪዎች የሚያልፉባቸው የክፍል ደረጃዎች በቅደም ተከተል።",
+        "add": "የክፍል ደረጃ ያክሉ",
+        "loadFailed": "የክፍል ደረጃዎችን መጫን አልተቻለም።",
+        "empty": "እስካሁን የክፍል ደረጃ የለም። 1ኛ ክፍል፣ 2ኛ ክፍል እና የመሳሰሉትን ያክሉ።",
+        "inactive": "ንቁ ያልሆነ",
+        "edit": "{name}ን ያርሙ",
+        "delete": "{name}ን ይሰርዙ",
+        "deleted": "የክፍል ደረጃው ተሰርዟል።",
+        "deleteTitle": "{name} ይሰረዝ?",
+        "deleteBody": "በክፍሎች ጥቅም ላይ ያለ የክፍል ደረጃ መሰረዝ አይችልም፤ በምትኩ ንቁ እንዳይሆን ያድርጉት።",
+        "deleteConfirm": "የክፍል ደረጃውን ሰርዝ",
+        "saveFailed": "የክፍል ደረጃውን ማስቀመጥ አልተቻለም።",
+        "saved": "የክፍል ደረጃው ተቀምጧል።",
+        "editTitle": "የክፍል ደረጃ ያርሙ",
+        "fields": {
+          "name": "ስም",
+          "nameHint": "ለምሳሌ 8ኛ ክፍል ወይም KG 2።",
+          "code": "አጭር ኮድ",
+          "sequence": "ቅደም ተከተል",
+          "sequenceHint": "ትንንሽ ቁጥሮች መጀመሪያ ይመጣሉ። እያንዳንዱ ቁጥር አንድ ጊዜ ብቻ ይሠራበታል።",
+          "active": "ንቁ"
+        }
+      },
+      "subjects": {
+        "intro": "ትምህርት ቤትዎ የሚያስተምራቸው ትምህርቶች።",
+        "add": "ትምህርት ያክሉ",
+        "loadFailed": "ትምህርቶችን መጫን አልተቻለም።",
+        "empty": "እስካሁን ትምህርት የለም።",
+        "inactive": "ንቁ ያልሆነ",
+        "edit": "{name}ን ያርሙ",
+        "delete": "{name}ን ይሰርዙ",
+        "deleted": "ትምህርቱ ተሰርዟል።",
+        "deleteTitle": "{name} ይሰረዝ?",
+        "deleteBody": "በክፍሎች ጥቅም ላይ ያለ ትምህርት መሰረዝ አይችልም፤ በምትኩ ንቁ እንዳይሆን ያድርጉት።",
+        "deleteConfirm": "ትምህርቱን ሰርዝ",
+        "saveFailed": "ትምህርቱን ማስቀመጥ አልተቻለም።",
+        "saved": "ትምህርቱ ተቀምጧል።",
+        "editTitle": "ትምህርት ያርሙ",
+        "fields": {
+          "name": "ስም",
+          "code": "አጭር ኮድ",
+          "color": "ቀለም",
+          "active": "ንቁ"
+        }
+      }
+    },
+    "teachers": {
+      "title": "መምህራን እና ሠራተኞች",
+      "subtitle": "በትምህርት ቤትዎ የሚሠሩ ሰዎች።",
+      "add": "ሠራተኛ ያክሉ",
+      "search": "ሠራተኞችን ይፈልጉ",
+      "filters": {
+        "type": "ሚና",
+        "status": "ሁኔታ",
+        "allTypes": "ሁሉም ሚናዎች",
+        "allStatuses": "ሁሉም ሁኔታዎች"
+      },
+      "type": {
+        "TEACHER": "መምህር",
+        "ADMINISTRATOR": "አስተዳዳሪ",
+        "SUPPORT_STAFF": "ደጋፊ ሠራተኛ"
+      },
+      "status": {
+        "ACTIVE": "ንቁ",
+        "INVITED": "የተጋበዘ",
+        "SUSPENDED": "የታገደ",
+        "FORMER": "የቀድሞ"
+      },
+      "loadFailed": "የሠራተኞችን ዝርዝር መጫን አልተቻለም።",
+      "empty": "እስካሁን ሠራተኛ የለም። የመጀመሪያ መምህርዎን ያክሉ።",
+      "emptyFiltered": "ከእነዚህ ማጣሪያዎች ጋር የሚስማማ ሰው የለም።",
+      "adminRole": {
+        "SCHOOL_ADMIN": "የትምህርት ቤት አስተዳዳሪ",
+        "CAMPUS_ADMIN": "የግቢ አስተዳዳሪ",
+        "SCHOOL_STAFF": "የትምህርት ቤት ሠራተኛ (ማንበብ ብቻ)"
+      },
+      "addDialog": {
+        "title": "ሠራተኛ ያክሉ",
+        "description": "ሰውየው እዚህ መለያ ካለው፣ በቀላሉ ወደ ትምህርት ቤትዎ ይጨመራል።",
+        "submit": "ወደ ትምህርት ቤቱ አክል",
+        "added": "ሠራተኛው ተጨምሯል።",
+        "failed": "ይህን ሰው ማከል አልተቻለም።",
+        "alreadyMember": "ይህ ሰው ቀድሞውኑ በትምህርት ቤትዎ ይሠራል።",
+        "givenName": "ስም",
+        "familyName": "የአባት ስም",
+        "phone": "የስልክ ቁጥር",
+        "phoneHint": "ለምሳሌ 0911 234 567።",
+        "email": "ኢሜይል",
+        "smsNote": "አዲስ ሰዎች የትምህርት ቤቱን ስም እና እንዴት እንደሚገቡ የሚገልጽ SMS (ወይም ኢሜይል) ይደርሳቸዋል። በሚያስገቡት ስልክ ቁጥር ወይም ኢሜይል ይገባሉ።",
+        "staffType": "ሚና",
+        "adminRole": "የአስተዳደር መዳረሻ",
+        "adminRoleHint": "አማራጭ። እርስዎ ያለዎትን መዳረሻ ብቻ መስጠት ይችላሉ።",
+        "noAdminRole": "ምንም",
+        "jobTitle": "የሥራ መደብ",
+        "campus": "ግቢ",
+        "noCampus": "ሁሉም ትምህርት ቤት"
+      },
+      "detail": {
+        "title": "ሠራተኛ",
+        "loading": "በመጫን ላይ…",
+        "loadFailed": "ይህን ሰው መጫን አልተቻለም።",
+        "contact": "አድራሻ",
+        "started": "የጀመሩት",
+        "ended": "ያበቁት",
+        "jobTitle": "የሥራ መደብ",
+        "employeeNumber": "የሠራተኛ ቁጥር",
+        "campus": "ግቢ",
+        "noCampus": "ሁሉም ትምህርት ቤት",
+        "saved": "ለውጦቹ ተቀምጠዋል።",
+        "saveFailed": "ለውጦቹን ማስቀመጥ አልተቻለም።",
+        "deactivated": "ሠራተኛው ንቁ እንዳይሆን ተደርጓል።",
+        "deactivate": "ንቁ እንዳይሆን አድርግ",
+        "close": "ዝጋ",
+        "saving": "በማስቀመጥ ላይ…",
+        "save": "አስቀምጥ",
+        "deactivateTitle": "{name} ንቁ እንዳይሆን ይደረግ?",
+        "deactivateBody": "ክፍሎቻቸውን ማስተማር ያቆማሉ እና እንደ መምህር መዳረሻ ያጣሉ። ታሪካቸው ይቀራል። የአስተዳደር ሚናዎች አይወገዱም።",
+        "deactivateConfirm": "ንቁ እንዳይሆን አድርግ"
+      }
+    },
+    "students": {
+      "title": "ተማሪዎች",
+      "subtitle": "በትምህርት ቤትዎ የተመዘገቡ ሁሉም ሰዎች።",
+      "add": "ተማሪ ያክሉ",
+      "search": "ተማሪዎችን ይፈልጉ",
+      "filters": {
+        "class": "ክፍል",
+        "grade": "የክፍል ደረጃ",
+        "status": "ሁኔታ",
+        "allClasses": "ሁሉም ክፍሎች",
+        "allGrades": "ሁሉም የክፍል ደረጃዎች",
+        "allStatuses": "ሁሉም ሁኔታዎች"
+      },
+      "status": {
+        "ACTIVE": "ንቁ",
+        "PENDING": "በመጠባበቅ ላይ",
+        "TRANSFERRED": "የተዛወረ",
+        "GRADUATED": "የተመረቀ",
+        "WITHDRAWN": "የወጣ"
+      },
+      "loadFailed": "ተማሪዎችን መጫን አልተቻለም።",
+      "empty": "እስካሁን ተማሪ የለም። የመጀመሪያውን ያክሉ፣ ወይም ክፍል ሲፈጥሩ ተማሪዎችን ያክሉ።",
+      "emptyFiltered": "ከእነዚህ ማጣሪያዎች ጋር የሚስማማ ተማሪ የለም።",
+      "gender": {
+        "FEMALE": "ሴት",
+        "MALE": "ወንድ",
+        "OTHER": "ሌላ"
+      },
+      "form": {
+        "addTitle": "ተማሪ ያክሉ",
+        "addDescription": "ተማሪዎች ስልክ ወይም ኢሜይል አያስፈልጋቸውም። በክፍል ኮድ ይገባሉ።",
+        "editTitle": "ተማሪ ያርሙ",
+        "create": "ተማሪ አክል",
+        "created": "ተማሪው ተጨምሯል።",
+        "updated": "ተማሪው ተዘምኗል።",
+        "failed": "ይህን ተማሪ ማስቀመጥ አልተቻለም።",
+        "givenName": "ስም",
+        "middleName": "የአባት ስም",
+        "familyName": "የአያት ስም",
+        "dateOfBirth": "የትውልድ ቀን",
+        "gender": "ጾታ",
+        "noGender": "አልተገለጸም",
+        "studentNumber": "የተማሪ ቁጥር",
+        "studentNumberHint": "አማራጭ። እያንዳንዱ ቁጥር በትምህርት ቤትዎ አንድ ጊዜ ብቻ ይሠራበታል።",
+        "numberTaken": "ሌላ ተማሪ ይህ ቁጥር አለው።",
+        "username": "የተጠቃሚ ስም",
+        "usernameHint": "አማራጭ፣ ለአዋቂ ተማሪዎች፦ ትናንሽ ፊደላት፣ ቁጥሮች፣ ነጥቦች፣ ሰረዞች እና ከስር ሰረዞች (ከ3 እስከ 31)።",
+        "usernameTaken": "ይህ የተጠቃሚ ስም ተወስዷል።",
+        "class": "ክፍል",
+        "classHint": "አማራጭ። ወደ ክፍል በኋላ ማከል ይችላሉ።",
+        "noClass": "እስካሁን ክፍል የለም"
+      },
+      "detail": {
+        "back": "ተመለስ",
+        "loadFailed": "ይህን ተማሪ መጫን አልተቻለም።",
+        "edit": "አርም",
+        "setPassword": "የይለፍ ቃል አስቀምጥ",
+        "withdraw": "አስወጣ",
+        "studentNumber": "የተማሪ ቁጥር",
+        "username": "የተጠቃሚ ስም",
+        "dateOfBirth": "የትውልድ ቀን",
+        "gender": "ጾታ",
+        "admission": "የተመዘገቡበት",
+        "left": "የወጡበት",
+        "basicNote": "የዚህን ተማሪ ስም እና ፎቶ ማየት ይችላሉ። ተጨማሪ ዝርዝሮች ለመምህራኖቻቸው እና ለትምህርት ቤት አስተዳዳሪዎች ብቻ ይታያሉ።"
+      },
+      "withdraw": {
+        "title": "{name} ይወጣ?",
+        "body": "ከክፍሎቻቸው ይወጣሉ፣ የመግቢያ ኮዶቻቸው መሥራት ያቆማሉ እና ከመለያቸው ይወጣሉ። ታሪካቸው ይቀራል።",
+        "confirm": "ተማሪውን አስወጣ",
+        "reason": "ምክንያት",
+        "reasonHint": "አማራጭ።",
+        "done": "ተማሪው ወጥቷል።",
+        "failed": "ተማሪውን ማስወጣት አልተቻለም።"
+      },
+      "password": {
+        "title": "ለ{name} የይለፍ ቃል ያስቀምጡ",
+        "body": "በተጠቃሚ ስም ለሚገቡ አዋቂ ተማሪዎች። ለመጀመሪያ ጊዜ ሲገቡ መቀየር አለባቸው።",
+        "confirm": "የይለፍ ቃል አስቀምጥ",
+        "label": "አዲስ የይለፍ ቃል",
+        "hint": "ቢያንስ 8 ቁምፊዎች። ለተማሪው በአካል ይንገሩት።",
+        "done": "የይለፍ ቃሉ ተቀምጧል።",
+        "failed": "የይለፍ ቃሉን ማስቀመጥ አልተቻለም።"
+      },
+      "codes": {
+        "title": "የመግቢያ ኮዶች",
+        "intro": "ተማሪዎች በQR ኮድ ወይም በጽሑፍ ኮድ ወደ School መተግበሪያ ይገባሉ።",
+        "loadFailed": "የመግቢያ ኮዶችን መጫን አልተቻለም።",
+        "none": "ይህ ተማሪ ንቁ የመግቢያ ኮድ የለውም።",
+        "created": "የተሰጠው {date}",
+        "expired": "ጊዜው አልፏል",
+        "expires": "እስከ {date} ድረስ የሚሠራ",
+        "lastUsed": "መጨረሻ የተጠቀሙት {date}",
+        "neverUsed": "ተጠቅመው አያውቁም",
+        "needsClass": "መጀመሪያ ይህን ተማሪ ወደ ክፍል ያክሉ፦ የመግቢያ ኮዶች በክፍል ይሰጣሉ።",
+        "class": "ክፍል",
+        "kind": "የኮድ ዓይነት",
+        "issue": "ኮድ ስጥ",
+        "issueNew": "አዲስ ኮድ ስጥ",
+        "revoke": "ኮዶችን ሰርዝ",
+        "revoked": "የመግቢያ ኮዶች ተሰርዘዋል።",
+        "failed": "ይህን ማጠናቀቅ አልተቻለም።",
+        "replaceNote": "አዲስ ኮድ መስጠት አሮጌውን ይተካል። ኮዱ አንድ ጊዜ ብቻ ይታያል።",
+        "revokeTitle": "የ{name} ኮዶች ይሰረዙ?",
+        "revokeBody": "አዲስ ኮድ እስክትሰጡ ድረስ ተማሪው አሁን ባሉት ኮዶች መግባት አይችልም።",
+        "revokeConfirm": "ሰርዝ"
+      }
+    },
+    "codes": {
+      "kind": {
+        "QR": "QR ኮድ",
+        "TEXT": "የጽሑፍ ኮድ",
+        "BOTH": "QR እና የጽሑፍ ኮድ"
+      },
+      "title": "የተማሪ መግቢያ ኮዶች",
+      "intro": "ለእያንዳንዱ ተማሪ አንድ ካርድ ያለው የሚታተም ወረቀት ይስሩ። ተማሪዎች በSchool መተግበሪያ ውስጥ QR ኮዱን ይቃኛሉ ወይም ኮዱን ይተይባሉ።",
+      "replaceWarning": "አዲስ ኮዶችን መስራት የእነዚህን ተማሪዎች ቀደምት ኮዶች ሁሉ ይተካል። ኮዶቹ አሁን ብቻ ይታያሉ፦ ገጹን ከመልቀቅዎ በፊት ያትሟቸው።",
+      "kindLabel": "ምን ይታተም",
+      "ttlLabel": "የሚሠራበት ጊዜ (ቀናት)",
+      "ttlHint": "የትምህርት ቤቱን ነባሪ ለመጠቀም ባዶ ይተዉ፦ {days} ቀናት።",
+      "ttlHintUnknown": "የትምህርት ቤቱን ነባሪ ለመጠቀም ባዶ ይተዉ። ቢበዛ 730 ቀናት።",
+      "ttlInvalid": "ከ1 እስከ 730 ያለ ሙሉ የቀናት ቁጥር ያስገቡ።",
+      "generate": "ለሁሉም ተማሪዎች ኮዶችን ይስሩ",
+      "noStudents": "መጀመሪያ ተማሪዎችን ወደ ክፍሉ ያክሉ።",
+      "openLast": "ወረቀቱን እንደገና ክፈት ({count, plural, one {# ካርድ} other {# ካርዶች}})",
+      "failed": "ኮዶቹን መስራት አልተቻለም።",
+      "confirmTitle": "ለ{class} አዲስ ኮዶች ይሰሩ?",
+      "confirmBody": "{count, plural, one {የ# ተማሪ የመግቢያ ኮድ} other {የ# ተማሪዎች የመግቢያ ኮዶች}} ይተካሉ። ከዚህ በፊት የታተሙ ወረቀቶች መሥራት ያቆማሉ።",
+      "confirm": "ኮዶችን ስራ",
+      "issued": {
+        "title": "ለ{name} አዲስ ኮድ",
+        "expires": "እስከ {date} ድረስ የሚሠራ",
+        "warning": "ይህ ኮድ አሁን ብቻ ይታያል። ከመዝጋትዎ በፊት ይጻፉት ወይም ያትሙት፦ አዲስ ኮድ መስጠት ይህን ይተካል።",
+        "textCodeLabel": "የጽሑፍ ኮድ",
+        "qrLabel": "የ{name} QR ኮድ",
+        "copy": "ኮዱን ቅዳ",
+        "copied": "ተቀድቷል",
+        "print": "ካርዱን አትም",
+        "done": "ተጠናቋል"
+      }
+    },
+    "classes": {
+      "title": "ክፍሎች",
+      "titleMine": "የእኔ ክፍሎች",
+      "subtitle": "በትምህርት ቤትዎ ያሉ ሁሉም ክፍሎች፣ ከመምህራኖቻቸው እና ከተማሪዎቻቸው ጋር።",
+      "subtitleMine": "የሚያስተምሯቸው ክፍሎች።",
+      "create": "አዲስ ክፍል",
+      "search": "ክፍሎችን ይፈልጉ",
+      "filters": {
+        "year": "የትምህርት ዘመን",
+        "allYears": "ሁሉም ዘመናት",
+        "grade": "የክፍል ደረጃ",
+        "allGrades": "ሁሉም የክፍል ደረጃዎች",
+        "status": "ሁኔታ",
+        "allStatuses": "ሁሉም ሁኔታዎች",
+        "mine": "የእኔ ክፍሎች ብቻ"
+      },
+      "status": {
+        "ACTIVE": "ንቁ",
+        "ARCHIVED": "በማህደር የተቀመጠ"
+      },
+      "loadFailed": "ክፍሎችን መጫን አልተቻለም።",
+      "empty": "እስካሁን ክፍል የለም። የመጀመሪያውን በደቂቃ ውስጥ ይፍጠሩ።",
+      "emptyMine": "እስካሁን ክፍል አያስተምሩም። አንድ ይፍጠሩ፣ ወይም አስተዳዳሪው እንዲያክልዎ ይጠይቁ።",
+      "emptyFiltered": "ከእነዚህ ማጣሪያዎች ጋር የሚስማማ ክፍል የለም።",
+      "noGrade": "የክፍል ደረጃ የለም",
+      "noTeachers": "እስካሁን መምህር የለም",
+      "moreTeachers": "+{count}",
+      "studentCount": "{count, plural, one {# ተማሪ} other {# ተማሪዎች}}",
+      "teacherCount": "{count, plural, one {# መምህር} other {# መምህራን}}",
+      "archivedBadge": "በማህደር የተቀመጠ",
+      "type": {
+        "HOMEROOM": "የክፍል ኃላፊነት ክፍል",
+        "SUBJECT": "የትምህርት ክፍል",
+        "CLUB": "ክለብ",
+        "OTHER": "ሌላ"
+      },
+      "form": {
+        "createTitle": "ክፍል ይፍጠሩ",
+        "createDescription": "ስም፣ አዶ እና ቀለም ይምረጡ። ተማሪዎችን እና መምህራንን በኋላ ማከል ይችላሉ።",
+        "editTitle": "ክፍል ያርሙ",
+        "create": "ክፍል ፍጠር",
+        "created": "ክፍሉ ተፈጥሯል።",
+        "updated": "ክፍሉ ተዘምኗል።",
+        "failed": "ይህን ክፍል ማስቀመጥ አልተቻለም።",
+        "forbiddenCreate": "መምህራን በዚህ ትምህርት ቤት ክፍል መፍጠር አይችሉም። የትምህርት ቤት አስተዳዳሪ ክፍሉን እንዲፈጥር ወይም በትምህርት ቤቱ ቅንብሮች ውስጥ መምህራን ክፍል እንዲፈጥሩ እንዲፈቅድ ይጠይቁ።",
+        "name": "የክፍሉ ስም",
+        "nameHint": "ለምሳሌ 8A ወይም የንባብ ክለብ።",
+        "icon": "አዶ",
+        "color": "ቀለም",
+        "grade": "የክፍል ደረጃ",
+        "noGrade": "የክፍል ደረጃ የለም",
+        "type": "ዓይነት",
+        "year": "የትምህርት ዘመን",
+        "yearHint": "በነባሪ የአሁኑ ዘመን።",
+        "currentYear": "የአሁኑ ዘመን",
+        "subjects": "ትምህርቶች",
+        "students": "አሁን ተማሪዎችን ያክሉ (አማራጭ)"
+      }
+    },
+    "classDetail": {
+      "loadFailed": "ይህን ክፍል መጫን አልተቻለም።",
+      "back": "ሁሉም ክፍሎች",
+      "archived": "በማህደር የተቀመጠ",
+      "archivedNote": "ይህ ክፍል በማህደር ተቀምጧል። ሁሉም በውስጡ ይቆያሉ፣ ግን የተማሪዎች ዝርዝር ታግዷል። ለውጦችን ለማድረግ በቅንብሮች ውስጥ ይመልሱት።",
+      "students": "{count, plural, one {# ተማሪ} other {# ተማሪዎች}}",
+      "tabs": {
+        "roster": "ተማሪዎች",
+        "teachers": "መምህራን",
+        "groups": "ቡድኖች",
+        "codes": "የመግቢያ ኮዶች",
+        "settings": "ቅንብሮች"
+      }
+    },
+    "roster": {
+      "addExisting": "ተማሪዎችን ያክሉ",
+      "createNew": "አዲስ ተማሪ ይፍጠሩ",
+      "loadFailed": "የዚህን ክፍል ተማሪዎች መጫን አልተቻለም።",
+      "empty": "በዚህ ክፍል ውስጥ እስካሁን ተማሪ የለም።",
+      "add": {
+        "title": "ወደ {name} ተማሪዎችን ያክሉ",
+        "description": "የትምህርት ቤቱን ተማሪዎች ይፈልጉ እና የሚጨመሩትን ምልክት ያድርጉ።",
+        "label": "ተማሪዎች",
+        "submit": "{count, plural, =0 {አክል} one {# ተማሪ አክል} other {# ተማሪዎች አክል}}",
+        "done": "ተማሪዎቹ ተጨምረዋል።",
+        "failed": "እነዚህን ተማሪዎች ማከል አልተቻለም።"
+      },
+      "drawer": {
+        "title": "ተማሪ",
+        "description": "የዚህ ተማሪ ዝርዝሮች እና በዚህ ክፍል ውስጥ ሊያደርጉ የሚችሉት።",
+        "loadFailed": "ይህን ተማሪ መጫን አልተቻለም።",
+        "move": "ወደ ሌላ ክፍል አዛውር",
+        "remove": "ከዚህ ክፍል አስወግድ",
+        "removed": "ተማሪው ከክፍሉ ተወግዷል።",
+        "failed": "ይህን ማጠናቀቅ አልተቻለም።",
+        "removeTitle": "{name} ይወገዱ?",
+        "removeBody": "ከ{class} ይወጣሉ። በትምህርት ቤቱ ይቆያሉ እና ታሪካቸው ይጠበቃል።",
+        "removeConfirm": "አስወግድ"
+      },
+      "move": {
+        "title": "{name}ን ያዛውሩ",
+        "description": "ከ{class} ወጥተው በአንድ እርምጃ ወደሚመርጡት ክፍል ይገባሉ።",
+        "submit": "ተማሪውን አዛውር",
+        "target": "አዲስ ክፍል",
+        "choose": "ክፍል ይምረጡ",
+        "noOtherClass": "የሚዛወርበት ሌላ ንቁ ክፍል የለም።",
+        "done": "ተማሪው ተዛውሯል።",
+        "failed": "ይህን ተማሪ ማዛወር አልተቻለም።"
+      }
+    },
+    "classTeachers": {
+      "add": "መምህር ያክሉ",
+      "loadFailed": "መምህራንን መጫን አልተቻለም።",
+      "empty": "በዚህ ክፍል ውስጥ መምህር የለም።",
+      "remove": "አስወግድ",
+      "leave": "ክፍሉን ልልቀቅ",
+      "removed": "መምህሩ ከክፍሉ ተወግዷል።",
+      "failed": "ይህን ማጠናቀቅ አልተቻለም።",
+      "removeTitle": "{name} ይወገዱ?",
+      "removeBody": "{class}ን ማስተማር ያቆማሉ።",
+      "removeConfirm": "አስወግድ",
+      "lastLead": "እያንዳንዱ ክፍል ዋና መምህር ያስፈልገዋል። መጀመሪያ ሌላ ሰው ዋና መምህር ያድርጉ።",
+      "addDialog": {
+        "title": "ወደ {name} መምህር ያክሉ",
+        "description": "የትምህርት ቤትዎን መምህር እና በዚህ ክፍል ውስጥ ያላቸውን ሚና ይምረጡ።",
+        "search": "መምህራንን ይፈልጉ",
+        "teacher": "መምህር",
+        "loading": "በመጫን ላይ…",
+        "choose": "መምህር ይምረጡ",
+        "noTeachers": "የሚስማማ መምህር የለም። መጀመሪያ በመምህራን ስር መምህራንን ያክሉ።",
+        "role": "ሚና",
+        "subject": "ትምህርት",
+        "chooseSubjectPlaceholder": "ትምህርት ይምረጡ",
+        "chooseTeacher": "መምህር ይምረጡ።",
+        "chooseSubject": "ይህ መምህር የሚያስተምረውን ትምህርት ይምረጡ።",
+        "submit": "መምህር አክል",
+        "done": "መምህሩ ተጨምሯል።",
+        "failed": "ይህን መምህር ማከል አልተቻለም።"
+      }
+    },
+    "groups": {
+      "intro": "የተቀመጡ የተማሪ ቡድኖች፣ ለምሳሌ ለቡድን ሥራ።",
+      "create": "አዲስ ቡድን",
+      "loadFailed": "ቡድኖቹን መጫን አልተቻለም።",
+      "empty": "እስካሁን የተቀመጠ ቡድን የለም።",
+      "members": "{count, plural, one {# ተማሪ} other {# ተማሪዎች}}",
+      "delete": "{name}ን ይሰርዙ",
+      "deleted": "ቡድኑ ተሰርዟል።",
+      "failed": "ይህን ማጠናቀቅ አልተቻለም።",
+      "deleteTitle": "{name} ይሰረዝ?",
+      "deleteBody": "ቡድኑ ብቻ ይሰረዛል። ተማሪዎቹ በክፍሉ ውስጥ ይቆያሉ።",
+      "deleteConfirm": "ቡድኑን ሰርዝ",
+      "dialog": {
+        "title": "አዲስ ቡድን",
+        "name": "የቡድኑ ስም",
+        "members": "በቡድኑ ውስጥ ያሉ ተማሪዎች",
+        "needMembers": "ቢያንስ አንድ ተማሪ ይምረጡ።",
+        "saved": "ቡድኑ ተቀምጧል።",
+        "failed": "ቡድኑን ማስቀመጥ አልተቻለም።"
+      }
+    },
+    "classSettings": {
+      "details": "ስም፣ አዶ እና ቀለም",
+      "detailsBody": "የዚህ ክፍል መልክ እና የክፍል ደረጃው እና ትምህርቶቹ ይቀይሩ።",
+      "edit": "ክፍሉን አርም",
+      "restoreTitle": "ይህን ክፍል መልስ",
+      "restoreBody": "የተማሪዎች ዝርዝር መለወጥ እንዲችል ክፍሉን እንደገና ንቁ ያድርጉት።",
+      "archiveTitle": "ይህን ክፍል በማህደር አስቀምጥ",
+      "archiveBody": "በማህደር ማስቀመጥ የተማሪዎችን ዝርዝር ያግዳል። ሁሉም ቦታቸውን ይይዛሉ እና ክፍሉ ሊነበብ ይችላል።",
+      "restore": "ክፍሉን መልስ",
+      "archive": "ክፍሉን በማህደር አስቀምጥ",
+      "restored": "ክፍሉ ተመልሷል።",
+      "archivedDone": "ክፍሉ በማህደር ተቀምጧል።",
+      "deleteTitle": "ይህን ክፍል ሰርዝ",
+      "deleteBody": "ተማሪ ኖሮት የማያውቅ ክፍል ብቻ ሊሰረዝ ይችላል። ካልሆነ በማህደር ያስቀምጡት።",
+      "delete": "ክፍሉን ሰርዝ",
+      "deleted": "ክፍሉ ተሰርዟል።",
+      "failed": "ይህን ማጠናቀቅ አልተቻለም።",
+      "archiveConfirmTitle": "{name} በማህደር ይቀመጥ?",
+      "archiveConfirmBody": "ክፍሉን እስኪመልሱ ድረስ የተማሪዎች ዝርዝር ታግዷል።",
+      "deleteConfirmTitle": "{name} ይሰረዝ?",
+      "deleteConfirmBody": "ይህ ሊመለስ አይችልም።",
+      "notEmpty": "ይህ ክፍል ተማሪዎች ነበሩት፣ ስለዚህ መሰረዝ አይችልም። በምትኩ በማህደር ያስቀምጡት።"
+    },
+    "picker": {
+      "selected": "የተመረጡ ተማሪዎች",
+      "remove": "{name}ን አስወግድ",
+      "search": "ተማሪዎችን ይፈልጉ",
+      "loading": "በመጫን ላይ…",
+      "failed": "ተማሪዎችን መጫን አልተቻለም።",
+      "none": "ተማሪ አልተገኘም።"
+    },
+    "print": {
+      "title": "የመግቢያ ኮድ ወረቀት",
+      "lostTitle": "እነዚህ ኮዶች ከእንግዲህ አይገኙም",
+      "lostBody": "ለደህንነት ሲባል የመግቢያ ኮዶች አንድ ጊዜ ብቻ ይታያሉ እና አይቀመጡም። ወረቀት ለማተም አዲስ ኮዶችን ይስጡ።",
+      "issueAgain": "ኮዶችን እንደገና ስጥ",
+      "back": "ወደ {class} ተመለስ",
+      "heading": "የ{class} የመግቢያ ኮዶች",
+      "summary": "{count, plural, one {# ካርድ} other {# ካርዶች}} በ{pages, plural, one {# ገጽ} other {# ገጾች}} ላይ",
+      "validUntil": "እስከ {date} ድረስ የሚሠራ",
+      "language": "መመሪያዎች በ",
+      "print": "አትም",
+      "done": "ተጠናቋል",
+      "warning": "እነዚህ ኮዶች አሁን ብቻ ይታያሉ። አዲስ ኮዶችን መስጠት አሮጌዎቹን ይተካል። በነጥብ መስመሮቹ ይቁረጡ እና እያንዳንዱን ካርድ ለትክክለኛው ተማሪ ይስጡ።",
+      "missing": "አልታተሙም (የዚህ ዓይነት ኮድ የለም)፦ {names}።",
+      "page": "ገጽ {number}",
+      "instruction": "School መተግበሪያን ይክፈቱ፣ «በኮድ ግባ» ይምረጡ፣ ከዚያ QR ኮዱን ይቃኙ ወይም ኮዱን ይተይቡ።",
+      "instructionQr": "School መተግበሪያን ይክፈቱ፣ «በኮድ ግባ» ይምረጡ፣ ከዚያ QR ኮዱን ይቃኙ።",
+      "instructionText": "School መተግበሪያን ይክፈቱ፣ «በኮድ ግባ» ይምረጡ፣ ከዚያ ኮዱን ይተይቡ።",
+      "validUntilShort": "እስከ",
+      "qrCaption": "ይቃኙኝ",
+      "textCaption": "ወይም ይህን ኮድ ይተይቡ"
+    },
+    "settings": {
+      "title": "የትምህርት ቤት ቅንብሮች",
+      "subtitle": "እዚህ የሚያስቀምጧቸው ዋጋዎች ለትምህርት ቤትዎ ይሠራሉ። ያላስቀመጡት ማንኛውም ነገር ድርጅትዎን፣ አገርዎን ወይም መድረኩን ይከተላል።",
+      "loadFailed": "ቅንብሮቹን መጫን አልተቻለም።",
+      "saved": "{key} ተቀምጧል።",
+      "saveFailed": "ይህን ቅንብር ማስቀመጥ አልተቻለም።",
+      "resetDone": "{key} አሁን የተወረሰውን ዋጋ ይከተላል።",
+      "effectiveFrom": "ዋጋው ከ",
+      "save": "አስቀምጥ",
+      "saving": "በማስቀመጥ ላይ…",
+      "reset": "ወደ ተወረሰው መልስ",
+      "default": "ነባሪ፦ {value}",
+      "ownNote": "ለትምህርት ቤትዎ ተቀምጧል።",
+      "inheritedNote": "የተወረሰ፦ የራስዎን ዋጋ ለማስቀመጥ ይቀይሩት።",
+      "invalidValue": "ይህ ዋጋ ለዚህ ቅንብር ትክክል አይደለም።"
+    },
+    "features": {
+      "title": "ባህሪያት",
+      "subtitle": "ትምህርት ቤትዎ አሁን ሊጠቀምባቸው የሚችላቸው። ባህሪያት የእርስዎን ዕቅድ እና የመድረኩን ቅንብሮች ይከተላሉ።",
+      "loadFailed": "ባህሪያቱን መጫን አልተቻለም።",
+      "plan": "ዕቅድ",
+      "freeFallback": "እስካሁን ምዝገባ የለም፦ ነጻ ዕቅድ",
+      "feature": "ባህሪ",
+      "available": "ይገኛል",
+      "flag": "በርቷል",
+      "limit": "ገደብ",
+      "source": "የተቀመጠው በ",
+      "yes": "አዎ",
+      "no": "አይ",
+      "note": "ባህሪያትን መቀየር የሚችለው የመድረኩ ቡድን ብቻ ነው። ዕቅድዎን ለማሳደግ ድጋፍን ያነጋግሩ።"
     }
   }
 }

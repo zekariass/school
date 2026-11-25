@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { hasConsoleAccess, resolvePostSignInPath, schoolChoices, type GrantsLike } from "./post-sign-in";
 
+function membership(type: string, school: { slug: string; name: string }) {
+  return { type, schoolSlug: school.slug, schoolName: school.name };
+}
+
 function grant(type: string, school?: { slug: string; name: string }) {
   return { scope: { type }, schoolSlug: school?.slug, schoolName: school?.name };
 }
@@ -67,6 +71,57 @@ describe("resolvePostSignInPath", () => {
     expect(resolvePostSignInPath({ me: me(grant("SCHOOL", { slug: "a b", name: "A" })), locale: "en" })).toBe(
       "/en/s/a%20b",
     );
+  });
+});
+
+describe("resolvePostSignInPath with memberships", () => {
+  it("opens the workspace of a teacher without any role assignment", () => {
+    expect(
+      resolvePostSignInPath({ me: { roleAssignments: [], memberships: [membership("TEACHER", sunrise)] }, locale: "en" }),
+    ).toBe("/en/s/sunrise");
+  });
+
+  it("counts a teacher membership and a role at the same school once", () => {
+    expect(
+      resolvePostSignInPath({
+        me: { roleAssignments: [grant("SCHOOL", sunrise)], memberships: [membership("TEACHER", sunrise)] },
+        locale: "am",
+      }),
+    ).toBe("/am/s/sunrise");
+  });
+
+  it("shows the picker for a teacher at one school and an administrator at another", () => {
+    expect(
+      resolvePostSignInPath({
+        me: { roleAssignments: [grant("SCHOOL", moon)], memberships: [membership("TEACHER", sunrise)] },
+        locale: "en",
+      }),
+    ).toBe("/en/schools");
+  });
+
+  it("sends a student-only account to the page about the School app", () => {
+    expect(
+      resolvePostSignInPath({ me: { roleAssignments: [], memberships: [membership("STUDENT", sunrise)] }, locale: "en" }),
+    ).toBe("/en/student-app");
+  });
+
+  it("prefers a workspace over the student page for someone who is both", () => {
+    expect(
+      resolvePostSignInPath({
+        me: { roleAssignments: [], memberships: [membership("STUDENT", sunrise), membership("TEACHER", moon)] },
+        locale: "en",
+      }),
+    ).toBe("/en/s/moon");
+  });
+
+  it("still lets a safe next path win", () => {
+    expect(
+      resolvePostSignInPath({
+        me: { roleAssignments: [], memberships: [membership("STUDENT", sunrise)] },
+        locale: "en",
+        next: "/en/account",
+      }),
+    ).toBe("/en/account");
   });
 });
 

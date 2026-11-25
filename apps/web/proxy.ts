@@ -16,7 +16,7 @@ const handleIntl = createIntlProxy(routing);
 
 /** Pages that need a session. */
 const PROTECTED = new RegExp(
-  `^/(${routing.locales.join("|")})/(s|platform|schools|no-access)(/|$)`,
+  `^/(${routing.locales.join("|")})/(s|platform|schools|no-access|student-app)(/|$)`,
 );
 
 function signInRedirect(request: NextRequest, locale: string) {

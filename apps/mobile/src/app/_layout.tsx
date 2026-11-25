@@ -103,6 +103,8 @@ function RootNavigator() {
         </Stack.Protected>
         <Stack.Protected guard={signedIn && activeRole === 'teacher'}>
           <Stack.Screen name="(teacher)" />
+          {/* A class opened from the Classes tab (roster, students, codes). */}
+          <Stack.Screen name="class" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && activeRole === 'guardian'}>
           <Stack.Screen name="(guardian)" />

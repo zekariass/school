@@ -5544,6 +5544,44 @@
         "summary" : "Change a subject, or deactivate it",
         "tags" : [ "academic-structure" ]
       }
+    },
+    "/api/v1/schools/{schoolId}/summary" : {
+      "get" : {
+        "operationId" : "getSchoolSummary",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SchoolCounts"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Counts of active students, teachers and classes plus what is already set up (current year, grade levels, subjects); needs school.read",
+        "tags" : [ "school-summary" ]
+      }
     }
   },
   "components" : {
@@ -7860,6 +7898,43 @@
           }
         },
         "required" : [ "features", "planCode", "planIsFreeFallback", "schoolId", "settings" ]
+      },
+      "SchoolCounts" : {
+        "type" : "object",
+        "properties" : {
+          "academicYears" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "classes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "gradeLevels" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "hasCurrentYear" : {
+            "type" : "boolean"
+          },
+          "staff" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "students" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "subjects" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "teachers" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "academicYears", "classes", "gradeLevels", "hasCurrentYear", "staff", "students", "subjects", "teachers" ]
       },
       "SchoolLanguageResponse" : {
         "type" : "object",
