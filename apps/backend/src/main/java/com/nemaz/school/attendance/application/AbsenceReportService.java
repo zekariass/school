@@ -281,7 +281,12 @@ public class AbsenceReportService {
 		if (!Set.of("SUBMITTED", "ACKNOWLEDGED").contains(report.status())) {
 			throw ApiException.conflict("absence.already_decided");
 		}
-		this.jdbc.sql("update absence_reports set status = 'CANCELLED', updated_at = :now, version = version + 1 where id = :id")
+		// The table's check ties decided_by/decided_at to ACKNOWLEDGED and DECLINED, so withdrawing an acknowledged
+		// report clears them (the decision stays in the audit log).
+		this.jdbc.sql("""
+				update absence_reports set status = 'CANCELLED', decided_by = null, decided_at = null, decision_note = null,
+				                           updated_at = :now, version = version + 1
+				where id = :id""")
 			.param("now", Timestamp.from(this.time.now()))
 			.param("id", reportId)
 			.update();
