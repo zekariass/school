@@ -123,6 +123,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/invitations/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept a live invitation with the one-time code: finds or creates the adult's account, links them to the child (PENDING until the school verifies, unless the school auto-verifies its own SMS/email invites accepted from the invited destination) and signs them in. Wrong or expired codes are 400 auth.invalid_code */
+        post: operations["acceptInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/otp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a one-time code to the phone or email of the adult accepting a live invitation (even when no account exists; 3 per destination and 20 per address per hour). 404 invitation.not_found for unknown, expired, revoked or used-up invitations */
+        post: operations["requestInvitationOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invitations/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** What a live invitation is about, before signing in: school, the child's first name, relationship, channel. Unknown, expired, revoked and used-up invitations are all 404 invitation.not_found; guessing is rate limited (429) */
+        post: operations["previewInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -159,6 +210,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/children": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My children through ACTIVE links that are not custody-restricted (record, schools, classes and teachers when the link allows academics); PENDING requests listed apart with the child's first name only */
+        get: operations["listMyChildren"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/classes": {
         parameters: {
             query?: never;
@@ -170,6 +238,41 @@ export interface paths {
         get: operations["listMyClasses"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** For each child I may give consent for (ACTIVE link, not restricted, can_give_consent) and school: ACCOUNT_PARTICIPATION and MEDIA_PUBLICATION with the current text, my latest decision and whether a new decision is needed; plus my own TERMS and PRIVACY */
+        get: operations["listMyConsents"];
+        put?: never;
+        /** Record a decision on the current policy version: for a child (studentId; schoolId when the child is in several schools) ACCOUNT_PARTICIPATION or MEDIA_PUBLICATION, or for myself (no studentId) TERMS or PRIVACY. 404 consent.child_not_found for children I may not decide for, 409 consent.version_outdated for any version but the current one */
+        post: operations["recordMyConsent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/guardian-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Redeem an invitation link token or printed parent code as the signed-in adult (STANDARD account with a verified phone or email, which is the proof). Creates a PENDING link (or returns the existing one); unknown, expired or used-up invitations are 404 invitation.not_found */
+        post: operations["redeemGuardianInvitation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -854,6 +957,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/policies/{policyType}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The current text of a policy (public): the school's own document if it has a published version, else the country default (country, default ET); in lang, else English, else any language. 404 policy.not_found */
+        get: operations["getPolicy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/realtime/tickets": {
         parameters: {
             query?: never;
@@ -1083,6 +1203,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/classes/{classId}/consent-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The roster's consent column (teachers of the class, class managers, school.guardians.manage): per ACTIVE student the effective ACCOUNT_PARTICIPATION and MEDIA_PUBLICATION status, without guardian identities. Treat MEDIA_PUBLICATION UNKNOWN as not allowed */
+        get: operations["getClassConsentSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/classes/{classId}/groups": {
         parameters: {
             query?: never;
@@ -1147,6 +1284,23 @@ export interface paths {
         post?: never;
         /** Revoke one login code of the class's sheet */
         delete: operations["revokeClassLoginCode"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/parent-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Print parent codes (home connection) for students of the class (default: all ACTIVE students): one code per student for up to guardians.parent_code.max_uses adults within guardians.parent_code.ttl_days; the student's previous live code is revoked. Links made with a code are always PENDING. The codes are in this response only (Cache-Control: no-store); do not send an Idempotency-Key */
+        post: operations["issueParentCodes"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1290,6 +1444,108 @@ export interface paths {
         head?: never;
         /** Change a grade level, or deactivate it */
         patch: operations["updateGradeLevel"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/guardian-invitations/{invitationId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke an invitation or a printed parent code; links already made stay as they are */
+        post: operations["revokeGuardianInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/guardian-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The verification queue: links of the school's ACTIVE students in one status (default PENDING), oldest first. Administrators see all, verifying lead teachers the students of their classes */
+        get: operations["listGuardianLinks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/guardian-links/{linkId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change a PENDING or ACTIVE link: permission flags, relationship, primary guardian (one per child), custody restriction with an admin-only note (a restricted link grants nothing) */
+        patch: operations["updateGuardianLink"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/guardian-links/{linkId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify a PENDING link (SCHOOL_VERIFIED): it becomes ACTIVE and the guardian is notified. 409 guardian_link.not_pending otherwise */
+        post: operations["approveGuardianLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/guardian-links/{linkId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a PENDING link; the adult is notified */
+        post: operations["rejectGuardianLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/guardian-links/{linkId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End a link: access stops with the guardian's next request */
+        post: operations["revokeGuardianLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/schools/{schoolId}/imports": {
@@ -1534,6 +1790,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The school's own policy documents with every version (drafts included) */
+        get: operations["listSchoolPolicies"];
+        put?: never;
+        /** Start the school's own wording of ACCOUNT_PARTICIPATION or MEDIA_PUBLICATION (409 policy.already_exists); it replaces the country default once a version is published */
+        post: operations["createSchoolPolicy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/policies/{documentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename a school policy document */
+        put: operations["updateSchoolPolicy"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/policies/{documentId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a draft version in one language (one row per label and language; 409 policy.version_exists) */
+        post: operations["createSchoolPolicyVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/policies/{documentId}/versions/{versionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change a draft version (409 policy.version_published once published) */
+        put: operations["updateSchoolPolicyVersion"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/policies/{documentId}/versions/{versionId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a draft: it becomes immutable and takes effect at effectiveFrom (now at the earliest). With requiresReconsent, guardians are asked again and earlier grants stop counting once it is in effect */
+        post: operations["publishSchoolPolicyVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/staff": {
         parameters: {
             query?: never;
@@ -1621,6 +1963,60 @@ export interface paths {
         head?: never;
         /** Change a student's details (school.students.manage); the student themself may change only avatarConfig */
         patch: operations["updateStudent"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The child's effective statuses and every consent record, newest first (school.guardians.manage) */
+        get: operations["listStudentConsents"];
+        put?: never;
+        /** Record a decision the school received on paper or verbally (school.guardians.manage): from a guardian link that may give consent (409 consent.guardian_not_eligible otherwise) or from a named guardian without an account */
+        post: operations["recordStudentConsent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/guardian-invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The student's guardian invitations, newest first (destinations masked; never tokens or codes) */
+        get: operations["listGuardianInvitations"];
+        put?: never;
+        /** Invite an adult by SMS or email to link to the student (single use, 14 days, sent in the school's language). The phone or email is not proof of guardianship: accepting creates a PENDING link. At most 10 live invitations per student (409 invitation.limit_reached) */
+        post: operations["inviteGuardian"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/guardians": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The student's guardian links. Administrators (school.guardians.manage) see every status with masked contact details and notes; teachers of the student see PENDING and ACTIVE links with names, relationship and status only */
+        get: operations["listStudentGuardians"];
+        put?: never;
+        /** Link an adult the school knows (the administrator vouches): found by phone or email or created, the link is ACTIVE (SCHOOL_VERIFIED) */
+        post: operations["createStudentGuardian"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/schools/{schoolId}/students/{studentId}/login-codes": {
@@ -1887,6 +2283,64 @@ export interface components {
             enabled: boolean;
             locked: boolean;
         };
+        Child: {
+            avatar?: components["schemas"]["MediaSummary"];
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            /** Format: date */
+            dateOfBirth?: string;
+            displayName: string;
+            gender?: string;
+            givenName: string;
+            /** Format: uuid */
+            linkId: string;
+            permissions: components["schemas"]["LinkPermissions"];
+            primary: boolean;
+            /** @enum {string} */
+            relationshipType: "MOTHER" | "FATHER" | "GRANDPARENT" | "SIBLING" | "AUNT_UNCLE" | "LEGAL_GUARDIAN" | "OTHER";
+            schools: components["schemas"]["ChildSchool"][];
+            /** Format: uuid */
+            studentId: string;
+        };
+        ChildClass: {
+            /** Format: uuid */
+            classId: string;
+            color?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            gradeLevelName?: string;
+            icon?: string;
+            name: string;
+            teachers: components["schemas"]["ClassTeacher"][];
+        };
+        ChildConsents: {
+            childName: string;
+            items: components["schemas"]["ConsentItem"][];
+            /** Format: uuid */
+            linkId: string;
+            /** Format: uuid */
+            schoolId: string;
+            schoolName: string;
+            /** Format: uuid */
+            studentId: string;
+        };
+        ChildSchool: {
+            /** @description Empty unless the link allows viewing academics */
+            classes: components["schemas"]["ChildClass"][];
+            /** Format: uuid */
+            schoolId: string;
+            schoolName: string;
+            schoolSlug: string;
+            studentNumber?: string;
+        };
+        ClassTeacher: {
+            displayName: string;
+            /** @enum {string} */
+            role: "LEAD" | "CO_TEACHER" | "SUBJECT_TEACHER" | "ASSISTANT";
+            /** Format: uuid */
+            teacherId: string;
+        };
         ClassTeacherView: {
             avatar?: components["schemas"]["MediaSummary"];
             displayName: string;
@@ -1958,6 +2412,54 @@ export interface components {
             /** Format: int32 */
             updated: number;
         };
+        ConsentItem: {
+            /** @enum {string} */
+            consentType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
+            /** @description The text to decide on; absent when no policy is published */
+            currentVersion?: components["schemas"]["PolicyView"];
+            /** @description The child's effective status (children only) */
+            effectiveStatus?: components["schemas"]["ConsentStatus"];
+            /** @description My latest decision (for a child: the latest decision of my link, also when the school recorded it) */
+            myDecision?: components["schemas"]["MyDecisionView"];
+            /** @description No decision yet, or an outdated one */
+            needsDecision: boolean;
+            /** @description My GRANTED decision is on a version superseded by one that requires new consent */
+            outdated: boolean;
+        };
+        ConsentRecordView: {
+            /** @enum {string} */
+            consentType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
+            /** Format: date-time */
+            createdAt: string;
+            /** @description The guardian (account name or the name written on paper) */
+            decidedByName?: string;
+            /** @enum {string} */
+            decision: "GRANTED" | "DENIED" | "WITHDRAWN";
+            /** Format: uuid */
+            guardianLinkId?: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            method: "IN_APP" | "PAPER_RECORDED_BY_SCHOOL" | "VERBAL_RECORDED_BY_SCHOOL";
+            /** Format: uuid */
+            policyVersionId: string;
+            /**
+             * Format: uuid
+             * @description Staff member who recorded a paper or verbal decision
+             */
+            recordedBy?: string;
+            versionLabel: string;
+        };
+        ConsentStatus: {
+            decidingRecordIds: string[];
+            /**
+             * @description GRANTED: at least one current guardian granted and nobody refused; DENIED / WITHDRAWN: a current guardian (or a paper record) refused or withdrew; RECONSENT_REQUIRED: the only grants are on a version superseded by one that requires new consent; NO_DECISION: nobody decided yet
+             * @enum {string}
+             */
+            reason: "GRANTED" | "DENIED" | "WITHDRAWN" | "RECONSENT_REQUIRED" | "NO_DECISION";
+            /** @enum {string} */
+            status: "GRANTED" | "DENIED" | "UNKNOWN";
+        };
         ContextRef: {
             /** Format: uuid */
             id: string;
@@ -2026,6 +2528,15 @@ export interface components {
             name: string;
             studentIds: string[];
         };
+        /** @description Exactly one of phone or email. National phone formats are read in `country` (default: the school's country). */
+        CreateGuardianRequest: {
+            country?: string;
+            email?: string;
+            name: string;
+            phone?: string;
+            /** @enum {string} */
+            relationshipType: "MOTHER" | "FATHER" | "GRANDPARENT" | "SIBLING" | "AUNT_UNCLE" | "LEGAL_GUARDIAN" | "OTHER";
+        };
         CreateImportRequest: {
             /** @enum {string} */
             importType: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
@@ -2057,6 +2568,11 @@ export interface components {
             sequence?: number;
             /** Format: date */
             startsOn: string;
+        };
+        CreatePolicyRequest: {
+            /** @enum {string} */
+            policyType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
+            title: string;
         };
         CreateProfileRequest: {
             /** @description Field key to the header text of the column in the school's files */
@@ -2130,6 +2646,14 @@ export interface components {
             phone?: string;
             preferredLanguage?: string;
         };
+        CreateVersionRequest: {
+            content: string;
+            /** Format: date-time */
+            effectiveFrom?: string;
+            languageCode: string;
+            requiresReconsent?: boolean;
+            versionLabel: string;
+        };
         CreateYearRequest: {
             /** Format: date */
             endsOn: string;
@@ -2174,6 +2698,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageGuardianLinkView: {
+            items: components["schemas"]["GuardianLinkView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageImportJobView: {
             items: components["schemas"]["ImportJobView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -2214,6 +2743,10 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        DecisionRequest: {
+            /** @description Internal to the school */
+            note?: string;
+        };
         DefinitionsResponse: {
             features: components["schemas"]["FeatureDefinitionResponse"][];
             settings: components["schemas"]["SettingDefinitionResponse"][];
@@ -2229,6 +2762,16 @@ export interface components {
             mergedRegions: number;
             sheet?: string;
             sheetNames: string[];
+        };
+        Document: {
+            countryCode?: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            policyType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
+            /** Format: uuid */
+            schoolId?: string;
+            title: string;
         };
         /** @description Why a job is FAILED: the phase (VALIDATE or COMMIT), the first failing row if any, and a localized message */
         Failure: {
@@ -2283,6 +2826,46 @@ export interface components {
             name: string;
             /** Format: int32 */
             sequence: number;
+        };
+        GuardianLinkView: {
+            /** @description SMS/email invitations: whether the adult proved the invited phone or email; school.guardians.manage only */
+            contactMatchesInvitation?: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Grants nothing at all while true (court order etc.) */
+            custodyRestricted: boolean;
+            /** Format: date-time */
+            decidedAt?: string;
+            /** @description The verifier's note; school.guardians.manage only */
+            decisionNote?: string;
+            /** @description Masked; school.guardians.manage only */
+            guardianEmail?: string;
+            /** Format: uuid */
+            guardianId: string;
+            guardianName: string;
+            /** @description Masked; school.guardians.manage only */
+            guardianPhone?: string;
+            /** Format: uuid */
+            id: string;
+            /** @description The name the inviter typed; school.guardians.manage only */
+            invitedName?: string;
+            permissions: components["schemas"]["LinkPermissions"];
+            primary: boolean;
+            /** @enum {string} */
+            relationshipType: "MOTHER" | "FATHER" | "GRANDPARENT" | "SIBLING" | "AUNT_UNCLE" | "LEGAL_GUARDIAN" | "OTHER";
+            /** @enum {string} */
+            requestedVia: "INVITE_LINK" | "PARENT_CODE" | "ADMIN";
+            /** @description school.guardians.manage only */
+            restrictionNote?: string;
+            /** @enum {string} */
+            status: "PENDING" | "ACTIVE" | "REJECTED" | "REVOKED";
+            /** Format: uuid */
+            studentId: string;
+            studentName: string;
+            /** @enum {string} */
+            verificationMethod?: "SCHOOL_INVITE" | "SCHOOL_VERIFIED" | "DOCUMENT" | "PLATFORM_ADMIN";
+            /** Format: date-time */
+            verifiedAt?: string;
         };
         ImportJobView: {
             /** @description Field key to zero-based column index */
@@ -2380,6 +2963,79 @@ export interface components {
             /** @enum {string} */
             type: "GRADE_LEVELS" | "SUBJECTS" | "CLASSES" | "STAFF" | "STUDENTS" | "ENROLLMENTS";
         };
+        /** @description Set exactly one of token or code, and the same phone or email the code was sent to. */
+        InvitationAcceptRequest: {
+            code?: string;
+            country?: string;
+            /** @description Name for a new account (ignored for an existing one) */
+            displayName?: string;
+            email?: string;
+            otpCode: string;
+            phone?: string;
+            /** @description Language for a new account, e.g. am or en */
+            preferredLanguage?: string;
+            token?: string;
+        };
+        /** @description Exactly one of token (from the invitation link) or code (printed parent code, any case, hyphen optional). */
+        InvitationKeyRequest: {
+            code?: string;
+            token?: string;
+        };
+        /** @description Set exactly one of token (from the invitation link) or code (printed parent code), and exactly one of phone or email. */
+        InvitationOtpRequest: {
+            code?: string;
+            country?: string;
+            email?: string;
+            phone?: string;
+            token?: string;
+        };
+        InvitationPreview: {
+            /** @enum {string} */
+            channel: "SMS" | "EMAIL" | "LINK" | "PRINTED_CODE";
+            childFirstName: string;
+            /** @enum {string} */
+            relationshipType?: "MOTHER" | "FATHER" | "GRANDPARENT" | "SIBLING" | "AUNT_UNCLE" | "LEGAL_GUARDIAN" | "OTHER";
+            schoolName: string;
+        };
+        InvitationView: {
+            /** @enum {string} */
+            channel: "SMS" | "EMAIL" | "LINK" | "PRINTED_CODE";
+            /** Format: uuid */
+            classId?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Masked phone or email (SMS and EMAIL invitations) */
+            destination?: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** @description The name the inviter typed */
+            guardianName?: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            maxUses: number;
+            /** @enum {string} */
+            relationshipType?: "MOTHER" | "FATHER" | "GRANDPARENT" | "SIBLING" | "AUNT_UNCLE" | "LEGAL_GUARDIAN" | "OTHER";
+            /**
+             * @description EXPIRED when the validity ended while still unused
+             * @enum {string}
+             */
+            status: "PENDING" | "SENT" | "ACCEPTED" | "EXPIRED" | "REVOKED";
+            /** Format: uuid */
+            studentId: string;
+            /** Format: int32 */
+            useCount: number;
+        };
+        /** @description Exactly one of phone or email. National phone formats are read in `country` (default: the school's country). */
+        InviteGuardianRequest: {
+            country?: string;
+            email?: string;
+            /** @description A hint for verifiers, not proof */
+            guardianName?: string;
+            phone?: string;
+            /** @enum {string} */
+            relationshipType: "MOTHER" | "FATHER" | "GRANDPARENT" | "SIBLING" | "AUNT_UNCLE" | "LEGAL_GUARDIAN" | "OTHER";
+        };
         IssueCodesRequest: {
             studentIds?: string[];
             /**
@@ -2393,6 +3049,9 @@ export interface components {
              */
             type?: "QR" | "TEXT" | "BOTH";
         };
+        IssueParentCodesRequest: {
+            studentIds?: string[];
+        };
         IssuedCode: {
             displayName: string;
             /** Format: date-time */
@@ -2402,6 +3061,18 @@ export interface components {
             studentId: string;
             textCode?: string;
         };
+        IssuedParentCode: {
+            childFirstName: string;
+            code: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uuid */
+            invitationId: string;
+            /** Format: int32 */
+            maxUses: number;
+            /** Format: uuid */
+            studentId: string;
+        };
         JsonNode: unknown;
         LanguageResponse: {
             code: string;
@@ -2410,6 +3081,14 @@ export interface components {
             name: string;
             nativeName: string;
             script?: string;
+        };
+        LinkPermissions: {
+            canAwardPoints: boolean;
+            canBookAndPay: boolean;
+            canGiveConsent: boolean;
+            canMessageStaff: boolean;
+            canReceiveNotifications: boolean;
+            canViewAcademics: boolean;
         };
         LoginCodeInfo: {
             /** Format: uuid */
@@ -2517,6 +3196,11 @@ export interface components {
             /** Format: uuid */
             toClassId: string;
         };
+        MyChildren: {
+            children: components["schemas"]["Child"][];
+            /** @description Link requests waiting for the school's verification */
+            pending: components["schemas"]["PendingLink"][];
+        };
         MyClass: {
             /** @enum {string} */
             classType: "HOMEROOM" | "SUBJECT" | "CLUB" | "OTHER";
@@ -2548,6 +3232,31 @@ export interface components {
              * @enum {string}
              */
             teacherRole?: "LEAD" | "CO_TEACHER" | "SUBJECT_TEACHER" | "ASSISTANT";
+        };
+        MyConsentRequest: {
+            /** @enum {string} */
+            consentType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
+            /** @enum {string} */
+            decision: "GRANTED" | "DENIED" | "WITHDRAWN";
+            /** Format: uuid */
+            policyVersionId: string;
+            /** Format: uuid */
+            schoolId?: string;
+            /** Format: uuid */
+            studentId?: string;
+        };
+        MyConsents: {
+            /** @description The adult's own TERMS and PRIVACY */
+            account: components["schemas"]["ConsentItem"][];
+            children: components["schemas"]["ChildConsents"][];
+        };
+        MyDecisionView: {
+            /** Format: date-time */
+            decidedAt: string;
+            /** @enum {string} */
+            decision: "GRANTED" | "DENIED" | "WITHDRAWN";
+            /** Format: uuid */
+            policyVersionId: string;
         };
         NotificationView: {
             body?: string;
@@ -2615,12 +3324,50 @@ export interface components {
             identifier: string;
             password: string;
         };
+        PendingLink: {
+            childFirstName: string;
+            /** Format: uuid */
+            linkId: string;
+            /** Format: date-time */
+            requestedAt: string;
+            schoolName?: string;
+            /** @enum {string} */
+            status: "PENDING" | "ACTIVE" | "REJECTED" | "REVOKED";
+        };
+        PermissionChange: {
+            canAwardPoints?: boolean;
+            canBookAndPay?: boolean;
+            canGiveConsent?: boolean;
+            canMessageStaff?: boolean;
+            canReceiveNotifications?: boolean;
+            canViewAcademics?: boolean;
+        };
         PlanInfo: {
             code: string;
             name: string;
         };
         PoliciesResponse: {
             purposes: components["schemas"]["PurposePolicy"][];
+        };
+        PolicyView: {
+            content: string;
+            countryCode?: string;
+            /** Format: uuid */
+            documentId: string;
+            /** Format: date-time */
+            effectiveFrom: string;
+            languageCode: string;
+            /** @enum {string} */
+            policyType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
+            /** Format: date-time */
+            publishedAt: string;
+            requiresReconsent: boolean;
+            /** Format: uuid */
+            schoolId?: string;
+            title: string;
+            /** Format: uuid */
+            versionId: string;
+            versionLabel: string;
         };
         PreferenceChange: {
             channel: string;
@@ -2717,6 +3464,34 @@ export interface components {
             scope: components["schemas"]["ScopeRef"];
             /** @description Any JSON value valid for the setting */
             value: components["schemas"]["JsonNode"];
+        };
+        RecordedConsent: {
+            /** @enum {string} */
+            consentType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
+            /** @enum {string} */
+            decision: "GRANTED" | "DENIED" | "WITHDRAWN";
+            /** @description The child's effective status after this decision (children only) */
+            effectiveStatus?: components["schemas"]["ConsentStatus"];
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            method: "IN_APP" | "PAPER_RECORDED_BY_SCHOOL" | "VERBAL_RECORDED_BY_SCHOOL";
+            /** Format: uuid */
+            policyVersionId: string;
+            /** Format: date-time */
+            recordedAt: string;
+            /** Format: uuid */
+            schoolId?: string;
+            /** Format: uuid */
+            studentId?: string;
+            versionLabel: string;
+        };
+        /** @description Exactly one of token or code. relationshipType is used when the invitation names none (printed codes). */
+        RedeemRequest: {
+            code?: string;
+            /** @enum {string} */
+            relationshipType?: "MOTHER" | "FATHER" | "GRANDPARENT" | "SIBLING" | "AUNT_UNCLE" | "LEGAL_GUARDIAN" | "OTHER";
+            token?: string;
         };
         RefreshRequest: {
             refreshToken: string;
@@ -2890,7 +3665,12 @@ export interface components {
             /** Format: uuid */
             studentId?: string;
             /** @enum {string} */
-            type: "TEACHER" | "STUDENT" | "STAFF";
+            type: "TEACHER" | "STUDENT" | "STAFF" | "GUARDIAN";
+        };
+        SchoolPolicy: {
+            document: components["schemas"]["Document"];
+            /** @description Drafts and published versions, newest first */
+            versions: components["schemas"]["Version"][];
         };
         SchoolResponse: {
             brandColor?: string;
@@ -3004,6 +3784,23 @@ export interface components {
             /** @description The timezone quiet hours are evaluated in */
             timezone: string;
         };
+        /** @description Exactly one of guardianLinkId or guardianName. Evidence uploads (scanned forms) are not supported yet. */
+        StaffConsentRequest: {
+            /** @enum {string} */
+            consentType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
+            /** @enum {string} */
+            decision: "GRANTED" | "DENIED" | "WITHDRAWN";
+            /** Format: uuid */
+            guardianLinkId?: string;
+            guardianName?: string;
+            /**
+             * @description PAPER_RECORDED_BY_SCHOOL or VERBAL_RECORDED_BY_SCHOOL
+             * @enum {string}
+             */
+            method: "IN_APP" | "PAPER_RECORDED_BY_SCHOOL" | "VERBAL_RECORDED_BY_SCHOOL";
+            /** Format: uuid */
+            policyVersionId: string;
+        };
         StaffView: {
             avatar?: components["schemas"]["MediaSummary"];
             /** Format: uuid */
@@ -3036,6 +3833,20 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+        };
+        StudentConsentSummary: {
+            accountParticipation: components["schemas"]["ConsentStatus"];
+            displayName: string;
+            mediaPublication: components["schemas"]["ConsentStatus"];
+            /** Format: uuid */
+            studentId: string;
+        };
+        StudentConsents: {
+            accountParticipation: components["schemas"]["ConsentStatus"];
+            mediaPublication: components["schemas"]["ConsentStatus"];
+            records: components["schemas"]["ConsentRecordView"][];
+            /** Format: uuid */
+            studentId: string;
         };
         StudentGroupView: {
             /** Format: date-time */
@@ -3197,6 +4008,15 @@ export interface components {
             /** Format: int32 */
             sequence?: number;
         };
+        UpdateLinkRequest: {
+            custodyRestricted?: boolean;
+            permissions?: components["schemas"]["PermissionChange"];
+            primary?: boolean;
+            /** @enum {string} */
+            relationshipType?: "MOTHER" | "FATHER" | "GRANDPARENT" | "SIBLING" | "AUNT_UNCLE" | "LEGAL_GUARDIAN" | "OTHER";
+            /** @description Visible to school.guardians.manage only; never audited */
+            restrictionNote?: string;
+        };
         UpdateMeRequest: {
             calendarPreference?: string;
             displayName?: string;
@@ -3219,6 +4039,9 @@ export interface components {
             sequence?: number;
             /** Format: date */
             startsOn?: string;
+        };
+        UpdatePolicyRequest: {
+            title: string;
         };
         UpdatePreferencesRequest: {
             changes: components["schemas"]["PreferenceChange"][];
@@ -3268,6 +4091,12 @@ export interface components {
             code?: string;
             color?: string;
             name?: string;
+        };
+        UpdateVersionRequest: {
+            content?: string;
+            /** Format: date-time */
+            effectiveFrom?: string;
+            requiresReconsent?: boolean;
         };
         UpdateYearRequest: {
             /** Format: date */
@@ -3335,6 +4164,23 @@ export interface components {
             schoolId?: string;
             /** @enum {string} */
             type: "PLATFORM" | "COUNTRY" | "ORGANIZATION" | "SCHOOL" | "CAMPUS";
+        };
+        Version: {
+            content: string;
+            /** Format: uuid */
+            documentId: string;
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: uuid */
+            id: string;
+            languageCode: string;
+            /**
+             * Format: date-time
+             * @description Null while a draft
+             */
+            publishedAt?: string;
+            requiresReconsent: boolean;
+            versionLabel: string;
         };
         WithdrawRequest: {
             reason?: string;
@@ -3571,6 +4417,105 @@ export interface operations {
             };
         };
     };
+    acceptInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationAcceptRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    requestInvitationOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationOtpRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OtpRequestAccepted"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    previewInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationKeyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationPreview"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getMe: {
         parameters: {
             query?: never;
@@ -3695,6 +4640,35 @@ export interface operations {
             };
         };
     };
+    listMyChildren: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyChildren"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listMyClasses: {
         parameters: {
             query?: {
@@ -3713,6 +4687,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyClass"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMyConsents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyConsents"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    recordMyConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MyConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordedConsent"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    redeemGuardianInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RedeemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianLinkView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -5470,6 +6539,41 @@ export interface operations {
             };
         };
     };
+    getPolicy: {
+        parameters: {
+            query?: {
+                schoolId?: string;
+                country?: string;
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                policyType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     createRealtimeTicket: {
         parameters: {
             query?: never;
@@ -6164,6 +7268,38 @@ export interface operations {
             };
         };
     };
+    getClassConsentSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentConsentSummary"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listClassGroups: {
         parameters: {
             query?: never;
@@ -6318,6 +7454,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    issueParentCodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["IssueParentCodesRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuedParentCode"][];
+                };
             };
             /** @description Error (RFC 9457 problem details) */
             default: {
@@ -6716,6 +7888,213 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GradeLevelView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    revokeGuardianInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                invitationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listGuardianLinks: {
+        parameters: {
+            query?: {
+                status?: "PENDING" | "ACTIVE" | "REJECTED" | "REVOKED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageGuardianLinkView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateGuardianLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                linkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianLinkView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    approveGuardianLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                linkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianLinkView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    rejectGuardianLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                linkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianLinkView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    revokeGuardianLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                linkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianLinkView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -7335,6 +8714,214 @@ export interface operations {
             };
         };
     };
+    listSchoolPolicies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolPolicy"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createSchoolPolicy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePolicyRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateSchoolPolicy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePolicyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createSchoolPolicyVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateVersionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Version"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateSchoolPolicyVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                documentId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateVersionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Version"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    publishSchoolPolicyVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                documentId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Version"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listStaff: {
         parameters: {
             query?: {
@@ -7637,6 +9224,210 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStudentConsents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentConsents"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    recordStudentConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordedConsent"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listGuardianInvitations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    inviteGuardian: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteGuardianRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStudentGuardians: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianLinkView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createStudentGuardian: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGuardianRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianLinkView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
