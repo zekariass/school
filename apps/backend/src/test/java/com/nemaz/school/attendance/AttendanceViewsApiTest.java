@@ -133,6 +133,7 @@ class AttendanceViewsApiTest extends AttendanceTestSupport {
 		String url = s.api() + "/attendance/dashboard";
 		JsonNode admin = get(url, s.admin());
 		assertThat(admin.get("date").asString()).isEqualTo(today().toString());
+		assertThat(admin.get("slots").get(0).asString()).isEqualTo(admin.get("slot").asString());
 		JsonNode totals = admin.get("totals");
 		assertThat(totals.get("classes").asInt()).isEqualTo(2);
 		assertThat(totals.get("classesTaken").asInt()).isEqualTo(1);

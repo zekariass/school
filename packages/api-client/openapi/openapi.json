@@ -10669,6 +10669,13 @@
           "slot" : {
             "type" : "string"
           },
+          "slots" : {
+            "type" : "array",
+            "description" : "The slots the school enabled (attendance.slots), so clients can offer a switcher",
+            "items" : {
+              "type" : "string"
+            }
+          },
           "timeZone" : {
             "type" : "string"
           },
@@ -10677,7 +10684,7 @@
             "description" : "Over every class the caller sees, not just this page"
           }
         },
-        "required" : [ "classes", "date", "slot", "timeZone", "totals" ]
+        "required" : [ "classes", "date", "slot", "slots", "timeZone", "totals" ]
       },
       "AttendanceHistoryItem" : {
         "type" : "object",
