@@ -3929,6 +3929,34 @@ export interface components {
             code: string;
             name: string;
         };
+        PointCategoryView: {
+            active?: boolean;
+            /**
+             * Format: uuid
+             * @description Set for a category of one class
+             */
+            classId?: string;
+            color?: string;
+            /** @enum {string} */
+            context: "CLASS" | "SCHOOL" | "HOME";
+            /** Format: int32 */
+            defaultPoints?: number;
+            icon?: string;
+            /** Format: uuid */
+            id: string;
+            /** @description The name in the caller's language */
+            name: string;
+            /** @description The names by language code */
+            names: {
+                [key: string]: string;
+            };
+            /** @enum {string} */
+            polarity: "POSITIVE" | "NEEDS_WORK";
+            /** Format: int32 */
+            sortOrder?: number;
+            /** @description Set for a copy of a platform template; the stable key of default categories */
+            templateCode?: string;
+        };
         PoliciesResponse: {
             purposes: components["schemas"]["PurposePolicy"][];
         };
@@ -8694,7 +8722,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryView"];
+                    "application/json": components["schemas"]["PointCategoryView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -8731,7 +8759,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryView"];
+                    "application/json": components["schemas"]["PointCategoryView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -10050,7 +10078,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryView"][];
+                    "application/json": components["schemas"]["PointCategoryView"][];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -10085,7 +10113,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryView"];
+                    "application/json": components["schemas"]["PointCategoryView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -10121,7 +10149,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryView"];
+                    "application/json": components["schemas"]["PointCategoryView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -11097,7 +11125,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryView"][];
+                    "application/json": components["schemas"]["PointCategoryView"][];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

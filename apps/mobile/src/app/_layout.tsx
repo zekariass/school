@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { NotificationsRuntime } from '@/components/notifications-runtime';
+import { PointsRuntime } from '@/components/points/points-runtime';
 import { RestoreOfflineScreen } from '@/components/restore-offline-screen';
 import { bootstrap, type BootstrapResult } from '@/lib/bootstrap';
 import { AppIntlProvider } from '@/lib/i18n/intl-provider';
@@ -92,6 +93,7 @@ function RootNavigator() {
     <ThemeProvider value={navigationTheme}>
       <StatusBar style="auto" />
       <NotificationsRuntime />
+      <PointsRuntime />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="index" />
 
@@ -108,6 +110,10 @@ function RootNavigator() {
         </Stack.Protected>
         <Stack.Protected guard={signedIn && activeRole === 'guardian'}>
           <Stack.Screen name="(guardian)" />
+        </Stack.Protected>
+        <Stack.Protected guard={signedIn && activeRole === 'guardian'}>
+          {/* A child's points: school and home, separate. */}
+          <Stack.Screen name="child/[studentId]" options={{ ...header, title: t('mobile.points.child.title') }} />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && activeRole === 'student'}>
           <Stack.Screen name="(student)" />

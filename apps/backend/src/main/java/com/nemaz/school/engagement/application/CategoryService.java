@@ -331,6 +331,8 @@ public class CategoryService {
 			String color, int defaultPoints, PointPolarity polarity, PointContext context, boolean active, int sortOrder) {
 	}
 
+	/** Named explicitly: the notification preferences also have a CategoryView and OpenAPI schemas are keyed by name. */
+	@Schema(name = "PointCategoryView")
 	public record CategoryView(@NotNull UUID id, @Schema(description = "Set for a category of one class") UUID classId,
 			@Schema(description = "Set for a copy of a platform template; the stable key of default categories") String templateCode,
 			@NotNull @Schema(description = "The name in the caller's language") String name,

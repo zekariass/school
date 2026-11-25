@@ -15,8 +15,11 @@ export function ChildCard({
   child,
   consent,
   onReviewConsent,
+  onOpenPoints,
 }: {
   child: MyChild;
+  /** Opens the child's points (school and home) when the link allows seeing or giving them. */
+  onOpenPoints?: () => void;
   /** "needed" shows the way to the decision, "done" a calm confirmation, null nothing (not loaded). */
   consent: 'needed' | 'done' | null;
   onReviewConsent: () => void;
@@ -49,6 +52,10 @@ export function ChildCard({
           </View>
         );
       })}
+
+      {onOpenPoints && (child.permissions.canViewAcademics || child.permissions.canAwardPoints) ? (
+        <Button variant="ghost" label={t('mobile.points.child.open')} onPress={onOpenPoints} />
+      ) : null}
 
       {consent === 'needed' ? (
         <Button variant="secondary" label={t('family.consentNeeded')} onPress={onReviewConsent} />

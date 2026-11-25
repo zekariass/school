@@ -14,6 +14,11 @@ describe('routeForPath', () => {
     expect(routeForPath('/children', HOME)).toBe(HOME);
     expect(routeForPath('/consents', HOME)).toBe('/consent');
   });
+  it('opens the points of a student, and the home of anybody else', () => {
+    expect(routeForPath('/points', '/(student)/home')).toBe('/(student)/points');
+    expect(routeForPath('/points', '/(teacher)/classes')).toBe('/(teacher)/classes');
+    expect(routeForPath('/points', null)).toBeNull();
+  });
   it('ignores query, hash and a trailing slash', () => {
     expect(routeForPath('/notifications?x=1#top', HOME)).toBe('/notifications');
     expect(routeForPath('/notifications/', HOME)).toBe('/notifications');

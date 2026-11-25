@@ -17,6 +17,8 @@ export default function ClassStack() {
         name="[classId]/index"
         options={{ title: t('mobile.classes.classTitle'), headerLeft: () => <HeaderBack /> }}
       />
+      <Stack.Screen name="[classId]/points" options={{ title: t('mobile.points.title') }} />
+      <Stack.Screen name="[classId]/toolkit" options={{ title: t('mobile.toolkit.title') }} />
       <Stack.Screen name="[classId]/add-students" options={{ title: t('mobile.classes.add.title') }} />
       <Stack.Screen name="[classId]/new-student" options={{ title: t('mobile.classes.newStudent.title') }} />
       <Stack.Screen name="[classId]/student/[studentId]/index" options={{ title: t('mobile.classes.student.title') }} />

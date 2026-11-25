@@ -71,6 +71,15 @@
       ],
       "expo-sqlite",
       [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ],
+      [
         "expo-localization",
         {
           "supportedLocales": ["en", "am"]

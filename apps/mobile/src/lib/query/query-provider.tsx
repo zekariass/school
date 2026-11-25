@@ -7,6 +7,7 @@ import { isPersistableFamilyQuery } from '@/lib/family/keys';
 import { shouldPersistQuery } from '@/lib/media/url-cache';
 import { isPersistableNotificationQuery } from '@/lib/notifications/keys';
 import { isPersistablePeopleQuery } from '@/lib/people/keys';
+import { isPersistablePointsQuery } from '@/lib/points/keys';
 
 import { QUERY_CACHE_MAX_AGE_MS, queryClient, queryPersister } from './query-client';
 
@@ -25,14 +26,16 @@ export function AppQueryProvider({ children }: { children: ReactNode }) {
         // Signed media links are dead after a restart, and notification texts and counts are cheap to
         // refetch and describe children's school life: keep both out of the persisted cache. So are
         // student records (date of birth...) and school-wide student searches, and the guardian screens
-        // (children, consent); login codes and parent codes never enter a query at all.
+        // (children, consent) and children's points, timelines and badges (only the skill palettes and routine
+        // templates are kept, so a teacher can award offline); login codes and parent codes never enter a query at all.
         dehydrateOptions: {
           shouldDehydrateQuery: (query) =>
             defaultShouldDehydrateQuery(query) &&
             shouldPersistQuery(query.queryKey) &&
             isPersistableNotificationQuery(query.queryKey) &&
             isPersistablePeopleQuery(query.queryKey) &&
-            isPersistableFamilyQuery(query.queryKey),
+            isPersistableFamilyQuery(query.queryKey) &&
+            isPersistablePointsQuery(query.queryKey),
         },
       }}>
       {children}

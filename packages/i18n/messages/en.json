@@ -404,6 +404,189 @@
         "validUntil": "Works until {date}",
         "shownOnce": "This code is shown only once. It disappears when you close this screen."
       }
+    },
+    "points": {
+      "tab": "Points",
+      "title": "Class points",
+      "openClass": "Award points",
+      "header": {
+        "mute": "Turn sounds off",
+        "unmute": "Turn sounds on",
+        "toolkit": "Classroom toolkit"
+      },
+      "wholeClass": {
+        "title": "Whole class",
+        "total": "Class total: {total}",
+        "label": "Award the whole class. Class total {total}"
+      },
+      "select": {
+        "start": "Select",
+        "done": "Done",
+        "award": "Award selected ({count})"
+      },
+      "grid": {
+        "totalLabel": "Points: {count}",
+        "selected": "selected",
+        "notSelected": "not selected",
+        "openHint": "Opens the skills to award"
+      },
+      "sheet": {
+        "titleStudent": "Award {name}",
+        "titleMany": "Award selected students: {count}",
+        "titleClass": "Award the whole class",
+        "pointsLabel": "Points",
+        "pointsDefault": "Skill's own",
+        "pointsChoice": "Points: {count}",
+        "positiveTitle": "Skills",
+        "needsWorkTitle": "Needs work",
+        "noSkills": "No skills are set up yet. Ask your school to add some.",
+        "awardVerb": "Award"
+      },
+      "snackbar": {
+        "awarded": "{skill} {points} for {who}",
+        "wholeClass": "the whole class",
+        "students": "{count} students",
+        "waiting": "Waiting to send…",
+        "sent": "Sent. You can undo for {seconds} s",
+        "sentFinal": "Sent",
+        "undo": "Undo",
+        "undoing": "Undoing…",
+        "undoFailed": "We couldn't undo that award.",
+        "dismiss": "Dismiss"
+      },
+      "queue": {
+        "waiting": "{count} waiting to send",
+        "retryHint": "Tap to try sending now",
+        "failedTitle": "Couldn't give {skill} to {students}",
+        "rejectedBody": "The school server did not accept this award. Award it again if you still want to.",
+        "expiredBody": "It waited too long to send, so it was dropped. Award it again if you still want to.",
+        "full": "Too many awards are waiting to send. Connect to the internet and try again.",
+        "unknownSkill": "a skill",
+        "unknownStudent": "a student",
+        "wholeClass": "the whole class"
+      },
+      "errors": {
+        "skillsTitle": "We couldn't load the skills",
+        "skillsBody": "Check your connection and pull down to try again.",
+        "totalsOffline": "Point totals aren't available right now. New awards still work."
+      },
+      "donut": {
+        "empty": "No points to show yet.",
+        "item": "{name}: {points} ({percent}%)",
+        "summary": "Points by skill, {total} earned. {items}"
+      },
+      "section": {
+        "points": "points",
+        "total": "Total {total}",
+        "needsWork": "Needs work",
+        "showTimeline": "Show every award",
+        "hideTimeline": "Hide the list"
+      },
+      "timeline": {
+        "empty": "Nothing here yet.",
+        "errorTitle": "We couldn't load the list",
+        "errorBody": "Check your connection and try again.",
+        "more": "Show more",
+        "reversal": "{skill} (taken back)",
+        "undone": "Taken back"
+      },
+      "badges": {
+        "title": "Badges",
+        "empty": "No badges yet. Keep going!",
+        "earned": "Earned {date}"
+      },
+      "student": {
+        "title": "My points",
+        "emptyTitle": "No points yet",
+        "emptyBody": "Your points and badges show up here once your teacher gives you some.",
+        "schoolPoints": "School points",
+        "homePoints": "Points from home",
+        "homeNote": "Your family gave you these. They don't count in class results."
+      },
+      "child": {
+        "title": "Points",
+        "open": "See points",
+        "schoolPoints": "School points",
+        "homePoints": "Home points",
+        "homeNote": "Home points are your family's own. They are not added to school points and don't count in class results.",
+        "noAccess": "You can't see school points for this child.",
+        "errorTitle": "We couldn't load the points",
+        "errorBody": "Check your connection and pull down to try again.",
+        "notFoundTitle": "Child not found",
+        "notFoundBody": "This child isn't in your list any more."
+      },
+      "home": {
+        "open": "Give home points to {name}",
+        "title": "Home points for {name}",
+        "note": "Home points are your family's own. They don't count in class results, class totals or badges at school.",
+        "giveVerb": "Give",
+        "given": "{skill} {points} given to {name}",
+        "failedTitle": "We couldn't give the points",
+        "failedBody": "Check your connection and try again.",
+        "noSkills": "There are no home skills to choose from yet."
+      }
+    },
+    "toolkit": {
+      "title": "Classroom toolkit",
+      "open": "Classroom toolkit",
+      "tabsLabel": "Toolkit section",
+      "tabs": {
+        "timer": "Timer",
+        "picker": "Picker",
+        "groups": "Groups",
+        "routines": "Routines"
+      },
+      "timer": {
+        "modeLabel": "Timer or stopwatch",
+        "countdown": "Timer",
+        "stopwatch": "Stopwatch",
+        "start": "Start",
+        "pause": "Pause",
+        "reset": "Reset",
+        "addMinute": "+1 min",
+        "bigClock": "Big clock",
+        "bigClockHint": "Opens a full-screen clock",
+        "clockLabel": "Time {time}",
+        "finished": "Time's up!",
+        "minutes": "{minutes} min"
+      },
+      "picker": {
+        "prompt": "Tap the button to pick a student.",
+        "noStudents": "There are no students in this class yet.",
+        "pick": "Pick a student",
+        "pickNext": "Pick another",
+        "startOver": "Start over",
+        "progress": "Picked {picked} of {total}"
+      },
+      "groups": {
+        "byLabel": "Make groups by",
+        "byCount": "Number of groups",
+        "bySize": "Group size",
+        "countCaption": "groups",
+        "sizeCaption": "students each",
+        "countValue": "{value} groups",
+        "sizeValue": "{value} students per group",
+        "less": "Fewer",
+        "more": "More",
+        "make": "Make groups",
+        "again": "Shuffle again",
+        "groupName": "Group {number}",
+        "save": "Save groups to the class",
+        "saved": "Groups saved.",
+        "saveHint": "Saving needs an internet connection.",
+        "saveFailedTitle": "We couldn't save the groups",
+        "saveFailedBody": "Check your connection and try again."
+      },
+      "routines": {
+        "emptyTitle": "No routines yet",
+        "emptyBody": "Routines and checklists you or your school add on the website show up here.",
+        "errorTitle": "We couldn't load the routines",
+        "errorBody": "Check your connection and try again.",
+        "back": "All routines",
+        "progress": "{done} of {total} done",
+        "clear": "Untick all",
+        "itemCount": "Steps: {count}"
+      }
     }
   },
   "schoolPicker": {

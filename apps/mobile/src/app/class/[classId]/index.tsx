@@ -91,9 +91,24 @@ export default function ClassDetail() {
             </Card>
           ) : null}
 
+          {cls.role === 'TEACHER' && cls.status === 'ACTIVE' ? (
+            <View style={{ gap: spacing[3] }}>
+              <Button
+                label={t('mobile.points.openClass')}
+                onPress={() => router.push({ pathname: '/class/[classId]/points', params: { classId: cls.id } })}
+              />
+              <Button
+                variant="secondary"
+                label={t('mobile.toolkit.open')}
+                onPress={() => router.push({ pathname: '/class/[classId]/toolkit', params: { classId: cls.id } })}
+              />
+            </View>
+          ) : null}
+
           {editable ? (
             <View style={{ gap: spacing[3] }}>
               <Button
+                variant="ghost"
                 label={t('mobile.classes.addStudents')}
                 onPress={() => router.push({ pathname: '/class/[classId]/add-students', params: { classId: cls.id } })}
               />
