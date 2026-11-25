@@ -3,14 +3,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { ErrorNotice, LoadingRows } from "@/components/console/states";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@/i18n/navigation";
 import { errorMessage } from "@/lib/console/errors";
+import { classAttendanceAbilities } from "@/lib/attendance/access";
 import { classPointsAbilities } from "@/lib/points/access";
 import { classAbilities, toClassCard } from "@/lib/school/class-view";
 import { fetchClass, sk } from "@/lib/school/queries";
+import { ClassAbsencesTab } from "@/components/attendance/class-absences-tab";
+import { ClassAttendanceTab } from "@/components/attendance/class-attendance-tab";
 import { ClassPointsTab } from "@/components/points/class-points-tab";
 import { ClassToolkitTab } from "@/components/points/toolkit/class-toolkit-tab";
 import { ClassCodesTab } from "./class-codes";
@@ -21,9 +25,13 @@ import { ClassSettingsTab } from "./class-settings";
 import { ClassTeachersTab } from "./class-teachers";
 import { useSchool } from "./school-context";
 
-export function ClassDetail({ classId }: { classId: string }) {
+/** `initialTab` comes from `?tab=` (a notification opens the absence inbox); it applies only when the caller may see that tab. */
+export function ClassDetail({ classId, initialTab, initialDate, initialSlot }: { classId: string; initialTab?: string; initialDate?: string; initialSlot?: string }) {
   const t = useTranslations("school.classDetail");
   const { school, permissions } = useSchool();
+  const [tab, setTab] = useState<string | null>(initialTab ?? null);
+  // The roll is mounted when first opened and then kept (hidden) so unsaved marks survive a tab switch.
+  const [rollOpened, setRollOpened] = useState(false);
   const cls = useQuery({ queryKey: sk.classOne(school.id, classId), queryFn: () => fetchClass(school.id, classId) });
 
   if (cls.isPending) return <LoadingRows rows={4} />;
@@ -39,6 +47,16 @@ export function ClassDetail({ classId }: { classId: string }) {
   const card = toClassCard(data);
   const abilities = classAbilities(data, permissions);
   const points = classPointsAbilities(data, permissions);
+  const attendance = classAttendanceAbilities(data, permissions);
+  const available = new Set<string>([
+    ...(points.canUse ? ["points", "toolkit"] : []),
+    ...(attendance.canView ? ["attendance", "absences"] : []),
+    "roster",
+    "teachers",
+    ...(abilities.canTeach ? ["groups", "codes", "consent"] : []),
+    ...(abilities.canLead ? ["settings"] : []),
+  ]);
+  const active = tab && available.has(tab) ? tab : points.canUse ? "points" : "roster";
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
@@ -67,7 +85,13 @@ export function ClassDetail({ classId }: { classId: string }) {
         </p>
       ) : null}
 
-      <Tabs defaultValue={points.canUse ? "points" : "roster"}>
+      <Tabs
+        value={active}
+        onValueChange={(next) => {
+          if (active === "attendance") setRollOpened(true);
+          setTab(next);
+        }}
+      >
         <TabsList className="w-full justify-start overflow-x-auto group-data-[orientation=horizontal]/tabs:h-11">
           {points.canUse ? (
             <TabsTrigger value="points" className="min-h-10 flex-none px-4" data-testid="tab-points">
@@ -77,6 +101,16 @@ export function ClassDetail({ classId }: { classId: string }) {
           {points.canUse ? (
             <TabsTrigger value="toolkit" className="min-h-10 flex-none px-4" data-testid="tab-toolkit">
               {t("tabs.toolkit")}
+            </TabsTrigger>
+          ) : null}
+          {attendance.canView ? (
+            <TabsTrigger value="attendance" className="min-h-10 flex-none px-4" data-testid="tab-attendance">
+              {t("tabs.attendance")}
+            </TabsTrigger>
+          ) : null}
+          {attendance.canView ? (
+            <TabsTrigger value="absences" className="min-h-10 flex-none px-4" data-testid="tab-absences">
+              {t("tabs.absences")}
             </TabsTrigger>
           ) : null}
           <TabsTrigger value="roster" className="min-h-10 flex-none px-4">
@@ -114,6 +148,16 @@ export function ClassDetail({ classId }: { classId: string }) {
         {points.canUse ? (
           <TabsContent value="toolkit" className="pt-4">
             <ClassToolkitTab cls={data} />
+          </TabsContent>
+        ) : null}
+        {attendance.canView ? (
+          <TabsContent value="attendance" forceMount className="pt-4 data-[state=inactive]:hidden">
+            {active === "attendance" || rollOpened ? <ClassAttendanceTab cls={data} initialDate={initialDate} initialSlot={initialSlot} /> : null}
+          </TabsContent>
+        ) : null}
+        {attendance.canView ? (
+          <TabsContent value="absences" className="pt-4">
+            <ClassAbsencesTab cls={data} />
           </TabsContent>
         ) : null}
         <TabsContent value="roster" className="pt-4">

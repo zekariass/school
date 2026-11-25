@@ -3,6 +3,7 @@
 import {
   BookOpenIcon,
   CalendarRangeIcon,
+  ClipboardCheckIcon,
   FileUpIcon,
   FileTextIcon,
   HeartHandshakeIcon,
@@ -30,6 +31,7 @@ const ICONS: Record<NavId, LucideIcon> = {
   settings: SettingsIcon,
   features: SlidersHorizontalIcon,
   families: HeartHandshakeIcon,
+  attendance: ClipboardCheckIcon,
   points: TrophyIcon,
   policies: FileTextIcon,
 };
