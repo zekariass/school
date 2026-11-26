@@ -28,6 +28,12 @@ public class SecurityTestConfiguration {
 		return new DomainEventRecorder();
 	}
 
+	/** The translation adapter of the feed: unavailable until a test switches it on. */
+	@Bean
+	RecordingTranslationProvider recordingTranslationProvider() {
+		return new RecordingTranslationProvider();
+	}
+
 	@Bean
 	@Primary
 	RecordingMessages recordingMessages() {

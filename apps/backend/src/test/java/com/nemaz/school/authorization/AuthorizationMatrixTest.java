@@ -278,7 +278,7 @@ class AuthorizationMatrixTest {
 						"context", Map.of("type", "ORGANIZATION", "id", f.organization())),
 				allow(201, PLATFORM_ADMIN, COUNTRY_ADMIN_ET)));
 		cases.add(new Case("POST upload for a purpose without a policy", HttpMethod.POST, (f) -> "/api/v1/media/uploads",
-				(f) -> Map.of("purpose", "POST", "filename", "x.jpg", "mimeType", "image/jpeg", "sizeBytes", 1000,
+				(f) -> Map.of("purpose", "MESSAGE", "filename", "x.jpg", "mimeType", "image/jpeg", "sizeBytes", 1000,
 						"context", Map.of("type", "SCHOOL", "id", f.schoolA())),
 				allow(403)));
 		cases.add(new Case("GET READY branding media", HttpMethod.GET,
@@ -660,6 +660,7 @@ class AuthorizationMatrixTest {
 		cases.addAll(guardianCases());
 		cases.addAll(pointsCases());
 		cases.addAll(attendanceCases());
+		cases.addAll(feedCases());
 		return cases;
 	}
 
@@ -1196,6 +1197,129 @@ class AuthorizationMatrixTest {
 		// --- sync: open to every signed-in user; each operation is authorized as its online endpoint (SyncApiTest)
 		cases.add(new Case("POST sync", HttpMethod.POST, (f) -> "/api/v1/sync", (f) -> Map.of("operations", List.of()),
 				allow(200, EVERY_ACTIVE_PERSONA)));
+		return cases;
+	}
+
+	// ---- class story, school story and feed (M8a) ---------------------------------------------------------
+
+	/** A row of the feed as the fixtures need it (the API paths are tested in the feed package). */
+	private UUID feedPost(Fixture f, UUID classId, String status, boolean contribution, Name author, String authorRole) {
+		UUID id = Ids.newId();
+		boolean published = "PUBLISHED".equals(status);
+		this.jdbc.update("""
+				insert into posts (id, scope_type, school_id, class_id, author_id, author_role, status, published_at, body,
+				                   is_contribution, created_at, updated_at)
+				values (?, 'CLASS', ?, ?, ?, ?, ?, ?, 'matrix post', ?, now(), now())""", id, f.schoolA(), classId, userOf(author),
+				authorRole, status, published ? new java.sql.Timestamp(System.currentTimeMillis()) : null, contribution);
+		return id;
+	}
+
+	private UUID feedStory(Fixture f, UUID classId) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into stories (id, scope_type, school_id, class_id, author_id, author_role, caption, status, published_at,
+				                     expires_at)
+				values (?, 'CLASS', ?, ?, ?, 'TEACHER', 'matrix story', 'PUBLISHED', now(), now() + interval '24 hours')""", id,
+				f.schoolA(), classId, userOf(TEACHER_LEAD_A));
+		return id;
+	}
+
+	private String publishedPostUrl(Fixture f, String suffix) {
+		UUID post = feedPost(f, freshClass(f), "PUBLISHED", false, TEACHER_LEAD_A, "TEACHER");
+		return SCHOOLS + f.schoolA() + "/posts/" + post + suffix;
+	}
+
+	List<Case> feedCases() {
+		List<Case> cases = new ArrayList<>();
+		String schools = SCHOOLS;
+		Name[] managers = SCHOOL_A_MANAGERS;
+		Name[] poster = concat(managers, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A });
+		Name[] moderators = concat(managers, new Name[] { TEACHER_LEAD_A });
+		// who sees a published post of the fixture class: the class's teachers and managers, its student and its guardian
+		Name[] viewers = concat(managers, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 });
+		Name[] viewerOnly = { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 };
+		Name[] schoolSeers = concat(managers, SCHOOL_A_MEMBERS, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 });
+		Name[] schoolNoFeed = concat(SCHOOL_A_VISITING_ADMINS, new Name[] { });
+
+		// --- posting
+		cases.add(school("POST class post", HttpMethod.POST, (f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/posts",
+				(f) -> Map.of("body", "matrix"), 201, poster, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("POST school post", HttpMethod.POST, (f) -> schools + f.schoolA() + "/posts", (f) -> Map.of("body", "matrix"),
+				201, managers, concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 })));
+
+		// --- feeds
+		cases.add(school("GET class feed", HttpMethod.GET, (f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/feed", null,
+				200, viewers, new Name[] { }));
+		cases.add(school("GET school feed", HttpMethod.GET, (f) -> schools + f.schoolA() + "/feed", null, 200, schoolSeers,
+				schoolNoFeed));
+		cases.add(school("GET my posts", HttpMethod.GET, (f) -> schools + f.schoolA() + "/my-posts", null, 200,
+				concat(READERS_OF_SCHOOL_A, schoolSeers), new Name[] { }));
+		cases.add(school("GET feed capabilities", HttpMethod.GET, (f) -> schools + f.schoolA() + "/feed/capabilities", null, 200,
+				concat(READERS_OF_SCHOOL_A, schoolSeers), new Name[] { }));
+		cases.add(new Case("GET my feed", HttpMethod.GET, (f) -> "/api/v1/me/feed", null, allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET my stories", HttpMethod.GET, (f) -> "/api/v1/me/stories", null, allow(200, EVERY_ACTIVE_PERSONA)));
+
+		// --- one post: readable by those who see the class, changed by its author, moderated by the lead and administrators
+		cases.add(school("GET post", HttpMethod.GET, (f) -> publishedPostUrl(f, ""), null, 200, viewers, new Name[] { }));
+		cases.add(school("PATCH post (author only)", HttpMethod.PATCH, (f) -> publishedPostUrl(f, ""),
+				(f) -> Map.of("body", "edited"), 200, new Name[] { TEACHER_LEAD_A },
+				concat(managers, viewerOnly)));
+		cases.add(school("DELETE post (author or moderator)", HttpMethod.DELETE, (f) -> publishedPostUrl(f, ""), null, 204, moderators,
+				viewerOnly));
+		cases.add(school("POST hide post (moderators)", HttpMethod.POST, (f) -> publishedPostUrl(f, "/hide"), (f) -> Map.of(), 200,
+				moderators, viewerOnly));
+		cases.add(school("PUT pin post", HttpMethod.PUT, (f) -> publishedPostUrl(f, "/pin"), null, 200, moderators, viewerOnly));
+		cases.add(school("POST archive post", HttpMethod.POST, (f) -> publishedPostUrl(f, "/archive"), null, 200, moderators,
+				viewerOnly));
+		cases.add(school("POST publish a draft (author or moderator)", HttpMethod.POST, (f) -> {
+			UUID draft = feedPost(f, freshClass(f), "DRAFT", false, TEACHER_LEAD_A, "TEACHER");
+			return schools + f.schoolA() + "/posts/" + draft + "/publish";
+		}, null, 200, moderators, new Name[] { }));
+
+		// --- interactions
+		cases.add(school("POST comment", HttpMethod.POST, (f) -> publishedPostUrl(f, "/comments"), (f) -> Map.of("body", "nice"), 201,
+				concat(managers, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A, GUARDIAN_A1 }), new Name[] { STUDENT_A1 }));
+		cases.add(school("GET comments", HttpMethod.GET, (f) -> publishedPostUrl(f, "/comments"), null, 200, viewers, new Name[] { }));
+		cases.add(school("PUT reaction", HttpMethod.PUT, (f) -> publishedPostUrl(f, "/reaction"), (f) -> Map.of("reaction", "LIKE"), 200,
+				viewers, new Name[] { }));
+		cases.add(school("DELETE reaction", HttpMethod.DELETE, (f) -> publishedPostUrl(f, "/reaction"), null, 200, viewers, new Name[] { }));
+		cases.add(school("POST seen", HttpMethod.POST, (f) -> publishedPostUrl(f, "/view"), null, 204, viewers, new Name[] { }));
+		cases.add(school("POST report post", HttpMethod.POST, (f) -> publishedPostUrl(f, "/report"), (f) -> Map.of("reason", "SPAM"), 202,
+				viewers, new Name[] { }));
+		// translation is off by default: those who see the post are told so, the others find nothing
+		cases.add(school("POST translation (off by default)", HttpMethod.POST, (f) -> publishedPostUrl(f, "/translation?language=am"), null,
+				403, viewers, new Name[] { }));
+
+		// --- contributions: off by default; the queue and decisions belong to the lead and managers
+		cases.add(school("POST contribution (off by default)", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/contributions", (f) -> Map.of("body", "matrix"), 403,
+				viewers, new Name[] { }));
+		cases.add(school("GET pending contributions of a class", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/contributions/pending?classId=" + freshClass(f), null, 200, moderators, viewerOnly));
+		cases.add(school("POST approve contribution", HttpMethod.POST, (f) -> {
+			UUID pending = feedPost(f, freshClass(f), "PENDING_APPROVAL", true, GUARDIAN_A1, "GUARDIAN");
+			return schools + f.schoolA() + "/contributions/" + pending + "/approve";
+		}, (f) -> Map.of(), 200, moderators, new Name[] { GUARDIAN_A1 }));
+		cases.add(school("POST reject contribution", HttpMethod.POST, (f) -> {
+			UUID pending = feedPost(f, freshClass(f), "PENDING_APPROVAL", true, GUARDIAN_A1, "GUARDIAN");
+			return schools + f.schoolA() + "/contributions/" + pending + "/reject";
+		}, (f) -> Map.of("reason", "not suitable"), 200, moderators, new Name[] { GUARDIAN_A1 }));
+
+		// --- stories
+		cases.add(school("POST class story", HttpMethod.POST, (f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/stories",
+				(f) -> Map.of("caption", "matrix"), 201, poster, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("POST school story", HttpMethod.POST, (f) -> schools + f.schoolA() + "/stories", (f) -> Map.of("caption", "matrix"),
+				201, managers, concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 })));
+		cases.add(school("GET class stories", HttpMethod.GET, (f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/stories", null,
+				200, viewers, new Name[] { }));
+		cases.add(school("GET school stories", HttpMethod.GET, (f) -> schools + f.schoolA() + "/stories", null, 200, schoolSeers,
+				schoolNoFeed));
+		cases.add(school("GET story", HttpMethod.GET, (f) -> schools + f.schoolA() + "/stories/" + feedStory(f, freshClass(f)), null, 200,
+				viewers, new Name[] { }));
+		cases.add(school("POST story view", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/stories/" + feedStory(f, freshClass(f)) + "/view", null, 204, viewers, new Name[] { }));
+		cases.add(school("DELETE story (author or moderator)", HttpMethod.DELETE,
+				(f) -> schools + f.schoolA() + "/stories/" + feedStory(f, freshClass(f)), null, 204, moderators, viewerOnly));
 		return cases;
 	}
 

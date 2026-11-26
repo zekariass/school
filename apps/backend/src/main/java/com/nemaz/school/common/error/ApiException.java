@@ -18,6 +18,8 @@ public class ApiException extends RuntimeException {
 
 	private long retryAfterSeconds;
 
+	private final transient java.util.Map<String, Object> properties = new java.util.LinkedHashMap<>();
+
 	public ApiException(HttpStatus status, String code, Object... args) {
 		super(code);
 		this.status = status;
@@ -54,6 +56,20 @@ public class ApiException extends RuntimeException {
 
 	public static ApiException conflict(String code, Object... args) {
 		return new ApiException(HttpStatus.CONFLICT, code, args);
+	}
+
+	/**
+	 * Adds a machine-readable extension member to the problem body (RFC 9457), e.g. the students whose consent is
+	 * missing. Only data the caller is allowed to see belongs here.
+	 */
+	public ApiException with(String name, Object value) {
+		this.properties.put(name, value);
+		return this;
+	}
+
+	/** The extension members to add to the problem body. */
+	public java.util.Map<String, Object> properties() {
+		return java.util.Collections.unmodifiableMap(this.properties);
 	}
 
 	public HttpStatus status() {

@@ -77,12 +77,18 @@ public final class Permissions {
 	/** The school-wide attendance dashboard, summary reports (CSV export included) and any student's attendance (M7). */
 	public static final String SCHOOL_ATTENDANCE_READ = "school.attendance.read";
 
+	/**
+	 * The school-wide feed (M8): post and pin school-wide posts and stories, approve or reject contributions of any class,
+	 * and moderate (hide, delete) any post, story or comment of the school.
+	 */
+	public static final String SCHOOL_FEED_MANAGE = "school.feed.manage";
+
 	/** Every permission code, in seed order. */
 	public static final List<String> ALL = List.of(PLATFORM_ORGANIZATIONS_MANAGE, PLATFORM_SCHOOLS_MANAGE,
 			PLATFORM_SUBSCRIPTIONS_MANAGE, PLATFORM_FEATURES_MANAGE, PLATFORM_SETTINGS_MANAGE, PLATFORM_ROLES_MANAGE,
 			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ, SCHOOL_ACADEMIC_MANAGE, SCHOOL_STAFF_MANAGE,
 			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE, SCHOOL_IMPORT_MANAGE, SCHOOL_GUARDIANS_MANAGE, SCHOOL_POLICIES_MANAGE,
-			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ);
+			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ, SCHOOL_FEED_MANAGE);
 
 	private Permissions() {
 	}

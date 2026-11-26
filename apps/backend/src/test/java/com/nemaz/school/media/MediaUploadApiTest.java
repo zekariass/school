@@ -49,7 +49,7 @@ class MediaUploadApiTest extends MediaTestSupport {
 	@Test
 	void unsupportedPurposesAreRefusedUntilTheirMilestone() throws Exception {
 		Persona user = this.personas.newUser("purposes");
-		for (String purpose : List.of("POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "LIBRARY", "COURSE", "RECORDING",
+		for (String purpose : List.of("MESSAGE", "PORTFOLIO", "SUBMISSION", "LIBRARY", "COURSE", "RECORDING",
 				"VERIFICATION_DOC", "REPORT")) {
 			requestUpload(user, purpose, "a.jpg", "image/jpeg", 100, school(this.personas.fixture().schoolA()))
 				.andExpect(status().isForbidden())
@@ -419,7 +419,7 @@ class MediaUploadApiTest extends MediaTestSupport {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.purposes[*].purpose", hasItem("AVATAR")))
 			.andExpect(jsonPath("$.purposes[*].purpose", hasItem("BRANDING")))
-			.andExpect(jsonPath("$.purposes[*].purpose", not(hasItem("POST"))))
+			.andExpect(jsonPath("$.purposes[*].purpose", not(hasItem("MESSAGE"))))
 			.andExpect(jsonPath("$.purposes[?(@.purpose=='AVATAR')].maxBytesByMimeType['image/jpeg']").value(10485760));
 		this.mvc.perform(get("/api/v1/media/policies")).andExpect(status().isUnauthorized());
 	}

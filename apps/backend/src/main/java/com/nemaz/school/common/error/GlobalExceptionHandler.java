@@ -38,6 +38,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(ApiException.class)
 	ResponseEntity<ProblemDetail> handleApiException(ApiException ex) {
 		ProblemDetail body = this.problems.create(ex.status(), ex.code(), ex.args(), LocaleContextHolder.getLocale());
+		ex.properties().forEach(body::setProperty);
 		ResponseEntity.BodyBuilder response = ResponseEntity.status(ex.status());
 		if (ex.retryAfterSeconds() > 0) {
 			response.header(HttpHeaders.RETRY_AFTER, Long.toString(ex.retryAfterSeconds()));

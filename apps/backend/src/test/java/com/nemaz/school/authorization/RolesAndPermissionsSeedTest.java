@@ -49,7 +49,7 @@ class RolesAndPermissionsSeedTest {
 				Permissions.SCHOOL_STAFF_MANAGE, Permissions.SCHOOL_STUDENTS_MANAGE, Permissions.CLASS_MANAGE,
 				Permissions.SCHOOL_IMPORT_MANAGE, Permissions.SCHOOL_GUARDIANS_MANAGE, Permissions.SCHOOL_POLICIES_MANAGE,
 				Permissions.SCHOOL_POINTS_MANAGE, Permissions.SCHOOL_POINTS_READ, Permissions.SCHOOL_ATTENDANCE_MANAGE,
-				Permissions.SCHOOL_ATTENDANCE_READ);
+				Permissions.SCHOOL_ATTENDANCE_READ, Permissions.SCHOOL_FEED_MANAGE);
 		// A campus administrator reads the school and manages the classes of its own campus (M3a).
 		assertThat(permissionsOf("CAMPUS_ADMIN")).containsExactlyInAnyOrder(Permissions.SCHOOL_READ,
 				Permissions.CLASS_MANAGE);

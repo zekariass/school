@@ -1152,6 +1152,15 @@ create table content_translations (
 );
 ```
 
+**As built (M8a):** `V8_01__feed.sql`. Deviations from the DDL above:
+- **Media (§4.9):** `media.context_type` gains `CLASS` (media of a class post or story belongs to the class; school-wide ones to the `SCHOOL`). The purposes are the existing `POST` and `STORY` (not a new `POST_MEDIA`), restricted to images (JPEG, PNG, WebP) in `SCHOOL` or `CLASS` contexts until video processing exists in Phase 3. `media.school_id` is set for class media through `MediaPurposePolicy.schoolOf`.
+- **posts:** no `course_id` or `COURSE` scope yet (P3); `school_id` is `NOT NULL`; `status` gains `ARCHIVED` (taken down by its author, can be republished; `HIDDEN` is a moderator's hide) and the default is `DRAFT`. `approved_by`/`approved_at` became `decided_by`/`decided_at` (they record a rejection as well); `rejection_reason` also holds a moderator's hide reason. New columns: `pinned_at`, `edited_at` (the edit marker), `media_confirmed_by`/`media_confirmed_at` (the author's recorded confirmation that nobody without consent appears in untagged photos; dropped when the photos or tags change), `publish_error_code` (why a scheduled publish was blocked: the post returned to `DRAFT`), `deleted_by`. Checks: only `PUBLISHED` posts are pinned, only `SCHEDULED` posts must carry `scheduled_for`, contributions are class posts. `unique (id, school_id)`.
+- **post_media:** `unique (media_id)`: a file belongs to at most one post (the service also keeps it out of stories). **post_student_tags:** unchanged (`ix_post_student_tags_student`).
+- **post_comments:** `school_id` and `author_role` are `NOT NULL`; `status` is `VISIBLE|HIDDEN|DELETED` (no `PENDING_APPROVAL`); `moderated_by`; `parent_comment_id` exists but replies are not exposed yet; the body is 1 to 1000 characters.
+- **post_views / story_views:** only the count is ever returned; names are never exposed (decision: conservative).
+- **stories:** `media_id` is optional (a story may be a caption only; a story needs one of them while it is live), `author_role` (`TEACHER` or `SCHOOL_ADMIN`), `status` is `PUBLISHED|HIDDEN|EXPIRED|DELETED` (stories are written by staff, so there is no approval state), `media_confirmed_by`/`_at`, `deleted_at`, `unique (media_id)`. **`story_student_tags`** is new (the consent gate and the notification of guardians work as for posts). The expiry job marks stories `EXPIRED` after `expires_at` and, seven days later, deletes their photo and caption (`DELETED`); reads compare `expires_at` with the clock, never the status alone.
+- **content_translations:** as designed, plus CHECK constraints; written only by `feed.application.TranslationService`.
+
 ### 4.11 Messaging (P1)
 
 ```sql
