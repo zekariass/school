@@ -1,3 +1,4 @@
+import { AnnouncementsLink } from "@/components/announcements/announcements-link";
 import { CalendarToggle } from "@/components/calendar-toggle";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { NotificationBell } from "@/components/notifications/notification-bell";
@@ -11,6 +12,7 @@ export function HeaderControls({ user }: { user?: { name: string; detail?: strin
       <LocaleSwitcher />
       <CalendarToggle />
       <ThemeToggle />
+      {user ? <AnnouncementsLink /> : null}
       {user ? <NotificationBell /> : null}
       {user ? <UserMenu name={user.name} detail={user.detail} /> : null}
     </div>

@@ -20,6 +20,8 @@ export const SP = {
   attendanceManage: "school.attendance.manage",
   attendanceRead: "school.attendance.read",
   feedManage: "school.feed.manage",
+  announcementsManage: "school.announcements.manage",
+  announcementsUrgent: "school.announcements.urgent",
 } as const;
 
 export interface ScopeLike {
@@ -79,6 +81,7 @@ export type NavId =
   | "attendance"
   | "points"
   | "feed"
+  | "announcements"
   | "policies";
 
 /** The workspace menu for this access, in display order. */
@@ -99,6 +102,8 @@ export function navItems(access: SchoolAccess): NavId[] {
   if (can(SP.pointsManage) || can(SP.pointsRead) || access.isTeacher) items.push("points");
   // The school feed and its approvals queue: members who work at the school (the API decides who may post).
   if (canOpenFeed(access)) items.push("feed");
+  // Announcements: members who work at the school read the school's list and, per the API's capabilities, write their own.
+  if (canOpenAnnouncements(access)) items.push("announcements");
   if (can(SP.policies)) items.push("policies");
   if (can(SP.settings)) items.push("settings");
   if (can(SP.read)) items.push("features");
@@ -108,6 +113,21 @@ export function navItems(access: SchoolAccess): NavId[] {
 /** The school feed page: teachers, other staff and school feed managers. */
 export function canOpenFeed(access: SchoolAccess): boolean {
   return access.isTeacher || access.isStaff || access.permissions.has(SP.feedManage);
+}
+
+/** The school's announcements section: teachers, other staff and announcement managers (guardians use the inbox). */
+export function canOpenAnnouncements(access: SchoolAccess): boolean {
+  return access.isTeacher || access.isStaff || access.permissions.has(SP.announcementsManage);
+}
+
+/** Writes to the whole school, campuses and grades, sees every announcement's report and reminds: the manager permission. */
+export function canManageAnnouncements(access: Pick<SchoolAccess, "permissions">): boolean {
+  return access.permissions.has(SP.announcementsManage);
+}
+
+/** Urgent and safety announcements: their own permission (the API's capabilities say the same). */
+export function canSendUrgentAnnouncements(access: Pick<SchoolAccess, "permissions">): boolean {
+  return access.permissions.has(SP.announcementsUrgent);
 }
 
 /** Posting to the whole school: the feed managers' own permission. */
@@ -148,5 +168,6 @@ export const NAV_PATH: Record<NavId, string> = {
   attendance: "attendance",
   points: "points",
   feed: "feed",
+  announcements: "announcements",
   policies: "policies",
 };

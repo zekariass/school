@@ -242,7 +242,23 @@ public class AnnouncementQueries {
 		return new AnnouncementCapabilities(canCompose, manager, this.access.urgentAllowed(user, schoolId),
 				this.settings.studentsEnabled(schoolId), this.settings.emailAvailable(schoolId), sms,
 				sms ? this.settings.smsTypes(schoolId).stream().sorted().toList() : List.of(), classRefs,
-				this.settings.reminderMinHours(schoolId));
+				this.settings.reminderMinHours(schoolId), timeZoneOf(schoolId), this.settings.smsPerAnnouncement(schoolId),
+				this.settings.smsPerDay(schoolId));
+	}
+
+	/** The school's time zone, the one scheduled announcements are read in (UTC when unknown). */
+	private String timeZoneOf(UUID schoolId) {
+		String name = this.jdbc.sql("select timezone from schools where id = :school")
+			.param("school", schoolId)
+			.query(String.class)
+			.optional()
+			.orElse("UTC");
+		try {
+			return java.time.ZoneId.of(name).getId();
+		}
+		catch (java.time.DateTimeException ex) {
+			return "UTC";
+		}
 	}
 
 	private static Instant instant(String text) {

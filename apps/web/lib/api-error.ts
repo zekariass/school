@@ -4,13 +4,24 @@ import { isProblemDetail, type ProblemDetail } from "@school/api-client";
 export class ApiRequestError extends Error {
   readonly status: number | undefined;
   readonly problem: ProblemDetail | undefined;
+  /** Seconds from a `Retry-After` header (429 answers), when the server sent one. */
+  readonly retryAfter: number | undefined;
 
-  constructor(status: number | undefined, problem?: ProblemDetail) {
+  constructor(status: number | undefined, problem?: ProblemDetail, retryAfter?: number) {
     super(problem?.title ?? `Request failed${status ? ` (${status})` : ""}`);
     this.name = "ApiRequestError";
     this.status = status;
     this.problem = problem;
+    this.retryAfter = retryAfter;
   }
+}
+
+/** Seconds of a `Retry-After` header given as a number of seconds (an HTTP date is not used by the API). */
+export function retryAfterOf(response: Response | undefined): number | undefined {
+  const value = response?.headers?.get("retry-after");
+  if (!value) return undefined;
+  const seconds = Number(value.trim());
+  return Number.isFinite(seconds) && seconds >= 0 ? Math.ceil(seconds) : undefined;
 }
 
 /** Unwrap an openapi-fetch result, throwing ApiRequestError on failure. */
@@ -23,6 +34,7 @@ export function unwrap<T>(result: {
     throw new ApiRequestError(
       result.response.status,
       isProblemDetail(result.error) ? result.error : undefined,
+      retryAfterOf(result.response),
     );
   }
   return result.data;
@@ -47,6 +59,7 @@ export function ensureOk(result: { error?: unknown; response: Response }): void 
     throw new ApiRequestError(
       result.response.status,
       isProblemDetail(result.error) ? result.error : undefined,
+      retryAfterOf(result.response),
     );
   }
 }

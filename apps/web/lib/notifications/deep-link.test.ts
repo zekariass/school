@@ -64,6 +64,40 @@ describe("resolveDeepLink", () => {
     });
   });
 
+  describe("announcement links", () => {
+    const schoolId = "0198b3a2-7c1e-7b34-9f4d-2a6c8e1d5f01";
+    const id = "0198b3a2-7c1e-7b34-9f4d-2a6c8e1d5f09";
+
+    it("opens the announcement under the notification's school", () => {
+      expect(resolveDeepLink({ path: `/announcements/${id}`, announcementId: id, schoolId }, { schoolId })).toBe(`/announcements/${schoolId}/${id}`);
+    });
+
+    it("falls back to the school named in the data, not to anything else", () => {
+      expect(resolveDeepLink({ path: `/announcements/${id}`, schoolId })).toBe(`/announcements/${schoolId}/${id}`);
+      expect(resolveDeepLink({ path: `/announcements/${id}`, schoolId: 42 })).toBe("/announcements");
+      expect(resolveDeepLink({ path: `/announcements/${id}`, schoolId: "../x" })).toBe("/announcements");
+      expect(resolveDeepLink({ path: `/announcements/${id}` }, { schoolId: "https://evil.example" })).toBe("/announcements");
+    });
+
+    it("prefers the notification's own school over the data's", () => {
+      const other = "0198b3a2-7c1e-7b34-9f4d-2a6c8e1d5f77";
+      expect(resolveDeepLink({ path: `/announcements/${id}`, schoolId: other }, { schoolId })).toBe(`/announcements/${schoolId}/${id}`);
+    });
+
+    it("only opens well-formed ids, never a path that merely starts like one", () => {
+      for (const bad of ["not-an-id", `${id}/extra`, `${id}/../x`, `${id}x`, "../../x", ""]) {
+        expect(resolveDeepLink({ path: `/announcements/${bad}`, schoolId }, { schoolId })).toBeNull();
+      }
+      expect(resolveDeepLink({ path: "/announcements" })).toBe("/announcements");
+      expect(resolveDeepLink({ path: "/announcements?x=1" })).toBe("/announcements");
+      expect(resolveDeepLink({ path: `/announcements/${id}?next=https://evil.example#x`, schoolId }, { schoolId })).toBe(`/announcements/${schoolId}/${id}`);
+    });
+
+    it("needs no school slug", () => {
+      expect(deepLinkNeedsSchool({ path: `/announcements/${id}` })).toBe(false);
+    });
+  });
+
   it("finds a school's slug from memberships first, then grants", () => {
     const me = {
       memberships: [{ schoolId: "s1", schoolSlug: "sunrise" }],

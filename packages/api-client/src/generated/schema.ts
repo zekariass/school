@@ -3775,8 +3775,20 @@ export interface components {
             reminderMinHours: number;
             schoolWide: boolean;
             smsAvailable: boolean;
+            /**
+             * Format: int32
+             * @description Texts one announcement may send (announcements.sms.max_per_announcement)
+             */
+            smsMaxPerAnnouncement: number;
+            /**
+             * Format: int32
+             * @description Texts the school may send per school day (announcements.sms.max_per_day)
+             */
+            smsMaxPerDay: number;
             smsTypes: ("NORMAL" | "IMPORTANT" | "URGENT" | "SAFETY")[];
             studentsEnabled: boolean;
+            /** @description IANA time zone of the school: clients show and pick scheduled times in it, never in the device's zone */
+            timeZone: string;
             urgentAllowed: boolean;
         };
         AnnouncementCard: {
