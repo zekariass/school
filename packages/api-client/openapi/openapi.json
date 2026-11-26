@@ -14037,6 +14037,10 @@
             "type" : "integer",
             "format" : "int32"
           },
+          "reacknowledgementNeeded" : {
+            "type" : "boolean",
+            "description" : "True when the caller acknowledged an earlier revision and a material edit has changed the text since: ask again. Every edit after publishing raises revision, so acknowledgedRevision < revision alone also fires for a silent correction; clients use this flag"
+          },
           "read" : {
             "type" : "boolean"
           },
@@ -14049,7 +14053,7 @@
             "description" : "True when the caller was in the recipient snapshot at publish (false: opens it through the school's list only)"
           }
         },
-        "required" : [ "acknowledged", "read", "recipient" ]
+        "required" : [ "acknowledged", "reacknowledgementNeeded", "read", "recipient" ]
       },
       "AnnouncementPreview" : {
         "type" : "object",

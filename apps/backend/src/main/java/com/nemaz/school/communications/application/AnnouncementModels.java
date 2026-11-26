@@ -154,7 +154,8 @@ public final class AnnouncementModels {
 	/** The caller's own relation to the announcement. */
 	public record AnnouncementMine(@NotNull boolean read, Instant readAt, @NotNull boolean acknowledged,
 			Instant acknowledgedAt, Integer acknowledgedRevision,
-			@Schema(description = "True when the caller was in the recipient snapshot at publish (false: opens it through the school's list only)") @NotNull boolean recipient) {
+			@Schema(description = "True when the caller was in the recipient snapshot at publish (false: opens it through the school's list only)") @NotNull boolean recipient,
+			@Schema(description = "True when the caller acknowledged an earlier revision and a material edit has changed the text since: ask again. Every edit after publishing raises revision, so acknowledgedRevision < revision alone also fires for a silent correction; clients use this flag") @NotNull boolean reacknowledgementNeeded) {
 	}
 
 	/** What the caller may do with this announcement (menus and buttons; the API stays the authority). */

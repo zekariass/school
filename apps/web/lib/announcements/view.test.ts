@@ -90,15 +90,21 @@ describe("acknowledge state", () => {
     expect(canAcknowledge(done, "me")).toBe(false);
   });
 
-  it("asks again after a material edit (a newer revision than the acknowledged one)", () => {
-    const edited = { ...base, revision: 3, mine: { acknowledged: true, acknowledgedRevision: 2 } };
-    expect(ackState(edited, "me")).toBe("again");
-    expect(canAcknowledge(edited, "me")).toBe(true);
+  it("asks again only after a material edit, as the server says", () => {
+    const material = { ...base, revision: 3, mine: { acknowledged: true, acknowledgedRevision: 2, reacknowledgementNeeded: true } };
+    expect(ackState(material, "me")).toBe("again");
+    expect(canAcknowledge(material, "me")).toBe(true);
     // acknowledging the current revision settles it
-    expect(ackState({ ...edited, mine: { acknowledged: true, acknowledgedRevision: 3 } }, "me")).toBe("done");
+    expect(ackState({ ...material, mine: { acknowledged: true, acknowledgedRevision: 3, reacknowledgementNeeded: false } }, "me")).toBe("done");
   });
 
-  it("treats an acknowledgement without a revision as current", () => {
+  it("does not ask again after a silent correction even though the revision moved", () => {
+    const silent = { ...base, revision: 3, mine: { acknowledged: true, acknowledgedRevision: 1, reacknowledgementNeeded: false } };
+    expect(ackState(silent, "me")).toBe("done");
+    expect(canAcknowledge(silent, "me")).toBe(false);
+  });
+
+  it("treats an acknowledgement without a flag as current", () => {
     expect(ackState({ ...base, revision: 5, mine: { acknowledged: true } }, "me")).toBe("done");
     expect(ackState({ ...base, revision: 5, mine: { acknowledged: true, acknowledgedRevision: null } }, "me")).toBe("done");
   });
