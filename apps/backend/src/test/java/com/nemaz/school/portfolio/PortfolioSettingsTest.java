@@ -34,8 +34,9 @@ class PortfolioSettingsTest extends PortfolioTestSupport {
 		org.assertj.core.api.Assertions.assertThatThrownBy(() -> setting(school, "portfolio.max_visibility", "EVERYONE")).isInstanceOf(RuntimeException.class);
 		assertThat(this.jdbc.queryForObject("select default_enabled from feature_definitions where key = 'portfolio'", Boolean.class)).isTrue();
 		assertThat(this.jdbc.queryForObject("select count(*) from permissions where code = 'school.portfolios.review'", Integer.class)).isEqualTo(1);
-		// the administrators who oversee a school hold the permission; nobody else does
-		List<String> roles = this.jdbc.queryForList("select role_code from role_permissions where permission_code = 'school.portfolios.review' order by 1", String.class);
+		// the seeded (system) roles: the administrators who oversee a school hold the permission, nobody else does. Roles that
+		// other tests of the shared database create for their personas are not part of the seed.
+		List<String> roles = this.jdbc.queryForList("select rp.role_code from role_permissions rp join roles r on r.code = rp.role_code where rp.permission_code = 'school.portfolios.review' and r.is_system order by 1", String.class);
 		assertThat(roles).containsExactlyInAnyOrder(RoleCodes.PLATFORM_ADMIN, RoleCodes.COUNTRY_ADMIN, RoleCodes.ORGANIZATION_ADMIN, RoleCodes.SCHOOL_ADMIN);
 		// portfolios belong to SCHOOL_BASIC and up
 		assertThat(this.jdbc.queryForList("select p.code from plan_entitlements e join subscription_plans p on p.id = e.plan_id where e.feature_key = 'portfolio' and e.enabled order by 1",
