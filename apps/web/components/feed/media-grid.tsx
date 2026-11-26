@@ -39,7 +39,7 @@ export function MediaGrid({ items }: { items: readonly FeedMediaItem[] }) {
             <button
               type="button"
               onClick={() => setOpen(index)}
-              className={cn("block w-full", shape === "one" ? "aspect-[4/3] sm:aspect-[16/10]" : shape === "many" && index === 0 ? "aspect-[16/9]" : "aspect-square")}
+              className={cn("block w-full", shape === "one" ? "aspect-[4/3] max-h-[28rem] sm:aspect-[16/10]" : shape === "many" && index === 0 ? "aspect-[16/9]" : "aspect-square")}
               aria-label={t("open", { number: index + 1, total: images.length })}
               data-testid="post-photo"
             >
