@@ -7,6 +7,7 @@ import {
   FileUpIcon,
   FileTextIcon,
   HeartHandshakeIcon,
+  ImagesIcon,
   LayoutDashboardIcon,
   TrophyIcon,
   SettingsIcon,
@@ -33,6 +34,7 @@ const ICONS: Record<NavId, LucideIcon> = {
   families: HeartHandshakeIcon,
   attendance: ClipboardCheckIcon,
   points: TrophyIcon,
+  feed: ImagesIcon,
   policies: FileTextIcon,
 };
 

@@ -18,6 +18,7 @@ import { CategoryIcon } from "./category-icon";
 import { PointsDonut } from "./donut-chart";
 import { HomeAwardButton } from "./home-award-sheet";
 import { AttendanceHistory } from "@/components/attendance/attendance-history";
+import { StudentFeed } from "@/components/feed/family-feed";
 
 /**
  * A child's points: School points and Home points as two separate sections, never added together. Used by the
@@ -312,7 +313,7 @@ export function StudentHome({ schools, name }: { schools: { schoolId: string; sc
           <p className="text-muted-foreground">{t("studentSubtitle", { name })}</p>
         </div>
       </header>
-      {schools.length === 0 ? <EmptyNotice>{t("noSchool")}</EmptyNotice> : null}
+      {schools.length === 0 ? <EmptyNotice>{t("noSchool")}</EmptyNotice> : <StudentFeed />}
       {schools.map((school) => (
         <div key={school.studentId} className="flex flex-col gap-6">
           <StudentPointsView

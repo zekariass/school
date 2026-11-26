@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isStudentOnly, isTeacherOnly, navItems, schoolAccess, type MeLike } from "./access";
+import { canOpenApprovals, canOpenFeed, canPostSchoolWide, isStudentOnly, isTeacherOnly, navItems, schoolAccess, type MeLike } from "./access";
 
 const ADMIN = [
   "school.read",
@@ -48,7 +48,7 @@ describe("navItems", () => {
   });
 
   it("gives teachers the dashboard, their classes and the families queue", () => {
-    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "attendance", "points"]);
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "attendance", "points", "feed"]);
   });
 
   it("shows Policies only with the policies permission", () => {
@@ -90,7 +90,36 @@ describe("navItems", () => {
       scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["class.manage"] }],
       memberships: [{ type: "TEACHER", schoolSlug: "sunrise" }],
     };
-    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "attendance", "points"]);
+    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "attendance", "points", "feed"]);
+  });
+});
+
+describe("the school feed", () => {
+  const manager: MeLike = { scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["school.feed.manage"] }] };
+  const staff: MeLike = { scopes: [], memberships: [{ type: "STAFF", schoolSlug: "sunrise" }] };
+
+  it("is in the menu for teachers, other staff and feed managers, not for students or strangers", () => {
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toContain("feed");
+    expect(navItems(schoolAccess(staff, "sunrise"))).toContain("feed");
+    expect(navItems(schoolAccess(manager, "sunrise"))).toContain("feed");
+    expect(navItems(schoolAccess(student, "sunrise"))).not.toContain("feed");
+    expect(navItems(schoolAccess(manager, "moon"))).not.toContain("feed");
+    expect(canOpenFeed(schoolAccess(student, "sunrise"))).toBe(false);
+  });
+
+  it("lets only feed managers post school-wide", () => {
+    expect(canPostSchoolWide(schoolAccess(manager, "sunrise"))).toBe(true);
+    expect(canPostSchoolWide(schoolAccess(teacher, "sunrise"))).toBe(false);
+    expect(canPostSchoolWide(schoolAccess(manager, "moon"))).toBe(false);
+  });
+
+  it("shows the approvals queue to teachers, feed managers and class managers (the API narrows it)", () => {
+    const classAdmin: MeLike = { scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["class.manage"] }] };
+    expect(canOpenApprovals(schoolAccess(teacher, "sunrise"))).toBe(true);
+    expect(canOpenApprovals(schoolAccess(manager, "sunrise"))).toBe(true);
+    expect(canOpenApprovals(schoolAccess(classAdmin, "sunrise"))).toBe(true);
+    expect(canOpenApprovals(schoolAccess(staff, "sunrise"))).toBe(false);
+    expect(canOpenApprovals(schoolAccess(student, "sunrise"))).toBe(false);
   });
 });
 

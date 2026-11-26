@@ -63,7 +63,7 @@ export function useNotificationActions() {
           // The item is still marked read; without a slug there is nowhere to go.
         }
       }
-      const path = resolveDeepLink(item.data, { schoolSlug });
+      const path = resolveDeepLink(item.data, { schoolSlug, schoolId: item.schoolId });
       if (!item.readAt) {
         try {
           await markRead(item.id);

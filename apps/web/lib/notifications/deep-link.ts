@@ -5,7 +5,10 @@ import { sanitizeNextPath } from "@/lib/safe-redirect";
  * paths pass (see sanitizeNextPath); anything else is null and the item just gets marked read.
  * Paths in notifications carry no locale: the localized router adds it.
  */
-export function resolveDeepLink(data: unknown, context: { schoolSlug?: string | null } = {}): string | null {
+export function resolveDeepLink(
+  data: unknown,
+  context: { schoolSlug?: string | null; schoolId?: string | null } = {},
+): string | null {
   if (typeof data !== "object" || data === null) return null;
   const path = (data as { path?: unknown }).path;
   const safe = typeof path === "string" ? sanitizeNextPath(path) : null;
@@ -24,6 +27,15 @@ export function resolveDeepLink(data: unknown, context: { schoolSlug?: string | 
     const slug = context.schoolSlug;
     return slug && SLUG.test(slug) ? `/s/${slug}/classes/${inbox[1]}?tab=absences` : null;
   }
+  // Feed links name only the post or story: the school comes from the notification itself (never from the text).
+  const post = FEED_POST.exec(base);
+  if (post) return context.schoolId && UUID.test(context.schoolId) ? `/feed/posts/${context.schoolId}/${post[1]}` : null;
+  const story = FEED_STORY.exec(base);
+  if (story) return context.schoolId && UUID.test(context.schoolId) ? `/feed/stories/${context.schoolId}/${story[1]}` : null;
+  if (base === FEED_APPROVALS) {
+    const slug = context.schoolSlug;
+    return slug && SLUG.test(slug) ? `/s/${slug}/feed/approvals` : null;
+  }
   return WEB_PATHS[base] ?? safe;
 }
 
@@ -31,7 +43,8 @@ export function resolveDeepLink(data: unknown, context: { schoolSlug?: string | 
 export function deepLinkNeedsSchool(data: unknown): boolean {
   if (typeof data !== "object" || data === null) return false;
   const path = (data as { path?: unknown }).path;
-  return typeof path === "string" && CLASS_INBOX.test(path.split(/[?#]/)[0] ?? "");
+  const base = typeof path === "string" ? (path.split(/[?#]/)[0] ?? "") : "";
+  return CLASS_INBOX.test(base) || base === FEED_APPROVALS;
 }
 
 interface MeSchools {
@@ -52,6 +65,9 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const CLASS_INBOX = /^\/classes\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/attendance$/i;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const FEED_POST = /^\/feed\/posts\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+const FEED_STORY = /^\/feed\/stories\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+const FEED_APPROVALS = "/feed/approvals";
 
 const WEB_PATHS: Record<string, string> = {
   "/children": "/family",

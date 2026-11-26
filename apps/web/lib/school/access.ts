@@ -19,6 +19,7 @@ export const SP = {
   pointsRead: "school.points.read",
   attendanceManage: "school.attendance.manage",
   attendanceRead: "school.attendance.read",
+  feedManage: "school.feed.manage",
 } as const;
 
 export interface ScopeLike {
@@ -77,6 +78,7 @@ export type NavId =
   | "families"
   | "attendance"
   | "points"
+  | "feed"
   | "policies";
 
 /** The workspace menu for this access, in display order. */
@@ -95,10 +97,30 @@ export function navItems(access: SchoolAccess): NavId[] {
   if (can(SP.attendanceManage) || can(SP.attendanceRead) || access.isTeacher) items.push("attendance");
   // Points and badges: teachers (reports of their classes), points managers and readers.
   if (can(SP.pointsManage) || can(SP.pointsRead) || access.isTeacher) items.push("points");
+  // The school feed and its approvals queue: members who work at the school (the API decides who may post).
+  if (canOpenFeed(access)) items.push("feed");
   if (can(SP.policies)) items.push("policies");
   if (can(SP.settings)) items.push("settings");
   if (can(SP.read)) items.push("features");
   return items;
+}
+
+/** The school feed page: teachers, other staff and school feed managers. */
+export function canOpenFeed(access: SchoolAccess): boolean {
+  return access.isTeacher || access.isStaff || access.permissions.has(SP.feedManage);
+}
+
+/** Posting to the whole school: the feed managers' own permission. */
+export function canPostSchoolWide(access: Pick<SchoolAccess, "permissions">): boolean {
+  return access.permissions.has(SP.feedManage);
+}
+
+/**
+ * The approvals queue of family contributions: the class's lead teachers and managers (the API narrows it to the
+ * classes the caller leads or manages and answers 403/404 otherwise).
+ */
+export function canOpenApprovals(access: SchoolAccess): boolean {
+  return access.isTeacher || access.permissions.has(SP.feedManage) || access.permissions.has(SP.classManage);
 }
 
 /** Students only use the mobile app: a STUDENT membership without anything else has no workspace. */
@@ -125,5 +147,6 @@ export const NAV_PATH: Record<NavId, string> = {
   families: "families",
   attendance: "attendance",
   points: "points",
+  feed: "feed",
   policies: "policies",
 };

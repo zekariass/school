@@ -13,6 +13,7 @@ import { Link } from "@/i18n/navigation";
 import { errorMessage } from "@/lib/console/errors";
 import { fetchMyChildren, fetchMyConsents, familyKeys, type MyChild, type PendingLink } from "@/lib/family/queries";
 import { openDecisionCount, teacherNames } from "@school/validation/family";
+import { FamilyFeed } from "@/components/feed/family-feed";
 import { ConnectCodeCard } from "./connect-code-card";
 
 /** "My children": the adult's children with their classes and teachers, waiting requests and open consent decisions. */
@@ -40,6 +41,8 @@ export function FamilyHome() {
           <span className="text-primary">{t("consentReview")}</span>
         </Link>
       ) : null}
+
+      {children.data ? <FamilyFeed kids={children.data.children} /> : null}
 
       {children.isPending ? (
         <LoadingRows rows={3} />
