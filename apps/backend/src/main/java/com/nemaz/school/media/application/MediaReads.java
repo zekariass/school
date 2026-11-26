@@ -133,7 +133,9 @@ public class MediaReads {
 		MediaInfo info = m.info();
 		MediaPurposePolicy policy = this.policies.find(m.getPurpose()).orElse(null);
 		boolean owner = m.getOwnerId().equals(user.userId());
-		boolean manager = owner || (policy != null && policy.canManage(user, info));
+		// the purpose's policy decides (its default is the uploader or whoever may create media in the context); a purpose whose
+		// media becomes part of something else once attached (a message, a portfolio item) takes the uploader's right away
+		boolean manager = (policy != null) ? policy.canManage(user, info) : owner;
 		if (!manager) {
 			if (policy == null || !policy.canRead(user, info)) {
 				throw ApiException.notFound("media.not_found");

@@ -45,7 +45,10 @@ insert into notification_types (code, category, default_channels, can_be_urgent,
   ('MESSAGE_SCHEDULE_BLOCKED','MESSAGING', '{IN_APP,PUSH}', false, false, 'A scheduled message was not sent because the sender may no longer send it (to the sender)', false, false),
   ('EVENT_INVITATION',        'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An invitation to a parent meeting, or a new event when the school asks for it', true, false),
   ('EVENT_UPDATED',           'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An event was moved to another time or place', true, false),
-  ('EVENT_CANCELLED',         'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An event or one of its occurrences was cancelled', true, false)
+  ('EVENT_CANCELLED',         'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An event or one of its occurrences was cancelled', true, false),
+  ('PORTFOLIO_SUBMITTED',     'LEARNING',  '{IN_APP,PUSH}', false, true,  'A portfolio item waits for review (to the class''s reviewing teachers; generic text, never the title or the child)', false, false),
+  ('PORTFOLIO_NEW_ITEM',      'LEARNING',  '{IN_APP,PUSH}', false, true,  'A guardian-visible portfolio item of the child was approved (to the guardians, once per item; generic text)', false, false),
+  ('PORTFOLIO_COMMENT',       'LEARNING',  '{IN_APP}',      false, true,  'Somebody commented on the student''s portfolio item (to the student; never the comment)', false, false)
 on conflict (code) do update
   set category = excluded.category,
       default_channels = excluded.default_channels,

@@ -31,7 +31,8 @@ insert into permissions (code, module, description) values
   ('school.announcements.urgent',   'communications', 'Send URGENT and SAFETY announcements (they bypass quiet hours and cannot be muted)'),
   ('school.messaging.moderate',     'messaging',     'Moderate the school''s group conversations: create school and staff groups, approve student groups, add and remove members, lock, archive and hide messages'),
   ('school.messaging.review',       'messaging',     'Review admin-visible and reported conversations through the audited read endpoint (mandatory reason), list student blocks of adults'),
-  ('school.calendar.manage',        'calendar',      'Create, change, cancel and delete school-wide, campus and grade events and any class event of the school')
+  ('school.calendar.manage',        'calendar',      'Create, change, cancel and delete school-wide, campus and grade events and any class event of the school'),
+  ('school.portfolios.review',      'portfolio',     'Review, comment on, archive and delete student portfolio items of the school (administrator oversight; class teachers review through their class)')
 on conflict (code) do update
   set module = excluded.module,
       description = excluded.description;
@@ -82,6 +83,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('PLATFORM_ADMIN', 'school.messaging.moderate'),
   ('PLATFORM_ADMIN', 'school.messaging.review'),
   ('PLATFORM_ADMIN', 'school.calendar.manage'),
+  ('PLATFORM_ADMIN', 'school.portfolios.review'),
   -- Country: organizations, schools and settings within the country; no plans or feature flags.
   ('COUNTRY_ADMIN', 'platform.organizations.manage'),
   ('COUNTRY_ADMIN', 'platform.schools.manage'),
@@ -107,6 +109,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('COUNTRY_ADMIN', 'school.messaging.moderate'),
   ('COUNTRY_ADMIN', 'school.messaging.review'),
   ('COUNTRY_ADMIN', 'school.calendar.manage'),
+  ('COUNTRY_ADMIN', 'school.portfolios.review'),
   -- Organization: its schools (create, status, campuses, school settings) and their admins.
   ('ORGANIZATION_ADMIN', 'platform.schools.manage'),
   ('ORGANIZATION_ADMIN', 'platform.roles.manage'),
@@ -130,6 +133,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('ORGANIZATION_ADMIN', 'school.messaging.moderate'),
   ('ORGANIZATION_ADMIN', 'school.messaging.review'),
   ('ORGANIZATION_ADMIN', 'school.calendar.manage'),
+  ('ORGANIZATION_ADMIN', 'school.portfolios.review'),
   -- School: its own school, campuses and school-level settings.
   ('SCHOOL_ADMIN', 'school.read'),
   ('SCHOOL_ADMIN', 'school.manage'),
@@ -151,6 +155,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('SCHOOL_ADMIN', 'school.messaging.moderate'),
   ('SCHOOL_ADMIN', 'school.messaging.review'),
   ('SCHOOL_ADMIN', 'school.calendar.manage'),
+  ('SCHOOL_ADMIN', 'school.portfolios.review'),
   -- The four school-operations permissions (M3a) are held by every administrator who may grant SCHOOL_ADMIN
   -- (platform, country, organization): granting needs every permission of the role (no escalation), so withholding
   -- them would only move the data access to a school administrator they appoint.
