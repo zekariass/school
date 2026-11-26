@@ -41,6 +41,8 @@ export function caps(overrides: Partial<AnnouncementCapabilities> = {}): Announc
     ],
     reminderMinHours: 24,
     timeZone: 'Africa/Addis_Ababa',
+    smsMaxPerAnnouncement: 500,
+    smsMaxPerDay: 1000,
     ...overrides,
   };
 }

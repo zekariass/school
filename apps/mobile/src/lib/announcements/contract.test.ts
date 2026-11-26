@@ -99,6 +99,8 @@ const teacherCaps = {
   classes: [{ id: '01a2177d-936b-772a-af6d-6cbaf76cede0', name: 'Grade 3A' }],
   reminderMinHours: 24,
   timeZone: 'Africa/Addis_Ababa',
+  smsMaxPerAnnouncement: 500,
+  smsMaxPerDay: 1000,
 } satisfies AnnouncementCapabilities;
 
 const managerCaps = { ...teacherCaps, schoolWide: true, urgentAllowed: true, classes: [] } satisfies AnnouncementCapabilities;
