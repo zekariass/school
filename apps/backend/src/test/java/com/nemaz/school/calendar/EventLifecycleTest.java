@@ -212,7 +212,7 @@ class EventLifecycleTest extends CalendarTestSupport {
 	@Test
 	void anyoneWhoSeesAnEventThatAsksCanAnswerAndOnlyManagersSeeTheTotals() throws Exception {
 		Cal c = cal("life-rsvp");
-		Instant start = Instant.now().plus(Duration.ofDays(5));
+		Instant start = now().plus(Duration.ofDays(5));
 		UUID id = create(c, c.admin(), with(timed("Open day", "SCHOOL", start), "rsvpEnabled", true));
 		UUID plain = schoolEvent(c, "No answers", start);
 		String rsvp = event(id) + "/rsvp";

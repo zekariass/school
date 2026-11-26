@@ -29,7 +29,7 @@ class ParentMeetingTest extends CalendarTestSupport {
 	private static final String TITLE = "Abel struggles with reading";
 
 	private UUID abelMeeting(Cal c) throws Exception {
-		return create(c, c.lead1A(), meetingBody(TITLE, c.a1(), Instant.now().plus(Duration.ofDays(2))));
+		return create(c, c.lead1A(), meetingBody(TITLE, c.a1(), now().plus(Duration.ofDays(2))));
 	}
 
 	private Set<String> whoOpens(Cal c, UUID id) throws Exception {
@@ -68,7 +68,7 @@ class ParentMeetingTest extends CalendarTestSupport {
 	@Test
 	void aTeacherInvitesTheGuardiansOfOneOfTheirStudents() throws Exception {
 		Cal c = cal("meet-create");
-		JsonNode created = call(HttpMethod.POST, c.schoolEvents(), c.lead1A(), meetingBody(TITLE, c.a1(), Instant.now().plus(Duration.ofDays(2))), 201);
+		JsonNode created = call(HttpMethod.POST, c.schoolEvents(), c.lead1A(), meetingBody(TITLE, c.a1(), now().plus(Duration.ofDays(2))), 201);
 		assertThat(created.get("eventType").asString()).isEqualTo("PARENT_MEETING");
 		assertThat(created.get("scope").asString()).isEqualTo("INVITEES");
 		assertThat(created.get("rsvpEnabled").asBoolean()).isTrue();
@@ -80,14 +80,14 @@ class ParentMeetingTest extends CalendarTestSupport {
 		assertThat(participants).containsExactlyInAnyOrder(c.lead1A().userId() + ":ORGANIZER:-", c.gA1().userId() + ":ATTENDEE:PENDING",
 				c.gSib().userId() + ":ATTENDEE:PENDING");
 		// the other teachers of the student may invite too (lead, co-teacher, subject teacher), assistants may not
-		call(HttpMethod.POST, c.schoolEvents(), c.co1A(), meetingBody("m", c.a1(), Instant.now().plus(Duration.ofDays(2))), 201);
-		call(HttpMethod.POST, c.schoolEvents(), c.subject1A(), meetingBody("m", c.a1(), Instant.now().plus(Duration.ofDays(2))), 201);
+		call(HttpMethod.POST, c.schoolEvents(), c.co1A(), meetingBody("m", c.a1(), now().plus(Duration.ofDays(2))), 201);
+		call(HttpMethod.POST, c.schoolEvents(), c.subject1A(), meetingBody("m", c.a1(), now().plus(Duration.ofDays(2))), 201);
 		for (Persona nope : new Persona[] { c.assistant1A(), c.lead1B(), c.lead2A(), c.staff(), c.admin(), c.gA1(), c.studentA1() }) {
-			assertThat(failure(HttpMethod.POST, c.schoolEvents(), nope, meetingBody("m", c.a1(), Instant.now().plus(Duration.ofDays(2))), 403))
+			assertThat(failure(HttpMethod.POST, c.schoolEvents(), nope, meetingBody("m", c.a1(), now().plus(Duration.ofDays(2))), 403))
 				.as(nope.name()).isEqualTo("event.meeting_not_allowed");
 		}
 		for (Persona stranger : new Persona[] { c.outsider(), c.otherAdmin() }) {
-			assertThat(failure(HttpMethod.POST, c.schoolEvents(), stranger, meetingBody("m", c.a1(), Instant.now().plus(Duration.ofDays(2))), 404))
+			assertThat(failure(HttpMethod.POST, c.schoolEvents(), stranger, meetingBody("m", c.a1(), now().plus(Duration.ofDays(2))), 404))
 				.isEqualTo("school.not_found");
 		}
 	}
@@ -95,7 +95,7 @@ class ParentMeetingTest extends CalendarTestSupport {
 	@Test
 	void theStudentMustBeOfTheSchoolAndHaveGuardiansToInvite() throws Exception {
 		Cal c = cal("meet-student");
-		Instant start = Instant.now().plus(Duration.ofDays(2));
+		Instant start = now().plus(Duration.ofDays(2));
 		UUID elsewhere = this.personas.newStudent(this.personas.fixture().schoolB(), "elsewhere");
 		assertThat(failure(HttpMethod.POST, c.schoolEvents(), c.lead1A(), meetingBody("m", elsewhere, start), 404))
 			.isEqualTo("event.student_not_found");
@@ -117,8 +117,8 @@ class ParentMeetingTest extends CalendarTestSupport {
 	@Test
 	void aMeetingHasOneTimeInTheFutureAndNoRepeat() throws Exception {
 		Cal c = cal("meet-shape");
-		Instant start = Instant.now().plus(Duration.ofDays(2));
-		assertThat(failure(HttpMethod.POST, c.schoolEvents(), c.lead1A(), meetingBody("m", c.a1(), Instant.now().minus(Duration.ofHours(2))), 400))
+		Instant start = now().plus(Duration.ofDays(2));
+		assertThat(failure(HttpMethod.POST, c.schoolEvents(), c.lead1A(), meetingBody("m", c.a1(), now().minus(Duration.ofHours(2))), 400))
 			.isEqualTo("event.time_in_past");
 		assertThat(failure(HttpMethod.POST, c.schoolEvents(), c.lead1A(), with(meetingBody("m", c.a1(), start), "recurrenceRule", "FREQ=DAILY"), 400))
 			.isEqualTo("event.recurrence_not_allowed");
@@ -140,7 +140,7 @@ class ParentMeetingTest extends CalendarTestSupport {
 		UUID id = abelMeeting(c);
 		assertThat(whoOpens(c, id)).containsExactlyInAnyOrder("lead1A", "gA1", "gSib");
 		// the union agrees
-		String window = "from=" + Instant.now().toString() + "&to=" + Instant.now().plus(Duration.ofDays(5)) + "&schoolId=" + c.schoolId();
+		String window = "from=" + now().toString() + "&to=" + now().plus(Duration.ofDays(5)) + "&schoolId=" + c.schoolId();
 		for (Persona in : new Persona[] { c.lead1A(), c.gA1(), c.gSib() }) {
 			JsonNode page = get("/api/v1/calendar?" + window, in);
 			assertThat(items(page).stream().map((i) -> i.get("kind").asString())).as(in.name()).contains("PARENT_MEETING");
@@ -152,9 +152,9 @@ class ParentMeetingTest extends CalendarTestSupport {
 			}
 		}
 		// the child filter keeps it for the child it is about and hides it from the sibling's view
-		assertThat(titles(c.gSib(), Instant.now().toString(), Instant.now().plus(Duration.ofDays(5)).toString(), "studentId=" + c.a1()))
+		assertThat(titles(c.gSib(), now().toString(), now().plus(Duration.ofDays(5)).toString(), "studentId=" + c.a1()))
 			.contains(TITLE);
-		assertThat(titles(c.gSib(), Instant.now().toString(), Instant.now().plus(Duration.ofDays(5)).toString(), "studentId=" + c.a2()))
+		assertThat(titles(c.gSib(), now().toString(), now().plus(Duration.ofDays(5)).toString(), "studentId=" + c.a2()))
 			.doesNotContain(TITLE);
 		// managers and other people cannot touch it either
 		assertThat(failure(HttpMethod.PATCH, event(id), c.admin(), Map.of("title", "x"), 404)).isEqualTo("event.not_found");
@@ -259,7 +259,7 @@ class ParentMeetingTest extends CalendarTestSupport {
 	@Test
 	void answersCloseWhenTheMeetingStartsOrIsCancelled() throws Exception {
 		Cal c = cal("meet-closed");
-		Instant start = Instant.now().plus(Duration.ofDays(2));
+		Instant start = now().plus(Duration.ofDays(2));
 		UUID id = create(c, c.lead1A(), meetingBody("m", c.a1(), start));
 		call(HttpMethod.PUT, event(id) + "/rsvp", c.gA1(), Map.of("status", "YES"), 200);
 		clockAt(start.plusSeconds(60));
@@ -280,7 +280,7 @@ class ParentMeetingTest extends CalendarTestSupport {
 		call(HttpMethod.PUT, event(id) + "/rsvp", c.gA1(), Map.of("status", "YES"), 200);
 		call(HttpMethod.PUT, event(id) + "/rsvp", c.gSib(), Map.of("status", "NO"), 200);
 		this.jdbc.update("delete from notifications where school_id = ?", c.schoolId());
-		Instant moved = Instant.now().plus(Duration.ofDays(3));
+		Instant moved = now().plus(Duration.ofDays(3));
 		JsonNode view = call(HttpMethod.PATCH, event(id), c.lead1A(),
 				Map.of("startAt", moved.toString(), "endAt", moved.plusSeconds(1800).toString(), "location", "Room 12"), 200);
 		assertThat(Instant.parse(view.get("startAt").asString())).isEqualTo(moved);
@@ -300,8 +300,8 @@ class ParentMeetingTest extends CalendarTestSupport {
 		assertThat(count(c.gA1().userId(), "EVENT_UPDATED")).isEqualTo(1);
 		assertNoPrivateText(c, id);
 		// a past time is refused
-		assertThat(failure(HttpMethod.PATCH, event(id), c.lead1A(), Map.of("startAt", Instant.now().minusSeconds(3600).toString(),
-				"endAt", Instant.now().minusSeconds(60).toString()), 400)).isEqualTo("event.time_in_past");
+		assertThat(failure(HttpMethod.PATCH, event(id), c.lead1A(), Map.of("startAt", now().minusSeconds(3600).toString(),
+				"endAt", now().minusSeconds(60).toString()), 400)).isEqualTo("event.time_in_past");
 	}
 
 	@Test
@@ -333,7 +333,7 @@ class ParentMeetingTest extends CalendarTestSupport {
 	void theInvitationTellsTheGuardiansWithoutTheTitleTheChildOrThePlace() throws Exception {
 		Cal c = cal("meet-invite");
 		this.jdbc.update("delete from notifications where school_id = ?", c.schoolId());
-		UUID id = create(c, c.lead1A(), with(meetingBody(TITLE, c.a1(), Instant.now().plus(Duration.ofDays(2))), "location", "Room 3",
+		UUID id = create(c, c.lead1A(), with(meetingBody(TITLE, c.a1(), now().plus(Duration.ofDays(2))), "location", "Room 3",
 				"description", "Abel cannot read"));
 		assertThat(count(c.gA1().userId(), "EVENT_INVITATION")).isEqualTo(1);
 		assertThat(count(c.gSib().userId(), "EVENT_INVITATION")).isEqualTo(1);

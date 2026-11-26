@@ -32,6 +32,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 abstract class CalendarTestSupport extends AuthTestSupport {
 
+	/**
+	 * "Now" in whole seconds. A raw Instant.now() has nanoseconds on Linux (CI) but microseconds on macOS, and Postgres keeps
+	 * microseconds, so a value sent to the API and compared with what it returns can differ by a few hundred nanoseconds.
+	 */
+	protected static Instant now() {
+		return Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+	}
+
+
 	@Autowired
 	protected SettingsService settings;
 
@@ -201,7 +210,7 @@ abstract class CalendarTestSupport extends AuthTestSupport {
 
 	/** A parent meeting about {@code student} created by {@code teacher} one day from now; returns its id. */
 	protected UUID meeting(Cal c, Persona teacher, UUID student) throws Exception {
-		return create(c, teacher, meetingBody("Meeting", student, Instant.now().plus(Duration.ofDays(2))));
+		return create(c, teacher, meetingBody("Meeting", student, now().plus(Duration.ofDays(2))));
 	}
 
 	protected static Map<String, Object> meetingBody(String title, UUID student, Instant start) {
