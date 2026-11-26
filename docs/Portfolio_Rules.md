@@ -97,7 +97,9 @@ Tests: `PortfolioCreateTest.studentCreatesDraftThenSubmits`, `.submitInOneCall`,
    status. Soft delete (`deleted_at`): the item disappears for everybody, its files are discarded through `MediaService.discard`.
    **(added by the implementer)** The text of the item and its comments is erased at once; the row, the history and the audit
    rows remain as a tombstone. An APPROVED item is otherwise removed only on a data-subject request: the hook
-   (`PortfolioErasure`: same soft delete without the reviewer check) is documented, the erasure workflow is not built.
+   (`PortfolioItemService.erase`, the same soft delete without the reviewer check) exists, the erasure workflow is not built.
+   **(added by the implementer)** Switching `portfolio.student_create.enabled` off stops students from creating, editing and
+   submitting, never from deleting their own unreviewed items.
 7. **Featured.** A reviewer sets or clears `is_featured` on an APPROVED item (the history gets a FEATURED or UNFEATURED row).
 
 Tests: `PortfolioWorkflowTest.everyLegalTransitionWorks`, `.everyIllegalTransitionIsRefused`, `.draftIsVisibleToItsCreatorOnly`,
@@ -158,6 +160,9 @@ Tests: `PortfolioNotificationTest.submissionNotifiesReviewersGenerically`, `.rev
    reason is the student's **own** consent, the student's own guardians. **(added by the implementer)** When the reason is
    another tagged child (or the missing confirmation about others), the student's own guardians are also withheld: they must not
    see a child whose own guardians have not agreed. Granting consent again brings the files back without any action.
+   **(added by the implementer)** The same live test covers a school that raises its cap after an item was approved: an item that
+   reaches CLASS or SCHOOL only now, without consent or the creator's confirmation, shows its text but withholds its files (the
+   creator cannot confirm an approved item: archive it and add it again, or the school lowers the cap).
 7. Media access follows the item (R-30): draft files are read by their creator only; submitted files by the student and the
    reviewers; approved files by the item's audience (minus withholding); archived files by the student and the reviewers; files
    of a deleted item by nobody. A signed URL is never issued for an image original (images only as re-encoded variants).
@@ -217,8 +222,9 @@ Tests: `PortfolioShareTest.shareToStoryIsUnsupportedForTeachers`, `.studentsAndO
 All lists are filtered in SQL by the same predicate as the single read, keyset paged (`CursorPage`), and answer 404 to callers who
 cannot see the school, student or item and 403 to members who lack the permission.
 
-1. `GET /schools/{s}/students/{student}/portfolio`: the student's portfolio. For the student, their own guardians and reviewers
-   (everyone else gets the items they may see, usually none; a caller who cannot see the student at all gets 404).
+1. `GET /schools/{s}/students/{student}/portfolio`: the student's portfolio, for the student, their own guardians, their teachers,
+   class managers and holders of `school.portfolios.review`; **everybody else gets 404** (classmates and other families use the
+   galleries) **(added by the implementer)**. Each caller gets the items they may see (guardians: APPROVED and guardian-visible only).
 2. `GET /schools/{s}/portfolio/mine`: the items the caller created or that are about them, in every status.
 3. `GET /schools/{s}/classes/{c}/portfolio/review-queue`: SUBMITTED items of the class, oldest first, for reviewers only (a
    subject teacher sees only their subject's items).
@@ -260,4 +266,8 @@ another child, a student and a teacher of another class).
 6. Sharing to the class story: copy the file into a post (new media operation) or let a post reference portfolio media?
 7. Retention of deleted items' history rows and approval notes (the table is append-only; a purge needs a documented exception).
 8. Archived and deleted items' files are discarded or kept for safeguarding evidence (M13)?
-9. Whether SUBJECT_TEACHERs of other subjects and assistants should see CLASS-visible items (today: yes, as class members, but they cannot comment or review).
+9. An item approved while the cap was GUARDIANS and without the creator's confirmation stays withheld from classmates (and from its own
+   guardians, because others may appear in it) once the cap is raised: is there a way for the creator to confirm an approved item?
+10. Portfolios are an entitlement of SCHOOL_BASIC and up (the existing plan matrix); schools on SCHOOL_FREE get 403 `portfolio.feature_disabled`.
+    Is that the intended product decision for a feature that stores children's own work?
+11. Whether SUBJECT_TEACHERs of other subjects and assistants should see CLASS-visible items (today: yes, as class members, but they cannot comment or review).

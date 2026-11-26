@@ -854,6 +854,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A guardian's combined view across their children and schools: APPROVED, guardian-visible items of ACTIVE, unrestricted links with academics, newest first; optional studentId (404 student.not_found when not the caller's child). Empty for everybody else */
+        get: operations["listMyChildrenPortfolio"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/push-devices": {
         parameters: {
             query?: never;
@@ -2483,6 +2500,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/classes/{classId}/portfolio/gallery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** APPROVED items of the class whose effective visibility is CLASS or SCHOOL, for the class's students and teachers (BASIC student data only, no guardian data). Empty unless the school raised portfolio.max_visibility */
+        get: operations["listClassPortfolioGallery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/portfolio/quick-capture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A teacher captures an item for a student ACTIVE in the class (ACTIVE LEAD, CO_TEACHER or SUBJECT_TEACHER; assistants while portfolio.assistants_can_capture). The item is APPROVED at once, created_by is the teacher, audited. showsOtherChildren defaults to true: with files, tag the other children (each needs media consent) or send confirmNoUnconsentedStudents. 422 portfolio.media_consent_missing / portfolio.media_confirmation_required, 403 portfolio.capture_not_allowed */
+        post: operations["quickCapturePortfolioItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/portfolio/review-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SUBMITTED items of the class, oldest first (the submission time), for its reviewers only (a subject teacher sees only their subject's items). 403 portfolio.review_not_allowed for other people who see the class, 404 for those who cannot */
+        get: operations["listPortfolioReviewQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/classes/{classId}/posts": {
         parameters: {
             query?: never;
@@ -3481,6 +3549,265 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/portfolio/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the caller may do in the school's portfolios: create (a student), quick-capture (classes), review, the school cap, supported and deferred item types */
+        get: operations["getPortfolioCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/gallery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** APPROVED items whose effective visibility is SCHOOL, for the school's ACTIVE students and staff (guardians of other children never see it). Empty unless the school raised portfolio.max_visibility to SCHOOL */
+        get: operations["listSchoolPortfolioGallery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A student adds an item about their own work (TEXT, PHOTO, DRAWING, SCAN or DOCUMENT; AUDIO and VIDEO are refused with 422 portfolio.item_type_unsupported). Only an ACTIVE student of the school while portfolio.student_create.enabled (403 portfolio.student_only / portfolio.student_create_disabled). mode DRAFT (default) or SUBMIT. Files are READY uploads of purpose PORTFOLIO with context SCHOOL. Text is plain text. visibility defaults to GUARDIANS and is lowered by the school cap. 400 portfolio.* validation codes, 429 portfolio.rate_limited */
+        post: operations["createPortfolioItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One item as the caller may see it: the student in every status, reviewers in every status but DRAFT, everybody else only APPROVED items within the effective visibility (the lower of the item's and the school cap). Files are withheld (mediaWithheld) while media consent is missing. 404 portfolio.item_not_found for everybody else */
+        get: operations["getPortfolioItem"];
+        put?: never;
+        post?: never;
+        /** Deletes an item (soft; its text is erased, its files discarded, the history stays): the student's own DRAFT, SUBMITTED or CHANGES_REQUESTED item, or any item by a reviewer. 403 portfolio.delete_not_allowed for the others */
+        delete: operations["deletePortfolioItem"];
+        options?: never;
+        head?: never;
+        /** Edits a DRAFT or CHANGES_REQUESTED item (its student only; 409 portfolio.invalid_state otherwise). Changing the files or tagged children drops the creator's confirmation */
+        patch: operations["updatePortfolioItem"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archives an APPROVED item (the student or a reviewer): hidden from everybody but the student and the reviewers */
+        post: operations["archivePortfolioItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The item's comments, oldest first, keyset paged: for the student, their own guardians and the reviewers. Guardians and students appear by role label only (authorRole, mine); a hidden comment is a tombstone without text except for its author and the reviewers */
+        get: operations["listPortfolioComments"];
+        put?: never;
+        /** Writes a plain-text comment (1 to 500 characters, 30 an hour) on an APPROVED item that is guardian-visible: the student, their own guardians (while portfolio.comments.guardians_enabled; ACTIVE, unrestricted link with academics, read live) and the item's reviewers. 409 portfolio.comments_not_available, 403 portfolio.comments_not_allowed / portfolio.comments_disabled */
+        post: operations["createPortfolioComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Deletes the caller's own comment (the text is erased). 403 portfolio.comment_delete_not_allowed for somebody else's */
+        delete: operations["deletePortfolioComment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/comments/{commentId}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hides a comment (the item's reviewers) with a reason of 1 to 200 characters: audited, the comment stays as a tombstone. Idempotent */
+        post: operations["hidePortfolioComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/featured": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Features an APPROVED item (reviewers); idempotent */
+        put: operations["featurePortfolioItem"];
+        post?: never;
+        /** Removes the featured mark (reviewers); idempotent */
+        delete: operations["unfeaturePortfolioItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The status history (append-only), oldest first, with the reviewers' notes. For the student and the reviewers only (403 portfolio.history_not_allowed for the others who see the item) */
+        get: operations["getPortfolioItemHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decides on a SUBMITTED item (reviewers: the class's LEAD and CO_TEACHERs, its SUBJECT_TEACHER when the subject matches, class managers, holders of school.portfolios.review): APPROVE (the consent gate runs: 422 portfolio.media_consent_missing / portfolio.media_confirmation_required), REQUEST_CHANGES or REJECT (a note is required). May lower the visibility, never raise it. 403 portfolio.review_not_allowed, 409 portfolio.invalid_state */
+        post: operations["reviewPortfolioItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/share-to-story": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deferred (rule book P6): reviewers of an APPROVED item with effective visibility CLASS or SCHOOL get 422 portfolio.share_unsupported (409 portfolio.share_not_eligible otherwise); everybody else the usual 403 and 404. Sharing needs a media copy operation that does not exist yet */
+        post: operations["sharePortfolioItemToStory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sends a DRAFT item, or a CHANGES_REQUESTED one again, for review (its student). The item must be complete (text for TEXT, a file for the others). Appends a SUBMITTED row to the history; the reviewing teachers are told. 409 portfolio.invalid_state */
+        post: operations["submitPortfolioItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/unarchive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Brings an ARCHIVED item back to APPROVED (reviewers only); the consent gate runs again */
+        post: operations["unarchivePortfolioItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/portfolio/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The items the caller created or that are about them, in every status they may see (a student's drafts included) */
+        get: operations["listMyPortfolioItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/posts": {
         parameters: {
             query?: never;
@@ -4151,6 +4478,23 @@ export interface paths {
         };
         /** The points timeline of one section (SCHOOL or HOME), newest first, keyset paged; HOME only for the student and their guardians (403 otherwise). Reversals are rows of their own and awards that were undone say so */
         get: operations["listStudentPointTransactions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A student's portfolio: for the student, their own guardians (live link), their teachers, class managers and holders of school.portfolios.review; 404 student.not_found for everybody else. Each caller gets the items they may see (guardians: APPROVED and guardian-visible only). Filters status, itemType, classId, subjectId, featured */
+        get: operations["listStudentPortfolio"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6011,6 +6355,16 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPagePortfolioCommentView: {
+            items: components["schemas"]["PortfolioCommentView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPagePortfolioItemView: {
+            items: components["schemas"]["PortfolioItemView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPagePostView: {
             items: components["schemas"]["PostView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -7010,6 +7364,228 @@ export interface components {
             /** Format: uuid */
             versionId: string;
             versionLabel: string;
+        };
+        /** @description What the caller may do in the school's portfolios */
+        PortfolioCapabilities: {
+            canCapture?: boolean;
+            captureClassIds: string[];
+            guardianComments?: boolean;
+            itemTypes: ("TEXT" | "PHOTO" | "DRAWING" | "SCAN" | "DOCUMENT" | "AUDIO" | "VIDEO")[];
+            /** @enum {string} */
+            maxVisibility: "STUDENT_TEACHER" | "GUARDIANS" | "CLASS" | "SCHOOL";
+            reviewer?: boolean;
+            shareToStoryAvailable?: boolean;
+            studentMayCreate?: boolean;
+            unsupportedItemTypes: ("TEXT" | "PHOTO" | "DRAWING" | "SCAN" | "DOCUMENT" | "AUDIO" | "VIDEO")[];
+        };
+        /** @description A short encouraging comment (plain text, 1 to 500 characters) */
+        PortfolioCommentRequest: {
+            body: string;
+        };
+        /** @description A comment. Guardians and students appear by role label only (no name, no id); mine marks the caller's own. A hidden comment is a tombstone without text */
+        PortfolioCommentView: {
+            authorName?: string;
+            /** @enum {string} */
+            authorRole: "TEACHER" | "GUARDIAN" | "STUDENT";
+            body?: string;
+            canDelete?: boolean;
+            canHide?: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            mine?: boolean;
+            status: string;
+        };
+        /** @description Why a comment is hidden (audited, 1 to 200 characters) */
+        PortfolioHideRequest: {
+            reason: string;
+        };
+        /** @description A row of the status history (student and reviewers only). Reviewers are named, the student is not */
+        PortfolioHistoryEntry: {
+            action: string;
+            actorName?: string;
+            /** @enum {string} */
+            actorRole: "TEACHER" | "GUARDIAN" | "STUDENT";
+            /** Format: date-time */
+            createdAt: string;
+            fromStatus?: string;
+            /** Format: uuid */
+            id: string;
+            note?: string;
+            toStatus?: string;
+        };
+        /** @description What the caller may do with the item now; the server decides, clients only show or hide controls */
+        PortfolioItemCapabilities: {
+            canArchive?: boolean;
+            canComment?: boolean;
+            canDelete?: boolean;
+            canEdit?: boolean;
+            canFeature?: boolean;
+            canReview?: boolean;
+            canShareToStory?: boolean;
+            canSubmit?: boolean;
+            canUnarchive?: boolean;
+        };
+        /** @description A student's new item about their own work. Text fields are plain text (control and invisible characters are removed). mode DRAFT (default) saves privately, SUBMIT sends it for review */
+        PortfolioItemRequest: {
+            /** Format: uuid */
+            classId?: string;
+            confirmNoUnconsentedStudents?: boolean;
+            description?: string;
+            /**
+             * @description AUDIO and VIDEO are reserved: they are refused with 422 portfolio.item_type_unsupported until the media pipeline can process them safely
+             * @enum {string}
+             */
+            itemType: "TEXT" | "PHOTO" | "DRAWING" | "SCAN" | "DOCUMENT" | "AUDIO" | "VIDEO";
+            mediaIds?: string[];
+            /** @enum {string} */
+            mode?: "DRAFT" | "SUBMIT";
+            reflection?: string;
+            showsOtherChildren?: boolean;
+            /** Format: uuid */
+            subjectId?: string;
+            taggedStudentIds?: string[];
+            textContent?: string;
+            title: string;
+            /** @enum {string} */
+            visibility?: "STUDENT_TEACHER" | "GUARDIANS" | "CLASS" | "SCHOOL";
+            /** Format: date */
+            workDate?: string;
+        };
+        /** @description Edits a DRAFT or CHANGES_REQUESTED item (its student only). A null field is unchanged; an empty text clears it; mediaIds replaces the files */
+        PortfolioItemUpdateRequest: {
+            /** Format: uuid */
+            classId?: string;
+            confirmNoUnconsentedStudents?: boolean;
+            description?: string;
+            mediaIds?: string[];
+            reflection?: string;
+            showsOtherChildren?: boolean;
+            /** Format: uuid */
+            subjectId?: string;
+            taggedStudentIds?: string[];
+            textContent?: string;
+            title?: string;
+            /** @enum {string} */
+            visibility?: "STUDENT_TEACHER" | "GUARDIANS" | "CLASS" | "SCHOOL";
+            /** Format: date */
+            workDate?: string;
+        };
+        /** @description One portfolio item as the caller may see it. mediaWithheld: the item has files that are hidden from the caller because media consent is missing. reviewNote is for the student and reviewers only */
+        PortfolioItemView: {
+            capabilities: components["schemas"]["PortfolioItemCapabilities"];
+            /** Format: uuid */
+            classId?: string;
+            /** Format: int32 */
+            commentCount?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** @enum {string} */
+            createdByRole: "TEACHER" | "GUARDIAN" | "STUDENT";
+            description?: string;
+            /** @enum {string} */
+            effectiveVisibility: "STUDENT_TEACHER" | "GUARDIANS" | "CLASS" | "SCHOOL";
+            featured?: boolean;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description AUDIO and VIDEO are reserved: they are refused with 422 portfolio.item_type_unsupported until the media pipeline can process them safely
+             * @enum {string}
+             */
+            itemType: "TEXT" | "PHOTO" | "DRAWING" | "SCAN" | "DOCUMENT" | "AUDIO" | "VIDEO";
+            media: components["schemas"]["PortfolioMediaView"][];
+            mediaConfirmed?: boolean;
+            mediaWithheld?: boolean;
+            reflection?: string;
+            reviewNote?: string;
+            /** Format: date-time */
+            reviewedAt?: string;
+            /** Format: uuid */
+            schoolId: string;
+            showsOtherChildren?: boolean;
+            /** @enum {string} */
+            status: "DRAFT" | "SUBMITTED" | "CHANGES_REQUESTED" | "APPROVED" | "REJECTED" | "ARCHIVED";
+            student: components["schemas"]["PortfolioStudentView"];
+            /** Format: uuid */
+            subjectId?: string;
+            /** Format: date-time */
+            submittedAt?: string;
+            /** Format: int32 */
+            taggedStudentCount?: number;
+            taggedStudents?: components["schemas"]["PortfolioTaggedStudent"][];
+            textContent?: string;
+            title?: string;
+            /** @enum {string} */
+            visibility: "STUDENT_TEACHER" | "GUARDIANS" | "CLASS" | "SCHOOL";
+            /** Format: date */
+            workDate?: string;
+        };
+        /** @description One file of an item: ids and variant names, never URLs (ask GET /media/{id}/url for a signed link) */
+        PortfolioMediaView: {
+            /** Format: int32 */
+            height?: number;
+            /** @enum {string} */
+            kind: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "OTHER";
+            /** Format: uuid */
+            mediaId: string;
+            mimeType: string;
+            /** Format: int32 */
+            sortOrder?: number;
+            variants: ("THUMB" | "SMALL" | "MEDIUM" | "LARGE" | "HLS_MASTER" | "POSTER" | "PDF_PREVIEW")[];
+            /** Format: int32 */
+            width?: number;
+        };
+        /** @description An optional note for archive, unarchive and similar actions */
+        PortfolioNoteRequest: {
+            note?: string;
+        };
+        /** @description A teacher's quick capture for a student of the class: the item is approved at once. showsOtherChildren defaults to TRUE when omitted (restrictive); with files and no tagged student, confirmNoUnconsentedStudents must be true */
+        PortfolioQuickCaptureRequest: {
+            confirmNoUnconsentedStudents?: boolean;
+            description?: string;
+            /**
+             * @description AUDIO and VIDEO are reserved: they are refused with 422 portfolio.item_type_unsupported until the media pipeline can process them safely
+             * @enum {string}
+             */
+            itemType: "TEXT" | "PHOTO" | "DRAWING" | "SCAN" | "DOCUMENT" | "AUDIO" | "VIDEO";
+            mediaIds?: string[];
+            reflection?: string;
+            showsOtherChildren?: boolean;
+            /** Format: uuid */
+            studentId: string;
+            /** Format: uuid */
+            subjectId?: string;
+            taggedStudentIds?: string[];
+            textContent?: string;
+            title: string;
+            /** @enum {string} */
+            visibility?: "STUDENT_TEACHER" | "GUARDIANS" | "CLASS" | "SCHOOL";
+            /** Format: date */
+            workDate?: string;
+        };
+        /** @description A reviewer's decision. REQUEST_CHANGES and REJECT need a note (shown to the student, never to guardians). visibility may only lower the item's audience */
+        PortfolioReviewRequest: {
+            /** @enum {string} */
+            decision: "APPROVE" | "REQUEST_CHANGES" | "REJECT";
+            note?: string;
+            /** @enum {string} */
+            visibility?: "STUDENT_TEACHER" | "GUARDIANS" | "CLASS" | "SCHOOL";
+        };
+        /** @description A student as classmates and families may know them: BASIC data only (never date of birth, gender or username) */
+        PortfolioStudentView: {
+            avatar?: components["schemas"]["MediaSummary"];
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            displayName?: string;
+            /** Format: uuid */
+            studentId: string;
+        };
+        PortfolioTaggedStudent: {
+            displayName?: string;
+            /** Format: uuid */
+            studentId: string;
         };
         PostConfirmRequest: {
             confirmNoUnconsentedStudents?: boolean;
@@ -10512,6 +11088,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMyChildrenPortfolio: {
+        parameters: {
+            query?: {
+                studentId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePortfolioItemView"];
+                };
             };
             /** @description Error (RFC 9457 problem details) */
             default: {
@@ -14680,6 +15289,112 @@ export interface operations {
             };
         };
     };
+    listClassPortfolioGallery: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    quickCapturePortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioQuickCaptureRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listPortfolioReviewQueue: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     createClassPost: {
         parameters: {
             query?: never;
@@ -17074,6 +17789,644 @@ export interface operations {
             };
         };
     };
+    getPortfolioCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioCapabilities"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listSchoolPortfolioGallery: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createPortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getPortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deletePortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updatePortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioItemUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    archivePortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PortfolioNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listPortfolioComments: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePortfolioCommentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createPortfolioComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioCommentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deletePortfolioComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    hidePortfolioComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioHideRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioCommentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    featurePortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unfeaturePortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getPortfolioItemHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioHistoryEntry"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reviewPortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    sharePortfolioItemToStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    submitPortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unarchivePortfolioItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PortfolioNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMyPortfolioItems: {
+        parameters: {
+            query?: {
+                status?: "DRAFT" | "SUBMITTED" | "CHANGES_REQUESTED" | "APPROVED" | "REJECTED" | "ARCHIVED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePortfolioItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     createSchoolPost: {
         parameters: {
             query?: never;
@@ -18894,6 +20247,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CursorPageTimelineItem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStudentPortfolio: {
+        parameters: {
+            query?: {
+                status?: "DRAFT" | "SUBMITTED" | "CHANGES_REQUESTED" | "APPROVED" | "REJECTED" | "ARCHIVED";
+                itemType?: "TEXT" | "PHOTO" | "DRAWING" | "SCAN" | "DOCUMENT" | "AUDIO" | "VIDEO";
+                classId?: string;
+                subjectId?: string;
+                featured?: boolean;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePortfolioItemView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

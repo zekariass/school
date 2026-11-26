@@ -2730,6 +2730,59 @@
         "tags" : [ "me" ]
       }
     },
+    "/api/v1/me/portfolio" : {
+      "get" : {
+        "operationId" : "listMyChildrenPortfolio",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "studentId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A guardian's combined view across their children and schools: APPROVED, guardian-visible items of ACTIVE, unrestricted links with academics, newest first; optional studentId (404 student.not_found when not the caller's child). Empty for everybody else",
+        "tags" : [ "portfolio" ]
+      }
+    },
     "/api/v1/me/push-devices" : {
       "post" : {
         "operationId" : "registerPushDevice",
@@ -8868,6 +8921,184 @@
         "tags" : [ "points" ]
       }
     },
+    "/api/v1/schools/{schoolId}/classes/{classId}/portfolio/gallery" : {
+      "get" : {
+        "operationId" : "listClassPortfolioGallery",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "APPROVED items of the class whose effective visibility is CLASS or SCHOOL, for the class's students and teachers (BASIC student data only, no guardian data). Empty unless the school raised portfolio.max_visibility",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/portfolio/quick-capture" : {
+      "post" : {
+        "operationId" : "quickCapturePortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PortfolioQuickCaptureRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A teacher captures an item for a student ACTIVE in the class (ACTIVE LEAD, CO_TEACHER or SUBJECT_TEACHER; assistants while portfolio.assistants_can_capture). The item is APPROVED at once, created_by is the teacher, audited. showsOtherChildren defaults to true: with files, tag the other children (each needs media consent) or send confirmNoUnconsentedStudents. 422 portfolio.media_consent_missing / portfolio.media_confirmation_required, 403 portfolio.capture_not_allowed",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/portfolio/review-queue" : {
+      "get" : {
+        "operationId" : "listPortfolioReviewQueue",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "SUBMITTED items of the class, oldest first (the submission time), for its reviewers only (a subject teacher sees only their subject's items). 403 portfolio.review_not_allowed for other people who see the class, 404 for those who cannot",
+        "tags" : [ "portfolio" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/classes/{classId}/posts" : {
       "post" : {
         "operationId" : "createClassPost",
@@ -12539,6 +12770,959 @@
         "tags" : [ "policies" ]
       }
     },
+    "/api/v1/schools/{schoolId}/portfolio/capabilities" : {
+      "get" : {
+        "operationId" : "getPortfolioCapabilities",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioCapabilities"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "What the caller may do in the school's portfolios: create (a student), quick-capture (classes), review, the school cap, supported and deferred item types",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/gallery" : {
+      "get" : {
+        "operationId" : "listSchoolPortfolioGallery",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "APPROVED items whose effective visibility is SCHOOL, for the school's ACTIVE students and staff (guardians of other children never see it). Empty unless the school raised portfolio.max_visibility to SCHOOL",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items" : {
+      "post" : {
+        "operationId" : "createPortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PortfolioItemRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A student adds an item about their own work (TEXT, PHOTO, DRAWING, SCAN or DOCUMENT; AUDIO and VIDEO are refused with 422 portfolio.item_type_unsupported). Only an ACTIVE student of the school while portfolio.student_create.enabled (403 portfolio.student_only / portfolio.student_create_disabled). mode DRAFT (default) or SUBMIT. Files are READY uploads of purpose PORTFOLIO with context SCHOOL. Text is plain text. visibility defaults to GUARDIANS and is lowered by the school cap. 400 portfolio.* validation codes, 429 portfolio.rate_limited",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}" : {
+      "delete" : {
+        "operationId" : "deletePortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Deletes an item (soft; its text is erased, its files discarded, the history stays): the student's own DRAFT, SUBMITTED or CHANGES_REQUESTED item, or any item by a reviewer. 403 portfolio.delete_not_allowed for the others",
+        "tags" : [ "portfolio" ]
+      },
+      "get" : {
+        "operationId" : "getPortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One item as the caller may see it: the student in every status, reviewers in every status but DRAFT, everybody else only APPROVED items within the effective visibility (the lower of the item's and the school cap). Files are withheld (mediaWithheld) while media consent is missing. 404 portfolio.item_not_found for everybody else",
+        "tags" : [ "portfolio" ]
+      },
+      "patch" : {
+        "operationId" : "updatePortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PortfolioItemUpdateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Edits a DRAFT or CHANGES_REQUESTED item (its student only; 409 portfolio.invalid_state otherwise). Changing the files or tagged children drops the creator's confirmation",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/archive" : {
+      "post" : {
+        "operationId" : "archivePortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PortfolioNoteRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Archives an APPROVED item (the student or a reviewer): hidden from everybody but the student and the reviewers",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/comments" : {
+      "get" : {
+        "operationId" : "listPortfolioComments",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePortfolioCommentView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The item's comments, oldest first, keyset paged: for the student, their own guardians and the reviewers. Guardians and students appear by role label only (authorRole, mine); a hidden comment is a tombstone without text except for its author and the reviewers",
+        "tags" : [ "portfolio" ]
+      },
+      "post" : {
+        "operationId" : "createPortfolioComment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PortfolioCommentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioCommentView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Writes a plain-text comment (1 to 500 characters, 30 an hour) on an APPROVED item that is guardian-visible: the student, their own guardians (while portfolio.comments.guardians_enabled; ACTIVE, unrestricted link with academics, read live) and the item's reviewers. 409 portfolio.comments_not_available, 403 portfolio.comments_not_allowed / portfolio.comments_disabled",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/comments/{commentId}" : {
+      "delete" : {
+        "operationId" : "deletePortfolioComment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "commentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Deletes the caller's own comment (the text is erased). 403 portfolio.comment_delete_not_allowed for somebody else's",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/comments/{commentId}/hide" : {
+      "post" : {
+        "operationId" : "hidePortfolioComment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "commentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PortfolioHideRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioCommentView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Hides a comment (the item's reviewers) with a reason of 1 to 200 characters: audited, the comment stays as a tombstone. Idempotent",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/featured" : {
+      "delete" : {
+        "operationId" : "unfeaturePortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Removes the featured mark (reviewers); idempotent",
+        "tags" : [ "portfolio" ]
+      },
+      "put" : {
+        "operationId" : "featurePortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Features an APPROVED item (reviewers); idempotent",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/history" : {
+      "get" : {
+        "operationId" : "getPortfolioItemHistory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PortfolioHistoryEntry"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The status history (append-only), oldest first, with the reviewers' notes. For the student and the reviewers only (403 portfolio.history_not_allowed for the others who see the item)",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/review" : {
+      "post" : {
+        "operationId" : "reviewPortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PortfolioReviewRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Decides on a SUBMITTED item (reviewers: the class's LEAD and CO_TEACHERs, its SUBJECT_TEACHER when the subject matches, class managers, holders of school.portfolios.review): APPROVE (the consent gate runs: 422 portfolio.media_consent_missing / portfolio.media_confirmation_required), REQUEST_CHANGES or REJECT (a note is required). May lower the visibility, never raise it. 403 portfolio.review_not_allowed, 409 portfolio.invalid_state",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/share-to-story" : {
+      "post" : {
+        "operationId" : "sharePortfolioItemToStory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Deferred (rule book P6): reviewers of an APPROVED item with effective visibility CLASS or SCHOOL get 422 portfolio.share_unsupported (409 portfolio.share_not_eligible otherwise); everybody else the usual 403 and 404. Sharing needs a media copy operation that does not exist yet",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/submit" : {
+      "post" : {
+        "operationId" : "submitPortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Sends a DRAFT item, or a CHANGES_REQUESTED one again, for review (its student). The item must be complete (text for TEXT, a file for the others). Appends a SUBMITTED row to the history; the reviewing teachers are told. 409 portfolio.invalid_state",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/items/{itemId}/unarchive" : {
+      "post" : {
+        "operationId" : "unarchivePortfolioItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "itemId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PortfolioNoteRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Brings an ARCHIVED item back to APPROVED (reviewers only); the consent gate runs again",
+        "tags" : [ "portfolio" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/portfolio/mine" : {
+      "get" : {
+        "operationId" : "listMyPortfolioItems",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SUBMITTED", "CHANGES_REQUESTED", "APPROVED", "REJECTED", "ARCHIVED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The items the caller created or that are about them, in every status they may see (a student's drafts included)",
+        "tags" : [ "portfolio" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/posts" : {
       "post" : {
         "operationId" : "createSchoolPost",
@@ -15363,6 +16547,107 @@
         },
         "summary" : "The points timeline of one section (SCHOOL or HOME), newest first, keyset paged; HOME only for the student and their guardians (403 otherwise). Reversals are rows of their own and awards that were undone say so",
         "tags" : [ "points" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/portfolio" : {
+      "get" : {
+        "operationId" : "listStudentPortfolio",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SUBMITTED", "CHANGES_REQUESTED", "APPROVED", "REJECTED", "ARCHIVED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "itemType",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "description" : "AUDIO and VIDEO are reserved: they are refused with 422 portfolio.item_type_unsupported until the media pipeline can process them safely",
+            "enum" : [ "TEXT", "PHOTO", "DRAWING", "SCAN", "DOCUMENT", "AUDIO", "VIDEO" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "subjectId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "featured",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePortfolioItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A student's portfolio: for the student, their own guardians (live link), their teachers, class managers and holders of school.portfolios.review; 404 student.not_found for everybody else. Each caller gets the items they may see (guardians: APPROVED and guardian-visible only). Filters status, itemType, classId, subjectId, featured",
+        "tags" : [ "portfolio" ]
       }
     },
     "/api/v1/schools/{schoolId}/students/{studentId}/withdraw" : {
@@ -20120,6 +21405,38 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPagePortfolioCommentView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PortfolioCommentView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPagePortfolioItemView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PortfolioItemView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPagePostView" : {
         "type" : "object",
         "properties" : {
@@ -22658,6 +23975,612 @@
           }
         },
         "required" : [ "content", "documentId", "effectiveFrom", "languageCode", "policyType", "publishedAt", "requiresReconsent", "title", "versionId", "versionLabel" ]
+      },
+      "PortfolioCapabilities" : {
+        "type" : "object",
+        "description" : "What the caller may do in the school's portfolios",
+        "properties" : {
+          "canCapture" : {
+            "type" : "boolean"
+          },
+          "captureClassIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "guardianComments" : {
+            "type" : "boolean"
+          },
+          "itemTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "description" : "AUDIO and VIDEO are reserved: they are refused with 422 portfolio.item_type_unsupported until the media pipeline can process them safely",
+              "enum" : [ "TEXT", "PHOTO", "DRAWING", "SCAN", "DOCUMENT", "AUDIO", "VIDEO" ]
+            }
+          },
+          "maxVisibility" : {
+            "type" : "string",
+            "enum" : [ "STUDENT_TEACHER", "GUARDIANS", "CLASS", "SCHOOL" ]
+          },
+          "reviewer" : {
+            "type" : "boolean"
+          },
+          "shareToStoryAvailable" : {
+            "type" : "boolean"
+          },
+          "studentMayCreate" : {
+            "type" : "boolean"
+          },
+          "unsupportedItemTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "description" : "AUDIO and VIDEO are reserved: they are refused with 422 portfolio.item_type_unsupported until the media pipeline can process them safely",
+              "enum" : [ "TEXT", "PHOTO", "DRAWING", "SCAN", "DOCUMENT", "AUDIO", "VIDEO" ]
+            }
+          }
+        },
+        "required" : [ "captureClassIds", "itemTypes", "maxVisibility", "unsupportedItemTypes" ]
+      },
+      "PortfolioCommentRequest" : {
+        "type" : "object",
+        "description" : "A short encouraging comment (plain text, 1 to 500 characters)",
+        "properties" : {
+          "body" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "body" ]
+      },
+      "PortfolioCommentView" : {
+        "type" : "object",
+        "description" : "A comment. Guardians and students appear by role label only (no name, no id); mine marks the caller's own. A hidden comment is a tombstone without text",
+        "properties" : {
+          "authorName" : {
+            "type" : "string"
+          },
+          "authorRole" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "GUARDIAN", "STUDENT" ]
+          },
+          "body" : {
+            "type" : "string"
+          },
+          "canDelete" : {
+            "type" : "boolean"
+          },
+          "canHide" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "mine" : {
+            "type" : "boolean"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "authorRole", "createdAt", "id", "status" ]
+      },
+      "PortfolioHideRequest" : {
+        "type" : "object",
+        "description" : "Why a comment is hidden (audited, 1 to 200 characters)",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "reason" ]
+      },
+      "PortfolioHistoryEntry" : {
+        "type" : "object",
+        "description" : "A row of the status history (student and reviewers only). Reviewers are named, the student is not",
+        "properties" : {
+          "action" : {
+            "type" : "string"
+          },
+          "actorName" : {
+            "type" : "string"
+          },
+          "actorRole" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "GUARDIAN", "STUDENT" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "fromStatus" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "toStatus" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "action", "actorRole", "createdAt", "id" ]
+      },
+      "PortfolioItemCapabilities" : {
+        "type" : "object",
+        "description" : "What the caller may do with the item now; the server decides, clients only show or hide controls",
+        "properties" : {
+          "canArchive" : {
+            "type" : "boolean"
+          },
+          "canComment" : {
+            "type" : "boolean"
+          },
+          "canDelete" : {
+            "type" : "boolean"
+          },
+          "canEdit" : {
+            "type" : "boolean"
+          },
+          "canFeature" : {
+            "type" : "boolean"
+          },
+          "canReview" : {
+            "type" : "boolean"
+          },
+          "canShareToStory" : {
+            "type" : "boolean"
+          },
+          "canSubmit" : {
+            "type" : "boolean"
+          },
+          "canUnarchive" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "PortfolioItemRequest" : {
+        "type" : "object",
+        "description" : "A student's new item about their own work. Text fields are plain text (control and invisible characters are removed). mode DRAFT (default) saves privately, SUBMIT sends it for review",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "confirmNoUnconsentedStudents" : {
+            "type" : "boolean"
+          },
+          "description" : {
+            "type" : "string",
+            "maxLength" : 4000,
+            "minLength" : 0
+          },
+          "itemType" : {
+            "type" : "string",
+            "description" : "AUDIO and VIDEO are reserved: they are refused with 422 portfolio.item_type_unsupported until the media pipeline can process them safely",
+            "enum" : [ "TEXT", "PHOTO", "DRAWING", "SCAN", "DOCUMENT", "AUDIO", "VIDEO" ]
+          },
+          "mediaIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 20,
+            "minItems" : 0
+          },
+          "mode" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SUBMIT" ]
+          },
+          "reflection" : {
+            "type" : "string",
+            "maxLength" : 4000,
+            "minLength" : 0
+          },
+          "showsOtherChildren" : {
+            "type" : "boolean"
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "taggedStudentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 40,
+            "minItems" : 0
+          },
+          "textContent" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "visibility" : {
+            "type" : "string",
+            "enum" : [ "STUDENT_TEACHER", "GUARDIANS", "CLASS", "SCHOOL" ]
+          },
+          "workDate" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "itemType", "title" ]
+      },
+      "PortfolioItemUpdateRequest" : {
+        "type" : "object",
+        "description" : "Edits a DRAFT or CHANGES_REQUESTED item (its student only). A null field is unchanged; an empty text clears it; mediaIds replaces the files",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "confirmNoUnconsentedStudents" : {
+            "type" : "boolean"
+          },
+          "description" : {
+            "type" : "string",
+            "maxLength" : 4000,
+            "minLength" : 0
+          },
+          "mediaIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 20,
+            "minItems" : 0
+          },
+          "reflection" : {
+            "type" : "string",
+            "maxLength" : 4000,
+            "minLength" : 0
+          },
+          "showsOtherChildren" : {
+            "type" : "boolean"
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "taggedStudentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 40,
+            "minItems" : 0
+          },
+          "textContent" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "visibility" : {
+            "type" : "string",
+            "enum" : [ "STUDENT_TEACHER", "GUARDIANS", "CLASS", "SCHOOL" ]
+          },
+          "workDate" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
+      "PortfolioItemView" : {
+        "type" : "object",
+        "description" : "One portfolio item as the caller may see it. mediaWithheld: the item has files that are hidden from the caller because media consent is missing. reviewNote is for the student and reviewers only",
+        "properties" : {
+          "capabilities" : {
+            "$ref" : "#/components/schemas/PortfolioItemCapabilities"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "commentCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "createdByRole" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "GUARDIAN", "STUDENT" ]
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "effectiveVisibility" : {
+            "type" : "string",
+            "enum" : [ "STUDENT_TEACHER", "GUARDIANS", "CLASS", "SCHOOL" ]
+          },
+          "featured" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "itemType" : {
+            "type" : "string",
+            "description" : "AUDIO and VIDEO are reserved: they are refused with 422 portfolio.item_type_unsupported until the media pipeline can process them safely",
+            "enum" : [ "TEXT", "PHOTO", "DRAWING", "SCAN", "DOCUMENT", "AUDIO", "VIDEO" ]
+          },
+          "media" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PortfolioMediaView"
+            }
+          },
+          "mediaConfirmed" : {
+            "type" : "boolean"
+          },
+          "mediaWithheld" : {
+            "type" : "boolean"
+          },
+          "reflection" : {
+            "type" : "string"
+          },
+          "reviewNote" : {
+            "type" : "string"
+          },
+          "reviewedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "showsOtherChildren" : {
+            "type" : "boolean"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SUBMITTED", "CHANGES_REQUESTED", "APPROVED", "REJECTED", "ARCHIVED" ]
+          },
+          "student" : {
+            "$ref" : "#/components/schemas/PortfolioStudentView"
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "submittedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "taggedStudentCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "taggedStudents" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PortfolioTaggedStudent"
+            }
+          },
+          "textContent" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "visibility" : {
+            "type" : "string",
+            "enum" : [ "STUDENT_TEACHER", "GUARDIANS", "CLASS", "SCHOOL" ]
+          },
+          "workDate" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "capabilities", "createdByRole", "effectiveVisibility", "id", "itemType", "media", "schoolId", "status", "student", "visibility" ]
+      },
+      "PortfolioMediaView" : {
+        "type" : "object",
+        "description" : "One file of an item: ids and variant names, never URLs (ask GET /media/{id}/url for a signed link)",
+        "properties" : {
+          "height" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "OTHER" ]
+          },
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "mimeType" : {
+            "type" : "string"
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "variants" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "THUMB", "SMALL", "MEDIUM", "LARGE", "HLS_MASTER", "POSTER", "PDF_PREVIEW" ]
+            }
+          },
+          "width" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "kind", "mediaId", "mimeType", "variants" ]
+      },
+      "PortfolioNoteRequest" : {
+        "type" : "object",
+        "description" : "An optional note for archive, unarchive and similar actions",
+        "properties" : {
+          "note" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          }
+        }
+      },
+      "PortfolioQuickCaptureRequest" : {
+        "type" : "object",
+        "description" : "A teacher's quick capture for a student of the class: the item is approved at once. showsOtherChildren defaults to TRUE when omitted (restrictive); with files and no tagged student, confirmNoUnconsentedStudents must be true",
+        "properties" : {
+          "confirmNoUnconsentedStudents" : {
+            "type" : "boolean"
+          },
+          "description" : {
+            "type" : "string",
+            "maxLength" : 4000,
+            "minLength" : 0
+          },
+          "itemType" : {
+            "type" : "string",
+            "description" : "AUDIO and VIDEO are reserved: they are refused with 422 portfolio.item_type_unsupported until the media pipeline can process them safely",
+            "enum" : [ "TEXT", "PHOTO", "DRAWING", "SCAN", "DOCUMENT", "AUDIO", "VIDEO" ]
+          },
+          "mediaIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 20,
+            "minItems" : 0
+          },
+          "reflection" : {
+            "type" : "string",
+            "maxLength" : 4000,
+            "minLength" : 0
+          },
+          "showsOtherChildren" : {
+            "type" : "boolean"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "taggedStudentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 40,
+            "minItems" : 0
+          },
+          "textContent" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "visibility" : {
+            "type" : "string",
+            "enum" : [ "STUDENT_TEACHER", "GUARDIANS", "CLASS", "SCHOOL" ]
+          },
+          "workDate" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "itemType", "studentId", "title" ]
+      },
+      "PortfolioReviewRequest" : {
+        "type" : "object",
+        "description" : "A reviewer's decision. REQUEST_CHANGES and REJECT need a note (shown to the student, never to guardians). visibility may only lower the item's audience",
+        "properties" : {
+          "decision" : {
+            "type" : "string",
+            "enum" : [ "APPROVE", "REQUEST_CHANGES", "REJECT" ]
+          },
+          "note" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "visibility" : {
+            "type" : "string",
+            "enum" : [ "STUDENT_TEACHER", "GUARDIANS", "CLASS", "SCHOOL" ]
+          }
+        },
+        "required" : [ "decision" ]
+      },
+      "PortfolioStudentView" : {
+        "type" : "object",
+        "description" : "A student as classmates and families may know them: BASIC data only (never date of birth, gender or username)",
+        "properties" : {
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "studentId" ]
+      },
+      "PortfolioTaggedStudent" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "studentId" ]
       },
       "PostConfirmRequest" : {
         "type" : "object",
