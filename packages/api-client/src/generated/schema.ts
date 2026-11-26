@@ -6740,9 +6740,11 @@ export interface components {
             canModerate: boolean;
             canProposeStudentGroup: boolean;
             canReview: boolean;
+            /** @description A guardian may start a DIRECT conversation with a guardian of a classmate of their child (messaging.parent_parent.enabled) */
+            canStartParentParent: boolean;
             canStartParentTeacher: boolean;
             canStartStudentDirect: boolean;
-            /** @description A teacher may start a DIRECT conversation with a student of their class (messaging.student.teacher_direct.enabled); the student's guardians then become read-only observers */
+            /** @description A teacher may start a DIRECT conversation with a student of their class (messaging.student.teacher_direct.enabled): the student's guardians then observe it, or the conversation is admin-visible */
             canStartTeacherStudent: boolean;
             creatableGroups: ("CLASS_STUDENTS" | "CLASS_PARENTS" | "STAFF" | "STUDENT_GROUP" | "SCHOOL_STAFF")[];
             /** Format: int32 */

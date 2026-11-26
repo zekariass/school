@@ -32,7 +32,7 @@ export interface UploadParams {
   purpose: MediaPurpose;
   file: File;
   /** What the media belongs to; omitted for avatars (the signed-in user). */
-  context?: { type: "USER" | "SCHOOL" | "ORGANIZATION" | "CLASS"; id: string };
+  context?: { type: "USER" | "SCHOOL" | "ORGANIZATION" | "CLASS" | "CONVERSATION"; id: string };
   onStage?: (stage: UploadStage) => void;
   onProgress?: (loaded: number, total: number) => void;
   signal?: AbortSignal;

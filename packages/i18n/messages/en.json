@@ -96,7 +96,9 @@
     "points": "Points & badges",
     "attendance": "Attendance",
     "feed": "School feed",
-    "announcements": "Announcements"
+    "announcements": "Announcements",
+    "messaging": "Messages",
+    "messageReview": "Safeguarding review"
   },
   "locale": {
     "label": "Language"
@@ -4668,6 +4670,451 @@
           "description": "How long to wait before reminding people who have not acknowledged an announcement again."
         }
       }
+    },
+    "messaging": {
+      "aboutChild": "About {child}",
+      "person": {
+        "guardianOf": "{student}'s {relationship}",
+        "yourGuardian": "Your {relationship}",
+        "parent": "Parent",
+        "unknown": "Someone"
+      },
+      "relationship": {
+        "MOTHER": "mother",
+        "FATHER": "father",
+        "GRANDPARENT": "grandparent",
+        "SIBLING": "brother or sister",
+        "AUNT_UNCLE": "aunt or uncle",
+        "LEGAL_GUARDIAN": "legal guardian",
+        "OTHER": "family member"
+      },
+      "role": {
+        "OWNER": "Owner",
+        "MODERATOR": "Moderator",
+        "MEMBER": "Member",
+        "OBSERVER": "Observer (read only)"
+      },
+      "kind": {
+        "direct": "Conversation",
+        "GROUP": "Group",
+        "GUARDIAN_TEACHER": "Parent and teacher",
+        "GUARDIAN_GUARDIAN": "Parent and parent",
+        "TEACHER_STUDENT": "Teacher and student",
+        "STUDENT_STUDENT": "Student and student",
+        "CLASS_STUDENTS": "Class conversation",
+        "CLASS_PARENTS": "Class parents",
+        "STAFF": "Staff group",
+        "STUDENT_GROUP": "Student group",
+        "SCHOOL_STAFF": "School staff"
+      },
+      "link": {
+        "label": "Messages",
+        "unread": "{count, plural, one {Messages, # unread} other {Messages, # unread}}"
+      },
+      "nav": {
+        "label": "Messages sections",
+        "inbox": "Inbox",
+        "scheduled": "Scheduled",
+        "groups": "Groups",
+        "blocked": "Blocked people"
+      },
+      "inbox": {
+        "title": "Messages",
+        "subtitle": "Conversations with teachers, parents and classes.",
+        "subtitleSchool": "Conversations at {school}.",
+        "new": "New conversation",
+        "empty": "No conversations yet. Start one with a teacher or a parent.",
+        "emptyStudent": "No conversations yet.",
+        "loadFailed": "We couldn't load your messages.",
+        "aboutChild": "About {child}",
+        "otherConversations": "Other conversations"
+      },
+      "row": {
+        "noMessages": "No messages yet",
+        "deleted": "This message was deleted",
+        "hidden": "This message is hidden",
+        "photo": "Photo",
+        "observing": "You are observing",
+        "muted": "Muted",
+        "unread": "{count, plural, one {# unread message} other {# unread messages}}"
+      },
+      "conversation": {
+        "back": "Back to messages",
+        "notFound": "We couldn't find that conversation.",
+        "loadFailed": "We couldn't load this conversation."
+      },
+      "thread": {
+        "label": "Messages in this conversation",
+        "empty": "No messages yet. Say hello!",
+        "loadOlder": "Show earlier messages",
+        "newMessages": "New messages"
+      },
+      "banner": {
+        "observerGuardian": "You are viewing this conversation as an observer. You can read it, but you can't write in it.",
+        "studentGuardiansCanSee": "Your guardian can see this conversation.",
+        "studentReviewable": "This conversation isn't private. The school's safeguarding team may review it.",
+        "adultStudentNotPrivate": "This conversation is not private. The student's guardians, or the school's safeguarding team, can read it.",
+        "pendingApproval": "This group is waiting for a teacher to approve it. Nobody can write here yet.",
+        "restricted": "Only moderators can write in this conversation.",
+        "closed": {
+          "LOCKED": "This conversation is locked. Nobody can write in it.",
+          "ARCHIVED": "This conversation is archived. Nobody can write in it."
+        }
+      },
+      "readOnly": {
+        "observer": "You are observing this conversation, so there is nothing to write.",
+        "closed": "This conversation is closed.",
+        "restricted": "You can read this conversation but only moderators can write in it."
+      },
+      "message": {
+        "you": "yourself",
+        "deleted": "This message was deleted.",
+        "hidden": "A moderator hid this message.",
+        "edited": "Edited",
+        "scheduled": "Scheduled",
+        "more": "Message options",
+        "react": "React",
+        "reply": "Reply",
+        "edit": "Edit",
+        "delete": "Delete",
+        "translate": "See translation",
+        "translateFailed": "We couldn't translate this message.",
+        "machineTranslated": "Machine translated",
+        "report": "Report",
+        "block": "Block this person",
+        "hide": "Hide message",
+        "unhide": "Show message again",
+        "seen": "Seen",
+        "photos": "Photos",
+        "photoAlt": "A photo in the conversation",
+        "reactions": "Reactions",
+        "reactionCount": "{emoji} {count, plural, one {# person} other {# people}}",
+        "replyingTo": "Replying to {name}",
+        "replyingToMessage": "Replying to a message",
+        "editLabel": "Edit your message",
+        "editWindow": "{minutes, plural, one {You can edit for 1 more minute.} other {You can edit for # more minutes.}}",
+        "editFailed": "We couldn't save the change.",
+        "cancel": "Cancel",
+        "save": "Save",
+        "actionFailed": "That didn't work. Please try again."
+      },
+      "system": {
+        "MEMBER_REMOVED": "A member was removed.",
+        "generic": "Something changed in this conversation."
+      },
+      "report": {
+        "title": "Report this message",
+        "description": "Tell us what is wrong. The school's team will look at it. The person who wrote it is not told who reported it.",
+        "reasonLabel": "What is the problem?",
+        "reasons": {
+          "INAPPROPRIATE": "Not appropriate",
+          "BULLYING": "Bullying or unkind",
+          "PRIVACY": "Shares private information",
+          "SAFETY": "Someone may be unsafe",
+          "SPAM": "Spam",
+          "OTHER": "Something else"
+        },
+        "reasonRequired": "Please choose a reason.",
+        "noteLabel": "More details (optional)",
+        "noteHint": "Please don't repeat private information.",
+        "submit": "Send report",
+        "failed": "We couldn't send the report. Please try again.",
+        "sent": "Thank you. Your report was sent."
+      },
+      "block": {
+        "title": "Block this person?",
+        "description": "You won't get direct messages from them, and you won't see their messages in groups. You can unblock them at any time in Blocked people.",
+        "confirm": "Block",
+        "failed": "We couldn't block this person."
+      },
+      "delete": {
+        "title": "Delete this message?",
+        "description": "People in the conversation will see that a message was deleted. This can't be undone.",
+        "confirm": "Delete",
+        "failed": "We couldn't delete the message."
+      },
+      "hide": {
+        "title": "Hide this message",
+        "description": "Members will see that a moderator hid it, but not what it said. Your reason is kept in the audit log.",
+        "reason": "Reason",
+        "confirm": "Hide message"
+      },
+      "reason": {
+        "required": "Please give a reason.",
+        "hint": "Up to {max} characters. Don't copy private information here.",
+        "failed": "That didn't work. Please try again."
+      },
+      "composer": {
+        "label": "Write a message",
+        "textLabel": "Message",
+        "placeholder": "Write a message…",
+        "hint": "Enter sends, Shift+Enter starts a new line",
+        "counter": "{count} of {max} characters",
+        "send": "Send",
+        "failed": "The message was not sent. Please try again.",
+        "you": "yourself",
+        "replyingTo": "Replying to {name}",
+        "cancelReply": "Cancel reply",
+        "addPhoto": "Add a photo",
+        "attached": "Photos in this message",
+        "attachedAlt": "Photo {number} to send",
+        "removeImage": "Remove photo {number}",
+        "afterHours": "Sent. This teacher is outside their office hours, so the message was delivered without a notification. They will see it when they next open the app.",
+        "scheduledNotice": "Your message is scheduled.",
+        "seeScheduled": "See scheduled messages",
+        "draftWarning": "You have a message that isn't sent. If you leave, it will be lost. Leave anyway?",
+        "schedule": {
+          "toggle": "Send later",
+          "when": "Send on (school time, {zone})",
+          "willSend": "It will be sent {when}.",
+          "submit": "Schedule",
+          "invalid": "Please choose a valid date and time.",
+          "past": "Please choose a time at least two minutes from now.",
+          "tooFar": "Please choose a time within the next 90 days."
+        }
+      },
+      "menu": {
+        "label": "Conversation options",
+        "people": "People in this conversation",
+        "settings": "Group settings",
+        "muteFor": "Mute notifications for",
+        "mute": {
+          "hour": "1 hour",
+          "eightHours": "8 hours",
+          "day": "1 day",
+          "week": "1 week"
+        },
+        "unmute": "Turn notifications back on",
+        "mutedToast": "Notifications muted.",
+        "unmutedToast": "Notifications are on again.",
+        "leave": "Leave this conversation",
+        "leaveTitle": "Leave this conversation?",
+        "leaveDescription": "You will stop receiving its messages. A moderator can add you back.",
+        "leaveConfirm": "Leave",
+        "failed": "That didn't work. Please try again."
+      },
+      "members": {
+        "title": "People in this conversation",
+        "description": "Teachers and students are shown by name. Parents are shown only as a role.",
+        "you": "you",
+        "observers": "{count, plural, one {1 guardian can read this conversation but not write in it.} other {# guardians can read this conversation but not write in it.}}",
+        "loadFailed": "We couldn't load the people.",
+        "remove": "Remove",
+        "removeNamed": "Remove {name}",
+        "removeTitle": "Remove {name}?",
+        "removeDescription": "They will lose access to this conversation. Your reason is kept in the audit log.",
+        "removeReason": "Reason for removing",
+        "removeConfirm": "Remove from conversation",
+        "removed": "Member removed.",
+        "add": "Add people",
+        "addLabel": "Choose people to add",
+        "addSubmit": "Add",
+        "added": "People added.",
+        "addFailed": "We couldn't add them.",
+        "cancel": "Cancel",
+        "close": "Close"
+      },
+      "settings": {
+        "title": "Group settings",
+        "description": "Change the name, who can write, or close the group.",
+        "name": "Name",
+        "posting": "Who can write",
+        "postingPolicy": {
+          "ALL_MEMBERS": "Everyone in the group",
+          "MODERATORS_ONLY": "Only moderators"
+        },
+        "status": "Status",
+        "statusHint": "A locked or archived group stays readable but nobody can write in it.",
+        "statuses": {
+          "ACTIVE": "Open",
+          "LOCKED": "Locked",
+          "ARCHIVED": "Archived"
+        },
+        "saved": "Group updated.",
+        "failed": "We couldn't save the changes."
+      },
+      "start": {
+        "title": "New conversation",
+        "subtitle": "Choose who you want to write to.",
+        "loadFailed": "We couldn't load this. Please try again.",
+        "nobody": "There is nobody you can start a conversation with right now.",
+        "nobodyHere": "Nobody to show.",
+        "guardianTitle": "Write to a teacher",
+        "child": "Child",
+        "school": "School",
+        "teachersOf": "{child}'s teachers",
+        "otherParents": "Parents of classmates",
+        "teacherTitle": "Write to a family",
+        "class": "Class",
+        "student": "Student",
+        "chooseStudent": "Choose a student",
+        "guardiansOf": "Family of {student}",
+        "message": "Message",
+        "open": "Open",
+        "failed": "You can't message this person.",
+        "studentNotice": "Conversations with a student are not private: the student's guardians will be able to read this conversation. If the student has no guardian linked, the school's safeguarding team can review it.",
+        "messageStudent": "Message {student}",
+        "studentConfirmTitle": "Message {student}?",
+        "studentConfirmBody": "The student's guardians will be able to read this conversation. You can't edit or delete your messages in it afterwards. Continue?",
+        "studentConfirm": "Start conversation"
+      },
+      "picker": {
+        "search": "Search by name",
+        "loadFailed": "We couldn't load the list.",
+        "chooseClass": "Choose a class first.",
+        "none": "Nobody to show.",
+        "selected": "{count, plural, =0 {Nobody chosen} one {1 chosen} other {# chosen}}"
+      },
+      "groups": {
+        "title": "Groups",
+        "subtitle": "Groups you manage or can start, and groups waiting for your approval.",
+        "noSchools": "You don't manage groups at any school.",
+        "yourGroups": "Groups",
+        "createButton": "New group",
+        "disabled": "Messaging is not switched on for this school.",
+        "empty": "No groups yet.",
+        "loadFailed": "We couldn't load the groups.",
+        "failed": "That didn't work. Please try again.",
+        "approvalsTitle": "Waiting for your approval",
+        "approve": "Approve",
+        "reject": "Reject",
+        "approved": "Group approved.",
+        "rejected": "Group rejected.",
+        "open": "Open",
+        "manage": "Manage",
+        "manageNamed": "Manage {name}",
+        "members": "{count, plural, one {1 member} other {# members}}",
+        "proposedByMe": "proposed by you",
+        "status": {
+          "ACTIVE": "Open",
+          "LOCKED": "Locked",
+          "ARCHIVED": "Archived",
+          "PENDING_APPROVAL": "Waiting for approval",
+          "REJECTED": "Rejected"
+        },
+        "create": {
+          "title": "New group",
+          "description": "A new group at {school}.",
+          "submit": "Create group",
+          "created": "Group created.",
+          "failed": "We couldn't create the group.",
+          "kind": "Kind of group",
+          "kindHelp": {
+            "CLASS_STUDENTS": "A conversation for the students of a class and its teachers. Members follow the class list.",
+            "CLASS_PARENTS": "A conversation for the parents of a class and its teachers. Members follow the class list.",
+            "STAFF": "A group of school staff.",
+            "STUDENT_GROUP": "A group of students from one class and their teacher.",
+            "SCHOOL_STAFF": "An announcement-style conversation for school staff. Only moderators write."
+          },
+          "class": "Class",
+          "chooseClass": "Choose a class",
+          "classRequired": "Please choose a class.",
+          "name": "Name",
+          "titleRequired": "Please give the group a name.",
+          "membersLabel": "Members",
+          "studentsLabel": "Students",
+          "membersRequired": "Please choose at least one person.",
+          "tooFewStudents": "A group with students needs at least {min} students and a teacher.",
+          "studentRule": "A group with students needs at least {min} students and a teacher. This keeps adults out of private conversations with a single child.",
+          "posting": "Who can write",
+          "postingDefault": "Default"
+        }
+      },
+      "scheduled": {
+        "title": "Scheduled messages",
+        "subtitle": "Messages you wrote that will be sent later.",
+        "empty": "You have no scheduled messages.",
+        "loadFailed": "We couldn't load your scheduled messages.",
+        "to": "To {name}",
+        "toUnknown": "A conversation",
+        "photos": "{count, plural, one {1 photo} other {# photos}}",
+        "sendsAt": "Will be sent {when}",
+        "cancel": "Cancel message",
+        "cancelTitle": "Cancel this scheduled message?",
+        "cancelDescription": "It will not be sent.",
+        "cancelConfirm": "Cancel message",
+        "cancelled": "Scheduled message cancelled.",
+        "cancelFailed": "We couldn't cancel the message."
+      },
+      "blocked": {
+        "title": "Blocked people",
+        "subtitle": "People you blocked. Unblock them to hear from them again.",
+        "empty": "You haven't blocked anybody.",
+        "loadFailed": "We couldn't load the list.",
+        "unblock": "Unblock",
+        "unblocked": "Unblocked.",
+        "failed": "That didn't work. Please try again."
+      },
+      "review": {
+        "banner": {
+          "title": "Review mode",
+          "body": "You are in the school's safeguarding review. Every conversation you open is recorded with your name and your reason."
+        },
+        "title": "Safeguarding review",
+        "subtitle": "Conversations at {school} that may be read for safeguarding.",
+        "tabs": {
+          "label": "Review sections",
+          "conversations": "Conversations",
+          "reports": "Reports",
+          "blocks": "Students' blocks"
+        },
+        "conversations": {
+          "help": "These are conversations with a student that no guardian can see, small groups with students, and conversations with an open report. Only metadata is shown here.",
+          "empty": "Nothing to review.",
+          "loadFailed": "We couldn't load the conversations.",
+          "adminVisible": "No guardian can see it",
+          "openReports": "{count, plural, one {1 open report} other {# open reports}}",
+          "read": "Read"
+        },
+        "reports": {
+          "filter": "Show reports",
+          "status": {
+            "OPEN": "Open",
+            "RESOLVED": "Resolved"
+          },
+          "empty": "No reports.",
+          "loadFailed": "We couldn't load the reports.",
+          "read": "Read conversation"
+        },
+        "blocks": {
+          "help": "Times a student blocked an adult. Nothing else is shown here.",
+          "empty": "No blocks to show.",
+          "loadFailed": "We couldn't load the list.",
+          "row": "A student blocked an adult on {when}",
+          "read": "Read conversation"
+        },
+        "reason": {
+          "title": "Why do you need to read this?",
+          "description": "Reading a conversation is recorded in the audit log with your name and your reason. Only open conversations you have a safeguarding reason to read.",
+          "audited": "This access is audited. Your reason is kept, so don't copy any message text into it.",
+          "label": "Reason ({min} to {max} characters)",
+          "help": "For example: report from a parent about a message.",
+          "remaining": "{count, plural, one {1 character left.} other {# characters left.}}",
+          "tooLong": "The reason is too long.",
+          "failed": "We couldn't open the conversation.",
+          "cancel": "Cancel",
+          "confirm": "Read conversation"
+        },
+        "reader": {
+          "title": "Conversation under review",
+          "description": "Deleted and hidden messages and earlier versions are shown. Close this window when you are done: nothing is kept.",
+          "older": "Load earlier messages",
+          "olderAudited": "Loading more is recorded again.",
+          "failed": "We couldn't load more.",
+          "close": "Close",
+          "photoAlt": "A photo in the conversation",
+          "hideReason": "Hidden because: {reason}",
+          "history": "{count, plural, one {1 earlier version} other {# earlier versions}}",
+          "reports": "{count, plural, one {1 report} other {# reports}}",
+          "status": {
+            "EDITED": "Edited",
+            "DELETED": "Deleted",
+            "HIDDEN": "Hidden",
+            "SCHEDULED": "Scheduled",
+            "OTHER": "Other"
+          }
+        }
+      }
     }
   },
   "family": {
@@ -4896,6 +5343,9 @@
       "backToList": "All announcements",
       "home": "Home",
       "detailTitle": "Announcement"
+    },
+    "messaging": {
+      "unreadTab": "Messages, {count} unread"
     }
   },
   "invite": {

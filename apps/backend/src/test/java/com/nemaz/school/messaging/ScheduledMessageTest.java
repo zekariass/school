@@ -53,6 +53,8 @@ class ScheduledMessageTest extends MessagingTestSupport {
 		assertThat(mine).hasSize(1);
 		assertThat(mine.get(0).get("id").asString()).isEqualTo(scheduled.toString());
 		assertThat(mine.get(0).get("scheduledFor").isNull()).isFalse();
+		// the sender sees their own text (to know what they scheduled); nobody else can see the message at all
+		assertThat(mine.get(0).get("body").asString()).isEqualTo("S scheduled for later");
 		assertThat(get("/api/v1/me/scheduled-messages", m.g1())).isEmpty();
 		// not due yet: nothing happens
 		assertThat(this.maintenance.sendScheduled()).isZero();

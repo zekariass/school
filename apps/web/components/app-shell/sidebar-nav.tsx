@@ -10,6 +10,8 @@ import {
   ImagesIcon,
   LayoutDashboardIcon,
   MegaphoneIcon,
+  MessageCircleIcon,
+  ShieldCheckIcon,
   TrophyIcon,
   SettingsIcon,
   SlidersHorizontalIcon,
@@ -18,7 +20,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useUnreadCount } from "@/components/messaging/use-messaging";
 import { Link, usePathname } from "@/i18n/navigation";
+import { unreadBadge } from "@/lib/messaging/inbox";
 import { NAV_PATH, type NavId } from "@/lib/school/access";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +41,8 @@ const ICONS: Record<NavId, LucideIcon> = {
   points: TrophyIcon,
   feed: ImagesIcon,
   announcements: MegaphoneIcon,
+  messages: MessageCircleIcon,
+  messageReview: ShieldCheckIcon,
   policies: FileTextIcon,
 };
 
@@ -51,8 +57,12 @@ export function SidebarNav({
   orientation: "vertical" | "horizontal";
 }) {
   const t = useTranslations("nav");
+  const tMessages = useTranslations("school.messaging.link");
   const pathname = usePathname();
   const base = `/s/${encodeURIComponent(school)}`;
+  const hasMessages = items.includes("messages");
+  const unreadMessages = useUnreadCount(hasMessages).data?.unread ?? 0;
+  const messagesBadge = hasMessages ? unreadBadge(unreadMessages) : null;
 
   return (
     <nav aria-label={t("primary")}>
@@ -66,7 +76,8 @@ export function SidebarNav({
           const Icon = ICONS[id];
           const slug = NAV_PATH[id];
           const href = slug ? `${base}/${slug}` : base;
-          const active = slug ? pathname.startsWith(href) : pathname === base;
+          // "messages" is also the parent of "messages/review", which has its own item
+          const active = slug ? pathname.startsWith(href) && !(id === "messages" && pathname.startsWith(`${href}/review`)) : pathname === base;
           return (
             <li key={id} className="shrink-0">
               <Link
@@ -81,6 +92,15 @@ export function SidebarNav({
               >
                 <Icon className="size-5" aria-hidden />
                 {t(id)}
+                {id === "messages" && messagesBadge ? (
+                  <span
+                    data-testid="nav-messages-badge"
+                    aria-label={tMessages("unread", { count: unreadMessages })}
+                    className="ms-auto grid min-w-5 place-items-center rounded-full bg-destructive px-1.5 text-xs leading-5 font-bold text-white"
+                  >
+                    {messagesBadge}
+                  </span>
+                ) : null}
               </Link>
             </li>
           );

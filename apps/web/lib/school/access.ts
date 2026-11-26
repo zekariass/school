@@ -22,6 +22,8 @@ export const SP = {
   feedManage: "school.feed.manage",
   announcementsManage: "school.announcements.manage",
   announcementsUrgent: "school.announcements.urgent",
+  messagingModerate: "school.messaging.moderate",
+  messagingReview: "school.messaging.review",
 } as const;
 
 export interface ScopeLike {
@@ -82,6 +84,8 @@ export type NavId =
   | "points"
   | "feed"
   | "announcements"
+  | "messages"
+  | "messageReview"
   | "policies";
 
 /** The workspace menu for this access, in display order. */
@@ -104,6 +108,10 @@ export function navItems(access: SchoolAccess): NavId[] {
   if (canOpenFeed(access)) items.push("feed");
   // Announcements: members who work at the school read the school's list and, per the API's capabilities, write their own.
   if (canOpenAnnouncements(access)) items.push("announcements");
+  // Messages: teachers, other staff and moderators (the API decides what each may start). Guardians use the family tabs.
+  if (canOpenMessages(access)) items.push("messages");
+  // Safeguarding review: only holders of the review permission (the API stays the authority and audits every read).
+  if (canReviewMessages(access)) items.push("messageReview");
   if (can(SP.policies)) items.push("policies");
   if (can(SP.settings)) items.push("settings");
   if (can(SP.read)) items.push("features");
@@ -118,6 +126,21 @@ export function canOpenFeed(access: SchoolAccess): boolean {
 /** The school's announcements section: teachers, other staff and announcement managers (guardians use the inbox). */
 export function canOpenAnnouncements(access: SchoolAccess): boolean {
   return access.isTeacher || access.isStaff || access.permissions.has(SP.announcementsManage);
+}
+
+/** The school's messages: teachers, other staff and moderators. (Students and guardians use their own screens.) */
+export function canOpenMessages(access: SchoolAccess): boolean {
+  return access.isTeacher || access.isStaff || access.permissions.has(SP.messagingModerate) || access.permissions.has(SP.messagingReview);
+}
+
+/** Moderating groups (hide a message, remove a member, lock): the permission; owners of a group are told by the API's `canModerate`. */
+export function canModerateMessages(access: Pick<SchoolAccess, "permissions">): boolean {
+  return access.permissions.has(SP.messagingModerate);
+}
+
+/** The audited safeguarding review: exactly `school.messaging.review`, nothing derived from it (administrator or not). */
+export function canReviewMessages(access: Pick<SchoolAccess, "permissions">): boolean {
+  return access.permissions.has(SP.messagingReview);
 }
 
 /** Writes to the whole school, campuses and grades, sees every announcement's report and reminds: the manager permission. */
@@ -169,5 +192,7 @@ export const NAV_PATH: Record<NavId, string> = {
   points: "points",
   feed: "feed",
   announcements: "announcements",
+  messages: "messages",
+  messageReview: "messages/review",
   policies: "policies",
 };

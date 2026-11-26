@@ -1,6 +1,7 @@
 import { AnnouncementsLink } from "@/components/announcements/announcements-link";
 import { CalendarToggle } from "@/components/calendar-toggle";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { MessagesLink } from "@/components/messaging/messages-link";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
@@ -13,6 +14,7 @@ export function HeaderControls({ user }: { user?: { name: string; detail?: strin
       <CalendarToggle />
       <ThemeToggle />
       {user ? <AnnouncementsLink /> : null}
+      {user ? <MessagesLink /> : null}
       {user ? <NotificationBell /> : null}
       {user ? <UserMenu name={user.name} detail={user.detail} /> : null}
     </div>

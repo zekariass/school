@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canManageAnnouncements, canOpenAnnouncements, canOpenApprovals, canOpenFeed, canPostSchoolWide, canSendUrgentAnnouncements, isStudentOnly, isTeacherOnly, navItems, schoolAccess, type MeLike } from "./access";
+import { canModerateMessages, canOpenMessages, canReviewMessages, canManageAnnouncements, canOpenAnnouncements, canOpenApprovals, canOpenFeed, canPostSchoolWide, canSendUrgentAnnouncements, isStudentOnly, isTeacherOnly, navItems, schoolAccess, type MeLike } from "./access";
 
 const ADMIN = [
   "school.read",
@@ -48,7 +48,7 @@ describe("navItems", () => {
   });
 
   it("gives teachers the dashboard, their classes and the families queue", () => {
-    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "attendance", "points", "feed", "announcements"]);
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "attendance", "points", "feed", "announcements", "messages"]);
   });
 
   it("shows Policies only with the policies permission", () => {
@@ -90,7 +90,7 @@ describe("navItems", () => {
       scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["class.manage"] }],
       memberships: [{ type: "TEACHER", schoolSlug: "sunrise" }],
     };
-    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "attendance", "points", "feed", "announcements"]);
+    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "attendance", "points", "feed", "announcements", "messages"]);
   });
 });
 
@@ -175,5 +175,30 @@ describe("student-only and teacher-only", () => {
   it("recognizes a plain teacher", () => {
     expect(isTeacherOnly(schoolAccess(teacher, "sunrise"))).toBe(true);
     expect(isTeacherOnly(schoolAccess(schoolAdmin, "sunrise"))).toBe(false);
+  });
+});
+
+describe("messaging menu", () => {
+  const reviewer: MeLike = { scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["school.messaging.review", "school.messaging.moderate"] }] };
+  const staff: MeLike = { scopes: [], memberships: [{ type: "STAFF", schoolSlug: "sunrise" }] };
+
+  it("shows Messages to teachers, staff and moderators, never to students or other schools", () => {
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toContain("messages");
+    expect(navItems(schoolAccess(staff, "sunrise"))).toContain("messages");
+    expect(navItems(schoolAccess(reviewer, "sunrise"))).toContain("messages");
+    expect(navItems(schoolAccess(student, "sunrise"))).not.toContain("messages");
+    expect(navItems(schoolAccess(reviewer, "moon"))).not.toContain("messages");
+    expect(canOpenMessages(schoolAccess(student, "sunrise"))).toBe(false);
+  });
+
+  it("shows the safeguarding review only with exactly the review permission (an administrator without it gets nothing)", () => {
+    expect(navItems(schoolAccess(reviewer, "sunrise"))).toContain("messageReview");
+    expect(navItems(schoolAccess(schoolAdmin, "sunrise"))).not.toContain("messageReview");
+    expect(navItems(schoolAccess(teacher, "sunrise"))).not.toContain("messageReview");
+    expect(canReviewMessages(schoolAccess(reviewer, "sunrise"))).toBe(true);
+    expect(canReviewMessages(schoolAccess(reviewer, "moon"))).toBe(false);
+    const moderatorOnly: MeLike = { scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["school.messaging.moderate"] }] };
+    expect(canReviewMessages(schoolAccess(moderatorOnly, "sunrise"))).toBe(false);
+    expect(canModerateMessages(schoolAccess(moderatorOnly, "sunrise"))).toBe(true);
   });
 });
