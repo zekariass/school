@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, RefreshControl, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
+import { SchoolAnnouncementsButton } from '@/components/announcements/school-entry';
 import { ClassCard } from '@/components/class-card';
 import { PlaceholderScreen } from '@/components/placeholder-screen';
 import { ProblemBanner } from '@/components/problem-banner';
@@ -91,12 +92,14 @@ function TeacherClasses() {
             );
           })}
           {schools.map((school) => (
-            <Button
-              key={school.id}
-              variant="ghost"
-              label={multiSchool ? t('mobile.feed.schoolNewsNamed', { school: school.name }) : t('mobile.feed.schoolNews')}
-              onPress={() => router.push({ pathname: '/feed/school/[schoolId]', params: { schoolId: school.id } })}
-            />
+            <View key={school.id} style={{ gap: spacing[2] }}>
+              <Button
+                variant="ghost"
+                label={multiSchool ? t('mobile.feed.schoolNewsNamed', { school: school.name }) : t('mobile.feed.schoolNews')}
+                onPress={() => router.push({ pathname: '/feed/school/[schoolId]', params: { schoolId: school.id } })}
+              />
+              <SchoolAnnouncementsButton schoolId={school.id} schoolName={multiSchool ? school.name : undefined} />
+            </View>
           ))}
         </View>
       )}

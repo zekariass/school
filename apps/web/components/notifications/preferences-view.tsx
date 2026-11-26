@@ -5,6 +5,7 @@ import { LockIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { ChannelPrefsCard } from "@/components/announcements/channel-prefs-card";
 import { ErrorNotice, LoadingRows } from "@/components/console/states";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import type { NotificationSettings, PreferencesView } from "@/lib/notifications/
 /** Which notifications push to the phone, and quiet hours. In-app delivery is always on. */
 export function PreferencesView() {
   const t = useTranslations("notifications");
+  const tAnnouncements = useTranslations("school.announcements");
   const queryClient = useQueryClient();
   const prefs = useQuery({
     queryKey: notificationKeys.preferences,
@@ -85,6 +87,12 @@ export function PreferencesView() {
                             {t("preferences.inApp")}: {t("preferences.alwaysOn")}
                           </Badge>
                           {type.canBeUrgent ? <span>{t("preferences.urgent")}</span> : null}
+                          {type.urgentOverridesPreferences ? (
+                            <span className="inline-flex items-center gap-1 font-medium text-foreground" data-testid={`urgent-lock-${type.code}`}>
+                              <LockIcon className="size-3" aria-hidden />
+                              {tAnnouncements("preferences.urgentLocked")}
+                            </span>
+                          ) : null}
                           {push?.locked ? (
                             <span className="inline-flex items-center gap-1">
                               <LockIcon className="size-3" aria-hidden />
@@ -113,6 +121,7 @@ export function PreferencesView() {
       )}
 
       <QuietHoursCard />
+      <ChannelPrefsCard />
     </div>
   );
 }

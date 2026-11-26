@@ -70,6 +70,10 @@ class AnnouncementChannelsTest extends CommunicationsTestSupport {
 		JsonNode capabilities = get(c.api() + "/capabilities", c.admin());
 		assertThat(capabilities.get("smsAvailable").asBoolean()).isTrue();
 		assertThat(capabilities.get("smsTypes")).extracting(JsonNode::asString).containsExactlyInAnyOrder("SAFETY", "URGENT");
+		// the caps and the school's time zone, for the composer
+		assertThat(capabilities.get("smsMaxPerAnnouncement").asInt()).isEqualTo(500);
+		assertThat(capabilities.get("smsMaxPerDay").asInt()).isEqualTo(1000);
+		assertThat(capabilities.get("timeZone").asString()).isNotBlank();
 		// a normal announcement still cannot use it
 		assertThat(code(call(HttpMethod.POST, c.api(), c.admin(), with(announcement("t", "b", classAudience(c.class1A())), "channels",
 				List.of("PUSH", "SMS")), 400))).isEqualTo("announcement.sms_not_allowed");

@@ -9,6 +9,7 @@ import {
   HeartHandshakeIcon,
   ImagesIcon,
   LayoutDashboardIcon,
+  MegaphoneIcon,
   TrophyIcon,
   SettingsIcon,
   SlidersHorizontalIcon,
@@ -35,6 +36,7 @@ const ICONS: Record<NavId, LucideIcon> = {
   attendance: ClipboardCheckIcon,
   points: TrophyIcon,
   feed: ImagesIcon,
+  announcements: MegaphoneIcon,
   policies: FileTextIcon,
 };
 

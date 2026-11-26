@@ -164,8 +164,17 @@ public class AnnouncementViews {
 			.param("me", user.userId())
 			.query(Boolean.class)
 			.single();
+		// An edit that replaced revision r is stored as revision r with its material flag: the reader who confirmed revision a
+		// must confirm again only if some edit of revision a or later was material.
+		boolean again = ack.acknowledged() != null && ack.revision() != null && this.jdbc.sql("""
+				select exists (select 1 from announcement_revisions
+				               where announcement_id = :id and material and revision >= :rev)""")
+			.param("id", row.id())
+			.param("rev", ack.revision())
+			.query(Boolean.class)
+			.single();
 		return new AnnouncementMine(ack.read() != null, ack.read(), ack.acknowledged() != null, ack.acknowledged(),
-				ack.revision(), recipient);
+				ack.revision(), recipient, again);
 	}
 
 	List<AnnouncementAudienceView> audienceViews(UUID id) {

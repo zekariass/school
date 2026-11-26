@@ -5,6 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { ank } from "@/lib/announcements/queries";
+import { isAnnouncementNotification } from "@/lib/announcements/view";
 import { getBrowserApi } from "@/lib/api-client";
 import { unwrap } from "@/lib/api-error";
 import { reconnectDelay } from "@/lib/notifications/backoff";
@@ -86,7 +88,11 @@ export function useRealtime() {
               const event = parseRealtimeEvent(frame.body);
               if (!event) return;
               applyRealtimeEvent(queryClient, event);
-              if (event.type === "notification.created") toastCreated(event.notification);
+              if (event.type === "notification.created") {
+                toastCreated(event.notification);
+                // A new announcement changes the header badge and the inbox.
+                if (isAnnouncementNotification(event.notification.data)) void queryClient.invalidateQueries({ queryKey: ank.all });
+              }
             });
             if (connectedBefore) void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
             connectedBefore = true;

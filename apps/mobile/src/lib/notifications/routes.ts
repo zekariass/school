@@ -10,6 +10,8 @@ const KNOWN_ROUTES: Record<string, 'home' | 'points' | string> = {
   '/': 'home',
   '/notifications': '/notifications',
   '/settings': '/settings',
+  // The announcements inbox (no id).
+  '/announcements': '/announcements',
   // Guardians: a link was decided ("/children") and a consent decision is requested ("/consents").
   '/children': 'home',
   '/consents': '/consent',
@@ -24,6 +26,8 @@ const UUID_ONLY = new RegExp(`^${UUID}$`);
 /** The feed (M8): a post (NEW_POST, POST_APPROVED/REJECTED, POST_PUBLISH_BLOCKED, POST_MEDIA_WITHHELD), a story, the approval queue. */
 const FEED_POST = new RegExp(`^/feed/posts/(${UUID})$`);
 const FEED_STORY = new RegExp(`^/feed/stories/(${UUID})$`);
+/** An announcement (ANNOUNCEMENT_PUBLISHED, ACK_REQUESTED, _UPDATED, _REMINDER, _WITHDRAWN, _PUBLISH_BLOCKED): `/announcements/{id}`. */
+const ANNOUNCEMENT = new RegExp(`^/announcements/(${UUID})$`);
 
 /**
  * The route to open for `path`, or null to stay put. `homeRoute` is the active role's home tab. `data` is the
@@ -47,6 +51,12 @@ export function routeForPath(path: unknown, homeRoute: string | null, data?: unk
   }
   const feed = feedRoute(trimmed, homeRoute, data);
   if (feed !== undefined) return feed;
+  const announcement = ANNOUNCEMENT.exec(trimmed);
+  if (announcement) {
+    if (!homeRoute) return null;
+    // `data.schoolId` (every push that has a school carries it) saves the lookup; without it the screen asks the caller's schools.
+    return `/announcements/${announcement[1]}${queryOf([['schoolId', idFrom(data, 'schoolId')]])}`;
+  }
   const target = KNOWN_ROUTES[trimmed];
   if (!target) return null;
   if (target === 'points') return homeRoute?.startsWith('/(student)/') ? '/(student)/points' : homeRoute;
@@ -63,20 +73,25 @@ function feedRoute(path: string, homeRoute: string | null, data: unknown): strin
   const story = FEED_STORY.exec(path);
   if (!post && !story && path !== '/feed/approvals') return undefined;
   if (!homeRoute) return null;
-  const record = asRecord(data);
-  const nested = asRecord(record?.body);
-  const pick = (key: string): string | null => {
-    const value = record?.[key] ?? nested?.[key];
-    return typeof value === 'string' && UUID_ONLY.test(value) ? value : null;
-  };
-  const query = (entries: [string, string | null][]) => {
-    const parts = entries.filter((entry): entry is [string, string] => entry[1] !== null).map(([key, value]) => `${key}=${value}`);
-    return parts.length ? `?${parts.join('&')}` : '';
-  };
+  const pick = (key: string) => idFrom(data, key);
+  const query = queryOf;
   if (post) return `/feed/post/${post[1]}${query([['schoolId', pick('schoolId')]])}`;
   if (story) return `/feed/story/${story[1]}${query([['schoolId', pick('schoolId')]])}`;
   if (!homeRoute.startsWith('/(teacher)/')) return homeRoute;
   return `/feed/approvals${query([['schoolId', pick('schoolId')], ['classId', pick('classId')]])}`;
+}
+
+/** A uuid under `key` of a notification's data (top level, or inside a raw APNs `body`); null when absent or not a uuid. */
+function idFrom(data: unknown, key: string): string | null {
+  const record = asRecord(data);
+  const nested = asRecord(record?.body);
+  const value = record?.[key] ?? nested?.[key];
+  return typeof value === 'string' && UUID_ONLY.test(value) ? value : null;
+}
+
+function queryOf(entries: [string, string | null][]): string {
+  const parts = entries.filter((entry): entry is [string, string] => entry[1] !== null).map(([key, value]) => `${key}=${value}`);
+  return parts.length ? `?${parts.join('&')}` : '';
 }
 
 /**

@@ -2,6 +2,7 @@ package com.nemaz.school.communications;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.nemaz.school.IntegrationTest;
@@ -87,6 +88,29 @@ class AnnouncementInboxTest extends CommunicationsTestSupport {
 		// the person with nothing has an empty badge
 		badge = get("/api/v1/me/announcements/summary", c.gB1());
 		assertThat(badge.get("unread").asInt()).isZero();
+	}
+
+	@Test
+	void onlyAMaterialEditAsksForTheAcknowledgementAgain() throws Exception {
+		Comms c = comms("inbox-reack");
+		UUID id = UUID.fromString(call(HttpMethod.POST, c.api(), c.admin(), with(announcement("Trip", "Friday", classAudience(c.class1A())),
+				"mode", "PUBLISH", "type", "IMPORTANT", "requiresAcknowledgement", true), 201).get("id").asString());
+		awaitDelivered(id);
+		String url = c.api() + "/" + id;
+		assertThat(get(url, c.gA1()).get("mine").get("reacknowledgementNeeded").asBoolean()).isFalse();
+		call(HttpMethod.POST, url + "/acknowledge", c.gA1(), null, 200);
+		// a silent correction raises the revision but changes nothing for somebody who already confirmed
+		call(HttpMethod.PATCH, url, c.admin(), Map.of("title", "Trip!", "material", false), 200);
+		JsonNode mine = get(url, c.gA1()).get("mine");
+		assertThat(mine.get("acknowledgedRevision").asInt()).isLessThan(get(url, c.gA1()).get("revision").asInt());
+		assertThat(mine.get("reacknowledgementNeeded").asBoolean()).isFalse();
+		// a material one asks again, until they confirm the new revision
+		call(HttpMethod.PATCH, url, c.admin(), Map.of("body", "Saturday", "material", true), 200);
+		assertThat(get(url, c.gA1()).get("mine").get("reacknowledgementNeeded").asBoolean()).isTrue();
+		call(HttpMethod.POST, url + "/acknowledge", c.gA1(), null, 200);
+		assertThat(get(url, c.gA1()).get("mine").get("reacknowledgementNeeded").asBoolean()).isFalse();
+		// somebody who never confirmed has nothing to confirm "again"
+		assertThat(get(url, c.gSib()).get("mine").get("reacknowledgementNeeded").asBoolean()).isFalse();
 	}
 
 	@Test

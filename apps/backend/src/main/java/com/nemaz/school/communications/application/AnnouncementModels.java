@@ -154,7 +154,8 @@ public final class AnnouncementModels {
 	/** The caller's own relation to the announcement. */
 	public record AnnouncementMine(@NotNull boolean read, Instant readAt, @NotNull boolean acknowledged,
 			Instant acknowledgedAt, Integer acknowledgedRevision,
-			@Schema(description = "True when the caller was in the recipient snapshot at publish (false: opens it through the school's list only)") @NotNull boolean recipient) {
+			@Schema(description = "True when the caller was in the recipient snapshot at publish (false: opens it through the school's list only)") @NotNull boolean recipient,
+			@Schema(description = "True when the caller acknowledged an earlier revision and a material edit has changed the text since: ask again. Every edit after publishing raises revision, so acknowledgedRevision < revision alone also fires for a silent correction; clients use this flag") @NotNull boolean reacknowledgementNeeded) {
 	}
 
 	/** What the caller may do with this announcement (menus and buttons; the API stays the authority). */
@@ -194,7 +195,10 @@ public final class AnnouncementModels {
 	public record AnnouncementCapabilities(@NotNull boolean canCompose, @NotNull boolean schoolWide,
 			@NotNull boolean urgentAllowed, @NotNull boolean studentsEnabled, @NotNull boolean emailAvailable,
 			@NotNull boolean smsAvailable, @NotNull List<AnnouncementType> smsTypes,
-			@NotNull List<AnnouncementClassRef> classes, @NotNull int reminderMinHours) {
+			@NotNull List<AnnouncementClassRef> classes, @NotNull int reminderMinHours,
+			@Schema(description = "IANA time zone of the school: clients show and pick scheduled times in it, never in the device's zone") @NotNull String timeZone,
+			@Schema(description = "Texts one announcement may send (announcements.sms.max_per_announcement)") @NotNull int smsMaxPerAnnouncement,
+			@Schema(description = "Texts the school may send per school day (announcements.sms.max_per_day)") @NotNull int smsMaxPerDay) {
 	}
 
 	public record AnnouncementClassRef(@NotNull UUID id, @NotNull String name) {

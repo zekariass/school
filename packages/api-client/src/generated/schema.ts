@@ -4263,8 +4263,20 @@ export interface components {
             reminderMinHours: number;
             schoolWide: boolean;
             smsAvailable: boolean;
+            /**
+             * Format: int32
+             * @description Texts one announcement may send (announcements.sms.max_per_announcement)
+             */
+            smsMaxPerAnnouncement: number;
+            /**
+             * Format: int32
+             * @description Texts the school may send per school day (announcements.sms.max_per_day)
+             */
+            smsMaxPerDay: number;
             smsTypes: ("NORMAL" | "IMPORTANT" | "URGENT" | "SAFETY")[];
             studentsEnabled: boolean;
+            /** @description IANA time zone of the school: clients show and pick scheduled times in it, never in the device's zone */
+            timeZone: string;
             urgentAllowed: boolean;
         };
         AnnouncementCard: {
@@ -4311,6 +4323,8 @@ export interface components {
             acknowledgedAt?: string;
             /** Format: int32 */
             acknowledgedRevision?: number;
+            /** @description True when the caller acknowledged an earlier revision and a material edit has changed the text since: ask again. Every edit after publishing raises revision, so acknowledgedRevision < revision alone also fires for a silent correction; clients use this flag */
+            reacknowledgementNeeded: boolean;
             read: boolean;
             /** Format: date-time */
             readAt?: string;

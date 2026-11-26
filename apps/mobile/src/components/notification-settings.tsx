@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Linking, Switch, View } from 'react-native';
 import { useTranslations } from 'use-intl';
@@ -83,6 +84,14 @@ function PreferencesCard() {
                 <View style={{ flex: 1 }}>
                   <Text>{type.label}</Text>
                   {push.locked ? <Text variant="caption">{t('mobile.notifications.settings.locked')}</Text> : null}
+                  {type.urgentOverridesPreferences ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                      <SymbolView name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={14} tintColor={colors.mutedForeground} />
+                      <Text variant="caption" style={{ flex: 1 }}>
+                        {t('mobile.announcements.preferences.urgentLock')}
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
                 <Switch
                   accessibilityLabel={t('mobile.notifications.settings.pushToggle', { name: type.label })}

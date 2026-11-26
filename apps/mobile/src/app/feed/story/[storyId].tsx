@@ -7,6 +7,7 @@ import { Button, EmptyState } from '@/components/ui';
 import { ProblemBanner } from '@/components/problem-banner';
 import { ApiRequestError } from '@/lib/api-error';
 import { useStoryAnywhere, useStoryQuery } from '@/lib/feed/queries';
+import { shouldLookUpSchools } from '@/lib/feed/notification-school';
 import { isLive } from '@/lib/feed/story-timing';
 import { useClock } from '@/lib/feed/use-clock';
 import { useAppTheme } from '@/lib/theme/theme-provider';
@@ -23,10 +24,12 @@ export default function StoryScreen() {
   const { storyId, schoolId: schoolParam } = useLocalSearchParams<{ storyId: string; schoolId?: string }>();
   const now = useClock();
   const direct = useStoryQuery(schoolParam, storyId);
-  const anywhere = useStoryAnywhere(schoolParam ? undefined : storyId);
+  // `data.schoolId` of the notification is asked first; the caller's schools are asked in turn only without it or after a miss.
+  const lookup = shouldLookUpSchools(schoolParam, direct.error);
+  const anywhere = useStoryAnywhere(storyId, undefined, lookup);
   const story = direct.data ?? anywhere.data?.value;
-  const failure = schoolParam ? direct.error : anywhere.error;
-  const pending = schoolParam ? direct.isPending : anywhere.isPending || anywhere.fetchStatus === 'idle';
+  const failure = lookup ? anywhere.error : direct.error;
+  const pending = lookup ? anywhere.isPending || anywhere.fetchStatus === 'idle' : direct.isPending;
 
   const base = { flex: 1, backgroundColor: colors.background, padding: spacing[5], justifyContent: 'center' } as const;
   if (story && isLive(story, now)) {
@@ -46,7 +49,7 @@ export default function StoryScreen() {
   if (failure && !(failure instanceof ApiRequestError && failure.status === 404)) {
     return (
       <View style={base}>
-        <ProblemBanner error={failure} fallbackTitle={t('mobile.feed.loadFailedTitle')} fallbackBody={t('mobile.feed.loadFailedBody')} onRetry={() => void (schoolParam ? direct.refetch() : anywhere.refetch())} />
+        <ProblemBanner error={failure} fallbackTitle={t('mobile.feed.loadFailedTitle')} fallbackBody={t('mobile.feed.loadFailedBody')} onRetry={() => void (lookup ? anywhere.refetch() : direct.refetch())} />
         <Button variant="ghost" label={t('common.back')} onPress={leave} />
       </View>
     );

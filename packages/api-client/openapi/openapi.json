@@ -15559,6 +15559,16 @@
           "smsAvailable" : {
             "type" : "boolean"
           },
+          "smsMaxPerAnnouncement" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Texts one announcement may send (announcements.sms.max_per_announcement)"
+          },
+          "smsMaxPerDay" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Texts the school may send per school day (announcements.sms.max_per_day)"
+          },
           "smsTypes" : {
             "type" : "array",
             "items" : {
@@ -15569,11 +15579,15 @@
           "studentsEnabled" : {
             "type" : "boolean"
           },
+          "timeZone" : {
+            "type" : "string",
+            "description" : "IANA time zone of the school: clients show and pick scheduled times in it, never in the device's zone"
+          },
           "urgentAllowed" : {
             "type" : "boolean"
           }
         },
-        "required" : [ "canCompose", "classes", "emailAvailable", "reminderMinHours", "schoolWide", "smsAvailable", "smsTypes", "studentsEnabled", "urgentAllowed" ]
+        "required" : [ "canCompose", "classes", "emailAvailable", "reminderMinHours", "schoolWide", "smsAvailable", "smsMaxPerAnnouncement", "smsMaxPerDay", "smsTypes", "studentsEnabled", "timeZone", "urgentAllowed" ]
       },
       "AnnouncementCard" : {
         "type" : "object",
@@ -15675,6 +15689,10 @@
             "type" : "integer",
             "format" : "int32"
           },
+          "reacknowledgementNeeded" : {
+            "type" : "boolean",
+            "description" : "True when the caller acknowledged an earlier revision and a material edit has changed the text since: ask again. Every edit after publishing raises revision, so acknowledgedRevision < revision alone also fires for a silent correction; clients use this flag"
+          },
           "read" : {
             "type" : "boolean"
           },
@@ -15687,7 +15705,7 @@
             "description" : "True when the caller was in the recipient snapshot at publish (false: opens it through the school's list only)"
           }
         },
-        "required" : [ "acknowledged", "read", "recipient" ]
+        "required" : [ "acknowledged", "reacknowledgementNeeded", "read", "recipient" ]
       },
       "AnnouncementPreview" : {
         "type" : "object",
