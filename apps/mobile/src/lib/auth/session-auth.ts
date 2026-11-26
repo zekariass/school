@@ -44,7 +44,9 @@ export const refreshTokens = createTokenRefresher({
  */
 export async function getValidAccessToken(): Promise<string | null> {
   const token = getAccessToken();
-  if (!token || !needsProactiveRefresh(getAccessTokenExpiry(), Date.now())) return token;
+  // No token in memory but a refresh token on the phone: the app was opened offline (see session-provider), so the
+  // first call after the network is back renews the session instead of going out unauthenticated.
+  if (token && !needsProactiveRefresh(getAccessTokenExpiry(), Date.now())) return token;
   const outcome = await refreshTokens();
   if (outcome.status === 'refreshed') return outcome.accessToken;
   if (outcome.status === 'unavailable') return token;

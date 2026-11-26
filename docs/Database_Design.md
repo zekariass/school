@@ -865,6 +865,10 @@ Conflict rule for attendance: the **latest `recorded_at` wins** per student per 
 - `sync_operations`: `device_id` is a **client-generated installation id with no foreign key** (a device may sync without push; `push_devices` is untouched); uniqueness is per `(user_id, device_id, client_operation_id)`; added `school_id`, `problem_code`, `recorded_at` (effective time), `payload_purged_at`; `payload` is nullable once purged (children's data goes after `school.sync.payload-retention`, default 30 days, together with the result's `state`; rows after `school.sync.row-retention`, default 365 days); `status` is stored as `APPLIED`, `CONFLICT`, `REJECTED` or `DUPLICATE` (an operation already applied through the online endpoint with the same client operation id).
 - Online POSTs stay in `idempotency_keys` (`Idempotency-Key` header); the sync endpoint does not use it (every operation has its own key).
 
+**Device side (M7b, Expo app, local SQLite `school.db`, migrations in `apps/mobile/src/lib/db/migrations.ts`; not part of the server schema):**
+- `outbox_operations` (migration 3): the phone's half of `sync_operations`. One row per queued operation: `op_id` (= `client_operation_id`), `owner_id`, `op_type`, `school_id`, `class_id`, `base_version`, `payload` (ids, marks, numbers: no names, tokens or notes), `status` (`PENDING`, `CONFLICT`, `REJECTED`, `EXPIRED`), the API's `problem_*` and the clashing marks (`conflict`) for the rows that wait for the teacher, `attempts`, `next_attempt_at`, `settled_at`. It replaces the M6c `points_award_queue` (rows are copied with their ids).
+- `offline_cache` (migration 4): `(owner_id, kind, scope, entry_key) -> data, fetched_at` with kinds `classes`, `roster`, `roll`, `rollmeta`, `categories`, `totals`, `templates`; the scope is the class id. What each kind may hold, its maximum age and its wipe rules are in `apps/mobile/src/lib/offline/cache.ts`.
+
 ### 4.7 Engagement: points & badges (P1)
 
 ```sql

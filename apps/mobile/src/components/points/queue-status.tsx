@@ -1,41 +1,13 @@
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
 import { Button, Text } from '@/components/ui';
-import { awardQueue, dismissAwardFailure, useAwardFailures, useQueuedAwards } from '@/lib/points/award-runtime';
 import type { RosterEntry } from '@/lib/people/roster';
+import { awardView } from '@/lib/points/award-view';
 import type { PointCategory } from '@/lib/points/queries';
+import { syncEngine, useAttentionOperations } from '@/lib/sync/runtime';
+import { isAwardOp } from '@/lib/sync/types';
 import { useAppTheme } from '@/lib/theme/theme-provider';
-
-/** "3 waiting to send": tap to try now. Hidden when nothing waits. */
-export function QueueIndicator({ classId }: { classId: string }) {
-  const t = useTranslations();
-  const { colors, radii, spacing, minTouchTarget } = useAppTheme();
-  const waiting = useQueuedAwards().filter((item) => item.classId === classId).length;
-  if (waiting === 0) return null;
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t('mobile.points.queue.waiting', { count: waiting })}
-      accessibilityHint={t('mobile.points.queue.retryHint')}
-      onPress={() => void awardQueue.flush(true)}
-      style={{
-        alignSelf: 'flex-start',
-        minHeight: minTouchTarget,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing[2],
-        paddingHorizontal: spacing[4],
-        borderRadius: radii.full,
-        backgroundColor: colors.muted,
-        borderWidth: 1,
-        borderColor: colors.warning,
-      }}>
-      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: colors.warning }} />
-      <Text variant="label">{t('mobile.points.queue.waiting', { count: waiting })}</Text>
-    </Pressable>
-  );
-}
 
 /**
  * Awards the server refused for good (the student left the class, the skill was switched off) or that waited too
@@ -52,7 +24,11 @@ export function FailureBanners({
 }) {
   const t = useTranslations();
   const { colors, radii, spacing } = useAppTheme();
-  const failures = useAwardFailures().filter((failure) => failure.item.classId === classId);
+  const attention = useAttentionOperations();
+  const failures = attention
+    .filter(isAwardOp)
+    .filter((op) => op.classId === classId && (op.status === 'REJECTED' || op.status === 'EXPIRED'))
+    .map((op) => ({ id: op.opId, kind: op.status === 'EXPIRED' ? ('expired' as const) : ('rejected' as const), item: awardView(op), detail: op.problem?.detail || undefined }));
   if (failures.length === 0) return null;
 
   return (
@@ -87,7 +63,7 @@ export function FailureBanners({
               variant="ghost"
               fullWidth={false}
               label={t('common.done')}
-              onPress={() => dismissAwardFailure(failure.id)}
+              onPress={() => void syncEngine.dismiss(failure.id)}
             />
           </View>
         );
