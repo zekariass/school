@@ -21,6 +21,9 @@ const UUID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-
 /** A teacher is told of a parent's absence report: "/classes/{classId}/attendance" opens that class's inbox. */
 const CLASS_ABSENCES = new RegExp(`^/classes/(${UUID})/attendance$`);
 const UUID_ONLY = new RegExp(`^${UUID}$`);
+/** The feed (M8): a post (NEW_POST, POST_APPROVED/REJECTED, POST_PUBLISH_BLOCKED, POST_MEDIA_WITHHELD), a story, the approval queue. */
+const FEED_POST = new RegExp(`^/feed/posts/(${UUID})$`);
+const FEED_STORY = new RegExp(`^/feed/stories/(${UUID})$`);
 
 /**
  * The route to open for `path`, or null to stay put. `homeRoute` is the active role's home tab. `data` is the
@@ -42,10 +45,38 @@ export function routeForPath(path: unknown, homeRoute: string | null, data?: unk
     const date = record?.date ?? nested?.date;
     if (typeof studentId === 'string' && UUID_ONLY.test(studentId) && typeof date === 'string') return `/child/${studentId}/attendance`;
   }
+  const feed = feedRoute(trimmed, homeRoute, data);
+  if (feed !== undefined) return feed;
   const target = KNOWN_ROUTES[trimmed];
   if (!target) return null;
   if (target === 'points') return homeRoute?.startsWith('/(student)/') ? '/(student)/points' : homeRoute;
   return target === 'home' ? homeRoute : target;
+}
+
+/**
+ * The screens of the feed. A push carries only the id, so the screen finds the school itself (the inbox row also names it:
+ * `data.schoolId`, when present, saves the lookup). Approvals are for teachers; everybody else lands on their home.
+ * `undefined` when the path is not a feed path.
+ */
+function feedRoute(path: string, homeRoute: string | null, data: unknown): string | null | undefined {
+  const post = FEED_POST.exec(path);
+  const story = FEED_STORY.exec(path);
+  if (!post && !story && path !== '/feed/approvals') return undefined;
+  if (!homeRoute) return null;
+  const record = asRecord(data);
+  const nested = asRecord(record?.body);
+  const pick = (key: string): string | null => {
+    const value = record?.[key] ?? nested?.[key];
+    return typeof value === 'string' && UUID_ONLY.test(value) ? value : null;
+  };
+  const query = (entries: [string, string | null][]) => {
+    const parts = entries.filter((entry): entry is [string, string] => entry[1] !== null).map(([key, value]) => `${key}=${value}`);
+    return parts.length ? `?${parts.join('&')}` : '';
+  };
+  if (post) return `/feed/post/${post[1]}${query([['schoolId', pick('schoolId')]])}`;
+  if (story) return `/feed/story/${story[1]}${query([['schoolId', pick('schoolId')]])}`;
+  if (!homeRoute.startsWith('/(teacher)/')) return homeRoute;
+  return `/feed/approvals${query([['schoolId', pick('schoolId')], ['classId', pick('classId')]])}`;
 }
 
 /**

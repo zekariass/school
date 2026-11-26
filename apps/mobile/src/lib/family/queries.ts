@@ -19,9 +19,10 @@ export type ChildConsents = S['ChildConsents'];
 export type ConsentItem = S['ConsentItem'];
 
 /** The adult's children, with classes and teachers when the link allows, and requests still waiting for the school. */
-export function useMyChildren() {
+export function useMyChildren(enabled = true) {
   return useQuery({
     queryKey: myChildrenKey,
+    enabled,
     queryFn: () => request(async () => unwrap(await api.GET('/api/v1/me/children'))),
   });
 }

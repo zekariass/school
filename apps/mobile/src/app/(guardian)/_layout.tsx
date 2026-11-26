@@ -11,6 +11,10 @@ export default function GuardianTabs() {
         <NativeTabs.Trigger.Label>{t('nav.home')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="feed">
+        <NativeTabs.Trigger.Label>{t('mobile.feed.tab')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'photo.on.rectangle', selected: 'photo.on.rectangle.angled' }} md="photo_library" />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="messages">
         <NativeTabs.Trigger.Label>{t('nav.messages')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon

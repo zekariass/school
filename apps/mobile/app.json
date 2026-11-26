@@ -64,8 +64,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow School to use the photo you choose as your profile picture.",
-          "cameraPermission": "Allow School to use the camera to scan your class QR code or take your profile picture.",
+          "photosPermission": "Allow School to use the photos you choose for your profile picture and for the posts and stories you share.",
+          "cameraPermission": "Allow School to use the camera to scan your class QR code, take your profile picture, or take photos for the posts and stories you share.",
           "microphonePermission": false
         }
       ],
@@ -88,7 +88,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow School to use the camera to scan your class QR code or take your profile picture.",
+          "cameraPermission": "Allow School to use the camera to scan your class QR code, take your profile picture, or take photos for the posts and stories you share.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }

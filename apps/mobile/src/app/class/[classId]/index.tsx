@@ -104,6 +104,11 @@ export default function ClassDetail() {
               />
               <Button
                 variant="secondary"
+                label={t('mobile.feed.openClassFeed')}
+                onPress={() => router.push({ pathname: '/feed/class/[classId]', params: { classId: cls.id, schoolId: cls.schoolId } })}
+              />
+              <Button
+                variant="secondary"
                 label={t('mobile.points.openClass')}
                 onPress={() => router.push({ pathname: '/class/[classId]/points', params: { classId: cls.id } })}
               />

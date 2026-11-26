@@ -39,6 +39,8 @@ class ContributionTest extends FeedTestSupport {
 		assertThat(caps.get("canContribute").asBoolean()).isTrue();
 		assertThat(caps.get("contributionNeedsApproval").asBoolean()).isTrue();
 		assertThat(caps.get("contributionStudentIds")).hasSize(1);
+		// scheduled times are read in the school's zone (never the phone's)
+		assertThat(caps.get("timeZone").asString()).isNotBlank();
 		assertThat(caps.get("canPost").asBoolean()).isFalse();
 		assertThat(get(f.api() + "/feed/capabilities?classId=" + f.classId(), f.lead()).get("canModerate").asBoolean()).isTrue();
 	}

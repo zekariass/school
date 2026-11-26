@@ -26,7 +26,10 @@ export default function NotificationsScreen() {
 
   function open(item: InboxItem) {
     if (!item.readAt) markRead.mutate(item.id);
-    const target = routeForPath(item.data?.path, activeRole ? homeRouteFor(activeRole) : null, item.data);
+    const target = routeForPath(item.data?.path, activeRole ? homeRouteFor(activeRole) : null, {
+      ...item.data,
+      ...(item.schoolId ? { schoolId: item.schoolId } : {}),
+    });
     // only follow routes the app knows; this screen is where "/notifications" points anyway
     if (target && target !== '/notifications') router.navigate(target as Parameters<typeof router.navigate>[0]);
   }

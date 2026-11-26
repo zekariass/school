@@ -4545,6 +4545,8 @@ export interface components {
             contributionStudentIds: string[];
             /** Format: int32 */
             pinLimit?: number;
+            /** @description IANA time zone of the class's campus or of the school: clients show and pick scheduled times in it, never in the phone's zone */
+            timeZone: string;
             translationEnabled?: boolean;
         };
         FeedMediaItem: {

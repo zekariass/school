@@ -15594,11 +15594,15 @@
             "type" : "integer",
             "format" : "int32"
           },
+          "timeZone" : {
+            "type" : "string",
+            "description" : "IANA time zone of the class's campus or of the school: clients show and pick scheduled times in it, never in the phone's zone"
+          },
           "translationEnabled" : {
             "type" : "boolean"
           }
         },
-        "required" : [ "contributionMediaKinds", "contributionStudentIds" ]
+        "required" : [ "contributionMediaKinds", "contributionStudentIds", "timeZone" ]
       },
       "FeedMediaItem" : {
         "type" : "object",

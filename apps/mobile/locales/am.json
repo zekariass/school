@@ -1,6 +1,6 @@
 {
   "ios": {
-    "NSCameraUsageDescription": "የክፍልዎን QR ኮድ ለመቃኘት ወይም የመገለጫ ፎቶዎን ለማንሳት School ካሜራውን እንዲጠቀም ይፍቀዱ።",
-    "NSPhotoLibraryUsageDescription": "የመረጡትን ፎቶ እንደ መገለጫ ፎቶዎ ለመጠቀም School እንዲደርስበት ይፍቀዱ።"
+    "NSCameraUsageDescription": "የክፍልዎን QR ኮድ ለመቃኘት፣ የመገለጫ ፎቶዎን ለማንሳት ወይም ለሚያጋሯቸው ልጥፎችና ታሪኮች ፎቶ ለማንሳት School ካሜራውን እንዲጠቀም ይፍቀዱ።",
+    "NSPhotoLibraryUsageDescription": "የመረጧቸውን ፎቶዎች ለመገለጫ ፎቶዎና ለሚያጋሯቸው ልጥፎችና ታሪኮች ለመጠቀም School እንዲደርስባቸው ይፍቀዱ።"
   }
 }
