@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon, LogOutIcon, UserRoundIcon, UserRoundPenIcon } from "lucide-react";
+import { CalendarClockIcon, ChevronDownIcon, LogOutIcon, UserRoundIcon, UserRoundPenIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { signOut } from "@/lib/sign-out";
 export function UserMenu({ name, detail }: { name: string; detail?: string }) {
   const t = useTranslations("auth");
   const tAccount = useTranslations("account");
+  const tNav = useTranslations("nav");
   const locale = useLocale();
   const [pending, setPending] = useState(false);
 
@@ -37,6 +38,12 @@ export function UserMenu({ name, detail }: { name: string; detail?: string }) {
           {detail ? <span className="truncate text-xs font-normal text-muted-foreground">{detail}</span> : null}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="min-h-10 gap-2 rounded-lg">
+          <Link href="/calendar" data-testid="calendar-link">
+            <CalendarClockIcon className="size-4" aria-hidden />
+            {tNav("calendar")}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild className="min-h-10 gap-2 rounded-lg">
           <Link href="/account">
             <UserRoundPenIcon className="size-4" aria-hidden />

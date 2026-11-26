@@ -24,6 +24,7 @@ export const SP = {
   announcementsUrgent: "school.announcements.urgent",
   messagingModerate: "school.messaging.moderate",
   messagingReview: "school.messaging.review",
+  calendarManage: "school.calendar.manage",
 } as const;
 
 export interface ScopeLike {
@@ -86,6 +87,7 @@ export type NavId =
   | "announcements"
   | "messages"
   | "messageReview"
+  | "calendar"
   | "policies";
 
 /** The workspace menu for this access, in display order. */
@@ -112,6 +114,8 @@ export function navItems(access: SchoolAccess): NavId[] {
   if (canOpenMessages(access)) items.push("messages");
   // Safeguarding review: only holders of the review permission (the API stays the authority and audits every read).
   if (canReviewMessages(access)) items.push("messageReview");
+  // The school's calendar: members who work at the school (the API decides who may create what, from its capabilities).
+  if (canOpenCalendar(access)) items.push("calendar");
   if (can(SP.policies)) items.push("policies");
   if (can(SP.settings)) items.push("settings");
   if (can(SP.read)) items.push("features");
@@ -141,6 +145,16 @@ export function canModerateMessages(access: Pick<SchoolAccess, "permissions">): 
 /** The audited safeguarding review: exactly `school.messaging.review`, nothing derived from it (administrator or not). */
 export function canReviewMessages(access: Pick<SchoolAccess, "permissions">): boolean {
   return access.permissions.has(SP.messagingReview);
+}
+
+/** The school's calendar page: teachers, other staff and calendar managers (families and students use the top-level calendar). */
+export function canOpenCalendar(access: SchoolAccess): boolean {
+  return access.isTeacher || access.isStaff || access.permissions.has(SP.calendarManage);
+}
+
+/** School-wide, campus and grade events: the calendar manager permission (teachers' class events and meetings come from the API's capabilities). */
+export function canManageCalendar(access: Pick<SchoolAccess, "permissions">): boolean {
+  return access.permissions.has(SP.calendarManage);
 }
 
 /** Writes to the whole school, campuses and grades, sees every announcement's report and reminds: the manager permission. */
@@ -194,5 +208,6 @@ export const NAV_PATH: Record<NavId, string> = {
   announcements: "announcements",
   messages: "messages",
   messageReview: "messages/review",
+  calendar: "calendar",
   policies: "policies",
 };

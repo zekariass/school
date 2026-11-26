@@ -42,6 +42,13 @@ export function resolveDeepLink(
     // Without a valid school the item is still marked read and the inbox lists the announcement.
     return typeof schoolId === "string" && UUID.test(schoolId) ? `/announcements/${schoolId}/${match[1]}` : "/announcements";
   }
+  // Calendar links name only the event (`EVENT_INVITATION`, `EVENT_UPDATED`, `EVENT_CANCELLED`, `UPCOMING_EVENT`): the id goes
+  // into an API path, so only a well-formed one passes; the detail page needs no school.
+  if (base === CALENDAR || base === CALENDAR_EVENTS.slice(0, -1) || base.startsWith(CALENDAR_EVENTS)) {
+    if (base === CALENDAR || base === CALENDAR_EVENTS.slice(0, -1)) return CALENDAR;
+    const match = CALENDAR_EVENT.exec(base);
+    return match ? `${CALENDAR_EVENTS}${match[1]}` : null;
+  }
   if (base === FEED_APPROVALS) {
     const slug = context.schoolSlug;
     return slug && SLUG.test(slug) ? `/s/${slug}/feed/approvals` : null;
@@ -81,6 +88,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FEED_POST = /^\/feed\/posts\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 const FEED_STORY = /^\/feed\/stories\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 const FEED_APPROVALS = "/feed/approvals";
+const CALENDAR = "/calendar";
+const CALENDAR_EVENTS = "/calendar/events/";
+const CALENDAR_EVENT = /^\/calendar\/events\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 const ANNOUNCEMENTS_INBOX = "/announcements";
 const ANNOUNCEMENTS_PREFIX = "/announcements/";
 const ANNOUNCEMENT = /^\/announcements\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;

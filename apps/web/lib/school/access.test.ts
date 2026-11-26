@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canModerateMessages, canOpenMessages, canReviewMessages, canManageAnnouncements, canOpenAnnouncements, canOpenApprovals, canOpenFeed, canPostSchoolWide, canSendUrgentAnnouncements, isStudentOnly, isTeacherOnly, navItems, schoolAccess, type MeLike } from "./access";
+import { canModerateMessages, canOpenMessages, canReviewMessages, canManageAnnouncements, canOpenAnnouncements, canOpenApprovals, canOpenFeed, canPostSchoolWide, canSendUrgentAnnouncements, isStudentOnly, isTeacherOnly, navItems, schoolAccess, type MeLike, canManageCalendar, canOpenCalendar } from "./access";
 
 const ADMIN = [
   "school.read",
@@ -48,7 +48,7 @@ describe("navItems", () => {
   });
 
   it("gives teachers the dashboard, their classes and the families queue", () => {
-    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "attendance", "points", "feed", "announcements", "messages"]);
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "attendance", "points", "feed", "announcements", "messages", "calendar"]);
   });
 
   it("shows Policies only with the policies permission", () => {
@@ -90,7 +90,7 @@ describe("navItems", () => {
       scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["class.manage"] }],
       memberships: [{ type: "TEACHER", schoolSlug: "sunrise" }],
     };
-    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "attendance", "points", "feed", "announcements", "messages"]);
+    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "attendance", "points", "feed", "announcements", "messages", "calendar"]);
   });
 });
 
@@ -149,6 +149,30 @@ describe("announcements", () => {
   it("applies a grant above school level to every school", () => {
     const platform: MeLike = { scopes: [{ scope: { type: "PLATFORM" }, permissions: ["school.announcements.manage"] }] };
     expect(canManageAnnouncements(schoolAccess(platform, "any-school"))).toBe(true);
+  });
+});
+
+describe("calendar", () => {
+  const manager: MeLike = { scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["school.calendar.manage"] }] };
+  const otherStaff: MeLike = { scopes: [], memberships: [{ type: "STAFF", schoolSlug: "sunrise" }] };
+
+  it("is in the menu for teachers, other staff and calendar managers, not for students or strangers", () => {
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toContain("calendar");
+    expect(navItems(schoolAccess(otherStaff, "sunrise"))).toContain("calendar");
+    expect(navItems(schoolAccess(manager, "sunrise"))).toContain("calendar");
+    expect(navItems(schoolAccess(student, "sunrise"))).not.toContain("calendar");
+    expect(navItems(schoolAccess(manager, "moon"))).not.toContain("calendar");
+    // administrators without the calendar permission or a membership have no section of their own
+    expect(navItems(schoolAccess(schoolAdmin, "sunrise"))).not.toContain("calendar");
+    expect(canOpenCalendar(schoolAccess(student, "sunrise"))).toBe(false);
+  });
+
+  it("separates managing the calendar from teaching", () => {
+    expect(canManageCalendar(schoolAccess(manager, "sunrise"))).toBe(true);
+    expect(canManageCalendar(schoolAccess(teacher, "sunrise"))).toBe(false);
+    expect(canManageCalendar(schoolAccess(manager, "moon"))).toBe(false);
+    const platform: MeLike = { scopes: [{ scope: { type: "PLATFORM" }, permissions: ["school.calendar.manage"] }] };
+    expect(canManageCalendar(schoolAccess(platform, "any-school"))).toBe(true);
   });
 });
 

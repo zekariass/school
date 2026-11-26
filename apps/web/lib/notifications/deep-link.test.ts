@@ -98,6 +98,35 @@ describe("resolveDeepLink", () => {
     });
   });
 
+  describe("calendar events", () => {
+    const id = "0b9d8f6c-3f4e-4a63-9d86-0f9b2c7a1e55";
+
+    it("opens the event detail, for every notification type that names an event", () => {
+      for (const type of ["EVENT_INVITATION", "EVENT_UPDATED", "EVENT_CANCELLED", "UPCOMING_EVENT"]) {
+        expect(resolveDeepLink({ path: `/calendar/events/${id}`, type }), type).toBe(`/calendar/events/${id}`);
+      }
+    });
+
+    it("needs no school and keeps only the id", () => {
+      expect(deepLinkNeedsSchool({ path: `/calendar/events/${id}` })).toBe(false);
+      expect(resolveDeepLink({ path: `/calendar/events/${id}?next=https://evil.example#x` })).toBe(`/calendar/events/${id}`);
+      expect(resolveDeepLink({ path: `/calendar/events/${id.toUpperCase()}` })).toBe(`/calendar/events/${id.toUpperCase()}`);
+    });
+
+    it("refuses anything that is not a well-formed event id", () => {
+      for (const bad of ["x", "../announcements", `${id}/edit`, `${id}%2F..`, "1234", `${id}x`, ""]) {
+        expect(resolveDeepLink({ path: `/calendar/events/${bad}` }), bad).toBeNull();
+      }
+      // the bare events path has no page of its own: the calendar opens
+      expect(resolveDeepLink({ path: "/calendar/events" })).toBe("/calendar");
+    });
+
+    it("opens the calendar itself for the bare path", () => {
+      expect(resolveDeepLink({ path: "/calendar" })).toBe("/calendar");
+      expect(resolveDeepLink({ path: "/calendar?x=1" })).toBe("/calendar");
+    });
+  });
+
   it("finds a school's slug from memberships first, then grants", () => {
     const me = {
       memberships: [{ schoolId: "s1", schoolSlug: "sunrise" }],
