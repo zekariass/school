@@ -278,7 +278,7 @@ class AuthorizationMatrixTest {
 						"context", Map.of("type", "ORGANIZATION", "id", f.organization())),
 				allow(201, PLATFORM_ADMIN, COUNTRY_ADMIN_ET)));
 		cases.add(new Case("POST upload for a purpose without a policy", HttpMethod.POST, (f) -> "/api/v1/media/uploads",
-				(f) -> Map.of("purpose", "PORTFOLIO", "filename", "x.jpg", "mimeType", "image/jpeg", "sizeBytes", 1000,
+				(f) -> Map.of("purpose", "SUBMISSION", "filename", "x.jpg", "mimeType", "image/jpeg", "sizeBytes", 1000,
 						"context", Map.of("type", "SCHOOL", "id", f.schoolA())),
 				allow(403)));
 		cases.add(new Case("GET READY branding media", HttpMethod.GET,

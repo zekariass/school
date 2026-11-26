@@ -58,7 +58,9 @@ final class PurposeRules {
 		RULES.put(MediaPurpose.STORY, new Rule(schoolOrClass, images));
 		// Messages: images only (re-encoded, never an original), uploaded into the conversation they will be sent in.
 		RULES.put(MediaPurpose.MESSAGE, new Rule(Set.of(ContextType.CONVERSATION), images));
-		RULES.put(MediaPurpose.PORTFOLIO, new Rule(school, everything));
+		// Portfolios (M12a): images and PDFs only. Audio and video are deferred: there is no audio type, and videos are stored
+		// as uploaded (no re-encoding, no metadata stripping), which a child's portfolio must not rely on (rule book P1.3).
+		RULES.put(MediaPurpose.PORTFOLIO, new Rule(school, imagesAndPdf));
 		RULES.put(MediaPurpose.SUBMISSION, new Rule(school, everything));
 		RULES.put(MediaPurpose.ASSIGNMENT, new Rule(school, imagesAndPdf));
 		RULES.put(MediaPurpose.LIBRARY, new Rule(school, everything));

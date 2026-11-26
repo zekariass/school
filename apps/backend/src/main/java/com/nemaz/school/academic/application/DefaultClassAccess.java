@@ -167,9 +167,36 @@ class DefaultClassAccess implements ClassAccess {
 		}
 		any.add("exists (select 1 from class_teachers ca_ct where ca_ct.class_id = " + a + ".id"
 				+ " and ca_ct.teacher_id = :ca_user and ca_ct.status = 'ACTIVE')");
+		if (managerBranches(user, a, any, params)) {
+			return SqlFragment.always();
+		}
+		for (ClassAccessRule rule : withRules ? this.rules : List.<ClassAccessRule>of()) {
+			rule.visibleClasses(user, a).ifPresent((fragment) -> {
+				any.add("(" + fragment.sql() + ")");
+				params.putAll(fragment.params());
+			});
+		}
+		return new SqlFragment("(" + String.join(" or ", any) + ")", params);
+	}
+
+	@Override
+	public SqlFragment manageableClasses(CurrentUser user, String a) {
+		if (user == null) {
+			return SqlFragment.never();
+		}
+		Map<String, Object> params = new HashMap<>();
+		List<String> any = new ArrayList<>();
+		if (managerBranches(user, a, any, params)) {
+			return SqlFragment.always();
+		}
+		return any.isEmpty() ? SqlFragment.never() : new SqlFragment("(" + String.join(" or ", any) + ")", params);
+	}
+
+	/** Adds the {@code class.manage} branches; returns true when the permission is held platform-wide (everything). */
+	private boolean managerBranches(CurrentUser user, String a, List<String> any, Map<String, Object> params) {
 		AccessibleScopes managed = this.access.accessible(user, Permissions.CLASS_MANAGE);
 		if (managed.platform()) {
-			return SqlFragment.always();
+			return true;
 		}
 		if (!managed.schoolIds().isEmpty()) {
 			any.add(a + ".school_id in (:ca_schools)");
@@ -187,13 +214,7 @@ class DefaultClassAccess implements ClassAccess {
 			any.add(a + ".school_id in (select ca_s2.id from schools ca_s2 where ca_s2.country_code in (:ca_countries))");
 			params.put("ca_countries", managed.countryCodes());
 		}
-		for (ClassAccessRule rule : withRules ? this.rules : List.<ClassAccessRule>of()) {
-			rule.visibleClasses(user, a).ifPresent((fragment) -> {
-				any.add("(" + fragment.sql() + ")");
-				params.putAll(fragment.params());
-			});
-		}
-		return new SqlFragment("(" + String.join(" or ", any) + ")", params);
+		return false;
 	}
 
 	@Override
