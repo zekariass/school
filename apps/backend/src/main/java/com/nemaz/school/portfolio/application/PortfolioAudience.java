@@ -99,16 +99,22 @@ public class PortfolioAudience {
 		return any.isEmpty() ? SqlFragment.never() : new SqlFragment("(" + String.join(" or ", any) + ")", params);
 	}
 
-	/** Class teachers who review (LEAD, CO_TEACHER, a matching SUBJECT_TEACHER) and class managers. */
+	/** The teaching reviewers of the rows {@code i}: ACTIVE LEAD, CO_TEACHER of the item's class, a SUBJECT_TEACHER whose subject is the item's. */
+	SqlFragment teacherReviewers(CurrentUser user, String i) {
+		String sql = "(" + i + ".class_id is not null and exists (select 1 from class_teachers pa_ct where pa_ct.class_id = " + i
+				+ ".class_id and pa_ct.teacher_id = :pa_user and pa_ct.status = 'ACTIVE' and (pa_ct.role in ('LEAD', 'CO_TEACHER')"
+				+ " or (pa_ct.role = 'SUBJECT_TEACHER' and " + i + ".subject_id is not null and pa_ct.subject_id = " + i + ".subject_id))))";
+		return new SqlFragment(sql, Map.of("pa_user", user.userId()));
+	}
+
+	/** Class teachers who review and class managers (a {@code class.manage} grant covering the class). */
 	SqlFragment classReviewers(CurrentUser user, String i) {
 		SqlFragment managed = this.classes.manageableClasses(user, "pa_mc");
+		SqlFragment teachers = teacherReviewers(user, i);
 		Map<String, Object> params = new HashMap<>(managed.params());
-		params.put("pa_user", user.userId());
-		String sql = "(" + i + ".class_id is not null and (exists (select 1 from class_teachers pa_ct where pa_ct.class_id = " + i
-				+ ".class_id and pa_ct.teacher_id = :pa_user and pa_ct.status = 'ACTIVE' and (pa_ct.role in ('LEAD', 'CO_TEACHER')"
-				+ " or (pa_ct.role = 'SUBJECT_TEACHER' and " + i + ".subject_id is not null and pa_ct.subject_id = " + i
-				+ ".subject_id))) or exists (select 1 from classes pa_mc where pa_mc.id = " + i + ".class_id and ("
-				+ managed.sql() + "))))";
+		params.putAll(teachers.params());
+		String sql = "(" + teachers.sql() + " or (" + i + ".class_id is not null and exists (select 1 from classes pa_mc where pa_mc.id = "
+				+ i + ".class_id and (" + managed.sql() + "))))";
 		return new SqlFragment(sql, params);
 	}
 
@@ -202,10 +208,10 @@ public class PortfolioAudience {
 			.list());
 	}
 
-	/** Whether the user sees the item only through {@code school.portfolios.review} (not as the student, a class teacher or manager). */
+	/** Whether the user holds {@code school.portfolios.review} over the item without teaching it (not the student, not its LEAD, CO or subject teacher): an oversight read, audited. */
 	boolean oversightOnly(CurrentUser user, UUID itemId) {
 		SqlFragment oversight = oversight(user, "i");
-		SqlFragment teachers = classReviewers(user, "i");
+		SqlFragment teachers = teacherReviewers(user, "i");
 		Map<String, Object> params = new HashMap<>(oversight.params());
 		params.putAll(teachers.params());
 		return this.jdbc.sql("select exists (select 1 from portfolio_items i where i.id = :pa_item and " + oversight.sql()

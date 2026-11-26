@@ -311,18 +311,22 @@ public abstract class PortfolioTestSupport extends MediaTestSupport {
 
 	/** Inserts an item directly (for matrices): the student's portfolio is created when missing; returns the item id. */
 	protected UUID insertItem(Pf p, UUID studentId, String status, String visibility, UUID classId, UUID subjectId) {
+		return insertItemIn(p.schoolId(), studentId, status, visibility, classId, subjectId);
+	}
+
+	protected UUID insertItemIn(UUID schoolId, UUID studentId, String status, String visibility, UUID classId, UUID subjectId) {
 		UUID portfolio = this.jdbc.query("select id from portfolios where student_id = ? and school_id = ?",
-				(rs, i) -> rs.getObject(1, UUID.class), studentId, p.schoolId()).stream().findFirst().orElse(null);
+				(rs, i) -> rs.getObject(1, UUID.class), studentId, schoolId).stream().findFirst().orElse(null);
 		if (portfolio == null) {
 			portfolio = Ids.newId();
-			this.jdbc.update("insert into portfolios (id, student_id, school_id) values (?, ?, ?)", portfolio, studentId, p.schoolId());
+			this.jdbc.update("insert into portfolios (id, student_id, school_id) values (?, ?, ?)", portfolio, studentId, schoolId);
 		}
 		UUID id = Ids.newId();
 		this.jdbc.update("""
 				insert into portfolio_items (id, portfolio_id, school_id, student_id, class_id, subject_id, created_by, item_type, title,
 				  text_content, work_date, status, visibility, submitted_at)
 				values (?, ?, ?, ?, ?, ?, ?, 'TEXT', ?, 'text', current_date, ?, ?, case when ? = 'DRAFT' then null else now() end)""", id,
-				portfolio, p.schoolId(), studentId, classId, subjectId, studentId, "Matrix " + status + " " + visibility, status,
+				portfolio, schoolId, studentId, classId, subjectId, studentId, "Matrix " + status + " " + visibility, status,
 				visibility, status);
 		return id;
 	}
