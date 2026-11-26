@@ -112,8 +112,7 @@ public final class MessagingModels {
 			@NotNull boolean canProposeStudentGroup, @NotNull boolean canModerate, @NotNull boolean canReview,
 			@NotNull int editWindowMinutes, @NotNull int maxMessageLength, @NotNull boolean studentMediaEnabled,
 			@NotNull boolean translationEnabled, OfficeHoursView officeHours,
-			@Schema(description = "The school's time zone (IANA id): scheduled messages are picked and shown in it, never in the device's") @NotNull String timeZone,
-			@Schema(description = "A teacher may start a DIRECT conversation with a student of their class (messaging.student.teacher_direct.enabled); the student's guardians then become read-only observers") @NotNull boolean canStartTeacherStudent) {
+			@Schema(description = "The school's time zone (IANA id): scheduled messages are picked and shown in it, never in the device's") @NotNull String timeZone) {
 	}
 
 	public record OfficeHoursView(@NotNull List<Integer> days, @NotNull String start, @NotNull String end,

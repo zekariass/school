@@ -21983,6 +21983,10 @@
           "canReview" : {
             "type" : "boolean"
           },
+          "canStartParentParent" : {
+            "type" : "boolean",
+            "description" : "A guardian may start a DIRECT conversation with a guardian of a classmate of their child (messaging.parent_parent.enabled)"
+          },
           "canStartParentTeacher" : {
             "type" : "boolean"
           },
@@ -21991,7 +21995,7 @@
           },
           "canStartTeacherStudent" : {
             "type" : "boolean",
-            "description" : "A teacher may start a DIRECT conversation with a student of their class (messaging.student.teacher_direct.enabled); the student's guardians then become read-only observers"
+            "description" : "A teacher may start a DIRECT conversation with a student of their class (messaging.student.teacher_direct.enabled): the student's guardians then observe it, or the conversation is admin-visible"
           },
           "creatableGroups" : {
             "type" : "array",
@@ -22025,7 +22029,7 @@
             "type" : "boolean"
           }
         },
-        "required" : [ "canModerate", "canProposeStudentGroup", "canReview", "canStartParentTeacher", "canStartStudentDirect", "canStartTeacherStudent", "creatableGroups", "editWindowMinutes", "featureEnabled", "maxMessageLength", "studentMediaEnabled", "timeZone", "translationEnabled" ]
+        "required" : [ "canModerate", "canProposeStudentGroup", "canReview", "canStartParentParent", "canStartParentTeacher", "canStartStudentDirect", "canStartTeacherStudent", "creatableGroups", "editWindowMinutes", "featureEnabled", "maxMessageLength", "studentMediaEnabled", "timeZone", "translationEnabled" ]
       },
       "MessagingUnreadCount" : {
         "type" : "object",
