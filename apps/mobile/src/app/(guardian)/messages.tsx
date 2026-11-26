@@ -1,5 +1,5 @@
-import { PlaceholderScreen } from '@/components/placeholder-screen';
+import { MessagesInbox } from '@/components/messaging/inbox';
 
 export default function Screen() {
-  return <PlaceholderScreen kind="messages" />;
+  return <MessagesInbox role="guardian" />;
 }

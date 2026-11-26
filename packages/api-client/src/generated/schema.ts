@@ -6742,6 +6742,8 @@ export interface components {
             canReview: boolean;
             canStartParentTeacher: boolean;
             canStartStudentDirect: boolean;
+            /** @description A teacher may start a DIRECT conversation with a student of their class (messaging.student.teacher_direct.enabled); the student's guardians then become read-only observers */
+            canStartTeacherStudent: boolean;
             creatableGroups: ("CLASS_STUDENTS" | "CLASS_PARENTS" | "STAFF" | "STUDENT_GROUP" | "SCHOOL_STAFF")[];
             /** Format: int32 */
             editWindowMinutes: number;
@@ -6750,7 +6752,13 @@ export interface components {
             maxMessageLength: number;
             officeHours?: components["schemas"]["OfficeHoursView"];
             studentMediaEnabled: boolean;
+            /** @description The school's time zone (IANA id): scheduled messages are picked and shown in it, never in the device's */
+            timeZone: string;
             translationEnabled: boolean;
+        };
+        MessagingUnreadCount: {
+            /** Format: int32 */
+            unread: number;
         };
         MetaResponse: {
             apiVersion: string;
@@ -10345,7 +10353,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnreadCount"];
+                    "application/json": components["schemas"]["MessagingUnreadCount"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

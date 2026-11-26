@@ -34,6 +34,21 @@ class StartConversationTest extends MessagingTestSupport {
 		assertThat(observers(conversationId(created))).isEmpty();
 	}
 
+	/** The apps (M9c) pick scheduled times in the school's zone and show "message a student" only when the setting is on. */
+	@Test
+	void capabilitiesCarryTheSchoolTimeZoneAndTheTeacherStudentSwitch() throws Exception {
+		Msg m = school("start-caps");
+		JsonNode before = get(m.api() + "/capabilities", m.lead());
+		assertThat(before.get("timeZone").asString()).isNotBlank();
+		assertThat(before.get("canStartTeacherStudent").asBoolean()).isFalse();
+		allowTeacherStudentDirect(m.schoolId(), "TEACHER_ONLY");
+		assertThat(get(m.api() + "/capabilities", m.lead()).get("canStartTeacherStudent").asBoolean()).isTrue();
+		// a guardian never gets the teacher-student switch, and the zone is the same for everybody
+		JsonNode guardian = get(m.api() + "/capabilities", m.g1());
+		assertThat(guardian.get("canStartTeacherStudent").asBoolean()).isFalse();
+		assertThat(guardian.get("timeZone").asString()).isEqualTo(before.get("timeZone").asString());
+	}
+
 	@Test
 	void contextStudentIsRequired() throws Exception {
 		Msg m = school("start-ctx");

@@ -118,12 +118,39 @@ describe('routeForPath', () => {
     expect(routeForPath('/notifications/', HOME)).toBe('/notifications');
   });
   it('stays put for unknown or unsafe paths', () => {
-    for (const path of ['/messages/123', '//evil.example', 'https://evil.example', 'javascript:alert(1)', '/a\\b', '', '/\tx', null, 5, undefined]) {
+    for (const path of ['/messages/123', '/messages/../x', '/messages/groups/x', '//evil.example', 'https://evil.example', 'javascript:alert(1)', '/a\\b', '', '/\tx', null, 5, undefined]) {
       expect(routeForPath(path, HOME)).toBeNull();
     }
   });
   it('has nowhere to go "home" without a role', () => {
     expect(routeForPath('/', null)).toBeNull();
+  });
+});
+
+describe('the messaging', () => {
+  const conversationId = '6d7d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+  const schoolId = '3a9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+  it('opens the conversation for every role (NEW_MESSAGE, NEW_MESSAGE_QUIET, MESSAGE_OBSERVER_ADDED, MESSAGE_REPORTED)', () => {
+    for (const home of [HOME, '/(teacher)/classes', '/(student)/home']) {
+      expect(routeForPath(`/messages/${conversationId}`, home, { schoolId })).toBe(`/messages/${conversationId}`);
+    }
+  });
+  it('puts nothing but the conversation id in the route (no text, no school)', () => {
+    expect(routeForPath(`/messages/${conversationId}?text=hi#x`, HOME, { schoolId, body: 'secret' })).toBe(`/messages/${conversationId}`);
+  });
+  it('opens the messages tab of the role', () => {
+    expect(routeForPath('/messages', HOME)).toBe('/(guardian)/messages');
+    expect(routeForPath('/messages', '/(teacher)/classes')).toBe('/(teacher)/messages');
+    expect(routeForPath('/messages', '/(student)/home')).toBe('/(student)/messages');
+  });
+  it('opens the group list for a teacher (GROUP_APPROVAL_REQUESTED), the home of anybody else', () => {
+    expect(routeForPath('/messages/groups', '/(teacher)/classes', { schoolId })).toBe(`/messages/groups?schoolId=${schoolId}`);
+    expect(routeForPath('/messages/groups', '/(teacher)/classes')).toBe('/messages/groups');
+    expect(routeForPath('/messages/groups', HOME)).toBe(HOME);
+  });
+  it('needs a role and a real id', () => {
+    expect(routeForPath(`/messages/${conversationId}`, null)).toBeNull();
+    expect(routeForPath('/messages/not-an-id', HOME)).toBeNull();
   });
 });
 

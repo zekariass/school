@@ -1,3 +1,5 @@
+import { GROUPS_PATH, conversationIdFromPath } from '@/lib/messaging/notifications';
+
 /**
  * Where a notification's `data.path` may take the user. The server sends relative in-app
  * paths ("/", "/notifications", later "/messages/123"); only paths this app knows are
@@ -57,6 +59,8 @@ export function routeForPath(path: unknown, homeRoute: string | null, data?: unk
     // `data.schoolId` (every push that has a school carries it) saves the lookup; without it the screen asks the caller's schools.
     return `/announcements/${announcement[1]}${queryOf([['schoolId', idFrom(data, 'schoolId')]])}`;
   }
+  const messaging = messagingRoute(trimmed, homeRoute, data);
+  if (messaging !== undefined) return messaging;
   const target = KNOWN_ROUTES[trimmed];
   if (!target) return null;
   if (target === 'points') return homeRoute?.startsWith('/(student)/') ? '/(student)/points' : homeRoute;
@@ -79,6 +83,21 @@ function feedRoute(path: string, homeRoute: string | null, data: unknown): strin
   if (story) return `/feed/story/${story[1]}${query([['schoolId', pick('schoolId')]])}`;
   if (!homeRoute.startsWith('/(teacher)/')) return homeRoute;
   return `/feed/approvals${query([['schoolId', pick('schoolId')], ['classId', pick('classId')]])}`;
+}
+
+/**
+ * The messaging (M9): `/messages/{conversationId}` (NEW_MESSAGE, NEW_MESSAGE_QUIET, MESSAGE_OBSERVER_ADDED, MESSAGE_REPORTED,
+ * MESSAGE_SCHEDULE_BLOCKED) opens that conversation: the screen asks the API, which answers 404 to anybody who may not read it,
+ * so no id is trusted here. `/messages/groups` (GROUP_APPROVAL_REQUESTED) is the teachers' group list, with the school when the
+ * push names it; `/messages` is the inbox tab. `undefined` when the path is not a messaging path.
+ */
+function messagingRoute(path: string, homeRoute: string | null, data: unknown): string | null | undefined {
+  if (path !== '/messages' && !path.startsWith('/messages/')) return undefined;
+  if (!homeRoute) return null;
+  if (path === '/messages') return homeRoute.replace(/\/[^/]+$/, '/messages');
+  if (path === GROUPS_PATH) return homeRoute.startsWith('/(teacher)/') ? `/messages/groups${queryOf([['schoolId', idFrom(data, 'schoolId')]])}` : homeRoute;
+  const conversationId = conversationIdFromPath(path);
+  return conversationId ? `/messages/${conversationId}` : null;
 }
 
 /** A uuid under `key` of a notification's data (top level, or inside a raw APNs `body`); null when absent or not a uuid. */

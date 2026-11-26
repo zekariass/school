@@ -10,6 +10,7 @@ import { refreshTokens, sessionEnded } from '@/lib/auth/session-auth';
 import { ME_KEY } from '@/lib/auth/use-me';
 import { unregisterStoredPushDevice } from '@/lib/notifications/device';
 import { endReasonFor } from '@/lib/auth/session-events';
+import { clearMessagingMemory } from '@/lib/messaging/runtime';
 import { clearQueryCache } from '@/lib/query/query-client';
 import { kv, saveQuietly } from '@/lib/storage';
 import { wipeOfflineData } from '@/lib/sync/runtime';
@@ -170,6 +171,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       sessionEnded.subscribe((reason) => {
         if (previewRef.current) return;
         dispatch({ type: 'signedOut', reason });
+        clearMessagingMemory();
         void clearQueryCache();
         void wipeOfflineData();
       }),
@@ -229,6 +231,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // Server-side revocation is best effort and must not hold the UI up.
     if (refreshToken) void logout(refreshToken);
     // The outbox and the offline cache hold children's ids and marks: nothing of them outlives the session.
+    // Unsent messages and everything of the messaging are memory only: they go first and synchronously.
+    clearMessagingMemory();
     await Promise.allSettled([clearTokens(), clearQueryCache(), wipeOfflineData()]);
   }, [invalidateRestore]);
 

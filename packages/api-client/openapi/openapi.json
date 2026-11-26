@@ -2545,7 +2545,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/UnreadCount"
+                  "$ref" : "#/components/schemas/MessagingUnreadCount"
                 }
               }
             },
@@ -21989,6 +21989,10 @@
           "canStartStudentDirect" : {
             "type" : "boolean"
           },
+          "canStartTeacherStudent" : {
+            "type" : "boolean",
+            "description" : "A teacher may start a DIRECT conversation with a student of their class (messaging.student.teacher_direct.enabled); the student's guardians then become read-only observers"
+          },
           "creatableGroups" : {
             "type" : "array",
             "items" : {
@@ -22013,11 +22017,25 @@
           "studentMediaEnabled" : {
             "type" : "boolean"
           },
+          "timeZone" : {
+            "type" : "string",
+            "description" : "The school's time zone (IANA id): scheduled messages are picked and shown in it, never in the device's"
+          },
           "translationEnabled" : {
             "type" : "boolean"
           }
         },
-        "required" : [ "canModerate", "canProposeStudentGroup", "canReview", "canStartParentTeacher", "canStartStudentDirect", "creatableGroups", "editWindowMinutes", "featureEnabled", "maxMessageLength", "studentMediaEnabled", "translationEnabled" ]
+        "required" : [ "canModerate", "canProposeStudentGroup", "canReview", "canStartParentTeacher", "canStartStudentDirect", "canStartTeacherStudent", "creatableGroups", "editWindowMinutes", "featureEnabled", "maxMessageLength", "studentMediaEnabled", "timeZone", "translationEnabled" ]
+      },
+      "MessagingUnreadCount" : {
+        "type" : "object",
+        "properties" : {
+          "unread" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "unread" ]
       },
       "MetaResponse" : {
         "type" : "object",

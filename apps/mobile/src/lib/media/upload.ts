@@ -97,8 +97,8 @@ export class UploadError extends Error {
 
 export interface UploadParams {
   purpose: MediaPurpose;
-  /** What the media belongs to (POST and STORY photos: the class or the school they are for). */
-  context?: { type: 'CLASS' | 'SCHOOL'; id: string };
+  /** What the media belongs to (POST and STORY photos: the class or the school they are for; MESSAGE photos: the conversation). */
+  context?: { type: 'CLASS' | 'SCHOOL' | 'CONVERSATION'; id: string };
   image: PreparedImage;
   onStage?: (stage: UploadStage) => void;
   onProgress?: (bytesSent: number, totalBytes: number) => void;

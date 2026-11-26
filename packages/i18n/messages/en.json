@@ -1415,6 +1415,309 @@
       "preferences": {
         "urgentLock": "Urgent and safety announcements always reach this phone, even if you turn this off or during quiet hours."
       }
+    },
+    "messaging": {
+      "a11y": {
+        "newMessage": "New message from {name}"
+      },
+      "block": {
+        "action": "Block this person",
+        "title": "Block this person?",
+        "body": "You will not see their messages in groups, and they cannot write to you directly. They are not told that you blocked them. You can undo this under Blocked people.",
+        "bodyStudent": "You will not see their messages in groups, and they cannot write to you directly. They are not told. The school's safeguarding team can see blocks made by students. You can undo this under Blocked people.",
+        "confirm": "Block",
+        "doneTitle": "Blocked",
+        "doneBody": "You will not see their messages any more."
+      },
+      "blocked": {
+        "title": "Blocked people",
+        "intro": "People you blocked in a conversation. They are not told. Removing a block lets the conversation work again.",
+        "emptyTitle": "Nobody is blocked",
+        "emptyBody": "If you block someone from a message, they will appear here.",
+        "loadFailedTitle": "Could not load blocked people",
+        "loadFailedBody": "Check your connection and pull down to try again.",
+        "remove": "Remove block",
+        "removeTitle": "Remove this block?",
+        "removeBody": "You will see their messages again and they can write to you if the school allows it."
+      },
+      "composer": {
+        "placeholder": "Write a message",
+        "send": "Send",
+        "schedule": "Send later",
+        "addPhoto": "Add a photo",
+        "camera": "Take a photo",
+        "library": "Choose a photo",
+        "photoPrivacy": "Photos are made smaller on your phone and location details are removed before they are sent. Only people in this conversation can see them.",
+        "removePhoto": "Remove photo",
+        "photoFailed": "The photo was not uploaded",
+        "photoRetry": "Not uploaded. Tap to retry.",
+        "tooManyPhotos": "A message can have up to {max} photos.",
+        "replyingTo": "Replying to {name}",
+        "cancelReply": "Cancel reply",
+        "count": "{count} of {max} characters"
+      },
+      "conversation": {
+        "title": "Conversation",
+        "notFoundTitle": "This conversation is not available",
+        "notFoundBody": "It may have been closed, or you may no longer have access to it.",
+        "loadFailedTitle": "Could not load the conversation",
+        "loadFailedBody": "Check your connection and try again.",
+        "olderFailed": "Could not load earlier messages. Tap to retry.",
+        "empty": "No messages yet.",
+        "emptyWrite": "No messages yet. Say hello!",
+        "observerBanner": "A child's conversation with an adult. You can read it so that the child is safe, but you cannot write or react.",
+        "readOnlyObserver": "You are observing this conversation. You can read it but not write in it.",
+        "closedBanner": "This conversation is closed. You can read it but not write in it.",
+        "pendingBanner": "This group is waiting for a teacher's approval.",
+        "pendingShort": "Waiting for approval",
+        "restrictedBanner": "Only teachers can write in this conversation.",
+        "guardiansCanSee": "Your parent or guardian can see this conversation.",
+        "teacherStudentTitle": "A conversation with a student",
+        "teacherStudentBody": "The student's guardians can read it, and so can the school's safeguarding team if needed. Keep messages about school.",
+        "afterHours": "Sent. The teacher is outside office hours, so they will see it later without a notification."
+      },
+      "edit": {
+        "title": "Edit message",
+        "label": "Message"
+      },
+      "errors": {
+        "generic": "Something went wrong. Please try again."
+      },
+      "groupKind": {
+        "classStudents": "Class chat",
+        "classParents": "Class parents",
+        "staff": "Staff group",
+        "studentGroup": "Student group",
+        "schoolStaff": "School staff",
+        "group": "Group"
+      },
+      "groupKindHint": {
+        "classStudents": "The students of a class and its teachers. The members follow the class list.",
+        "classParents": "The parents of a class and its teachers. The members follow the class list.",
+        "staff": "A group of colleagues. This kind is created on the web.",
+        "studentGroup": "A small group of students from one class, with you as the teacher. It needs at least 2 students.",
+        "schoolStaff": "An announcement-style group for school staff. This kind is created on the web."
+      },
+      "groupStatus": {
+        "active": "Open",
+        "pending": "Waiting for approval",
+        "locked": "Locked",
+        "archived": "Archived",
+        "rejected": "Rejected"
+      },
+      "groups": {
+        "title": "Groups",
+        "filter": "Show",
+        "all": "All groups",
+        "waiting": "Waiting for approval",
+        "members": "Members: {count}",
+        "approve": "Approve",
+        "reject": "Reject",
+        "proposedByMe": "You proposed this group. A teacher will decide.",
+        "emptyTitle": "No groups here",
+        "emptyBody": "Groups you create, moderate or need to approve appear here.",
+        "loadFailedTitle": "Could not load groups",
+        "loadFailedBody": "Check your connection and try again."
+      },
+      "inbox": {
+        "new": "New message",
+        "more": "More",
+        "childFilter": "Show messages about",
+        "allChildren": "All children",
+        "aboutChild": "About {child}",
+        "notAboutChild": "Other conversations",
+        "observing": "You are observing",
+        "observingTitle": "{child}'s conversation",
+        "observingTitleNoChild": "A conversation you observe",
+        "muted": "Muted",
+        "unread": "{count} unread",
+        "previewNone": "No messages yet",
+        "previewPhoto": "Photo",
+        "previewRemoved": "Message removed",
+        "emptyTitle": "No messages yet",
+        "emptyGuardianBody": "Start a conversation with one of your child's teachers. Conversations about your child appear here.",
+        "emptyTeacherBody": "Start a conversation with a student's family, or create a class group. Your conversations appear here.",
+        "emptyStudentTitle": "No messages yet",
+        "emptyStudentBody": "Your teacher starts your class chat. When they do, you can read and answer here.",
+        "loadFailedTitle": "Could not load your messages",
+        "loadFailedBody": "Check your connection and pull down to try again.",
+        "nextPageFailed": "Could not load more conversations."
+      },
+      "label": {
+        "you": "You",
+        "guardianOf": "{child}'s {relation}",
+        "yourRelation": "Your {relation}",
+        "parent": "Parent",
+        "yourGuardian": "Your guardian",
+        "member": "Member"
+      },
+      "message": {
+        "system": "Update from the school",
+        "deleted": "This message was deleted",
+        "hidden": "A moderator hid this message",
+        "edited": "edited",
+        "seen": "Seen",
+        "photos": "Photos: {count}",
+        "photoLabel": "Photo {n} of {total}",
+        "reactionLabel": "Reaction {emoji}, {count}",
+        "replyTo": "Reply to {name}",
+        "replyEarlier": "An earlier message",
+        "replyEarlierAuthor": "an earlier message",
+        "optionsHint": "Opens the options for this message",
+        "optionsTitle": "Message options",
+        "react": "React",
+        "reply": "Reply",
+        "editLeft": "Edit ({minutes} min left)",
+        "deleteTitle": "Delete this message?",
+        "deleteBody": "It is replaced by a note that the message was deleted."
+      },
+      "moderation": {
+        "hide": "Hide message",
+        "hideTitle": "Hide this message",
+        "hideBody": "Members will see that a moderator hid it, not what it said. The reason is kept for the school.",
+        "unhide": "Show message again",
+        "reasonLabel": "Reason"
+      },
+      "mute": {
+        "action": "Mute notifications",
+        "unmute": "Unmute",
+        "hint": "You still receive the messages. You only stop getting notifications.",
+        "hour": "For 1 hour",
+        "eightHours": "For 8 hours",
+        "week": "For 1 week",
+        "until": "Muted until {when}"
+      },
+      "newGroup": {
+        "title": "New group",
+        "kind": "Kind of group",
+        "notAllowed": "You cannot create groups from your phone in this school.",
+        "titleLabel": "Group name",
+        "titleOptional": "Group name (optional)",
+        "pickStudents": "Choose the students",
+        "studentsNeeded": "Chosen: {chosen}. At least {min} students are needed.",
+        "studentGroupNotice": "You will be the teacher of this group. Conversations with students follow the school's safeguarding rules.",
+        "create": "Create group"
+      },
+      "pending": {
+        "sending": "Sending…",
+        "retrying": "Not sent: tap to retry. Trying again by itself while the app is open.",
+        "failed": "Not sent: tap to retry.",
+        "retry": "Try again",
+        "retryA11y": "Not sent. Try sending again",
+        "discard": "Delete",
+        "discardA11y": "Delete this unsent message"
+      },
+      "people": {
+        "title": "People",
+        "open": "People in this conversation",
+        "members": "In this conversation",
+        "observers": "Guardians who can read this conversation: {count}",
+        "yourSettings": "For you",
+        "remove": "Remove",
+        "removeTitle": "Remove from the conversation",
+        "removeBody": "Tell the school why. The reason is kept in the record.",
+        "leave": "Leave conversation",
+        "leaveTitle": "Leave this conversation?",
+        "leaveBody": "You will not get its messages any more.",
+        "manage": "Manage this group",
+        "manageHint": "Class conversations follow the class list: students and parents are added and removed by themselves.",
+        "moderatorsOnly": "Only teachers can write",
+        "allowEveryone": "Let everyone write",
+        "lock": "Lock conversation",
+        "archive": "Archive conversation",
+        "reopen": "Open conversation again",
+        "role": {
+          "owner": "Owner",
+          "moderator": "Moderator",
+          "member": "Member",
+          "observer": "Observer"
+        },
+        "actingAs": {
+          "teacher": "Teacher",
+          "guardian": "Parent",
+          "student": "Student",
+          "staff": "Staff"
+        }
+      },
+      "relationship": {
+        "mother": "mother",
+        "father": "father",
+        "grandparent": "grandparent",
+        "sibling": "brother or sister",
+        "auntUncle": "aunt or uncle",
+        "legalGuardian": "legal guardian",
+        "other": "family member"
+      },
+      "report": {
+        "action": "Report",
+        "title": "Report this message",
+        "body": "Tell us what is wrong. Only the people at school who keep children safe see reports.",
+        "noteLabel": "Anything else we should know (optional)",
+        "send": "Send report",
+        "thanksTitle": "Thank you",
+        "thanksBody": "Your report was sent to the school.",
+        "reason": {
+          "inappropriate": "Not appropriate",
+          "bullying": "Bullying or unkindness",
+          "privacy": "Shares private information",
+          "safety": "Someone may be in danger",
+          "spam": "Unwanted message",
+          "other": "Something else"
+        }
+      },
+      "scheduled": {
+        "title": "Scheduled messages",
+        "intro": "Messages waiting to be sent. Times are in the school's time zone. When the time comes the school checks again that you may write.",
+        "emptyTitle": "Nothing scheduled",
+        "emptyBody": "Use the clock button next to Send to schedule a message.",
+        "loadFailedTitle": "Could not load scheduled messages",
+        "loadFailedBody": "Check your connection and pull down to try again.",
+        "willSend": "Will be sent {when}",
+        "open": "Open conversation",
+        "cancelAction": "Cancel sending",
+        "cancelTitle": "Cancel this scheduled message?",
+        "cancelBody": "It will not be sent.",
+        "cancelConfirm": "Cancel sending",
+        "pickTitle": "Send later",
+        "pickBody": "Choose when the message is sent. The time is in the school's time zone, not your phone's.",
+        "confirm": "Schedule message",
+        "done": "Scheduled for {when}.",
+        "failed": "Could not schedule the message. Please try again."
+      },
+      "start": {
+        "title": "New message",
+        "guardianIntro": "Choose one of your child's teachers. The conversation is about your child.",
+        "teacherIntro": "Choose a class and a student, then who you want to write to.",
+        "pickChild": "Which child is it about?",
+        "pickSchool": "School",
+        "pickClass": "Class",
+        "pickStudent": "Choose a student",
+        "changeStudent": "Choose another student",
+        "whoAbout": "About {child}",
+        "teachersOf": "{child}'s teachers",
+        "guardiansOf": "Write to a guardian of {child}",
+        "studentThread": "Write to the student",
+        "messageStudent": "Message {child}",
+        "existing": "Conversation exists",
+        "noTeachers": "There is no teacher you can write to about this child right now.",
+        "noGuardians": "There is no guardian you can write to about this student right now.",
+        "notAvailable": "You cannot start a new message here right now.",
+        "refused": "You can't message this person.",
+        "noChildTitle": "No child linked yet",
+        "noChildBody": "When a school confirms that you are a child's parent or guardian, you can write to their teachers here.",
+        "noClassTitle": "No classes yet",
+        "noClassBody": "You can start conversations once you teach a class.",
+        "studentTitle": "Messages start with your teacher",
+        "studentBody": "Your teacher starts your class chat. You can answer in the conversations you are in.",
+        "loadFailedTitle": "Could not load",
+        "loadFailedBody": "Check your connection and try again."
+      },
+      "unsent": {
+        "title": "Messages not sent yet",
+        "body": "Some messages have not been sent. They keep trying while the app is open. If you close the app they are lost.",
+        "stay": "Stay",
+        "leave": "Leave anyway"
+      }
     }
   },
   "schoolPicker": {
