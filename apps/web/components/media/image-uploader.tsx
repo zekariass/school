@@ -13,7 +13,7 @@ import { IDLE, isBusy, uploadReducer, type UploadFailure } from "@/lib/media/upl
 interface ImageUploaderProps {
   purpose: MediaPurpose;
   /** What the media belongs to; omit for avatars. */
-  context?: { type: "USER" | "SCHOOL" | "ORGANIZATION"; id: string };
+  context?: { type: "USER" | "SCHOOL" | "ORGANIZATION" | "CLASS"; id: string };
   hasImage: boolean;
   /** Called with the READY media; attach it to its owner (set the avatar, the logo, ...) and resolve when done. */
   onUploaded: (mediaId: string) => Promise<void>;

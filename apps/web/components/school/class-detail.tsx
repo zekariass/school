@@ -15,6 +15,7 @@ import { classAbilities, toClassCard } from "@/lib/school/class-view";
 import { fetchClass, sk } from "@/lib/school/queries";
 import { ClassAbsencesTab } from "@/components/attendance/class-absences-tab";
 import { ClassAttendanceTab } from "@/components/attendance/class-attendance-tab";
+import { ClassFeedTab } from "@/components/feed/class-feed-tab";
 import { ClassPointsTab } from "@/components/points/class-points-tab";
 import { ClassToolkitTab } from "@/components/points/toolkit/class-toolkit-tab";
 import { ClassCodesTab } from "./class-codes";
@@ -49,6 +50,7 @@ export function ClassDetail({ classId, initialTab, initialDate, initialSlot }: {
   const points = classPointsAbilities(data, permissions);
   const attendance = classAttendanceAbilities(data, permissions);
   const available = new Set<string>([
+    "feed",
     ...(points.canUse ? ["points", "toolkit"] : []),
     ...(attendance.canView ? ["attendance", "absences"] : []),
     "roster",
@@ -113,6 +115,9 @@ export function ClassDetail({ classId, initialTab, initialDate, initialSlot }: {
               {t("tabs.absences")}
             </TabsTrigger>
           ) : null}
+          <TabsTrigger value="feed" className="min-h-10 flex-none px-4" data-testid="tab-feed">
+            {t("tabs.feed")}
+          </TabsTrigger>
           <TabsTrigger value="roster" className="min-h-10 flex-none px-4">
             {t("tabs.roster")}
           </TabsTrigger>
@@ -140,6 +145,9 @@ export function ClassDetail({ classId, initialTab, initialDate, initialSlot }: {
             </TabsTrigger>
           ) : null}
         </TabsList>
+        <TabsContent value="feed" className="pt-4">
+          <ClassFeedTab cls={data} />
+        </TabsContent>
         {points.canUse ? (
           <TabsContent value="points" className="pt-4">
             <ClassPointsTab cls={data} />

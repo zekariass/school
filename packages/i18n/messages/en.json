@@ -94,7 +94,8 @@
     "policies": "Policies",
     "family": "My children",
     "points": "Points & badges",
-    "attendance": "Attendance"
+    "attendance": "Attendance",
+    "feed": "School feed"
   },
   "locale": {
     "label": "Language"
@@ -1900,7 +1901,8 @@
         "points": "Points",
         "toolkit": "Toolkit",
         "attendance": "Attendance",
-        "absences": "Absences"
+        "absences": "Absences",
+        "feed": "Feed"
       }
     },
     "roster": {
@@ -3222,6 +3224,382 @@
           "description": "Parents with notifications on are told when their child gets one of these marks. An empty list turns the notifications off."
         }
       }
+    },
+    "feed": {
+      "gate": {
+        "missingTitle": "Some tagged children do not have photo consent",
+        "confirmTitle": "Please confirm who appears in the photos",
+        "students": "Children without consent",
+        "unnamed": "{count, plural, one {1 child (the name is shown only to the class teachers)} other {# children (names are shown only to the class teachers)}}",
+        "missingAdvice": "Remove the tag from these children, or ask the school to record their media consent. Your text and photos are kept.",
+        "untag": "Remove these tags",
+        "confirmLabel": "I confirm that no student without media consent appears in these photos.",
+        "dialogTitle": "This could not be shared yet",
+        "retry": "Confirm and try again",
+        "retryAgain": "Try again",
+        "confirmFirst": "Tick the box to confirm first.",
+        "failed": "That did not work. Please try again."
+      },
+      "composer": {
+        "noStudents": "There are no students to tag.",
+        "taggedCount": "{count} of {max} tagged",
+        "loading": "Loading",
+        "unavailable": "Posting is not available",
+        "loadFailed": "The posting options could not be loaded.",
+        "editTitle": "Edit post",
+        "newTitle": "New post for the class",
+        "newSchoolTitle": "New school-wide post",
+        "classHelp": "Families of the class and the students can see it once it is published.",
+        "schoolHelp": "Everybody at the school and the families of its students can see it once it is published.",
+        "body": "What would you like to share?",
+        "bodyPlaceholder": "Write a few words",
+        "bodyCount": "{count} of {max} characters",
+        "photos": "Photos",
+        "photoCaption": "Describe photo {number} (for people who cannot see it)",
+        "photoCaptionHint": "For example: Children planting seeds",
+        "moveUp": "Move photo {number} up",
+        "moveDown": "Move photo {number} down",
+        "removePhoto": "Remove photo {number}",
+        "addPhoto": "Add a photo",
+        "photoLimit": "You can add up to {max} photos.",
+        "rosterFailed": "The class list could not be loaded, so children cannot be tagged right now.",
+        "tags": "Who is in the photos? (optional)",
+        "tagsHelp": "Tagged children need media consent, and their families are told about the post.",
+        "confirmLabel": "I confirm that no student without media consent appears in these photos.",
+        "confirmHelp": "No child is tagged, so the school relies on you. This confirmation is recorded.",
+        "kind": "Kind of post",
+        "kinds": {
+          "POST": "Post",
+          "ACTIVITY": "Activity",
+          "ACHIEVEMENT": "Achievement"
+        },
+        "comments": "Allow comments",
+        "commentsHelp": "Families and staff who may comment can answer this post.",
+        "when": "When should it appear?",
+        "timing": {
+          "now": "Publish now",
+          "schedule": "Schedule",
+          "draft": "Save as draft"
+        },
+        "scheduleAt": "Publish at (time in {zone})",
+        "willPublish": "It will be published on {when}.",
+        "scheduleNote": "Consent is checked again when the time comes. If a tagged child no longer has media consent by then, the post goes back to your drafts and you are told.",
+        "draftNote": "Only you can see a draft. Consent is checked when you publish it.",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "submit": {
+          "now": "Publish",
+          "schedule": "Schedule post",
+          "draft": "Save draft"
+        },
+        "saved": "Saved.",
+        "draftSaved": "Draft saved.",
+        "scheduledDone": "Scheduled.",
+        "published": "Published.",
+        "failed": "The post could not be saved.",
+        "scheduleTitle": "Schedule post",
+        "scheduleSubmit": "Schedule"
+      },
+      "problems": {
+        "empty": "Add some text or a photo first.",
+        "tooLong": "The text is too long.",
+        "tooManyPhotos": "There are too many photos.",
+        "tooManyTags": "Too many children are tagged.",
+        "captionTooLong": "A photo description is too long.",
+        "confirmRequired": "Tick the confirmation that no child without media consent appears in the photos, or tag the children who do.",
+        "scheduleInvalid": "Pick a valid date and time.",
+        "schedulePast": "Pick a time that is still ahead.",
+        "scheduleTooFar": "You can schedule at most 90 days ahead.",
+        "storyEmpty": "Add a photo or a few words first.",
+        "reasonRequired": "Please give a reason."
+      },
+      "media": {
+        "alt": "Photo {number} of {total}",
+        "photos": "{count, plural, one {1 photo} other {# photos}}",
+        "open": "Open photo {number} of {total}",
+        "viewer": "Photo {number} of {total}",
+        "viewerHelp": "Use the arrow keys to move between photos and Escape to close.",
+        "previous": "Previous photo",
+        "next": "Next photo",
+        "position": "{number} of {total}",
+        "withheld": "The photos are not shown right now because a tagged child does not have media consent. The text is still here."
+      },
+      "comments": {
+        "title": "Comments",
+        "loadFailed": "The comments could not be loaded.",
+        "none": "No comments yet.",
+        "off": "Comments are off for this post.",
+        "label": "Write a comment",
+        "send": "Send",
+        "sendFailed": "The comment could not be sent.",
+        "hidden": "Hidden",
+        "machineTranslated": "Machine translated",
+        "translate": "See translation",
+        "hide": "Hide",
+        "unhide": "Show again",
+        "delete": "Delete",
+        "actionFailed": "That did not work. Please try again.",
+        "translateFailed": "The translation is not available."
+      },
+      "roles": {
+        "TEACHER": "A teacher",
+        "SCHOOL_ADMIN": "The school",
+        "GUARDIAN": "A family member",
+        "STUDENT": "A student"
+      },
+      "post": {
+        "articleLabel": "Post",
+        "roleOn": {
+          "TEACHER": "Teacher",
+          "SCHOOL_ADMIN": "School",
+          "GUARDIAN": "Family",
+          "STUDENT": "Student"
+        },
+        "edited": "edited",
+        "menu": "Post actions",
+        "edit": "Edit",
+        "publish": "Publish now",
+        "publishedDone": "Published.",
+        "reschedule": "Change the time",
+        "schedule": "Schedule",
+        "unschedule": "Cancel the schedule",
+        "unscheduledDone": "The post is a draft again.",
+        "pin": "Pin to the top",
+        "unpin": "Unpin",
+        "archive": "Take down",
+        "archivedDone": "The post was taken down. You can publish it again.",
+        "hide": "Hide",
+        "hiddenDone": "The post is hidden.",
+        "unhide": "Show again",
+        "unhiddenDone": "The post is visible again.",
+        "report": "Report",
+        "delete": "Delete",
+        "deletedDone": "The post was deleted.",
+        "deleteTitle": "Delete this post?",
+        "deleteBody": "The post and its photos are removed for everybody. This cannot be undone.",
+        "withheldWarning": "Families cannot see these photos right now because a tagged child does not have media consent. You can still see them.",
+        "with": "With:",
+        "comments": "{count, plural, one {1 comment} other {# comments}}",
+        "seen": "{count, plural, one {Seen by 1 person} other {Seen by # people}}",
+        "reactionsTotal": "{count, plural, one {1 reaction} other {# reactions}}",
+        "actionFailed": "That did not work. Please try again.",
+        "reactFailed": "The reaction could not be saved.",
+        "translate": "See translation",
+        "showOriginal": "Show the original",
+        "machineTranslated": "Machine translated",
+        "translateUnavailable": "Translation is not available right now.",
+        "hideTitle": "Hide this post",
+        "hideBody": "Nobody but the author and the moderators will see it. The author is told why.",
+        "hideReason": "Reason (optional)",
+        "reportTitle": "Report this post",
+        "reportBody": "Tell the school what is wrong. Your report is private.",
+        "reported": "Thank you. The school was told.",
+        "reportReasons": {
+          "INAPPROPRIATE": "Not appropriate",
+          "PRIVACY": "A privacy concern",
+          "SPAM": "Spam",
+          "OTHER": "Something else"
+        }
+      },
+      "status": {
+        "pinned": "Pinned",
+        "contribution": "From a family",
+        "DRAFT": "Draft",
+        "PENDING_APPROVAL": "Waiting for approval",
+        "SCHEDULED": "Scheduled",
+        "PUBLISHED": "Published",
+        "REJECTED": "Not approved",
+        "HIDDEN": "Hidden",
+        "ARCHIVED": "Taken down"
+      },
+      "notes": {
+        "scheduledFor": "Will be published on {when} ({zone}).",
+        "scheduledWarning": "Consent is checked again then: if it is missing, the post returns to your drafts.",
+        "blocked": "This post was not published because a tagged child no longer has media consent. It is back in your drafts: remove the tag or ask the school to record consent, then publish it again.",
+        "waiting": "A teacher will check this before it is shared.",
+        "rejected": "Not approved:",
+        "hiddenWhy": "Hidden:"
+      },
+      "reactions": {
+        "label": "Reactions",
+        "names": {
+          "LIKE": "Like",
+          "HEART": "Love",
+          "CLAP": "Applause",
+          "STAR": "Star"
+        }
+      },
+      "list": {
+        "loadFailed": "The posts could not be loaded.",
+        "shown": "{count, plural, one {Showing 1 post} other {Showing # posts}}"
+      },
+      "stories": {
+        "title": "Stories",
+        "add": "Add story",
+        "open": "Story by {name}, {state}",
+        "seenState": "seen",
+        "newState": "new",
+        "viewer": "Story viewer",
+        "progress": "Story {number} of {total}",
+        "expired": "This story has ended",
+        "expiresIn": "Ends in {hours} h {minutes} min",
+        "play": "Play",
+        "pause": "Pause",
+        "delete": "Delete story",
+        "close": "Close",
+        "photoAlt": "Story photo",
+        "previous": "Previous",
+        "next": "Next",
+        "done": "Done",
+        "with": "With {names}",
+        "seen": "{count, plural, one {Seen by 1 person} other {Seen by # people}}",
+        "deleted": "The story was deleted.",
+        "deleteFailed": "The story could not be deleted.",
+        "deleteTitle": "Delete this story?",
+        "deleteBody": "The story and its photo are removed for everybody."
+      },
+      "storyComposer": {
+        "title": "New story",
+        "help": "A story is visible for 24 hours.",
+        "share": "Share story",
+        "caption": "A few words (optional)",
+        "captionCount": "{count} of {max} characters",
+        "photo": "Photo (optional)",
+        "photoPreview": "The photo you chose",
+        "addPhoto": "Add a photo",
+        "changePhoto": "Change photo",
+        "removePhoto": "Remove photo",
+        "rosterFailed": "The class list could not be loaded, so children cannot be tagged right now.",
+        "tags": "Who is in the photo? (optional)",
+        "tagsHelp": "Tagged children need media consent.",
+        "confirmLabel": "I confirm that no student without media consent appears in this photo.",
+        "shared": "Your story is live.",
+        "failed": "The story could not be shared."
+      },
+      "mine": {
+        "filter": "My posts by status",
+        "tabs": {
+          "DRAFT": "Drafts",
+          "SCHEDULED": "Scheduled",
+          "PENDING_APPROVAL": "Waiting",
+          "REJECTED": "Not approved",
+          "PUBLISHED": "Published",
+          "ARCHIVED": "Taken down"
+        },
+        "empty": {
+          "DRAFT": "You have no drafts.",
+          "SCHEDULED": "Nothing is scheduled.",
+          "PENDING_APPROVAL": "Nothing is waiting for approval.",
+          "REJECTED": "Nothing was turned down.",
+          "PUBLISHED": "You have not published anything yet.",
+          "ARCHIVED": "Nothing was taken down."
+        }
+      },
+      "classTab": {
+        "disabled": "The feed is switched off for this school.",
+        "loadFailed": "The feed could not be loaded.",
+        "view": "Show",
+        "feed": "Class feed",
+        "mine": "My posts",
+        "approvals": "Approvals",
+        "newPost": "New post",
+        "emptyPost": "Nothing has been shared yet. Share the first photo or news of the class.",
+        "empty": "Nothing has been shared with this class yet."
+      },
+      "schoolPage": {
+        "title": "School feed",
+        "subtitle": "News and stories for the whole school.",
+        "disabled": "The feed is switched off for this school.",
+        "loadFailed": "The feed could not be loaded.",
+        "approvals": "Approvals",
+        "newPost": "New school post",
+        "view": "Show",
+        "feed": "School feed",
+        "mine": "My posts",
+        "emptyPost": "Nothing has been shared with the whole school yet.",
+        "empty": "Nothing has been shared with the whole school yet."
+      },
+      "approvals": {
+        "notForYou": "Only the lead teacher of a class and school administrators approve contributions.",
+        "back": "Back to the school feed",
+        "title": "Contributions to approve",
+        "subtitle": "Photos and notes families and students want to share. Nothing is shown until you approve it.",
+        "loadFailed": "The list could not be loaded.",
+        "empty": "Nothing is waiting for approval.",
+        "tagged": "Tagged:",
+        "approve": "Approve",
+        "reject": "Decline",
+        "textOnly": "Text only: no photo consent is needed.",
+        "consentMissing": "A tagged child does not have media consent right now, so the photos cannot be shared until consent is recorded or the tag is removed.",
+        "noTags": "No child is tagged. When you approve you confirm that no child without media consent appears in the photos.",
+        "consentOk": "All tagged children have media consent.",
+        "approveTitle": "Approve this contribution",
+        "approveBody": "It will be shared with the class. You can change who is tagged first.",
+        "tags": "Who is in the photos?",
+        "tagsHelp": "Tagged children need media consent.",
+        "confirmLabel": "I confirm that no student without media consent appears in these photos.",
+        "approved": "Approved and shared.",
+        "actionFailed": "That did not work. Please try again.",
+        "rejectTitle": "Decline this contribution",
+        "rejectBody": "The photos are deleted. The contributor sees your reason.",
+        "reason": "Reason",
+        "reasonHelp": "Be kind and clear: families see this.",
+        "rejected": "Declined."
+      },
+      "linked": {
+        "home": "Home",
+        "postGone": "This post is not available.",
+        "storyGone": "This story is not available any more.",
+        "postTitle": "Post",
+        "storyTitle": "Story"
+      },
+      "settings": {
+        "module": "Feed and stories",
+        "parentContributions": {
+          "title": "Families can share photos",
+          "description": "Guardians who may message staff can send photos and notes of their own child to the class feed."
+        },
+        "parentApproval": {
+          "title": "A teacher approves family contributions",
+          "description": "When on, nothing from a family is shown before the lead teacher approves it. When off, a photo must tag the contributor's own consented child."
+        },
+        "parentMedia": {
+          "title": "What families may share",
+          "description": "The kinds of media families may contribute. Only photos (IMAGE) are supported for now."
+        },
+        "studentContributions": {
+          "title": "Students can share",
+          "description": "Students who sign in with a class code can send text and photos to their own class feed. A teacher always approves first."
+        },
+        "commentsDefault": {
+          "title": "Comments start switched on",
+          "description": "New posts allow comments unless the author switches them off."
+        },
+        "guardiansComment": {
+          "title": "Guardians can comment",
+          "description": "Guardians who may message staff can comment on posts they can see."
+        },
+        "studentsComment": {
+          "title": "Students can comment",
+          "description": "Off by default, so children do not comment on each other's posts."
+        },
+        "pinLimit": {
+          "title": "Pinned posts per class",
+          "description": "How many posts can stay at the top of a class feed (and of the school feed). 0 turns pinning off."
+        },
+        "assistantsPost": {
+          "title": "Assistant teachers can post",
+          "description": "Lets assistant teachers post to the classes they assist. Lead, co and subject teachers always can."
+        },
+        "notifyMembers": {
+          "title": "Tell the whole class about new posts",
+          "description": "Off: only the families of tagged children are notified. On: the class's students and their families too."
+        },
+        "translation": {
+          "title": "Offer \"See translation\"",
+          "description": "Shows machine translation of posts and comments. Only the text, with children's names hidden, is sent to the translation service. Switch it on only when the school has agreed to this."
+        }
+      }
     }
   },
   "family": {
@@ -3391,6 +3769,36 @@
         "tooLong": "A report can cover at most 61 days.",
         "noteTooLong": "The note can have at most 500 characters."
       }
+    },
+    "feed": {
+      "title": "What is new in class",
+      "filter": "Show posts for",
+      "allChildren": "All children",
+      "view": "Show",
+      "feed": "News",
+      "mine": "What I shared",
+      "empty": "Nothing has been shared yet. New photos and news from your child's class will appear here.",
+      "studentTitle": "News from my class",
+      "studentEmpty": "Nothing has been shared yet.",
+      "contribute": {
+        "title": "Share with the class",
+        "needsApproval": "A teacher will look at this before it is shown to the class.",
+        "noApproval": "It will be shown to the class straight away.",
+        "send": "Send",
+        "close": "Close",
+        "class": "Class",
+        "body": "Your message",
+        "whoIsIn": "Which of your children is in the photos?",
+        "whoHelp": "Only your own children can be tagged, and only when they have media consent.",
+        "failed": "It could not be sent. Please try again.",
+        "waitingTitle": "Waiting for the teacher",
+        "waitingBody": "Thank you! The teacher will look at it and tell you. You can follow it under \"What I shared\".",
+        "waitingToast": "Sent. Waiting for the teacher to approve it.",
+        "sharedTitle": "Shared",
+        "sharedBody": "Thank you! It is now shown to the class.",
+        "sharedToast": "Shared with the class."
+      },
+      "contributeButton": "Share a photo or note"
     }
   },
   "invite": {

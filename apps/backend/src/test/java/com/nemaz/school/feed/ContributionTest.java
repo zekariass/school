@@ -42,6 +42,8 @@ class ContributionTest extends FeedTestSupport {
 		// scheduled times are read in the school's zone (never the phone's)
 		assertThat(caps.get("timeZone").asString()).isNotBlank();
 		assertThat(caps.get("canPost").asBoolean()).isFalse();
+		// clients pick scheduled times in the school's zone, never the browser's
+		assertThat(caps.get("timeZone").asString()).isNotBlank();
 		assertThat(get(f.api() + "/feed/capabilities?classId=" + f.classId(), f.lead()).get("canModerate").asBoolean()).isTrue();
 	}
 
