@@ -129,6 +129,8 @@ function RootNavigator() {
           <Stack.Screen name="announcements" />
           {/* Messaging (M9): one conversation, its people, starting a conversation or a group, scheduled messages, blocked people. */}
           <Stack.Screen name="messages" />
+          {/* The calendar (M11): the calendar for roles without a tab, one event (a notification opens it), the create/edit form. */}
+          <Stack.Screen name="events" />
           <Stack.Screen name="notifications" options={{ ...header, title: t('mobile.notifications.title') }} />
           {/* Guardians decide on consent requests. */}
           <Stack.Screen name="consent" options={{ ...header, title: t('consent.title') }} />

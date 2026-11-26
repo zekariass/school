@@ -30,6 +30,10 @@ const FEED_POST = new RegExp(`^/feed/posts/(${UUID})$`);
 const FEED_STORY = new RegExp(`^/feed/stories/(${UUID})$`);
 /** An announcement (ANNOUNCEMENT_PUBLISHED, ACK_REQUESTED, _UPDATED, _REMINDER, _WITHDRAWN, _PUBLISH_BLOCKED): `/announcements/{id}`. */
 const ANNOUNCEMENT = new RegExp(`^/announcements/(${UUID})$`);
+/** An event (EVENT_INVITATION, EVENT_UPDATED, EVENT_CANCELLED, UPCOMING_EVENT): `/calendar/events/{id}`. */
+const CALENDAR_EVENT = new RegExp(`^/calendar/events/(${UUID})$`);
+/** The id a repeating event's occurrence has (the UTC instant it has in the series). */
+const OCCURRENCE_ID = /^\d{8}T\d{6}Z$/;
 
 /**
  * The route to open for `path`, or null to stay put. `homeRoute` is the active role's home tab. `data` is the
@@ -61,6 +65,13 @@ export function routeForPath(path: unknown, homeRoute: string | null, data?: unk
   }
   const messaging = messagingRoute(trimmed, homeRoute, data);
   if (messaging !== undefined) return messaging;
+  const event = CALENDAR_EVENT.exec(trimmed);
+  if (event) {
+    if (!homeRoute) return null;
+    // The occurrence a reminder is about, and the school, when the push names them (a bad value is left out, never followed).
+    const occurrence = firstString(data, 'occurrenceId');
+    return `/events/${event[1]}${queryOf([['schoolId', idFrom(data, 'schoolId')], ['occurrenceId', occurrence && OCCURRENCE_ID.test(occurrence) ? occurrence : null]])}`;
+  }
   const target = KNOWN_ROUTES[trimmed];
   if (!target) return null;
   if (target === 'points') return homeRoute?.startsWith('/(student)/') ? '/(student)/points' : homeRoute;
@@ -106,6 +117,14 @@ function idFrom(data: unknown, key: string): string | null {
   const nested = asRecord(record?.body);
   const value = record?.[key] ?? nested?.[key];
   return typeof value === 'string' && UUID_ONLY.test(value) ? value : null;
+}
+
+/** A string under `key` of a notification's data (top level, or inside a raw APNs `body`). */
+function firstString(data: unknown, key: string): string | null {
+  const record = asRecord(data);
+  const nested = asRecord(record?.body);
+  const value = record?.[key] ?? nested?.[key];
+  return typeof value === 'string' ? value : null;
 }
 
 function queryOf(entries: [string, string | null][]): string {
