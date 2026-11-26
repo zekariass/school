@@ -1858,6 +1858,7 @@ class AuthorizationMatrixTest {
 		UUID lead = msgMember(f, this.msgThread, TEACHER_LEAD_A, "MEMBER", "TEACHER", null);
 		msgMemberOf(f, this.msgThread, alone, "MEMBER", "STUDENT", null);
 		this.msgMessage = msgMessageRow(f, this.msgThread, lead, userOf(TEACHER_LEAD_A), "matrix reviewed message", "SENT");
+		this.personas.ensureSafeguardingLead(f.schoolA());
 		this.messagingSettings.set("messaging.student.teacher_direct.enabled", com.nemaz.school.tenancy.SettingScope.school(f.schoolA()),
 				this.json.valueToTree(true), userOf(PLATFORM_ADMIN));
 		return suffix;
@@ -1889,7 +1890,8 @@ class AuthorizationMatrixTest {
 				new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A }, minus(sees, TEACHER_LEAD_A, TEACHER_SUBJECT_A)));
 		cases.add(school("POST start teacher-student conversation", HttpMethod.POST, (f) -> {
 			resetMessaging(f);
-			this.messagingSettings.set("messaging.student.teacher_direct.enabled", com.nemaz.school.tenancy.SettingScope.school(f.schoolA()),
+			this.personas.ensureSafeguardingLead(f.schoolA());
+		this.messagingSettings.set("messaging.student.teacher_direct.enabled", com.nemaz.school.tenancy.SettingScope.school(f.schoolA()),
 					this.json.valueToTree(true), userOf(PLATFORM_ADMIN));
 			return SCHOOLS + f.schoolA() + m + "/conversations/direct";
 		}, (f) -> Map.of("recipientUserId", userOf(STUDENT_A1)), 201, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A },
@@ -2006,6 +2008,215 @@ class AuthorizationMatrixTest {
 		msgMember(f, this.msgThread, STUDENT_A1, "MEMBER", "STUDENT", null);
 		msgMemberOf(f, this.msgThread, other, "MEMBER", "STUDENT", null);
 		return "/api/v1/conversations/" + this.msgThread + suffix;
+	}
+
+	// ---- moderation, safeguarding and the platform lock (M13a) -------------------------------------------------------
+
+	/**
+	 * The M13 endpoints against every persona of the fixture plus the new roles: a safeguarding lead of school A and of school B,
+	 * a platform moderator, a support agent and a platform safeguarding lead. Personas are keyed by name (the fixture names and
+	 * the extra ones); the suspended user and anonymous callers get 401. Safeguarding endpoints answer 404 as if nothing existed.
+	 */
+	private record M13Case(String name, HttpMethod method, Function<Fixture, String> url, Function<Fixture, Object> body,
+			Map<String, Integer> allowed, int denied) {
+	}
+
+	private static Map<String, Integer> m13(int status, String... keys) {
+		Map<String, Integer> map = new HashMap<>();
+		for (String key : keys) {
+			map.put(key, status);
+		}
+		return map;
+	}
+
+	private static Map<String, Integer> m13(Map<String, Integer> a, Map<String, Integer> b) {
+		Map<String, Integer> map = new HashMap<>(a);
+		map.putAll(b);
+		return map;
+	}
+
+	private static final String[] M13_MODERATORS_A = { "PLATFORM_ADMIN", "COUNTRY_ADMIN_ET", "ORG_ADMIN", "SCHOOL_ADMIN_A", "LEAD_A",
+			"PLATFORM_LEAD" };
+
+	private static final String[] M13_LEADS = { "LEAD_A", "PLATFORM_LEAD" };
+
+	private static final String[] M13_ADMINS = { "PLATFORM_ADMIN", "COUNTRY_ADMIN_ET", "ORG_ADMIN", "SCHOOL_ADMIN_A" };
+
+	/** Members of school A and the roles that see the school (school.read) without the permission: 403 where others get 404. */
+	private static final String[] M13_SEE_SCHOOL_A = { "TEACHER_LEAD_A", "TEACHER_SUBJECT_A", "TEACHER_OTHER_A", "STUDENT_A1",
+			"STUDENT_A2", "STUDENT_FORMER_A", "CAMPUS_ADMIN_A", "SUPPORT_AGENT" };
+
+	private static final String[] M13_SEE_SCHOOL_A_AND_LEADS = { "TEACHER_LEAD_A", "TEACHER_SUBJECT_A", "TEACHER_OTHER_A", "STUDENT_A1",
+			"STUDENT_A2", "STUDENT_FORMER_A", "CAMPUS_ADMIN_A", "SUPPORT_AGENT", "LEAD_A", "PLATFORM_LEAD" };
+
+	private Map<String, Persona> m13Personas(Fixture f) {
+		Map<String, Persona> personas = new java.util.LinkedHashMap<>();
+		for (Name name : Name.values()) {
+			personas.put(name.name(), this.personas.get(name));
+		}
+		personas.put("LEAD_A", this.personas.safeguardingLead(f.schoolA(), "matrix-lead-a"));
+		personas.put("LEAD_B", this.personas.safeguardingLead(f.schoolB(), "matrix-lead-b"));
+		personas.put("PLATFORM_MODERATOR", this.personas.platformModerator("matrix-platform-moderator"));
+		personas.put("SUPPORT_AGENT", this.personas.supportAgent("matrix-support-agent"));
+		personas.put("PLATFORM_LEAD", this.personas.platformLead("matrix-platform-lead"));
+		return personas;
+	}
+
+	private UUID m13Post(Fixture f) {
+		return feedPost(f, f.class8A(), "PUBLISHED", false, TEACHER_LEAD_A, "TEACHER");
+	}
+
+	/** A case of school A about a post of the lead teacher, reported by somebody who is no persona. */
+	private UUID m13Case(Fixture f, String status, String decision) {
+		UUID post = m13Post(f);
+		UUID id = Ids.newId();
+		boolean resolved = !"OPEN".equals(status);
+		this.jdbc.update("""
+				insert into moderation_cases (id, school_id, queue, target_type, target_id, subject_user_id, priority, status, decision,
+				                              resolved_at, report_count, reporter_count)
+				values (?, ?, 'SCHOOL', 'POST', ?, ?, 'NORMAL', ?, ?, ?, 1, 1)""", id, f.schoolA(), post, userOf(TEACHER_LEAD_A), status, decision,
+				resolved ? new java.sql.Timestamp(System.currentTimeMillis()) : null);
+		UUID reporter = this.personas.createUser("m13-reporter", "ACTIVE");
+		this.jdbc.update("""
+				insert into content_reports (id, case_id, reporter_id, reporter_role, school_id, target_type, target_id, reason_code, status)
+				values (?, ?, ?, 'GUARDIAN', ?, 'POST', ?, 'OTHER', ?)""", Ids.newId(), id, reporter, f.schoolA(), post, resolved ? "CLOSED" : "OPEN");
+		if ("HIDE".equals(decision)) {
+			this.jdbc.update("update posts set status = 'HIDDEN', moderation_case_id = ?, moderation_hidden_at = now() where id = ?", id, post);
+			this.jdbc.update("insert into moderation_actions (id, case_id, actor_id, action, notes) values (?, ?, ?, 'HIDE', 'matrix hide')", Ids.newId(), id,
+					userOf(PLATFORM_ADMIN));
+		}
+		return id;
+	}
+
+	private String m13CaseUrl(Fixture f, String suffix) {
+		return "/api/v1/moderation/cases/" + m13Case(f, "OPEN", null) + suffix;
+	}
+
+	private UUID m13Incident(Fixture f) {
+		try {
+			// a fresh teacher each time: raising concerns is rate limited per person
+			Persona raiser = this.personas.personaFor("m13-raiser", this.personas.newTeacher(f.schoolA(), "m13-raiser"));
+			String response = this.mvc.perform(request(HttpMethod.POST, SCHOOLS + f.schoolA() + "/safeguarding/concerns")
+				.with(raiser.bearer())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(this.json.writeValueAsString(Map.of("category", "CONDUCT", "severity", "LOW", "narrative", "A matrix concern raised by a teacher"))))
+				.andReturn()
+				.getResponse()
+				.getContentAsString();
+			return UUID.fromString(this.json.readTree(response).get("id").asString());
+		}
+		catch (Exception ex) {
+			throw new IllegalStateException(ex);
+		}
+	}
+
+	private String m13IncidentUrl(Fixture f, String suffix) {
+		return "/api/v1/safeguarding/incidents/" + m13Incident(f) + suffix;
+	}
+
+	List<M13Case> moderationCases() {
+		List<M13Case> cases = new ArrayList<>();
+		Map<String, Integer> moderators = m13(200, M13_MODERATORS_A);
+		Map<String, Integer> queueSeers = m13(m13(200, M13_MODERATORS_A), m13(403, M13_SEE_SCHOOL_A));
+		Map<String, Integer> adminsWithSchoolRead = m13(m13(200, M13_ADMINS), m13(403, M13_SEE_SCHOOL_A_AND_LEADS));
+		String[] everyActive = java.util.Arrays.stream(Name.values()).map(Enum::name).filter((n) -> !n.equals("SUSPENDED_USER")).toArray(String[]::new);
+
+		// --- reporting: any signed-in person who can SEE the target; the author cannot report their own post
+		cases.add(new M13Case("POST report a post", HttpMethod.POST, (f) -> "/api/v1/moderation/reports",
+				(f) -> Map.of("targetType", "POST", "targetId", m13Post(f), "reasonCode", "SPAM"),
+				m13(m13(201, "PLATFORM_ADMIN", "COUNTRY_ADMIN_ET", "ORG_ADMIN", "SCHOOL_ADMIN_A", "TEACHER_SUBJECT_A", "STUDENT_A1", "GUARDIAN_A1"),
+						m13(409, "TEACHER_LEAD_A")), 404));
+		cases.add(new M13Case("GET emergency information", HttpMethod.GET, (f) -> "/api/v1/safety/emergency-info?country=ET", null,
+				m13(200, everyActive), 200));
+
+		// --- queues and cases
+		cases.add(new M13Case("GET the school's moderation queue", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/moderation/cases", null, queueSeers, 404));
+		cases.add(new M13Case("GET the platform moderation queue", HttpMethod.GET, (f) -> "/api/v1/platform/moderation/cases", null,
+				m13(200, "PLATFORM_ADMIN", "PLATFORM_MODERATOR", "PLATFORM_LEAD"), 403));
+		cases.add(new M13Case("GET a case", HttpMethod.GET, (f) -> m13CaseUrl(f, ""), null, moderators, 404));
+		cases.add(new M13Case("GET the case-bound content", HttpMethod.GET, (f) -> m13CaseUrl(f, "/content"), null, moderators, 404));
+		cases.add(new M13Case("POST assign a case", HttpMethod.POST, (f) -> m13CaseUrl(f, "/assign"), (f) -> Map.of(), moderators, 404));
+		cases.add(new M13Case("POST decide a case", HttpMethod.POST, (f) -> m13CaseUrl(f, "/decision"),
+				(f) -> Map.of("decision", "NO_ACTION", "reason", "Reviewed by the matrix, nothing to do"), moderators, 404));
+		cases.add(new M13Case("POST refer a case up", HttpMethod.POST, (f) -> m13CaseUrl(f, "/refer-up"),
+				(f) -> Map.of("reason", "Handing it up to the platform queue"), moderators, 404));
+		cases.add(new M13Case("POST reopen a case", HttpMethod.POST, (f) -> "/api/v1/moderation/cases/" + m13Case(f, "RESOLVED", "NO_ACTION") + "/reopen",
+				(f) -> Map.of("reason", "New information, opening it again"), moderators, 404));
+		cases.add(new M13Case("POST restore hidden content", HttpMethod.POST, (f) -> "/api/v1/moderation/cases/" + m13Case(f, "RESOLVED", "HIDE") + "/restore",
+				(f) -> Map.of("reason", "Restoring the content as agreed"), moderators, 404));
+		cases.add(new M13Case("POST lift a suspension", HttpMethod.POST, (f) -> "/api/v1/moderation/cases/" + m13Case(f, "RESOLVED", "NO_ACTION") + "/lift-suspension",
+				(f) -> Map.of("reason", "Lifting the suspension of the case"), m13(409, M13_MODERATORS_A), 404));
+		cases.add(new M13Case("PUT case priority (leads only)", HttpMethod.PUT, (f) -> m13CaseUrl(f, "/priority"), (f) -> Map.of("priority", "HIGH"),
+				m13(m13(200, M13_LEADS), m13(403, M13_ADMINS)), 404));
+		cases.add(new M13Case("PUT case legal hold", HttpMethod.PUT, (f) -> m13CaseUrl(f, "/legal-hold"), (f) -> Map.of("held", true),
+				m13(200, "LEAD_A", "PLATFORM_LEAD", "PLATFORM_ADMIN", "PLATFORM_MODERATOR"), 404));
+		cases.add(new M13Case("POST lock an account", HttpMethod.POST, (f) -> "/api/v1/platform/users/" + this.personas.createUser("m13-lock", "ACTIVE") + "/lock",
+				(f) -> Map.of("reason", "Locked by the matrix for ten seconds"), m13(200, "PLATFORM_ADMIN", "PLATFORM_MODERATOR"), 403));
+		cases.add(new M13Case("POST unlock an account", HttpMethod.POST, (f) -> "/api/v1/platform/users/" + this.personas.createUser("m13-unlock", "ACTIVE") + "/unlock",
+				(f) -> Map.of("reason", "Unlocked by the matrix after review"), m13(200, "PLATFORM_ADMIN", "PLATFORM_MODERATOR"), 403));
+
+		// --- leads and the capability the settings screens need
+		cases.add(new M13Case("GET safeguarding capability", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/safeguarding/capability", null, adminsWithSchoolRead, 404));
+		cases.add(new M13Case("GET safeguarding leads", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/safeguarding/leads", null, adminsWithSchoolRead, 404));
+		cases.add(new M13Case("POST designate a safeguarding lead", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/safeguarding/leads",
+				(f) -> Map.of("userId", this.personas.newStaff(f.schoolA(), "m13-new-lead", "SUPPORT_STAFF")),
+				m13(m13(201, M13_ADMINS), m13(403, M13_SEE_SCHOOL_A_AND_LEADS)), 404));
+		cases.add(new M13Case("DELETE a safeguarding lead", HttpMethod.DELETE, (f) -> {
+			this.personas.ensureSafeguardingLead(f.schoolA());
+			UUID extra = this.personas.newStaff(f.schoolA(), "m13-removable-lead", "SUPPORT_STAFF");
+			this.personas.grant(extra, com.nemaz.school.authorization.RoleCodes.SAFEGUARDING_LEAD, AccessScope.school(f.schoolA()));
+			return SCHOOLS + f.schoolA() + "/safeguarding/leads/" + extra;
+		}, null, m13(m13(204, M13_ADMINS), m13(403, M13_SEE_SCHOOL_A_AND_LEADS)), 404));
+
+		// --- incidents: leads only; everybody else, administrators and platform administrators included, gets 404
+		cases.add(new M13Case("POST raise a concern (active staff)", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + "/safeguarding/concerns",
+				(f) -> Map.of("category", "WELLBEING", "severity", "LOW", "narrative", "A matrix concern about a pupil's wellbeing"),
+				m13(201, "TEACHER_LEAD_A", "TEACHER_SUBJECT_A", "TEACHER_OTHER_A", "LEAD_A", "PLATFORM_LEAD"), 404));
+		cases.add(new M13Case("GET the school's incidents", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + "/safeguarding/incidents", null, m13(200, M13_LEADS), 404));
+		cases.add(new M13Case("GET the platform's incidents", HttpMethod.GET, (f) -> "/api/v1/platform/safeguarding/incidents", null, m13(200, "PLATFORM_LEAD"), 404));
+		cases.add(new M13Case("GET an incident's metadata", HttpMethod.GET, (f) -> m13IncidentUrl(f, ""), null, m13(200, M13_LEADS), 404));
+		cases.add(new M13Case("POST open an incident", HttpMethod.POST, (f) -> m13IncidentUrl(f, "/open"), (f) -> Map.of("reason", "TRIAGE"), m13(200, M13_LEADS), 404));
+		cases.add(new M13Case("POST add an incident note", HttpMethod.POST, (f) -> m13IncidentUrl(f, "/notes"), (f) -> Map.of("note", "A matrix note"), m13(201, M13_LEADS), 404));
+		cases.add(new M13Case("POST change an incident's status", HttpMethod.POST, (f) -> m13IncidentUrl(f, "/status"), (f) -> Map.of("status", "INVESTIGATING"),
+				m13(200, M13_LEADS), 404));
+		cases.add(new M13Case("POST assign an incident", HttpMethod.POST, (f) -> m13IncidentUrl(f, "/assign"), (f) -> Map.of("assigneeId", userOf(PLATFORM_ADMIN)),
+				m13(400, M13_LEADS), 404));
+		cases.add(new M13Case("POST record guardians informed", HttpMethod.POST, (f) -> m13IncidentUrl(f, "/guardian-informed"), (f) -> Map.of(), m13(200, M13_LEADS), 404));
+		cases.add(new M13Case("POST record a referral", HttpMethod.POST, (f) -> m13IncidentUrl(f, "/referral"), (f) -> Map.of("referredTo", "The local authority"),
+				m13(200, M13_LEADS), 404));
+		cases.add(new M13Case("PUT incident legal hold", HttpMethod.PUT, (f) -> m13IncidentUrl(f, "/legal-hold"), (f) -> Map.of("held", true), m13(200, M13_LEADS), 404));
+		cases.add(new M13Case("PUT platform incident legal hold", HttpMethod.PUT, (f) -> "/api/v1/platform/safeguarding/incidents/" + m13Incident(f) + "/legal-hold",
+				(f) -> Map.of("held", true), m13(200, "PLATFORM_ADMIN", "PLATFORM_MODERATOR", "PLATFORM_LEAD"), 403));
+		return cases;
+	}
+
+	@TestFactory
+	Stream<DynamicTest> everyModerationAndSafeguardingEndpointAllowsExactlyTheExpectedPersonas() {
+		Fixture fixture = this.personas.fixture();
+		Map<String, Persona> everyone = m13Personas(fixture);
+		return moderationCases().stream().map((c) -> DynamicTest.dynamicTest(c.name(), () -> {
+			List<String> mismatches = new ArrayList<>();
+			for (Map.Entry<String, Persona> entry : everyone.entrySet()) {
+				int expected = "SUSPENDED_USER".equals(entry.getKey()) ? 401 : c.allowed().getOrDefault(entry.getKey(), c.denied());
+				MockHttpServletRequestBuilder builder = request(c.method(), c.url().apply(fixture));
+				if (c.body() != null) {
+					builder = builder.contentType(MediaType.APPLICATION_JSON).content(this.json.writeValueAsString(c.body().apply(fixture)));
+				}
+				int status = this.mvc.perform(builder.with(entry.getValue().bearer())).andReturn().getResponse().getStatus();
+				if (status != expected) {
+					mismatches.add(entry.getKey() + ": expected " + expected + " but was " + status);
+				}
+			}
+			MockHttpServletRequestBuilder anonymous = request(c.method(), c.url().apply(fixture));
+			if (c.body() != null) {
+				anonymous = anonymous.contentType(MediaType.APPLICATION_JSON).content(this.json.writeValueAsString(c.body().apply(fixture)));
+			}
+			int status = this.mvc.perform(anonymous).andReturn().getResponse().getStatus();
+			if (status != 401) {
+				mismatches.add("anonymous: expected 401 but was " + status);
+			}
+			assertThat(mismatches).as(c.name()).isEmpty();
+		}));
 	}
 
 	@TestFactory

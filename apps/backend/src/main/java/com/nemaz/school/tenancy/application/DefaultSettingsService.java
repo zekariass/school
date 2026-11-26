@@ -10,6 +10,7 @@ import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.tenancy.ConfigSource;
 import com.nemaz.school.tenancy.ConfigurationChanged;
 import com.nemaz.school.tenancy.ScopeType;
+import com.nemaz.school.tenancy.SettingChangeGuard;
 import com.nemaz.school.tenancy.SettingScope;
 import com.nemaz.school.tenancy.SettingValue;
 import com.nemaz.school.tenancy.SettingsService;
@@ -22,6 +23,7 @@ import com.nemaz.school.tenancy.infrastructure.SettingRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -46,10 +48,13 @@ class DefaultSettingsService implements SettingsService {
 
 	private final AuditLog audit;
 
+	private final ObjectProvider<SettingChangeGuard> guards;
+
 	DefaultSettingsService(SettingDefinitionRepository definitions, SettingRepository settings,
 			SchoolConfigurationCache cache, SchoolConfigurationLoader loader, ConfigurationScopes scopes,
-			ApplicationEventPublisher events, JsonMapper json, AuditLog audit) {
+			ApplicationEventPublisher events, JsonMapper json, AuditLog audit, ObjectProvider<SettingChangeGuard> guards) {
 		this.audit = audit;
+		this.guards = guards;
 		this.definitions = definitions;
 		this.settings = settings;
 		this.cache = cache;
@@ -139,6 +144,7 @@ class DefaultSettingsService implements SettingsService {
 			throw ApiException.badRequest("setting.invalid_value", errors.getFirst());
 		}
 		this.scopes.chain(scope); // the school / organization / country must exist
+		runGuards(key, scope, definition, resolve(key, scope).value(), checked, actorId);
 
 		Setting existing = find(key, scope).orElse(null);
 		JsonNode before = (existing != null) ? existing.getValue() : null;
@@ -162,15 +168,26 @@ class DefaultSettingsService implements SettingsService {
 	@Override
 	@Transactional
 	public void clear(String key, SettingScope scope, UUID actorId) {
-		definition(key);
-		this.scopes.chain(scope);
+		SettingDefinition definition = definition(key);
+		List<SettingScope> chain = this.scopes.chain(scope);
 		Setting existing = find(key, scope).orElseThrow(() -> ApiException.notFound("config.override_not_found"));
+		JsonNode inherited = (chain.size() > 1)
+				? this.json.readTree(this.loader.loadSetting(definition, chain.get(1)).valueJson())
+				: definition.getDefaultValue();
+		runGuards(key, scope, definition, existing.getValue(), inherited, actorId);
 		this.settings.delete(existing);
 		this.settings.flush();
 		this.events.publishEvent(ConfigurationChanged.of(scope, ConfigurationChanged.SETTING, key));
 		this.audit.record(ConfigurationAudit.entry("setting.clear", scope)
 			.metadata("key", key)
 			.changes(existing.getValue(), null));
+	}
+
+	/** The registered {@link SettingChangeGuard}s may refuse the change (they throw an ApiException). */
+	private void runGuards(String key, SettingScope scope, SettingDefinition definition, JsonNode before, JsonNode after,
+			UUID actorId) {
+		SettingChangeGuard.Change change = new SettingChangeGuard.Change(key, scope, before, after, actorId);
+		this.guards.orderedStream().forEach((guard) -> guard.check(change));
 	}
 
 	private Optional<Setting> find(String key, SettingScope scope) {

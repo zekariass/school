@@ -575,6 +575,10 @@ public class PostService {
 		if (row.status() != PostStatus.HIDDEN) {
 			throw ApiException.conflict("feed.invalid_state");
 		}
+		if (this.jdbc.sql("select moderation_hidden_at is not null from posts where id = :id").param("id", postId).query(Boolean.class).single()) {
+			// hidden by a moderation case: only the case can restore it
+			throw ApiException.conflict("moderation.content_held");
+		}
 		publishRow(user, row, confirm);
 		this.audit.record(AuditEntry.of("feed.post.unhide", AuditOutcome.SUCCESS).target("post", postId).school(schoolId));
 		return this.views.one(user, this.views.find(schoolId, postId));
@@ -583,7 +587,9 @@ public class PostService {
 	@Transactional
 	public void delete(CurrentUser user, UUID schoolId, UUID postId) {
 		PostRow row = lockedForChange(user, schoolId, postId, false);
-		List<UUID> mediaIds = this.media.mediaIdsOfPost(postId);
+		// content under a moderation case keeps its files (evidence hold): the post disappears, the photos are retained
+		boolean held = this.jdbc.sql("select moderation_case_id is not null from posts where id = :id").param("id", postId).query(Boolean.class).single();
+		List<UUID> mediaIds = held ? List.of() : this.media.mediaIdsOfPost(postId);
 		this.jdbc.sql("""
 				update posts set deleted_at = :now, deleted_by = :u, is_pinned = false, pinned_at = null, scheduled_for = null,
 				       updated_at = :now, version = version + 1

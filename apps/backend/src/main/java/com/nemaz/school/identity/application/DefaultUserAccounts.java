@@ -41,10 +41,13 @@ class DefaultUserAccounts implements UserAccounts {
 
 	private final TokenService tokens;
 
+	private final UserSnapshotCache snapshots;
+
 	private final Clock clock;
 
 	DefaultUserAccounts(UserRepository users, PasswordCredentialRepository credentials, PasswordEncoder encoder,
-			ReferenceData reference, TokenService tokens, Clock clock) {
+			ReferenceData reference, TokenService tokens, UserSnapshotCache snapshots, Clock clock) {
+		this.snapshots = snapshots;
 		this.users = users;
 		this.credentials = credentials;
 		this.encoder = encoder;
@@ -177,6 +180,31 @@ class DefaultUserAccounts implements UserAccounts {
 	@Override
 	public void signOutEverywhere(UUID userId) {
 		this.tokens.revokeAll(userId, null, "USER_INACTIVE");
+	}
+
+	@Override
+	public boolean lock(UUID userId) {
+		User user = this.users.findById(userId).orElseThrow(() -> ApiException.notFound("user.not_found"));
+		if (user.getStatus() != UserStatus.ACTIVE || user.getDeletedAt() != null) {
+			return false;
+		}
+		user.changeStatus(UserStatus.LOCKED);
+		this.users.saveAndFlush(user);
+		this.snapshots.evictAfterCommit(userId);
+		this.tokens.revokeAll(userId, null, "USER_INACTIVE");
+		return true;
+	}
+
+	@Override
+	public boolean unlock(UUID userId) {
+		User user = this.users.findById(userId).orElseThrow(() -> ApiException.notFound("user.not_found"));
+		if (user.getStatus() != UserStatus.LOCKED || user.getDeletedAt() != null) {
+			return false;
+		}
+		user.changeStatus(UserStatus.ACTIVE);
+		this.users.saveAndFlush(user);
+		this.snapshots.evictAfterCommit(userId);
+		return true;
 	}
 
 	private User managed(UUID userId) {

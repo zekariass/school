@@ -136,6 +136,28 @@ public class RoleAssignmentService implements RoleAssignments {
 	}
 
 	@Override
+	public boolean revokeAsSystem(UUID userId, String roleCode, AccessScope scope) {
+		RoleAssignment assignment = this.assignments.findByUserIdAndStatusOrderByGrantedAtAsc(userId, AssignmentStatus.ACTIVE)
+			.stream()
+			.filter((a) -> a.getRoleCode().equals(roleCode) && a.scope().equals(scope))
+			.findFirst()
+			.orElse(null);
+		if (assignment == null) {
+			return false;
+		}
+		assignment.revoke(this.clock.instant());
+		this.assignments.saveAndFlush(assignment);
+		this.audit.record(AuditEntry.of("role_assignment.revoke", AuditOutcome.SUCCESS)
+			.target("role_assignment", assignment.getId())
+			.school(assignment.scope().schoolId())
+			.metadata("userId", userId.toString())
+			.metadata("roleCode", roleCode)
+			.metadata("scope", describe(assignment.scope())));
+		this.grantCache.evictAfterCommit(userId);
+		return true;
+	}
+
+	@Override
 	public void grantWithinScope(CurrentUser actor, UUID userId, String roleCode, AccessScope scope) {
 		Role role = role(roleCode);
 		if (scope.level() != role.getScopeLevel()) {

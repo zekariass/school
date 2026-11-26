@@ -3175,6 +3175,504 @@
         "tags" : [ "system" ]
       }
     },
+    "/api/v1/moderation/cases/{caseId}" : {
+      "get" : {
+        "operationId" : "getModerationCase",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationCaseDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A case: counts, reasons, the role of each reporter ('a student', 'a guardian', ...), the append-only history. Reporter ids and report details are present ONLY for safeguarding leads and platform moderators; the incident an escalation created only for safeguarding leads. 404 for anybody who may not work the case.",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/cases/{caseId}/assign" : {
+      "post" : {
+        "operationId" : "assignModerationCase",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationAssignRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationCaseDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Take the case or assign it to another moderator of the queue (who must not be conflicted). Audited; the assignee is notified",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/cases/{caseId}/content" : {
+      "get" : {
+        "operationId" : "readModerationCaseContent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationReviewContent"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Read the reported target and its immediate context through its owner's reviewer path (a post with its comments, a comment with its post, a story). Audited (reviewer, case, target: never text) and rate limited (60 an hour). For a message the answer is a pointer to the audited messaging review (kind MESSAGING_REVIEW, reviewConversationId), never the text. Hidden and removed content stays readable here.",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/cases/{caseId}/decision" : {
+      "post" : {
+        "operationId" : "decideModerationCase",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationDecisionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationCaseDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Decide an open case with a reason of 10 to 500 characters: NO_ACTION, HIDE (reversible), REMOVE, WARN_USER (a generic notice), SUSPEND_USER (level SCHOOL by default; PLATFORM locks the account and needs platform.users.lock) or ESCALATE (creates a safeguarding incident; the reason becomes its encrypted narrative). Hiding and removing keep the original. The reporters get one generic 'reviewed' notice. Append-only history; audited without the reason.",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/cases/{caseId}/legal-hold" : {
+      "put" : {
+        "operationId" : "setModerationCaseLegalHold",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationHoldRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationHoldView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Set or lift the legal hold of a case (a safeguarding lead of its school, or platform.moderation.manage). A hold blocks the retention purge and every erasure. Audited",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/cases/{caseId}/lift-suspension" : {
+      "post" : {
+        "operationId" : "liftModerationCaseSuspension",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationReasonRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationCaseDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Lift the suspension this case decided: a school suspension, or a platform lock (needs platform.users.lock). Audited",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/cases/{caseId}/priority" : {
+      "put" : {
+        "operationId" : "setModerationCasePriority",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationPriorityRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationCaseDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Set the priority (safeguarding leads only). CRITICAL on a case with a SAFETY_CONCERN report creates the safeguarding incident automatically",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/cases/{caseId}/refer-up" : {
+      "post" : {
+        "operationId" : "referModerationCaseUp",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationReasonRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationCaseDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Hand a school case up to the platform queue (a conflict, or a matter above the school). Audited",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/cases/{caseId}/reopen" : {
+      "post" : {
+        "operationId" : "reopenModerationCase",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationReasonRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationCaseDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Open a resolved case again with a reason (a case escalated to safeguarding only by leads). Audited",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/cases/{caseId}/restore" : {
+      "post" : {
+        "operationId" : "restoreModerationCaseContent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "caseId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationReasonRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationCaseDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Undo the HIDE of this case (the content is shown again); a REMOVE is not reversible (409 moderation.removal_not_reversible). Audited",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/moderation/reports" : {
+      "post" : {
+        "operationId" : "createModerationReport",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationReportRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationReportReceipt"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Report something you can see: a post, a comment, a story, a message, a person (shared class, school or conversation). A target you cannot see answers the same generic 404 (moderation.target_not_found) as the content itself, so a custody-restricted or revoked guardian cannot report it. 201 for a new report; 200 with the first report when you already have an open report of the same target. At most 20 reports a day, 10 for students. You get one thank-you notice now and one 'reviewed' notice when the case is resolved: never an outcome, names or content. Details (up to 1,000 characters) are plain text and are never copied into events, logs, audit rows or notifications.",
+        "tags" : [ "moderation" ]
+      }
+    },
     "/api/v1/notifications" : {
       "get" : {
         "operationId" : "listNotifications",
@@ -3665,6 +4163,72 @@
         "tags" : [ "platform-configuration" ]
       }
     },
+    "/api/v1/platform/moderation/cases" : {
+      "get" : {
+        "operationId" : "listPlatformModerationCases",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "priority",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "targetType",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageModerationCaseSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The platform moderation queue (platform.moderation.manage): cases about platform-scope targets, about school administrators, moderators and safeguarding leads, and cases a school moderator handed up.",
+        "tags" : [ "moderation" ]
+      }
+    },
     "/api/v1/platform/organizations" : {
       "get" : {
         "operationId" : "listOrganizations",
@@ -4135,6 +4699,128 @@
         },
         "summary" : "Revoke a role assignment (it stays listed as REVOKED)",
         "tags" : [ "platform-roles" ]
+      }
+    },
+    "/api/v1/platform/safeguarding/incidents" : {
+      "get" : {
+        "operationId" : "listPlatformSafeguardingIncidents",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "schoolId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "severity",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "category",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageSafeguardingIncidentSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Incidents across schools for platform safeguarding leads (optionally one school). Metadata only. Everybody else, platform administrators included, gets 404.",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/platform/safeguarding/incidents/{incidentId}/legal-hold" : {
+      "put" : {
+        "operationId" : "setPlatformSafeguardingIncidentLegalHold",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "incidentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingLegalHoldRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingLegalHoldView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Set or lift the legal hold of an incident as a platform moderator or administrator, who cannot read incidents: the answer carries the id and the flag only. Audited.",
+        "tags" : [ "safeguarding" ]
       }
     },
     "/api/v1/platform/schools" : {
@@ -5032,6 +5718,102 @@
         "tags" : [ "platform-users" ]
       }
     },
+    "/api/v1/platform/users/{userId}/lock" : {
+      "post" : {
+        "operationId" : "lockUserAccount",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "userId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationLockRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationLockView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Lock an account platform-wide (platform.users.lock: platform moderators and administrators; a school moderator never). Every session is revoked through the token service, so sockets and push devices close at once; nothing is deleted. Reason of 10 to 500 characters, audited. Reversible with unlock.",
+        "tags" : [ "moderation" ]
+      }
+    },
+    "/api/v1/platform/users/{userId}/unlock" : {
+      "post" : {
+        "operationId" : "unlockUserAccount",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "userId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModerationLockRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ModerationLockView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Unlock a locked account (platform.users.lock). The person signs in again. Reason of 10 to 500 characters, audited",
+        "tags" : [ "moderation" ]
+      }
+    },
     "/api/v1/policies/{policyType}" : {
       "get" : {
         "operationId" : "getPolicy",
@@ -5257,6 +6039,417 @@
         },
         "summary" : "Enabled languages",
         "tags" : [ "reference" ]
+      }
+    },
+    "/api/v1/safeguarding/incidents/{incidentId}" : {
+      "get" : {
+        "operationId" : "getSafeguardingIncident",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "incidentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingIncidentSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Metadata of one incident (no text). Leads only, 404 for everybody else. Audited",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/safeguarding/incidents/{incidentId}/assign" : {
+      "post" : {
+        "operationId" : "assignSafeguardingIncident",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "incidentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingAssignRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingIncidentSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Assign the incident to a safeguarding lead of the school (or a platform lead); anybody else is refused",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/safeguarding/incidents/{incidentId}/guardian-informed" : {
+      "post" : {
+        "operationId" : "recordSafeguardingGuardianInformed",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "incidentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingGuardianInformedRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingIncidentSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A human records that the child's guardians were told (guardian_informed_at). The system never tells guardians; whether and when they must be told is a legal question. Audited.",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/safeguarding/incidents/{incidentId}/legal-hold" : {
+      "put" : {
+        "operationId" : "setSafeguardingIncidentLegalHold",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "incidentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingLegalHoldRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingLegalHoldView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Set or lift the legal hold of an incident (leads). A hold blocks the retention purge and every erasure. Audited",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/safeguarding/incidents/{incidentId}/notes" : {
+      "post" : {
+        "operationId" : "addSafeguardingNote",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "incidentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingNoteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingNoteView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Add a note (encrypted), optionally with an attachment uploaded under the SAFEGUARDING media purpose. Append-only",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/safeguarding/incidents/{incidentId}/open" : {
+      "post" : {
+        "operationId" : "openSafeguardingIncident",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "incidentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingIncidentOpenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingIncidentDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Open an incident: the decrypted narrative and every note. A reason from the pick-list is required (TRIAGE, INVESTIGATION, FOLLOW_UP, REFERRAL, OVERSIGHT, LEGAL_REQUEST); every open is audited (who, when, which incident, reason, number of notes: never text) and rate limited (60 an hour). A lead who is involved in the incident, or the guardian of its student, gets 404.",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/safeguarding/incidents/{incidentId}/referral" : {
+      "post" : {
+        "operationId" : "recordSafeguardingReferral",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "incidentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingReferralRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingIncidentSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A human records a referral to an authority (referred_at and the encrypted referred_to text). Audited",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/safeguarding/incidents/{incidentId}/status" : {
+      "post" : {
+        "operationId" : "changeSafeguardingIncidentStatus",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "incidentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingStatusRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingIncidentSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Move the incident along: OPEN, INVESTIGATING, ACTION_TAKEN or REFERRED, CLOSED. Closing needs a closing note, re-opening a closed incident a reason (10 or more characters); each change is an append-only row.",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/safety/emergency-info" : {
+      "get" : {
+        "operationId" : "getEmergencyInfo",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "country",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafetyEmergencyInfo"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The country's safety text for the reporting screens ('if a child is in danger contact ...'), in your language. reviewed false means the wording is a placeholder the owner has not approved; the Ethiopian default is exactly that.",
+        "tags" : [ "moderation" ]
       }
     },
     "/api/v1/schools/by-slug/{slug}" : {
@@ -11904,6 +13097,80 @@
         "tags" : [ "messaging-review" ]
       }
     },
+    "/api/v1/schools/{schoolId}/moderation/cases" : {
+      "get" : {
+        "operationId" : "listSchoolModerationCases",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "priority",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "targetType",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageModerationCaseSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The school's moderation queue (school.moderation.manage): open cases, HIGH and CRITICAL first, then newest, keyset paged. status is OPEN (default: open and assigned), ASSIGNED, RESOLVED, ESCALATED or ALL; priority and targetType filter. References and enums only: never content, reporter identities or details. A case about a school administrator, moderator or safeguarding lead is not here: it is in the platform queue.",
+        "tags" : [ "moderation" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/my-posts" : {
       "get" : {
         "operationId" : "listMyPosts",
@@ -14883,6 +16150,292 @@
         "tags" : [ "feed" ]
       }
     },
+    "/api/v1/schools/{schoolId}/safeguarding/capability" : {
+      "get" : {
+        "operationId" : "getSafeguardingCapability",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingCapabilityView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Whether the school has a safeguarding lead and which settings need one (school.settings.manage): switching on student messaging (messaging.student.*) or student contributions is refused with 409 safeguarding.lead_required until a lead is designated.",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/safeguarding/concerns" : {
+      "post" : {
+        "operationId" : "raiseSafeguardingConcern",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingConcernRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingIncidentCreated"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Raise a concern (an ACTIVE staff member or teacher of the school; anybody else gets 404). Answers the incident id only: the narrative is encrypted at once and only safeguarding leads can read it. HIGH and CRITICAL concerns alert the school's safeguarding leads (the platform leads when it has none) with a generic text. Nobody else is ever notified automatically.",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/safeguarding/incidents" : {
+      "get" : {
+        "operationId" : "listSafeguardingIncidents",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "severity",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "category",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageSafeguardingIncidentSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Incidents of the school (metadata only: ids, category, severity, status, dates; never any text, and there is no search over narratives), newest first, keyset paged. Safeguarding leads of the school and platform leads only: everybody else gets 404 as if nothing existed. Audited (count).",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/safeguarding/leads" : {
+      "get" : {
+        "operationId" : "listSafeguardingLeads",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SafeguardingLeadView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The school's safeguarding leads (school.staff.manage)",
+        "tags" : [ "safeguarding" ]
+      },
+      "post" : {
+        "operationId" : "designateSafeguardingLead",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SafeguardingLeadRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SafeguardingLeadView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Designate an ACTIVE staff member (the principal may be one) as safeguarding lead (school.staff.manage). Grants the SAFEGUARDING_LEAD role at the school; audited. Repeating it changes nothing.",
+        "tags" : [ "safeguarding" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/safeguarding/leads/{userId}" : {
+      "delete" : {
+        "operationId" : "removeSafeguardingLead",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "userId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Remove a lead (school.staff.manage). The last lead cannot be removed while the school has student messaging or contributions on (409 safeguarding.last_lead_required)",
+        "tags" : [ "safeguarding" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/staff" : {
       "get" : {
         "operationId" : "listStaff",
@@ -15409,7 +16962,7 @@
           "required" : false,
           "schema" : {
             "type" : "string",
-            "enum" : [ "PENDING", "ACTIVE", "TRANSFERRED", "GRADUATED", "WITHDRAWN" ]
+            "enum" : [ "PENDING", "ACTIVE", "SUSPENDED", "TRANSFERRED", "GRADUATED", "WITHDRAWN" ]
           }
         }, {
           "in" : "query",
@@ -21373,6 +22926,22 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageModerationCaseSummary" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ModerationCaseSummary"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageNotificationView" : {
         "type" : "object",
         "properties" : {
@@ -21492,6 +23061,22 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/RoleAssignmentResponse"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageSafeguardingIncidentSummary" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SafeguardingIncidentSummary"
             }
           },
           "nextCursor" : {
@@ -23108,7 +24693,7 @@
           },
           "purpose" : {
             "type" : "string",
-            "enum" : [ "AVATAR", "POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "ASSIGNMENT", "LIBRARY", "COURSE", "RECORDING", "TRANSCRIPT", "VERIFICATION_DOC", "IMPORT_FILE", "REPORT", "BRANDING" ]
+            "enum" : [ "AVATAR", "POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "ASSIGNMENT", "LIBRARY", "COURSE", "RECORDING", "TRANSCRIPT", "VERIFICATION_DOC", "IMPORT_FILE", "REPORT", "BRANDING", "SAFEGUARDING" ]
           },
           "sizeBytes" : {
             "type" : "integer",
@@ -23382,6 +24967,356 @@
           }
         },
         "required" : [ "apiVersion", "buildVersion", "serverTime", "service", "supportedLocales" ]
+      },
+      "ModerationActionView" : {
+        "type" : "object",
+        "description" : "One row of the append-only history of a case",
+        "properties" : {
+          "action" : {
+            "type" : "string"
+          },
+          "actorId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "level" : {
+            "type" : "string"
+          },
+          "notes" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ModerationAssignRequest" : {
+        "type" : "object",
+        "description" : "The assignee; omit to take the case yourself",
+        "properties" : {
+          "assigneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
+      "ModerationCaseDetail" : {
+        "type" : "object",
+        "properties" : {
+          "actions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ModerationActionView"
+            }
+          },
+          "incidentId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Only for safeguarding leads: the incident an escalation created"
+          },
+          "reporterIdentityVisible" : {
+            "type" : "boolean"
+          },
+          "reports" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ModerationReportEntry"
+            }
+          },
+          "subjectUserId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "summary" : {
+            "$ref" : "#/components/schemas/ModerationCaseSummary"
+          }
+        }
+      },
+      "ModerationCaseSummary" : {
+        "type" : "object",
+        "description" : "A case in a queue: references and enums only, never content, reporter identities or details",
+        "properties" : {
+          "assignedTo" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "decision" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "legalHold" : {
+            "type" : "boolean"
+          },
+          "priority" : {
+            "type" : "string"
+          },
+          "queue" : {
+            "type" : "string"
+          },
+          "reasons" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int32"
+            }
+          },
+          "reportCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "reporterCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "resolvedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "subjectRole" : {
+            "type" : "string"
+          },
+          "targetId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "targetType" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "ModerationDecisionRequest" : {
+        "type" : "object",
+        "description" : "A decision with its reason (10 to 500 characters, never pasted content). level is for SUSPEND_USER: SCHOOL (default, reversible, ends the person's activity in the school) or PLATFORM (a lock of the whole account, platform moderators and administrators only). category and severity are for ESCALATE (defaults CONDUCT and HIGH); the reason then becomes the encrypted narrative of the incident.",
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "decision" : {
+            "type" : "string",
+            "enum" : [ "NO_ACTION", "HIDE", "REMOVE", "WARN_USER", "SUSPEND_USER", "ESCALATE" ],
+            "minLength" : 1
+          },
+          "level" : {
+            "type" : "string",
+            "enum" : [ "SCHOOL", "PLATFORM" ]
+          },
+          "reason" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "severity" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "decision", "reason" ]
+      },
+      "ModerationHoldRequest" : {
+        "type" : "object",
+        "properties" : {
+          "held" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "held" ]
+      },
+      "ModerationHoldView" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "legalHold" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "ModerationLockRequest" : {
+        "type" : "object",
+        "description" : "A reason of 10 to 500 characters",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "reason" ]
+      },
+      "ModerationLockView" : {
+        "type" : "object",
+        "properties" : {
+          "locked" : {
+            "type" : "boolean"
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
+      "ModerationPriorityRequest" : {
+        "type" : "object",
+        "description" : "Safeguarding leads only. CRITICAL on a SAFETY_CONCERN case creates the safeguarding incident automatically",
+        "properties" : {
+          "priority" : {
+            "type" : "string",
+            "enum" : [ "LOW", "NORMAL", "HIGH", "CRITICAL" ],
+            "minLength" : 1
+          }
+        },
+        "required" : [ "priority" ]
+      },
+      "ModerationReasonRequest" : {
+        "type" : "object",
+        "description" : "A reason of 10 to 500 characters",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "reason" ]
+      },
+      "ModerationReportEntry" : {
+        "type" : "object",
+        "description" : "One report of a case. reporterRole ('a student', 'a guardian', ...) and the reason are shown to every moderator; reporterId and details are present ONLY for safeguarding leads and platform moderators (null for everybody else).",
+        "properties" : {
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "details" : {
+            "type" : "string"
+          },
+          "reasonCode" : {
+            "type" : "string"
+          },
+          "reporterId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "reporterRole" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ModerationReportReceipt" : {
+        "type" : "object",
+        "description" : "Only that the report was received: nothing about the case, the decision or other reporters",
+        "properties" : {
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
+      "ModerationReportRequest" : {
+        "type" : "object",
+        "description" : "Report something you can see. Details are optional plain text (up to 1,000 characters) and are never copied into events, logs, audit rows or notifications.",
+        "properties" : {
+          "details" : {
+            "type" : "string"
+          },
+          "reasonCode" : {
+            "type" : "string",
+            "enum" : [ "SPAM", "HARASSMENT", "INAPPROPRIATE", "SAFETY_CONCERN", "COPYRIGHT", "PRIVACY", "INACCURATE", "OTHER" ],
+            "minLength" : 1
+          },
+          "targetId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "targetType" : {
+            "type" : "string",
+            "enum" : [ "POST", "POST_COMMENT", "STORY", "MESSAGE", "USER", "PORTFOLIO_ITEM", "TUTOR_PROFILE", "COURSE", "TUTOR_REVIEW", "LIBRARY_RESOURCE", "MEDIA", "AI_OUTPUT" ],
+            "minLength" : 1
+          }
+        },
+        "required" : [ "reasonCode", "targetId", "targetType" ]
+      },
+      "ModerationReviewContent" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ModerationReviewItem"
+            }
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "reviewConversationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
+      "ModerationReviewItem" : {
+        "type" : "object",
+        "properties" : {
+          "authorId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "authorRole" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "highlighted" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "mediaIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        }
       },
       "MoveStudentRequest" : {
         "type" : "object",
@@ -25038,7 +26973,7 @@
           },
           "purpose" : {
             "type" : "string",
-            "enum" : [ "AVATAR", "POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "ASSIGNMENT", "LIBRARY", "COURSE", "RECORDING", "TRANSCRIPT", "VERIFICATION_DOC", "IMPORT_FILE", "REPORT", "BRANDING" ]
+            "enum" : [ "AVATAR", "POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "ASSIGNMENT", "LIBRARY", "COURSE", "RECORDING", "TRANSCRIPT", "VERIFICATION_DOC", "IMPORT_FILE", "REPORT", "BRANDING", "SAFEGUARDING" ]
           }
         },
         "required" : [ "contextTypes", "maxBytesByMimeType", "purpose" ]
@@ -25705,6 +27640,352 @@
           }
         },
         "required" : [ "duplicates", "invalid", "total", "valid" ]
+      },
+      "SafeguardingAssignRequest" : {
+        "type" : "object",
+        "description" : "The assignee must be a safeguarding lead of the school (or a platform lead)",
+        "properties" : {
+          "assigneeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "assigneeId" ]
+      },
+      "SafeguardingCapabilityView" : {
+        "type" : "object",
+        "description" : "What UIs need to show the requirement of decision 3: a school needs at least one safeguarding lead before it can switch on student messaging or student contributions (the settings change is refused with safeguarding.lead_required until then).",
+        "properties" : {
+          "guardedSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "hasLead" : {
+            "type" : "boolean"
+          },
+          "leadCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "leadRequiredForStudentFeatures" : {
+            "type" : "boolean"
+          },
+          "studentContributionsEnabled" : {
+            "type" : "boolean"
+          },
+          "studentFeaturesOnWithoutLead" : {
+            "type" : "boolean"
+          },
+          "studentMessagingEnabled" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SafeguardingConcernRequest" : {
+        "type" : "object",
+        "description" : "Raise a concern (an ACTIVE staff member or teacher of the school). The narrative is encrypted at once and can be read only by safeguarding leads. Students and guardians raise concerns through a report, never here.",
+        "properties" : {
+          "category" : {
+            "type" : "string",
+            "enum" : [ "CONDUCT", "ONLINE_SAFETY", "WELLBEING", "TUTOR_CONDUCT", "DATA_BREACH", "OTHER" ],
+            "minLength" : 1
+          },
+          "concernedStudentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "involvedUserIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 20,
+            "minItems" : 0
+          },
+          "narrative" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 10
+          },
+          "severity" : {
+            "type" : "string",
+            "enum" : [ "LOW", "MEDIUM", "HIGH", "CRITICAL" ],
+            "minLength" : 1
+          }
+        },
+        "required" : [ "category", "narrative", "severity" ]
+      },
+      "SafeguardingGuardianInformedRequest" : {
+        "type" : "object",
+        "description" : "A human recorded that the child's guardians were told (the system never tells them). {@code at} defaults to now; it cannot be in the future.",
+        "properties" : {
+          "at" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "note" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 0
+          }
+        }
+      },
+      "SafeguardingIncidentCreated" : {
+        "type" : "object",
+        "description" : "Only the id: whoever raises a concern cannot read it back",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
+      "SafeguardingIncidentDetail" : {
+        "type" : "object",
+        "description" : "The decrypted incident: only ever returned by the audited open call",
+        "properties" : {
+          "involvedUserIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "narrative" : {
+            "type" : "string"
+          },
+          "notes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SafeguardingNoteView"
+            }
+          },
+          "referredTo" : {
+            "type" : "string"
+          },
+          "summary" : {
+            "$ref" : "#/components/schemas/SafeguardingIncidentSummary"
+          }
+        }
+      },
+      "SafeguardingIncidentOpenRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "enum" : [ "TRIAGE", "INVESTIGATION", "FOLLOW_UP", "REFERRAL", "OVERSIGHT", "LEGAL_REQUEST" ]
+          }
+        },
+        "required" : [ "reason" ]
+      },
+      "SafeguardingIncidentSummary" : {
+        "type" : "object",
+        "description" : "Metadata only: never any text",
+        "properties" : {
+          "assignedTo" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "category" : {
+            "type" : "string"
+          },
+          "closedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "concernedStudentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "guardianInformedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "legalHold" : {
+            "type" : "boolean"
+          },
+          "referredAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "severity" : {
+            "type" : "string"
+          },
+          "sourceCaseId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "SafeguardingLeadRequest" : {
+        "type" : "object",
+        "description" : "An ACTIVE staff member (teacher, principal, other staff) of the school",
+        "properties" : {
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "userId" ]
+      },
+      "SafeguardingLeadView" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "since" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
+      "SafeguardingLegalHoldRequest" : {
+        "type" : "object",
+        "properties" : {
+          "held" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "held" ]
+      },
+      "SafeguardingLegalHoldView" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "legalHold" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SafeguardingNoteRequest" : {
+        "type" : "object",
+        "properties" : {
+          "attachmentMediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "note" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 1
+          }
+        },
+        "required" : [ "note" ]
+      },
+      "SafeguardingNoteView" : {
+        "type" : "object",
+        "properties" : {
+          "attachmentMediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "authorId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "statusFrom" : {
+            "type" : "string"
+          },
+          "statusTo" : {
+            "type" : "string"
+          }
+        }
+      },
+      "SafeguardingReferralRequest" : {
+        "type" : "object",
+        "description" : "A human recorded a referral to an authority (encrypted free text)",
+        "properties" : {
+          "at" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "note" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 0
+          },
+          "referredTo" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 1
+          }
+        },
+        "required" : [ "referredTo" ]
+      },
+      "SafeguardingStatusRequest" : {
+        "type" : "object",
+        "description" : "Move the incident along (OPEN, INVESTIGATING, ACTION_TAKEN, REFERRED, CLOSED). Closing needs a closing note and re-opening a closed incident needs a reason (both at least 10 characters); other changes may carry a note.",
+        "properties" : {
+          "note" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 0
+          },
+          "status" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "status" ]
+      },
+      "SafetyEmergencyInfo" : {
+        "type" : "object",
+        "description" : "The per-country text the reporting screens show ('if a child is in danger contact ...'). reviewed false means the wording is a placeholder the owner has not approved yet.",
+        "properties" : {
+          "country" : {
+            "type" : "string"
+          },
+          "reviewed" : {
+            "type" : "boolean"
+          },
+          "text" : {
+            "type" : "string"
+          }
+        }
       },
       "SaveMappingRequest" : {
         "type" : "object",
@@ -26728,7 +29009,7 @@
           "status" : {
             "type" : "string",
             "description" : "FULL only",
-            "enum" : [ "PENDING", "ACTIVE", "TRANSFERRED", "GRADUATED", "WITHDRAWN" ]
+            "enum" : [ "PENDING", "ACTIVE", "SUSPENDED", "TRANSFERRED", "GRADUATED", "WITHDRAWN" ]
           },
           "studentNumber" : {
             "type" : "string",
@@ -27781,7 +30062,7 @@
           },
           "purpose" : {
             "type" : "string",
-            "enum" : [ "AVATAR", "POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "ASSIGNMENT", "LIBRARY", "COURSE", "RECORDING", "TRANSCRIPT", "VERIFICATION_DOC", "IMPORT_FILE", "REPORT", "BRANDING" ]
+            "enum" : [ "AVATAR", "POST", "STORY", "MESSAGE", "PORTFOLIO", "SUBMISSION", "ASSIGNMENT", "LIBRARY", "COURSE", "RECORDING", "TRANSCRIPT", "VERIFICATION_DOC", "IMPORT_FILE", "REPORT", "BRANDING", "SAFEGUARDING" ]
           },
           "sha256" : {
             "type" : "string",

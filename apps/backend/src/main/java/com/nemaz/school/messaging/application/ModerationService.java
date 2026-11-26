@@ -132,6 +132,13 @@ public class ModerationService {
 		if (!"HIDDEN".equals(status)) {
 			return;
 		}
+		if (this.jdbc.sql("select moderation_hidden_at is not null from messages where id = :m")
+			.param("m", messageId)
+			.query(Boolean.class)
+			.single()) {
+			// hidden by a moderation case: only the case can restore it
+			throw ApiException.conflict("moderation.content_held");
+		}
 		this.jdbc.sql("""
 				update messages set status = case when edited_at is null then 'SENT' else 'EDITED' end,
 				       hidden_at = null, hidden_by = null, hide_reason = null where id = :m""")
@@ -225,6 +232,49 @@ public class ModerationService {
 			.metadata("reason", reason));
 		this.events.publishEvent(new MessageReported(reportId, messageId, conversationId, schoolId, user.userId(), reason));
 		notifyAboutReport(reportId, access, user.userId());
+	}
+
+	/**
+	 * A report that came through the moderation module's generic endpoint ({@code POST /moderation/reports}): the same record
+	 * as {@link #report} (so that the audited review path can read the conversation of a reported message) but no event, since
+	 * moderation already holds the report. The reporter's details are NOT copied here. Idempotent per (message, reporter).
+	 */
+	@Transactional
+	public void recordExternalReport(UUID reportId, UUID reporterId, UUID messageId, String reason) {
+		UUID conversationId = this.jdbc.sql("select conversation_id from messages where id = :m")
+			.param("m", messageId)
+			.query(UUID.class)
+			.optional()
+			.orElse(null);
+		if (conversationId == null) {
+			return;
+		}
+		Access access = this.policy.find(reporterId, conversationId, false).orElse(null);
+		if (access == null) {
+			return;
+		}
+		UUID schoolId = access.conversation().schoolId();
+		int inserted = this.jdbc.sql("""
+				insert into message_reports (id, message_id, conversation_id, school_id, reporter_id, reason)
+				values (:id, :m, :c, :s, :u, :reason) on conflict (message_id, reporter_id) do nothing""")
+			.param("id", reportId)
+			.param("m", messageId)
+			.param("c", conversationId)
+			.param("s", schoolId)
+			.param("u", reporterId)
+			.param("reason", reason)
+			.update();
+		if (inserted == 0) {
+			return;
+		}
+		this.audit.record(AuditEntry.of("messaging.message.report", AuditOutcome.SUCCESS)
+			.actor(reporterId)
+			.target("message", messageId)
+			.school(schoolId)
+			.metadata("reportId", reportId.toString())
+			.metadata("conversationId", conversationId.toString())
+			.metadata("reason", reason));
+		notifyAboutReport(reportId, access, reporterId);
 	}
 
 	private void notifyAboutReport(UUID reportId, Access access, UUID reporterId) {

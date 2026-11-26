@@ -583,7 +583,8 @@ public class StudentService {
 
 	public enum StudentStatus {
 
-		PENDING, ACTIVE, TRANSFERRED, GRADUATED, WITHDRAWN
+		/** SUSPENDED: a school-level moderation decision (M13): reversible, the student keeps their data but has no access. */
+		PENDING, ACTIVE, SUSPENDED, TRANSFERRED, GRADUATED, WITHDRAWN
 
 	}
 

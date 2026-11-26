@@ -15,6 +15,7 @@ import com.nemaz.school.notifications.application.DeliveryRetryJob;
 import com.nemaz.school.support.MediaFixtures;
 import com.nemaz.school.support.MediaTestSupport;
 import com.nemaz.school.support.Persona;
+import com.nemaz.school.support.Personas;
 import com.nemaz.school.support.RecordingPushSender;
 import com.nemaz.school.tenancy.SettingScope;
 import com.nemaz.school.tenancy.SettingsService;
@@ -119,6 +120,9 @@ public abstract class MessagingTestSupport extends MediaTestSupport {
 	}
 
 	protected void setting(UUID schoolId, String key, Object value) {
+		if (Personas.needsLead(key, value)) {
+			this.personas.ensureSafeguardingLead(schoolId); // a school cannot switch on student features without a lead
+		}
 		this.settings.set(key, SettingScope.school(schoolId), this.json.valueToTree(value), this.personas.platformAdmin().userId());
 	}
 

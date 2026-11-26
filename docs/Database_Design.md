@@ -1746,6 +1746,35 @@ create table safeguarding_incident_notes (
 );
 ```
 
+**As built (M13a; migrations `V13_01__moderation.sql` and `V13_02__safeguarding.sql`). Deviations from the tables above:**
+
+- `content_reports`: always belongs to a case (`case_id` NOT NULL: a report and its case are created together), status is
+  `OPEN | CLOSED` (a `LINKED` state would never be observable). New: `reporter_role` (STUDENT, GUARDIAN, TEACHER, STAFF, OTHER: what
+  school moderators see instead of the identity), `source_key` (unique; `message_report:<id>` / `content_report:<id>`: makes event
+  consumption idempotent). `details` is bounded to 1,000 characters. Unique open report per (reporter, target).
+- `moderation_cases`: `school_id` is kept for platform-queue cases too (retention, alerts and lead lookup need the tenant); the new
+  column `queue` (`SCHOOL | PLATFORM`) says where the case is worked. New: `subject_user_id`, `report_count`, `reporter_count`,
+  `lead_alerted_at`, `resolved_at` (retention clock), `legal_hold` (+ `legal_hold_by`, `legal_hold_at`). `decision_reason` is **not** a
+  case column: the reason is the row of the decision in `moderation_actions`. The unique index covers OPEN and ASSIGNED.
+- `moderation_actions`: `action` is a closed list (decisions plus ASSIGN, REASSIGN, REOPEN, RESTORE, LIFT_SUSPENSION, UNLOCK_USER,
+  REFER_UP, SET_PRIORITY, HOLD_SET, HOLD_LIFTED), new `level` (SCHOOL | PLATFORM), `notes` bounded to 500. **Append-only** by trigger
+  (UPDATE and DELETE refused); the retention purge sets the transaction-local setting `school.retention_purge = 'on'` to delete expired rows.
+- New tables: `account_warnings` (WARN_USER), `school_suspensions` (SUSPEND_USER at school level, with the ids it changed so a lift
+  restores exactly them), `emergency_information` (per-country safety text, `reviewed` flag; Ethiopia seeded as an UNREVIEWED
+  placeholder in `R__10`).
+- `safeguarding_incidents`: `description` is `narrative_enc`, an AES-256-GCM envelope `v1.<keyId>.<nonce>.<ciphertext>` (base64url); the
+  additional authenticated data is the record's own context, so a ciphertext cannot be moved to another row. `referred_to_enc` is
+  encrypted too. New: `source_case_id`, `referred_at`, `guardian_informed_at` (both manual and audited), `legal_hold` (+ by, at),
+  `involved_user_ids` bounded to 20, `school_id` nullable (platform incidents). `closed_at` is set exactly when the status is CLOSED.
+- `safeguarding_incident_notes`: new `kind` (NOTE, STATUS, ASSIGNMENT, REOPEN, CLOSE, GUARDIAN_INFORMED, REFERRAL, HOLD_SET, HOLD_LIFTED,
+  ATTACHMENT), `status_from`, `status_to` (for ASSIGNMENT the assignee id), `note_enc` encrypted and optional. **Append-only** like
+  `moderation_actions`.
+- Other tables touched: `posts`, `post_comments`, `stories`, `messages` get `moderation_case_id` (evidence hold) and
+  `moderation_hidden_at` (hidden or removed by a case); `school_students.status` gains SUSPENDED; the unique indexes of `school_staff`
+  and `school_students` include SUSPENDED; `media.purpose` gains SAFEGUARDING (context SCHOOL; images and PDF; readable only by leads).
+- Seeds: feature `moderation` (default on, entitled by every plan), the six `safeguarding.*` settings (platform and country scope
+  only), the five permissions and the role `PLATFORM_SAFEGUARDING_LEAD`, five notification types with generic texts.
+
 ### 4.18 Consent & data governance (P1 core)
 
 ```sql

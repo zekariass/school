@@ -98,3 +98,11 @@ insert into administrative_areas (country_code, level, code, name_i18n) values
   ('ET', 1, 'SW', '{"en": "South West Ethiopia Peoples''", "am": "ደቡብ ምዕራብ ኢትዮጵያ ሕዝቦች"}'),
   ('ET', 1, 'TI', '{"en": "Tigray", "am": "ትግራይ"}')
 on conflict (country_code, level, code) do nothing;
+
+-- Emergency information shown by the reporting screens (docs/Safeguarding_Rules.md decision 10). The Ethiopian text is a
+-- PLACEHOLDER and UNREVIEWED (reviewed = false): the owner supplies the final wording and numbers per country, and the
+-- Amharic needs a native-speaker and child-protection review before any pilot. Edited through the database or a later
+-- migration, never overwritten by this seed.
+insert into emergency_information (country_code, text_i18n, reviewed) values
+  ('ET', '{"en": "If a child is in danger, contact the local authorities.", "am": "ሕፃን አደጋ ላይ ከሆነ የአካባቢውን ባለሥልጣናት ያነጋግሩ።"}', false)
+on conflict (country_code) do nothing;

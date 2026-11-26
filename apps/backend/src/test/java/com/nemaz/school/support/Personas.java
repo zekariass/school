@@ -391,6 +391,54 @@ public class Personas {
 		this.personas.put(name, withRole(name.name().toLowerCase(), roleCode, scope));
 	}
 
+	// --- M13: moderation and safeguarding personas ------------------------------------------------------------------
+
+	/** A safeguarding lead of the school: an ACTIVE staff member holding the SAFEGUARDING_LEAD role at the school. */
+	public Persona safeguardingLead(UUID schoolId, String label) {
+		UUID id = newStaff(schoolId, label, "SUPPORT_STAFF");
+		grant(id, RoleCodes.SAFEGUARDING_LEAD, AccessScope.school(schoolId));
+		return persona(label, id);
+	}
+
+	/**
+	 * Makes sure the school has a safeguarding lead (a school cannot switch on student messaging or contributions without one,
+	 * docs/Safeguarding_Rules.md decision 3); returns true when it had to create one. Used by the test helpers that change those
+	 * settings.
+	 */
+	public boolean ensureSafeguardingLead(UUID schoolId) {
+		Integer leads = this.jdbc.queryForObject("""
+				select count(*) from role_assignments where role_code = 'SAFEGUARDING_LEAD' and scope_type = 'SCHOOL'
+				  and school_id = ? and status = 'ACTIVE'""", Integer.class, schoolId);
+		if (leads != null && leads > 0) {
+			return false;
+		}
+		safeguardingLead(schoolId, "auto-lead-" + SEQUENCE.incrementAndGet());
+		return true;
+	}
+
+	/** True when {@code key} switching to {@code value} needs a safeguarding lead (see {@code SafeguardingSettingsGuard}). */
+	public static boolean needsLead(String key, Object value) {
+		boolean guarded = key.equals("feed.student_contributions.enabled") || key.equals("messaging.student.enabled")
+				|| key.equals("messaging.student.teacher_direct.enabled") || key.equals("messaging.student.student_direct.enabled")
+				|| key.equals("messaging.student.media_enabled");
+		return (guarded && Boolean.TRUE.equals(value)) || (key.equals("messaging.student.group_create") && "STUDENTS_WITH_APPROVAL".equals(value));
+	}
+
+	/** A platform moderator (PLATFORM_MODERATOR). */
+	public Persona platformModerator(String label) {
+		return withRole(label, RoleCodes.PLATFORM_MODERATOR, AccessScope.platform());
+	}
+
+	/** A platform safeguarding lead (PLATFORM_SAFEGUARDING_LEAD). */
+	public Persona platformLead(String label) {
+		return withRole(label, RoleCodes.PLATFORM_SAFEGUARDING_LEAD, AccessScope.platform());
+	}
+
+	/** A support agent (SUPPORT_AGENT). */
+	public Persona supportAgent(String label) {
+		return withRole(label, RoleCodes.SUPPORT_AGENT, AccessScope.platform());
+	}
+
 	/** Stamp for tests that need "now" from the shared clock in SQL. */
 	public Timestamp now() {
 		return Timestamp.from(this.clock.instant());
