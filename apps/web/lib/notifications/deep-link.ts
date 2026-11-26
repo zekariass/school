@@ -32,6 +32,15 @@ export function resolveDeepLink(
   if (post) return context.schoolId && UUID.test(context.schoolId) ? `/feed/posts/${context.schoolId}/${post[1]}` : null;
   const story = FEED_STORY.exec(base);
   if (story) return context.schoolId && UUID.test(context.schoolId) ? `/feed/stories/${context.schoolId}/${story[1]}` : null;
+  // Announcement links name only the announcement; the school comes from the notification (its `schoolId`, in `data` too).
+  if (base === ANNOUNCEMENTS_INBOX) return "/announcements";
+  if (base.startsWith(ANNOUNCEMENTS_PREFIX)) {
+    const match = ANNOUNCEMENT.exec(base);
+    if (!match) return null;
+    const schoolId = context.schoolId ?? (data as { schoolId?: unknown }).schoolId;
+    // Without a valid school the item is still marked read and the inbox lists the announcement.
+    return typeof schoolId === "string" && UUID.test(schoolId) ? `/announcements/${schoolId}/${match[1]}` : "/announcements";
+  }
   if (base === FEED_APPROVALS) {
     const slug = context.schoolSlug;
     return slug && SLUG.test(slug) ? `/s/${slug}/feed/approvals` : null;
@@ -68,6 +77,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FEED_POST = /^\/feed\/posts\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 const FEED_STORY = /^\/feed\/stories\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 const FEED_APPROVALS = "/feed/approvals";
+const ANNOUNCEMENTS_INBOX = "/announcements";
+const ANNOUNCEMENTS_PREFIX = "/announcements/";
+const ANNOUNCEMENT = /^\/announcements\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 
 const WEB_PATHS: Record<string, string> = {
   "/children": "/family",

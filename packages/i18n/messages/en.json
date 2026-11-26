@@ -95,7 +95,8 @@
     "family": "My children",
     "points": "Points & badges",
     "attendance": "Attendance",
-    "feed": "School feed"
+    "feed": "School feed",
+    "announcements": "Announcements"
   },
   "locale": {
     "label": "Language"
@@ -3600,6 +3601,456 @@
           "description": "Shows machine translation of posts and comments. Only the text, with children's names hidden, is sent to the translation service. Switch it on only when the school has agreed to this."
         }
       }
+    },
+    "announcements": {
+      "title": "Announcements",
+      "subtitle": "Write to families, staff and classes, and see who has read it.",
+      "tabsLabel": "Show",
+      "tabs": {
+        "school": "School",
+        "mine": "Mine",
+        "all": "Everything written"
+      },
+      "statusTabs": {
+        "ALL": "All",
+        "DRAFT": "Drafts",
+        "SCHEDULED": "Scheduled",
+        "PUBLISHED": "Published",
+        "WITHDRAWN": "Withdrawn"
+      },
+      "status": {
+        "DRAFT": "Draft",
+        "SCHEDULED": "Scheduled",
+        "PUBLISHED": "Published",
+        "WITHDRAWN": "Withdrawn"
+      },
+      "new": "New announcement",
+      "inbox": "My inbox",
+      "empty": {
+        "school": "No announcements have been published for this school yet.",
+        "mine": "You haven't written anything here yet.",
+        "all": "Nothing has been written yet."
+      },
+      "loadFailed": "We couldn't load the announcements.",
+      "disabled": "Announcements are switched off for this school.",
+      "types": {
+        "NORMAL": "Normal",
+        "IMPORTANT": "Important",
+        "URGENT": "Urgent",
+        "SAFETY": "Safety"
+      },
+      "typeHelp": {
+        "NORMAL": "Everyday news.",
+        "IMPORTANT": "Something people should not miss.",
+        "URGENT": "Needs attention right now.",
+        "SAFETY": "About the safety of children or the school."
+      },
+      "card": {
+        "new": "New",
+        "by": "By {name}",
+        "published": "Published {when}",
+        "scheduledFor": "Scheduled for {when}",
+        "saved": "Saved {when}",
+        "withdrawn": "Withdrawn {when}",
+        "recipients": "{count} recipients",
+        "needsAck": "Please acknowledge",
+        "acknowledged": "Acknowledged",
+        "asksAck": "Asks for acknowledgement",
+        "open": "Open"
+      },
+      "composer": {
+        "newTitle": "New announcement",
+        "editTitle": "Edit announcement",
+        "editPublishedTitle": "Edit a published announcement",
+        "subtitle": "Write it once, choose who receives it, and the app does the rest.",
+        "loading": "Loading…",
+        "loadFailed": "We couldn't open the composer.",
+        "noAccess": "You can't write announcements here. A school administrator, or the lead teacher of a class, can.",
+        "type": "Type",
+        "typeWarning": "Urgent and safety announcements ignore quiet hours and mute settings. Phones will sound even at night, and nobody can switch them off. Use them only when something cannot wait.",
+        "title": "Title",
+        "titlePlaceholder": "A short headline",
+        "body": "Message",
+        "bodyPlaceholder": "What do families need to know?",
+        "plainText": "Plain text only. Web addresses that start with http:// or https:// become links.",
+        "counter": "{count} of {max} characters",
+        "language": "Written in",
+        "languages": {
+          "en": "English",
+          "am": "Amharic"
+        },
+        "translations": "Translations",
+        "translationsHelp": "Optional. People who use the app in that language read your translation instead. Write it yourself: the app never translates for you.",
+        "addTranslation": "Add a translation in {language}",
+        "removeTranslation": "Remove the {language} translation",
+        "translationTitle": "Title in {language}",
+        "translationBody": "Message in {language}",
+        "audience": {
+          "title": "Who should receive it?",
+          "kind": "Send to",
+          "kinds": {
+            "SCHOOL": "The whole school",
+            "CAMPUS": "A campus",
+            "GRADE_LEVEL": "A grade",
+            "CLASS": "Classes",
+            "USER": "Chosen people"
+          },
+          "roles": "Reach",
+          "roleLabels": {
+            "GUARDIAN": "Parents and guardians",
+            "STUDENT": "Students",
+            "STAFF": "Staff"
+          },
+          "campuses": "Campuses",
+          "grades": "Grades",
+          "classes": "Classes",
+          "none": "There is nothing to choose from yet.",
+          "loadFailed": "We couldn't load the list.",
+          "ownClasses": "You can write to the classes you lead or manage.",
+          "locked": "This announcement's audience was set up another way and stays as it is. It can't be edited here.",
+          "summary": {
+            "SCHOOL": "The whole school",
+            "CAMPUS": "{count} campuses",
+            "GRADE_LEVEL": "{count} grades",
+            "CLASS": "{count} classes",
+            "USER": "{count} chosen people"
+          },
+          "explainTitle": "Who will receive this",
+          "explainWhere": {
+            "SCHOOL": "the whole school",
+            "CAMPUS": "the chosen campuses",
+            "GRADE_LEVEL": "the chosen grades",
+            "CLASS": "the chosen classes"
+          },
+          "explainRole": {
+            "GUARDIAN": "Parents and guardians of the children in {where}. They are reached through their children: only confirmed guardians who accept notifications count, and each person is told once however many children they have.",
+            "STUDENT": "The students in {where}.",
+            "STAFF": "The teachers and staff of {where}."
+          },
+          "explainUsers": "The people you chose, whatever their role at the school. You can only choose people who are connected to your school, or to your classes if you are a teacher.",
+          "explainNobody": "Choose who to send it to.",
+          "explainNote": "You are never counted as a recipient. People who join later can still open the announcement but are not notified. The exact number is shown before you publish."
+        },
+        "people": {
+          "title": "Chosen people",
+          "none": "Nobody chosen yet.",
+          "count": "{count} chosen",
+          "remove": "Remove {name}",
+          "removeUnnamed": "Remove this person",
+          "clear": "Start the list over",
+          "unnamed": "A person chosen earlier",
+          "modeChild": "Through a child",
+          "modeStaff": "Staff",
+          "searchChild": "Find a child",
+          "searchStaff": "Find a staff member",
+          "search": "Type a name",
+          "pickClass": "Class",
+          "pickClassNone": "Choose a class",
+          "guardiansOf": "Guardians of {name}",
+          "theStudent": "{name} (the student)",
+          "noGuardians": "This child has no confirmed guardians.",
+          "loading": "Loading…",
+          "noResults": "No one found.",
+          "failed": "We couldn't load the list.",
+          "limit": "You can choose up to {max} people.",
+          "add": "Add",
+          "choose": "Choose"
+        },
+        "channels": {
+          "title": "How should it reach people?",
+          "inApp": "In the app (always)",
+          "push": "Notification on phones",
+          "email": "Email",
+          "emailHelp": "The email names the announcement and sends people to the app.",
+          "sms": "Text message (SMS)",
+          "smsHelp": "Only for the types the school allows ({types}). At most {perAnnouncement} texts per announcement and {perDay} per day for the school: the rest still get the app and push.",
+          "smsNotForType": "Text messages are not available for this type of announcement.",
+          "optOut": "People who turned off email or text messages in their settings are skipped, even for urgent announcements."
+        },
+        "acknowledge": {
+          "label": "Ask people to confirm they have read it",
+          "help": "Everyone gets an \"I have read this\" button, and you can see who has not pressed it yet.",
+          "notNormal": "Available for important, urgent and safety announcements."
+        },
+        "when": {
+          "title": "When should it go out?",
+          "now": "Publish now",
+          "schedule": "Schedule",
+          "draft": "Save as draft",
+          "scheduleAt": "Date and time, in school time ({zone})",
+          "willSend": "It will be sent {when}, school time.",
+          "draftHelp": "A draft is saved for you only. Nothing is sent."
+        },
+        "problems": {
+          "titleRequired": "Write a title.",
+          "titleTooLong": "The title is too long.",
+          "bodyRequired": "Write the message.",
+          "bodyTooLong": "The message is too long.",
+          "audienceEmpty": "Choose who should receive it.",
+          "rolesEmpty": "Choose who to reach: parents and guardians, students or staff.",
+          "translationIncomplete": "Each translation needs both a title and a message.",
+          "scheduleInvalid": "Pick a date and time that exist.",
+          "schedulePast": "Pick a time in the future.",
+          "scheduleTooFar": "Pick a time within the next 180 days."
+        },
+        "submit": {
+          "now": "Review and publish",
+          "schedule": "Review and schedule",
+          "draft": "Save draft",
+          "save": "Save changes"
+        },
+        "cancel": "Cancel",
+        "draftSaved": "Draft saved.",
+        "saved": "Changes saved.",
+        "published": "Announcement published.",
+        "scheduledDone": "Announcement scheduled.",
+        "failed": "We couldn't save the announcement. Your text is still here.",
+        "leaveWarning": "You have unsaved text. Leave without saving?"
+      },
+      "publish": {
+        "title": "Ready to send?",
+        "scheduleTitle": "Ready to schedule?",
+        "counting": "Counting who would receive it…",
+        "summary": "This will reach {recipients} people: {guardians} parents and guardians, {students} students and {staff} staff.",
+        "nobody": "Nobody would receive this announcement with the audience you chose. Go back and change the audience.",
+        "large": "This is a large audience. Read the text once more: a published announcement can be edited or withdrawn, but not unsent.",
+        "urgent": "This is an urgent or safety announcement. Phones will sound even during quiet hours.",
+        "previewFailed": "We couldn't count the recipients. You can still continue.",
+        "savedAsDraft": "Your text is safe as a draft.",
+        "checked": "I have checked the text and the audience.",
+        "confirmNow": "Publish now",
+        "confirmSchedule": "Schedule for {when}",
+        "back": "Back to editing",
+        "working": "Sending…"
+      },
+      "detail": {
+        "back": "Back to announcements",
+        "loadFailed": "We couldn't open this announcement. It may have been removed, or it isn't addressed to you.",
+        "new": "New",
+        "by": "By {name}",
+        "publishedAt": "Published {when}",
+        "scheduledFor": "Scheduled for {when}",
+        "editedAt": "Edited {when}",
+        "version": "Version {revision}",
+        "typeLabel": "Type: {type}",
+        "withdrawnTitle": "This announcement was withdrawn",
+        "withdrawnAt": "Withdrawn {when}.",
+        "withdrawnReason": "Reason: {reason}",
+        "withdrawnNoReason": "The school did not give a reason.",
+        "withdrawnBody": "The message is no longer available.",
+        "readIn": "Read in",
+        "original": "{language} (original)",
+        "audience": "Audience",
+        "channels": "Channels",
+        "channelNames": {
+          "IN_APP": "In the app",
+          "PUSH": "Push",
+          "EMAIL": "Email",
+          "SMS": "Text message"
+        },
+        "recipientCount": "{count} recipients",
+        "roleNames": {
+          "GUARDIAN": "Parents and guardians",
+          "STUDENT": "Students",
+          "STAFF": "Staff"
+        },
+        "asksAck": "Asks people to confirm they have read it.",
+        "scheduleFailed": "This announcement could not go out at its scheduled time and went back to a draft. Check the audience, then publish it again.",
+        "manage": "Manage in the school workspace",
+        "preview": "Who would receive it",
+        "previewResult": "{recipients} people: {guardians} parents and guardians, {students} students, {staff} staff.",
+        "previewFailed": "We couldn't count the recipients."
+      },
+      "ack": {
+        "needs": "Please confirm that you have read this.",
+        "again": "This announcement was updated. Please confirm that you have read the new version.",
+        "button": "I have read this",
+        "buttonAgain": "I have read the new version",
+        "saving": "Saving…",
+        "done": "Thank you. You confirmed on {when}.",
+        "failed": "We couldn't save your confirmation. Please try again."
+      },
+      "actions": {
+        "edit": "Edit",
+        "publish": "Publish",
+        "schedule": "Schedule",
+        "unschedule": "Back to draft",
+        "withdraw": "Withdraw",
+        "delete": "Delete draft",
+        "report": "Delivery report",
+        "failed": "That didn't work. Please try again.",
+        "unscheduled": "The announcement is a draft again.",
+        "scheduleAt": "Date and time, in school time ({zone})"
+      },
+      "withdrawDialog": {
+        "title": "Withdraw this announcement?",
+        "description": "People will see that it was withdrawn and the reason you give, but no longer the message. They are told it was withdrawn. This can't be undone.",
+        "reason": "Reason people will see (optional)",
+        "reasonPlaceholder": "For example: the trip was cancelled",
+        "confirm": "Withdraw",
+        "done": "The announcement was withdrawn."
+      },
+      "deleteDialog": {
+        "title": "Delete this draft?",
+        "description": "The draft is deleted for good. Nobody has been told about it.",
+        "confirm": "Delete",
+        "done": "The draft was deleted."
+      },
+      "revisions": {
+        "title": "Edit history",
+        "empty": "This announcement has not been edited since it was published.",
+        "version": "Version {revision}",
+        "by": "Replaced by {name} on {when}",
+        "byUnknown": "Replaced on {when}",
+        "material": "People were told",
+        "silent": "Quiet correction",
+        "note": "Note: {note}",
+        "loadFailed": "We couldn't load the edit history."
+      },
+      "edit": {
+        "materialTitle": "Do people need to know about this change?",
+        "materialYes": "Notify people about this change",
+        "materialYesHelp": "Everyone who received it is told it was updated, and anyone who had to acknowledge it is asked to confirm again.",
+        "materialNo": "Quiet correction",
+        "materialNoHelp": "For typos and small fixes. Nobody is notified.",
+        "materialRequired": "Choose whether to notify people.",
+        "changeNote": "What changed? (optional)",
+        "changeNoteHelp": "Shown in the edit history to the author and managers.",
+        "locked": "After publishing you can change the text and its translations. The audience, type, channels and acknowledgement can't change: withdraw this announcement and write a new one for that.",
+        "nothingChanged": "Nothing has changed yet.",
+        "language": "Written in"
+      },
+      "report": {
+        "title": "Delivery report",
+        "back": "Back to the announcement",
+        "loadFailed": "We couldn't load the report.",
+        "notPublished": "The report is available once the announcement is published.",
+        "recipients": "Recipients",
+        "delivered": "Delivered in the app",
+        "failed": "Problems sending",
+        "read": "Read",
+        "acknowledged": "Acknowledged",
+        "ofRecipients": "of {total}",
+        "lateReaders": "Opened by people added later",
+        "lateHelp": "People who were linked to the school after it went out, and opened it anyway. They are not counted as recipients.",
+        "reminders": "Reminders sent",
+        "lastReminder": "Last reminder {when}",
+        "deliveryRunning": "Still being delivered. These numbers keep growing for a few minutes.",
+        "deliveryComplete": "Delivery has finished.",
+        "channelsTitle": "Push, email and text messages",
+        "channel": {
+          "push": "Push",
+          "email": "Email",
+          "sms": "Text message"
+        },
+        "sent": "Sent",
+        "channelFailed": "Failed",
+        "skipped": "Skipped",
+        "pending": "Waiting",
+        "filterLabel": "Show",
+        "filters": {
+          "ALL": "Everyone",
+          "UNREAD": "Not read",
+          "UNACKNOWLEDGED": "Not acknowledged",
+          "ACKNOWLEDGED": "Acknowledged",
+          "FAILED": "Problems sending"
+        },
+        "table": {
+          "caption": "Recipients and what happened to the announcement for each of them",
+          "name": "Name",
+          "role": "Role",
+          "child": "Through child",
+          "contact": "Contact",
+          "push": "Push",
+          "email": "Email",
+          "sms": "Text",
+          "read": "Read",
+          "acknowledged": "Acknowledged",
+          "notYet": "Not yet",
+          "empty": "Nobody matches this filter.",
+          "version": "version {revision}"
+        },
+        "roles": {
+          "GUARDIAN": "Guardian",
+          "STUDENT": "Student",
+          "STAFF": "Staff"
+        },
+        "states": {
+          "sent": "Sent",
+          "failed": "Failed",
+          "waiting": "Waiting",
+          "held": "Held for quiet hours",
+          "suppressed": "Switched off",
+          "skipped": "Skipped",
+          "none": "Not used"
+        },
+        "export": "Download CSV",
+        "exported": "The CSV file was downloaded.",
+        "exportFailed": "We couldn't download the file.",
+        "exportNote": "The file lists names and what happened, without phone numbers or email addresses.",
+        "remind": {
+          "button": "Remind people who haven't acknowledged",
+          "title": "Send a reminder?",
+          "description": "Everyone who has not acknowledged yet gets a reminder in the app and on their phone. A reminder can be sent about once every {hours} hours, and at most five times.",
+          "confirm": "Send reminder",
+          "done": "Reminder sent to {count} people.",
+          "failed": "We couldn't send the reminder.",
+          "retryIn": "You can send another reminder in {hours} h {minutes} min."
+        }
+      },
+      "preferences": {
+        "urgentLocked": "Urgent and safety announcements always reach you. They ignore quiet hours and can't be muted here."
+      },
+      "channelPrefs": {
+        "title": "Email and text messages",
+        "description": "Announcements from your school can also reach you by email or text message. Push notifications are set above.",
+        "email": "Announcements by email",
+        "sms": "Announcements by text message (SMS)",
+        "urgentNote": "These switches apply to urgent announcements too: if you switch them off, only the app and push notifications reach you.",
+        "blocked": "This phone number opted out with the text message provider. Only the provider can undo that.",
+        "loadFailed": "We couldn't load these settings.",
+        "saveFailed": "We couldn't save that. Please try again.",
+        "saved": "Saved."
+      },
+      "settings": {
+        "module": "Announcements",
+        "teachersCanAnnounce": {
+          "title": "Teachers can announce to their classes",
+          "description": "Lead and co-teachers may write to the guardians and students of their own classes. School announcement managers always may."
+        },
+        "studentsEnabled": {
+          "title": "Announcements can reach students",
+          "description": "Off by default: children read what the school sends to their families."
+        },
+        "emailEnabled": {
+          "title": "Announcements by email",
+          "description": "Allow email as a channel (only where the platform has outgoing email set up)."
+        },
+        "smsEnabled": {
+          "title": "Announcements by text message",
+          "description": "Allow SMS as a channel. Off by default: it costs money and needs a text message provider."
+        },
+        "smsTypes": {
+          "title": "Types that may use text messages",
+          "description": "Which kinds of announcement may be sent by SMS when SMS is on. Default: urgent and safety."
+        },
+        "smsMaxPerAnnouncement": {
+          "title": "Text messages per announcement",
+          "description": "At most this many texts for one announcement. The rest get the app and push."
+        },
+        "smsMaxPerDay": {
+          "title": "Text messages per day",
+          "description": "At most this many announcement texts per day for the whole school (school time)."
+        },
+        "emailIncludeBody": {
+          "title": "Include the message in emails",
+          "description": "Off by default: email leaves the platform, so it only names the announcement and sends people to the app."
+        },
+        "reminderMinHours": {
+          "title": "Hours between reminders",
+          "description": "How long to wait before reminding people who have not acknowledged an announcement again."
+        }
+      }
     }
   },
   "family": {
@@ -3799,6 +4250,35 @@
         "sharedToast": "Shared with the class."
       },
       "contributeButton": "Share a photo or note"
+    },
+    "announcements": {
+      "title": "Announcements",
+      "subtitle": "News and notices from your school.",
+      "link": "Announcements",
+      "linkUnread": "Announcements, {unread} unread",
+      "linkNeedsAck": "Announcements, {unread} unread, {ack} waiting for your acknowledgement",
+      "filter": "Show",
+      "filters": {
+        "ALL": "All",
+        "UNREAD": "Unread",
+        "NEEDS_ACKNOWLEDGEMENT": "Needs acknowledgement"
+      },
+      "sortLabel": "Order",
+      "sorts": {
+        "NEWEST": "Newest first",
+        "UNREAD_FIRST": "Unread first"
+      },
+      "summaryUnread": "{count} unread",
+      "summaryAck": "{count} waiting for your acknowledgement",
+      "empty": {
+        "ALL": "No announcements yet. When your school sends one, it shows up here.",
+        "UNREAD": "You have read everything.",
+        "NEEDS_ACKNOWLEDGEMENT": "Nothing is waiting for your acknowledgement."
+      },
+      "loadFailed": "We couldn't load your announcements.",
+      "backToList": "All announcements",
+      "home": "Home",
+      "detailTitle": "Announcement"
     }
   },
   "invite": {

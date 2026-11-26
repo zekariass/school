@@ -18,6 +18,7 @@ import { SP } from "@/lib/school/access";
 import { ATTENDANCE_MODULE, attendanceSettingId } from "@/lib/attendance/settings";
 import { ENGAGEMENT_MODULE, engagementSettingId } from "@/lib/points/settings";
 import { FEED_MODULE, feedSettingId } from "@/lib/feed/settings";
+import { ANNOUNCEMENTS_MODULE, announcementSettingId } from "@/lib/announcements/settings";
 import { groupSettings, type SettingGroup } from "@/lib/school/settings";
 import { definitionsKey, fetchConfiguration, fetchDefinitions, sk } from "@/lib/school/queries";
 import { PageHeader } from "./page-header";
@@ -72,12 +73,13 @@ function ModuleCard({ group }: { group: SettingGroup }) {
   const tp = useTranslations("school.points.settings");
   const ta = useTranslations("school.attendance.settings");
   const tf = useTranslations("school.feed.settings");
-  const localized = group.module === ENGAGEMENT_MODULE || group.module === ATTENDANCE_MODULE || group.module === FEED_MODULE;
+  const tn = useTranslations("school.announcements.settings");
+  const localized = group.module === ENGAGEMENT_MODULE || group.module === ATTENDANCE_MODULE || group.module === FEED_MODULE || group.module === ANNOUNCEMENTS_MODULE;
   return (
     <Card>
       <CardHeader>
         <CardTitle className={localized ? "text-lg" : "text-lg capitalize"}>
-          {group.module === ENGAGEMENT_MODULE ? tp("module") : group.module === ATTENDANCE_MODULE ? ta("module") : group.module === FEED_MODULE ? tf("module") : group.module}
+          {group.module === ENGAGEMENT_MODULE ? tp("module") : group.module === ATTENDANCE_MODULE ? ta("module") : group.module === FEED_MODULE ? tf("module") : group.module === ANNOUNCEMENTS_MODULE ? tn("module") : group.module}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -95,11 +97,13 @@ function SettingRow({ setting }: { setting: SettingGroup["settings"][number] }) 
   const tp = useTranslations("school.points.settings");
   const ta = useTranslations("school.attendance.settings");
   const tf = useTranslations("school.feed.settings");
+  const tn = useTranslations("school.announcements.settings");
   const engagementId = engagementSettingId(setting.key);
   const attendanceId = attendanceSettingId(setting.key);
   const feedId = feedSettingId(setting.key);
-  const localizedTitle = engagementId ? tp(`${engagementId}.title`) : attendanceId ? ta(`${attendanceId}.title`) : feedId ? tf(`${feedId}.title`) : null;
-  const localizedDescription = engagementId ? tp(`${engagementId}.description`) : attendanceId ? ta(`${attendanceId}.description`) : feedId ? tf(`${feedId}.description`) : null;
+  const announcementId = announcementSettingId(setting.key);
+  const localizedTitle = engagementId ? tp(`${engagementId}.title`) : attendanceId ? ta(`${attendanceId}.title`) : feedId ? tf(`${feedId}.title`) : announcementId ? tn(`${announcementId}.title`) : null;
+  const localizedDescription = engagementId ? tp(`${engagementId}.description`) : attendanceId ? ta(`${attendanceId}.description`) : feedId ? tf(`${feedId}.description`) : announcementId ? tn(`${announcementId}.description`) : null;
   const { school } = useSchool();
   const kind = editorKindFor(setting.valueSchema);
   const stored = toEditorText(kind, setting.value);

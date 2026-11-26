@@ -194,7 +194,10 @@ public final class AnnouncementModels {
 	public record AnnouncementCapabilities(@NotNull boolean canCompose, @NotNull boolean schoolWide,
 			@NotNull boolean urgentAllowed, @NotNull boolean studentsEnabled, @NotNull boolean emailAvailable,
 			@NotNull boolean smsAvailable, @NotNull List<AnnouncementType> smsTypes,
-			@NotNull List<AnnouncementClassRef> classes, @NotNull int reminderMinHours) {
+			@NotNull List<AnnouncementClassRef> classes, @NotNull int reminderMinHours,
+			@Schema(description = "IANA time zone of the school: clients show and pick scheduled times in it, never in the device's zone") @NotNull String timeZone,
+			@Schema(description = "Texts one announcement may send (announcements.sms.max_per_announcement)") @NotNull int smsMaxPerAnnouncement,
+			@Schema(description = "Texts the school may send per school day (announcements.sms.max_per_day)") @NotNull int smsMaxPerDay) {
 	}
 
 	public record AnnouncementClassRef(@NotNull UUID id, @NotNull String name) {

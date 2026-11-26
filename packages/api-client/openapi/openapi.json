@@ -13907,6 +13907,16 @@
           "smsAvailable" : {
             "type" : "boolean"
           },
+          "smsMaxPerAnnouncement" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Texts one announcement may send (announcements.sms.max_per_announcement)"
+          },
+          "smsMaxPerDay" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Texts the school may send per school day (announcements.sms.max_per_day)"
+          },
           "smsTypes" : {
             "type" : "array",
             "items" : {
@@ -13917,11 +13927,15 @@
           "studentsEnabled" : {
             "type" : "boolean"
           },
+          "timeZone" : {
+            "type" : "string",
+            "description" : "IANA time zone of the school: clients show and pick scheduled times in it, never in the device's zone"
+          },
           "urgentAllowed" : {
             "type" : "boolean"
           }
         },
-        "required" : [ "canCompose", "classes", "emailAvailable", "reminderMinHours", "schoolWide", "smsAvailable", "smsTypes", "studentsEnabled", "urgentAllowed" ]
+        "required" : [ "canCompose", "classes", "emailAvailable", "reminderMinHours", "schoolWide", "smsAvailable", "smsMaxPerAnnouncement", "smsMaxPerDay", "smsTypes", "studentsEnabled", "timeZone", "urgentAllowed" ]
       },
       "AnnouncementCard" : {
         "type" : "object",
