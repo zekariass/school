@@ -1,9 +1,9 @@
 # Safeguarding and moderation rules (M13): draft for the owner
 
-*Status: **DRAFT for owner review**, written 26 November 2026, before any M13 code. Nothing here is implemented yet. Where the
-spec (§131, R-18) is silent, the more protective choice was taken; each such place is marked **(decision needed)** or
-**(drafted: confirm)**. Legal points (child-protection reporting duties, retention periods, breach notification under
-Proclamation 1321/2024) **need counsel** and are only flagged, never decided, here.*
+*Status: **OWNER-CONFIRMED on 26 November 2026**: the owner accepted every recommended answer to the open questions (see
+"Decisions" below). Nothing here is implemented yet. Legal points (child-protection reporting duties, retention periods,
+breach notification under Proclamation 1321/2024) **still need counsel**: the numbers below are placeholders until counsel
+confirms them, and are settings, not code.*
 
 The pipeline (R-18) is: **reports** (anyone who sees something) → **moderation cases** (grouped by target, decided by a human)
 → **safeguarding incidents** (serious cases and direct concerns, visible only to safeguarding leads). Messaging already has its
@@ -115,8 +115,8 @@ will add one. M13 connects them.
    platform.
 7. **Escalation and notification:** HIGH and CRITICAL notify every safeguarding lead of the school at once; if the school has
    none, the platform safeguarding leads (generic text, no names, no content). **A school must designate at least one safeguarding
-   lead before it can switch on student messaging or student contributions (a capability check and a warning in the school
-   settings; drafted: confirm whether to enforce).**
+   lead before it can switch on student messaging (`messaging.student.*`) or student contributions: the settings change is refused
+   with a clear message until a lead is designated (decided: enforced).**
 8. **Nobody is told automatically.** Guardians of the concerned student, the school administrator, the reported adult and the
    reporter are **not** notified by the system about an incident. Telling the child's guardians, referring to an authority or
    reporting a data breach is a **human decision recorded in the incident** (`guardian_informed_at`, `referred_at`). **Whether
@@ -179,7 +179,23 @@ will add one. M13 connects them.
   (7), `safeguarding.require_lead_for_student_messaging` (true).
 - Feature flag: `moderation`.
 
-## Open questions for the owner (please answer before implementation)
+## Decisions (owner-confirmed 26 November 2026: the recommended answers)
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | May school administrators see who reported? | **No.** They see the reporter's role only; identity is for safeguarding leads and platform moderators |
+| 2 | May a platform administrator read incident contents? | **No.** Audited counts and the audit rows of safeguarding reads only |
+| 3 | Must a school designate a safeguarding lead before student messaging or student contributions? | **Yes, enforced.** The settings change is refused until a lead is designated (the principal may be the lead) |
+| 4 | Legal duties, retention | **Counsel.** Placeholders (incidents 7 years, ordinary cases 2 years) stay settings until counsel confirms |
+| 5 | Are guardians of the concerned student notified automatically? | **No.** Only by a recorded human decision |
+| 6 | Student report about an adult | **HIGH priority, safeguarding leads notified at once** |
+| 7 | Case about a school administrator or moderator | **Skips the school queue** and goes to the platform queue |
+| 8 | Encryption keys | **One platform key with a key id and rotation**; a key per school later if schools ask |
+| 9 | Screenshots on a student's report | **Not in M13** |
+| 10 | Emergency line per country | The screens read a **per-country configurable text**; the Ethiopia default is a placeholder ("if a child is in danger contact the local authorities") flagged **unreviewed**; the owner supplies the final wording and numbers |
+| 11 | Amharic wording | Draft; **native-speaker and, ideally, child-protection review before any pilot** |
+
+## Original open questions (answered above, kept for the record)
 
 1. **Reporter identity:** may school administrators see who reported (S1.7)? Drafted: no, role only.
 2. **Platform administrators and incidents (S4.2):** no access to incident contents; only audited counts. Agree?
