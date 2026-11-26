@@ -36,7 +36,8 @@ insert into permissions (code, module, description) values
   ('school.safeguarding.read',       'safeguarding',  'Read safeguarding incidents of the school and the identity of reporters of cases (SAFEGUARDING_LEAD roles only, never administrators)'),
   ('school.safeguarding.manage',     'safeguarding',  'Work safeguarding incidents: notes, status, assignment, referral, guardian-informed record, legal hold, priority of cases (SAFEGUARDING_LEAD roles only)'),
   ('platform.moderation.manage',     'moderation',    'Work the platform moderation queue (cases about school administrators and platform-scope targets, escalations) and set a legal hold on cases'),
-  ('platform.users.lock',            'identity',      'Lock and unlock an account platform-wide (all sessions end at once)')
+  ('platform.users.lock',            'identity',      'Lock and unlock an account platform-wide (all sessions end at once)'),
+  ('school.portfolios.review',      'portfolio',     'Review, comment on, archive and delete student portfolio items of the school (administrator oversight; class teachers review through their class)')
 on conflict (code) do update
   set module = excluded.module,
       description = excluded.description;
@@ -92,6 +93,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('PLATFORM_ADMIN', 'school.moderation.manage'),
   ('PLATFORM_ADMIN', 'platform.moderation.manage'),
   ('PLATFORM_ADMIN', 'platform.users.lock'),
+  ('PLATFORM_ADMIN', 'school.portfolios.review'),
   -- Country: organizations, schools and settings within the country; no plans or feature flags.
   ('COUNTRY_ADMIN', 'platform.organizations.manage'),
   ('COUNTRY_ADMIN', 'platform.schools.manage'),
@@ -118,6 +120,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('COUNTRY_ADMIN', 'school.messaging.review'),
   ('COUNTRY_ADMIN', 'school.calendar.manage'),
   ('COUNTRY_ADMIN', 'school.moderation.manage'),
+  ('COUNTRY_ADMIN', 'school.portfolios.review'),
   -- Organization: its schools (create, status, campuses, school settings) and their admins.
   ('ORGANIZATION_ADMIN', 'platform.schools.manage'),
   ('ORGANIZATION_ADMIN', 'platform.roles.manage'),
@@ -142,6 +145,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('ORGANIZATION_ADMIN', 'school.messaging.review'),
   ('ORGANIZATION_ADMIN', 'school.calendar.manage'),
   ('ORGANIZATION_ADMIN', 'school.moderation.manage'),
+  ('ORGANIZATION_ADMIN', 'school.portfolios.review'),
   -- School: its own school, campuses and school-level settings.
   ('SCHOOL_ADMIN', 'school.read'),
   ('SCHOOL_ADMIN', 'school.manage'),
@@ -164,6 +168,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('SCHOOL_ADMIN', 'school.messaging.review'),
   ('SCHOOL_ADMIN', 'school.calendar.manage'),
   ('SCHOOL_ADMIN', 'school.moderation.manage'),
+  ('SCHOOL_ADMIN', 'school.portfolios.review'),
   -- The four school-operations permissions (M3a) are held by every administrator who may grant SCHOOL_ADMIN
   -- (platform, country, organization): granting needs every permission of the role (no escalation), so withholding
   -- them would only move the data access to a school administrator they appoint.

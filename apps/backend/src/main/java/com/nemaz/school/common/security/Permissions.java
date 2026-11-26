@@ -133,6 +133,12 @@ public final class Permissions {
 	/** Lock and unlock an account platform-wide (every session ends). */
 	public static final String PLATFORM_USERS_LOCK = "platform.users.lock";
 
+	/**
+	 * Administrator oversight of student portfolios (M12a): review, comment on, archive and delete items of the school. Class
+	 * teachers review the items of their own classes through their class membership, without it.
+	 */
+	public static final String SCHOOL_PORTFOLIOS_REVIEW = "school.portfolios.review";
+
 	/** Every permission code, in seed order. */
 	public static final List<String> ALL = List.of(PLATFORM_ORGANIZATIONS_MANAGE, PLATFORM_SCHOOLS_MANAGE,
 			PLATFORM_SUBSCRIPTIONS_MANAGE, PLATFORM_FEATURES_MANAGE, PLATFORM_SETTINGS_MANAGE, PLATFORM_ROLES_MANAGE,
@@ -141,7 +147,8 @@ public final class Permissions {
 			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ, SCHOOL_FEED_MANAGE,
 			SCHOOL_ANNOUNCEMENTS_MANAGE, SCHOOL_ANNOUNCEMENTS_URGENT, SCHOOL_MESSAGING_MODERATE, SCHOOL_MESSAGING_REVIEW, SCHOOL_CALENDAR_MANAGE,
 			SCHOOL_MODERATION_MANAGE, SCHOOL_SAFEGUARDING_READ, SCHOOL_SAFEGUARDING_MANAGE, PLATFORM_MODERATION_MANAGE,
-			PLATFORM_USERS_LOCK);
+			PLATFORM_USERS_LOCK,
+			SCHOOL_PORTFOLIOS_REVIEW);
 
 	private Permissions() {
 	}

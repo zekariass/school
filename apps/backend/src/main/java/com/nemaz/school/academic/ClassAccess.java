@@ -63,6 +63,13 @@ public interface ClassAccess {
 	 */
 	SqlFragment teachableClasses(CurrentUser user, String classAlias);
 
+	/**
+	 * Like {@link #visibleClasses} but only for {@link #canManage}: the classes covered by a {@code class.manage} grant (a
+	 * school, campus, organization, country or platform scope), never a membership. For queries that must tell managers from
+	 * members (portfolio review).
+	 */
+	SqlFragment manageableClasses(CurrentUser user, String classAlias);
+
 	/** Like {@link #visibleClasses} but for {@link #canViewRoster}: members and managers, without contributed rules. */
 	SqlFragment rosterVisibleClasses(CurrentUser user, String classAlias);
 
