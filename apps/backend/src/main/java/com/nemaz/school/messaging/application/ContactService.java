@@ -211,7 +211,7 @@ public class ContactService {
 			.orElse(null);
 		return new MessagingCapabilitiesView(this.settings.featureEnabled(schoolId),
 				!student && school.parentTeacher() && (teacher || guardian), student && school.studentDirect(),
-				groups, student && this.settings.studentsMayProposeGroups(schoolId), moderate, review,
+				!student && teacher && school.studentsEnabled() && school.teacherDirect(), !student && guardian && school.parentParent(), groups, student && this.settings.studentsMayProposeGroups(schoolId), moderate, review,
 				this.settings.editWindowMinutes(schoolId), MessageText.MAX_LENGTH, this.settings.studentMedia(schoolId),
 				this.settings.translation(schoolId), hours, this.settings.zone(schoolId).getId(), teacher && school.teacherDirect());
 	}

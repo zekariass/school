@@ -96,7 +96,9 @@
     "points": "ነጥቦች እና ባጆች",
     "attendance": "ተገኝነት",
     "feed": "የትምህርት ቤት ዜና",
-    "announcements": "ማስታወቂያዎች"
+    "announcements": "ማስታወቂያዎች",
+    "messaging": "መልዕክቶች",
+    "messageReview": "የደህንነት ግምገማ"
   },
   "locale": {
     "label": "ቋንቋ"
@@ -4668,6 +4670,451 @@
           "description": "ማስታወቂያን ያላረጋገጡ ሰዎችን እንደገና ከማስታወስ በፊት ምን ያህል መጠበቅ እንዳለበት።"
         }
       }
+    },
+    "messaging": {
+      "aboutChild": "ስለ {child}",
+      "person": {
+        "guardianOf": "የ{student} {relationship}",
+        "yourGuardian": "የእርስዎ {relationship}",
+        "parent": "ወላጅ",
+        "unknown": "አንድ ሰው"
+      },
+      "relationship": {
+        "MOTHER": "እናት",
+        "FATHER": "አባት",
+        "GRANDPARENT": "አያት",
+        "SIBLING": "ወንድም ወይም እህት",
+        "AUNT_UNCLE": "አክስት ወይም አጎት",
+        "LEGAL_GUARDIAN": "ህጋዊ አሳዳጊ",
+        "OTHER": "የቤተሰብ አባል"
+      },
+      "role": {
+        "OWNER": "ባለቤት",
+        "MODERATOR": "አስተዳዳሪ",
+        "MEMBER": "አባል",
+        "OBSERVER": "ተመልካች (ማንበብ ብቻ)"
+      },
+      "kind": {
+        "direct": "ውይይት",
+        "GROUP": "ቡድን",
+        "GUARDIAN_TEACHER": "ወላጅና መምህር",
+        "GUARDIAN_GUARDIAN": "ወላጅና ወላጅ",
+        "TEACHER_STUDENT": "መምህርና ተማሪ",
+        "STUDENT_STUDENT": "ተማሪና ተማሪ",
+        "CLASS_STUDENTS": "የክፍል ውይይት",
+        "CLASS_PARENTS": "የክፍሉ ወላጆች",
+        "STAFF": "የሠራተኞች ቡድን",
+        "STUDENT_GROUP": "የተማሪዎች ቡድን",
+        "SCHOOL_STAFF": "የትምህርት ቤቱ ሠራተኞች"
+      },
+      "link": {
+        "label": "መልዕክቶች",
+        "unread": "{count, plural, one {መልዕክቶች፣ # ያልተነበበ} other {መልዕክቶች፣ # ያልተነበቡ}}"
+      },
+      "nav": {
+        "label": "የመልዕክት ክፍሎች",
+        "inbox": "የገቢ መልዕክት",
+        "scheduled": "የተያዙ",
+        "groups": "ቡድኖች",
+        "blocked": "የታገዱ ሰዎች"
+      },
+      "inbox": {
+        "title": "መልዕክቶች",
+        "subtitle": "ከመምህራን፣ ከወላጆችና ከክፍሎች ጋር ያሉ ውይይቶች።",
+        "subtitleSchool": "በ{school} ያሉ ውይይቶች።",
+        "new": "አዲስ ውይይት",
+        "empty": "እስካሁን ውይይት የለም። ከመምህር ወይም ከወላጅ ጋር ይጀምሩ።",
+        "emptyStudent": "እስካሁን ውይይት የለም።",
+        "loadFailed": "መልዕክቶችዎን መጫን አልቻልንም።",
+        "aboutChild": "ስለ {child}",
+        "otherConversations": "ሌሎች ውይይቶች"
+      },
+      "row": {
+        "noMessages": "እስካሁን መልዕክት የለም",
+        "deleted": "ይህ መልዕክት ተሰርዟል",
+        "hidden": "ይህ መልዕክት ተደብቋል",
+        "photo": "ፎቶ",
+        "observing": "እየተመለከቱ ነው",
+        "muted": "ድምፅ ጠፍቷል",
+        "unread": "{count, plural, one {# ያልተነበበ መልዕክት} other {# ያልተነበቡ መልዕክቶች}}"
+      },
+      "conversation": {
+        "back": "ወደ መልዕክቶች ተመለስ",
+        "notFound": "ያንን ውይይት ማግኘት አልቻልንም።",
+        "loadFailed": "ይህን ውይይት መጫን አልቻልንም።"
+      },
+      "thread": {
+        "label": "በዚህ ውይይት ያሉ መልዕክቶች",
+        "empty": "እስካሁን መልዕክት የለም። ሰላምታ ይላኩ!",
+        "loadOlder": "ቀደም ያሉ መልዕክቶችን አሳይ",
+        "newMessages": "አዲስ መልዕክቶች"
+      },
+      "banner": {
+        "observerGuardian": "ይህን ውይይት በተመልካችነት እየተመለከቱ ነው። ማንበብ ይችላሉ፤ መጻፍ ግን አይችሉም።",
+        "studentGuardiansCanSee": "አሳዳጊዎ ይህን ውይይት ማየት ይችላል።",
+        "studentReviewable": "ይህ ውይይት የግል አይደለም። የትምህርት ቤቱ የደህንነት ቡድን ሊመለከተው ይችላል።",
+        "adultStudentNotPrivate": "ይህ ውይይት የግል አይደለም። የተማሪው አሳዳጊዎች ወይም የትምህርት ቤቱ የደህንነት ቡድን ሊያነቡት ይችላሉ።",
+        "pendingApproval": "ይህ ቡድን መምህር እስኪያጸድቀው እየጠበቀ ነው። እስካሁን ማንም መጻፍ አይችልም።",
+        "restricted": "በዚህ ውይይት አስተዳዳሪዎች ብቻ መጻፍ ይችላሉ።",
+        "closed": {
+          "LOCKED": "ይህ ውይይት ተቆልፏል። ማንም መጻፍ አይችልም።",
+          "ARCHIVED": "ይህ ውይይት ተቀምጧል (ማህደር ገብቷል)። ማንም መጻፍ አይችልም።"
+        }
+      },
+      "readOnly": {
+        "observer": "ይህን ውይይት እየተመለከቱ ነው፤ ስለዚህ የሚጽፉት ነገር የለም።",
+        "closed": "ይህ ውይይት ተዘግቷል።",
+        "restricted": "ይህን ውይይት ማንበብ ይችላሉ፤ ነገር ግን መጻፍ የሚችሉት አስተዳዳሪዎች ብቻ ናቸው።"
+      },
+      "message": {
+        "you": "ራስዎ",
+        "deleted": "ይህ መልዕክት ተሰርዟል።",
+        "hidden": "አስተዳዳሪ ይህን መልዕክት ደብቆታል።",
+        "edited": "ተስተካክሏል",
+        "scheduled": "ተይዟል",
+        "more": "የመልዕክት አማራጮች",
+        "react": "ምላሽ ስጥ",
+        "reply": "መልስ",
+        "edit": "አስተካክል",
+        "delete": "ሰርዝ",
+        "translate": "ትርጉም አሳይ",
+        "translateFailed": "ይህን መልዕክት መተርጎም አልቻልንም።",
+        "machineTranslated": "በማሽን የተተረጎመ",
+        "report": "ሪፖርት አድርግ",
+        "block": "ይህን ሰው አግድ",
+        "hide": "መልዕክቱን ደብቅ",
+        "unhide": "መልዕክቱን እንደገና አሳይ",
+        "seen": "ታይቷል",
+        "photos": "ፎቶዎች",
+        "photoAlt": "በውይይቱ ውስጥ ያለ ፎቶ",
+        "reactions": "ምላሾች",
+        "reactionCount": "{emoji} {count, plural, one {# ሰው} other {# ሰዎች}}",
+        "replyingTo": "ለ{name} እየመለሱ ነው",
+        "replyingToMessage": "ለአንድ መልዕክት እየመለሱ ነው",
+        "editLabel": "መልዕክትዎን ያስተካክሉ",
+        "editWindow": "{minutes, plural, one {ለ1 ተጨማሪ ደቂቃ ማስተካከል ይችላሉ።} other {ለ# ተጨማሪ ደቂቃዎች ማስተካከል ይችላሉ።}}",
+        "editFailed": "ለውጡን ማስቀመጥ አልቻልንም።",
+        "cancel": "ተወው",
+        "save": "አስቀምጥ",
+        "actionFailed": "አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+      },
+      "system": {
+        "MEMBER_REMOVED": "አንድ አባል ተወግዷል።",
+        "generic": "በዚህ ውይይት ላይ አንድ ነገር ተቀይሯል።"
+      },
+      "report": {
+        "title": "ይህን መልዕክት ሪፖርት ያድርጉ",
+        "description": "ችግሩ ምን እንደሆነ ይንገሩን። የትምህርት ቤቱ ቡድን ይመለከተዋል። መልዕክቱን የጻፈው ሰው ማን ሪፖርት እንዳደረገ አይነገረውም።",
+        "reasonLabel": "ችግሩ ምንድን ነው?",
+        "reasons": {
+          "INAPPROPRIATE": "ተገቢ አይደለም",
+          "BULLYING": "ማስፈራራት ወይም ጨዋነት የጎደለው",
+          "PRIVACY": "የግል መረጃ ያጋራል",
+          "SAFETY": "አንድ ሰው አደጋ ላይ ሊሆን ይችላል",
+          "SPAM": "አላስፈላጊ መልዕክት",
+          "OTHER": "ሌላ ጉዳይ"
+        },
+        "reasonRequired": "እባክዎ ምክንያት ይምረጡ።",
+        "noteLabel": "ተጨማሪ ዝርዝር (አማራጭ)",
+        "noteHint": "እባክዎ የግል መረጃ አይድገሙ።",
+        "submit": "ሪፖርት ላክ",
+        "failed": "ሪፖርቱን መላክ አልቻልንም። እባክዎ እንደገና ይሞክሩ።",
+        "sent": "እናመሰግናለን። ሪፖርትዎ ተልኳል።"
+      },
+      "block": {
+        "title": "ይህን ሰው ማገድ ይፈልጋሉ?",
+        "description": "ከእርሱ ቀጥተኛ መልዕክት አይደርስዎትም፤ በቡድኖችም ውስጥ መልዕክቶቹን አያዩም። በማንኛውም ጊዜ በ«የታገዱ ሰዎች» ውስጥ ማገዱን ማንሳት ይችላሉ።",
+        "confirm": "አግድ",
+        "failed": "ይህን ሰው ማገድ አልቻልንም።"
+      },
+      "delete": {
+        "title": "ይህን መልዕክት መሰረዝ ይፈልጋሉ?",
+        "description": "በውይይቱ ያሉ ሰዎች መልዕክት እንደተሰረዘ ያያሉ። ይህ ሊመለስ አይችልም።",
+        "confirm": "ሰርዝ",
+        "failed": "መልዕክቱን መሰረዝ አልቻልንም።"
+      },
+      "hide": {
+        "title": "ይህን መልዕክት ደብቅ",
+        "description": "አባላት አስተዳዳሪ እንደደበቀው ያያሉ፤ የተጻፈውን ግን አያዩም። ምክንያትዎ በኦዲት መዝገብ ውስጥ ይቀመጣል።",
+        "reason": "ምክንያት",
+        "confirm": "መልዕክቱን ደብቅ"
+      },
+      "reason": {
+        "required": "እባክዎ ምክንያት ይጻፉ።",
+        "hint": "እስከ {max} ፊደላት። የግል መረጃ እዚህ አይቅዱ።",
+        "failed": "አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+      },
+      "composer": {
+        "label": "መልዕክት ይጻፉ",
+        "textLabel": "መልዕክት",
+        "placeholder": "መልዕክት ይጻፉ…",
+        "hint": "Enter ይልካል፣ Shift+Enter አዲስ መስመር ይጀምራል",
+        "counter": "{count} ከ{max} ፊደላት",
+        "send": "ላክ",
+        "failed": "መልዕክቱ አልተላከም። እባክዎ እንደገና ይሞክሩ።",
+        "you": "ራስዎ",
+        "replyingTo": "ለ{name} እየመለሱ ነው",
+        "cancelReply": "መልሱን ተወው",
+        "addPhoto": "ፎቶ ጨምር",
+        "attached": "በዚህ መልዕክት ውስጥ ያሉ ፎቶዎች",
+        "attachedAlt": "የሚላክ ፎቶ {number}",
+        "removeImage": "ፎቶ {number}ን አስወግድ",
+        "afterHours": "ተልኳል። ይህ መምህር ከሥራ ሰዓታቸው ውጪ ስለሆኑ መልዕክቱ ያለ ማሳወቂያ ደርሷል። መተግበሪያውን በሚከፍቱበት ጊዜ ያዩታል።",
+        "scheduledNotice": "መልዕክትዎ እንዲላክ ተይዟል።",
+        "seeScheduled": "የተያዙ መልዕክቶችን ይመልከቱ",
+        "draftWarning": "ያልተላከ መልዕክት አለዎት። ከወጡ ይጠፋል። ለማንኛውም መውጣት ይፈልጋሉ?",
+        "schedule": {
+          "toggle": "በኋላ ላክ",
+          "when": "የሚላክበት ጊዜ (የትምህርት ቤት ሰዓት፣ {zone})",
+          "willSend": "{when} ይላካል።",
+          "submit": "ያዝ",
+          "invalid": "እባክዎ ትክክለኛ ቀንና ሰዓት ይምረጡ።",
+          "past": "እባክዎ ከአሁን ቢያንስ ከሁለት ደቂቃ በኋላ የሆነ ጊዜ ይምረጡ።",
+          "tooFar": "እባክዎ በቀጣዮቹ 90 ቀናት ውስጥ ያለ ጊዜ ይምረጡ።"
+        }
+      },
+      "menu": {
+        "label": "የውይይት አማራጮች",
+        "people": "በዚህ ውይይት ያሉ ሰዎች",
+        "settings": "የቡድን ቅንብሮች",
+        "muteFor": "ማሳወቂያዎችን ዝም አሰኝ ለ",
+        "mute": {
+          "hour": "1 ሰዓት",
+          "eightHours": "8 ሰዓት",
+          "day": "1 ቀን",
+          "week": "1 ሳምንት"
+        },
+        "unmute": "ማሳወቂያዎችን መልሰህ አብራ",
+        "mutedToast": "ማሳወቂያዎች ዝም ተደርገዋል።",
+        "unmutedToast": "ማሳወቂያዎች እንደገና በርተዋል።",
+        "leave": "ይህን ውይይት ልቀቅ",
+        "leaveTitle": "ይህን ውይይት መልቀቅ ይፈልጋሉ?",
+        "leaveDescription": "መልዕክቶቹ መድረስ ያቆማሉ። አስተዳዳሪ መልሶ ሊያክልዎት ይችላል።",
+        "leaveConfirm": "ልቀቅ",
+        "failed": "አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+      },
+      "members": {
+        "title": "በዚህ ውይይት ያሉ ሰዎች",
+        "description": "መምህራንና ተማሪዎች በስማቸው ይታያሉ። ወላጆች በሚና ብቻ ይታያሉ።",
+        "you": "እርስዎ",
+        "observers": "{count, plural, one {1 አሳዳጊ ይህን ውይይት ማንበብ ይችላል፤ መጻፍ ግን አይችልም።} other {# አሳዳጊዎች ይህን ውይይት ማንበብ ይችላሉ፤ መጻፍ ግን አይችሉም።}}",
+        "loadFailed": "ሰዎችን መጫን አልቻልንም።",
+        "remove": "አስወግድ",
+        "removeNamed": "{name}ን አስወግድ",
+        "removeTitle": "{name}ን ማስወገድ ይፈልጋሉ?",
+        "removeDescription": "ወደዚህ ውይይት መድረስ ያጣሉ። ምክንያትዎ በኦዲት መዝገብ ውስጥ ይቀመጣል።",
+        "removeReason": "የማስወገድ ምክንያት",
+        "removeConfirm": "ከውይይቱ አስወግድ",
+        "removed": "አባሉ ተወግዷል።",
+        "add": "ሰዎችን ጨምር",
+        "addLabel": "የሚጨመሩትን ሰዎች ይምረጡ",
+        "addSubmit": "ጨምር",
+        "added": "ሰዎች ተጨምረዋል።",
+        "addFailed": "ማከል አልቻልንም።",
+        "cancel": "ተወው",
+        "close": "ዝጋ"
+      },
+      "settings": {
+        "title": "የቡድን ቅንብሮች",
+        "description": "ስሙን ይቀይሩ፣ ማን መጻፍ እንደሚችል ይወስኑ ወይም ቡድኑን ይዝጉ።",
+        "name": "ስም",
+        "posting": "ማን መጻፍ ይችላል",
+        "postingPolicy": {
+          "ALL_MEMBERS": "በቡድኑ ያሉ ሁሉም",
+          "MODERATORS_ONLY": "አስተዳዳሪዎች ብቻ"
+        },
+        "status": "ሁኔታ",
+        "statusHint": "የተቆለፈ ወይም በማህደር የገባ ቡድን ሊነበብ ይችላል፤ ማንም መጻፍ ግን አይችልም።",
+        "statuses": {
+          "ACTIVE": "ክፍት",
+          "LOCKED": "የተቆለፈ",
+          "ARCHIVED": "በማህደር የገባ"
+        },
+        "saved": "ቡድኑ ተሻሽሏል።",
+        "failed": "ለውጦቹን ማስቀመጥ አልቻልንም።"
+      },
+      "start": {
+        "title": "አዲስ ውይይት",
+        "subtitle": "ማንን መጻፍ እንደሚፈልጉ ይምረጡ።",
+        "loadFailed": "ይህን መጫን አልቻልንም። እባክዎ እንደገና ይሞክሩ።",
+        "nobody": "አሁን ውይይት ሊጀምሩበት የሚችሉት ሰው የለም።",
+        "nobodyHere": "የሚታይ ሰው የለም።",
+        "guardianTitle": "ለመምህር ይጻፉ",
+        "child": "ልጅ",
+        "school": "ትምህርት ቤት",
+        "teachersOf": "የ{child} መምህራን",
+        "otherParents": "የክፍል ጓደኞች ወላጆች",
+        "teacherTitle": "ለቤተሰብ ይጻፉ",
+        "class": "ክፍል",
+        "student": "ተማሪ",
+        "chooseStudent": "ተማሪ ይምረጡ",
+        "guardiansOf": "የ{student} ቤተሰብ",
+        "message": "መልዕክት ላክ",
+        "open": "ክፈት",
+        "failed": "ለዚህ ሰው መልዕክት መላክ አይችሉም።",
+        "studentNotice": "ከተማሪ ጋር የሚደረጉ ውይይቶች የግል አይደሉም፤ የተማሪው አሳዳጊዎች ይህን ውይይት ማንበብ ይችላሉ። ተማሪው የተገናኘ አሳዳጊ ከሌለው፣ የትምህርት ቤቱ የደህንነት ቡድን ሊመለከተው ይችላል።",
+        "messageStudent": "ለ{student} መልዕክት ላክ",
+        "studentConfirmTitle": "ለ{student} መልዕክት መላክ ይፈልጋሉ?",
+        "studentConfirmBody": "የተማሪው አሳዳጊዎች ይህን ውይይት ማንበብ ይችላሉ። ከዚያ በኋላ በውስጡ ያሉ መልዕክቶችዎን ማስተካከልም ሆነ መሰረዝ አይችሉም። ይቀጥሉ?",
+        "studentConfirm": "ውይይት ጀምር"
+      },
+      "picker": {
+        "search": "በስም ፈልግ",
+        "loadFailed": "ዝርዝሩን መጫን አልቻልንም።",
+        "chooseClass": "መጀመሪያ ክፍል ይምረጡ።",
+        "none": "የሚታይ ሰው የለም።",
+        "selected": "{count, plural, =0 {ማንም አልተመረጠም} one {1 ተመርጧል} other {# ተመርጠዋል}}"
+      },
+      "groups": {
+        "title": "ቡድኖች",
+        "subtitle": "የሚያስተዳድሯቸው ወይም ሊጀምሯቸው የሚችሉ ቡድኖች፣ እንዲሁም የእርስዎን ይሁንታ የሚጠብቁ ቡድኖች።",
+        "noSchools": "በማንኛውም ትምህርት ቤት ቡድኖችን አያስተዳድሩም።",
+        "yourGroups": "ቡድኖች",
+        "createButton": "አዲስ ቡድን",
+        "disabled": "መልዕክት መላላክ ለዚህ ትምህርት ቤት አልበራም።",
+        "empty": "እስካሁን ቡድን የለም።",
+        "loadFailed": "ቡድኖቹን መጫን አልቻልንም።",
+        "failed": "አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+        "approvalsTitle": "የእርስዎን ይሁንታ የሚጠብቁ",
+        "approve": "አጽድቅ",
+        "reject": "ውድቅ አድርግ",
+        "approved": "ቡድኑ ጸድቋል።",
+        "rejected": "ቡድኑ ውድቅ ተደርጓል።",
+        "open": "ክፈት",
+        "manage": "አስተዳድር",
+        "manageNamed": "{name}ን አስተዳድር",
+        "members": "{count, plural, one {1 አባል} other {# አባላት}}",
+        "proposedByMe": "በእርስዎ የቀረበ",
+        "status": {
+          "ACTIVE": "ክፍት",
+          "LOCKED": "የተቆለፈ",
+          "ARCHIVED": "በማህደር የገባ",
+          "PENDING_APPROVAL": "ይሁንታ በመጠባበቅ ላይ",
+          "REJECTED": "ውድቅ የተደረገ"
+        },
+        "create": {
+          "title": "አዲስ ቡድን",
+          "description": "በ{school} አዲስ ቡድን።",
+          "submit": "ቡድን ፍጠር",
+          "created": "ቡድኑ ተፈጥሯል።",
+          "failed": "ቡድኑን መፍጠር አልቻልንም።",
+          "kind": "የቡድኑ ዓይነት",
+          "kindHelp": {
+            "CLASS_STUDENTS": "ለአንድ ክፍል ተማሪዎችና ለመምህራኑ ውይይት። አባላት የክፍሉን ዝርዝር ይከተላሉ።",
+            "CLASS_PARENTS": "ለአንድ ክፍል ወላጆችና ለመምህራኑ ውይይት። አባላት የክፍሉን ዝርዝር ይከተላሉ።",
+            "STAFF": "የትምህርት ቤት ሠራተኞች ቡድን።",
+            "STUDENT_GROUP": "ከአንድ ክፍል የተማሪዎችና የመምህራቸው ቡድን።",
+            "SCHOOL_STAFF": "ለትምህርት ቤቱ ሠራተኞች የማስታወቂያ ዓይነት ውይይት። የሚጽፉት አስተዳዳሪዎች ብቻ ናቸው።"
+          },
+          "class": "ክፍል",
+          "chooseClass": "ክፍል ይምረጡ",
+          "classRequired": "እባክዎ ክፍል ይምረጡ።",
+          "name": "ስም",
+          "titleRequired": "እባክዎ ለቡድኑ ስም ይስጡ።",
+          "membersLabel": "አባላት",
+          "studentsLabel": "ተማሪዎች",
+          "membersRequired": "እባክዎ ቢያንስ አንድ ሰው ይምረጡ።",
+          "tooFewStudents": "ተማሪዎች ያሉት ቡድን ቢያንስ {min} ተማሪዎችና አንድ መምህር ያስፈልገዋል።",
+          "studentRule": "ተማሪዎች ያሉት ቡድን ቢያንስ {min} ተማሪዎችና አንድ መምህር ያስፈልገዋል። ይህ አዋቂዎች ከአንድ ልጅ ጋር በግል እንዳይወያዩ ያደርጋል።",
+          "posting": "ማን መጻፍ ይችላል",
+          "postingDefault": "ነባሪ"
+        }
+      },
+      "scheduled": {
+        "title": "የተያዙ መልዕክቶች",
+        "subtitle": "በኋላ እንዲላኩ የጻፏቸው መልዕክቶች።",
+        "empty": "የተያዘ መልዕክት የለዎትም።",
+        "loadFailed": "የተያዙ መልዕክቶችዎን መጫን አልቻልንም።",
+        "to": "ለ{name}",
+        "toUnknown": "አንድ ውይይት",
+        "photos": "{count, plural, one {1 ፎቶ} other {# ፎቶዎች}}",
+        "sendsAt": "{when} ይላካል",
+        "cancel": "መልዕክቱን ሰርዝ",
+        "cancelTitle": "ይህን የተያዘ መልዕክት መሰረዝ ይፈልጋሉ?",
+        "cancelDescription": "አይላክም።",
+        "cancelConfirm": "መልዕክቱን ሰርዝ",
+        "cancelled": "የተያዘው መልዕክት ተሰርዟል።",
+        "cancelFailed": "መልዕክቱን መሰረዝ አልቻልንም።"
+      },
+      "blocked": {
+        "title": "የታገዱ ሰዎች",
+        "subtitle": "ያገዷቸው ሰዎች። እንደገና መልዕክት እንዲደርስዎ ማገዱን ያንሱ።",
+        "empty": "ማንንም አላገዱም።",
+        "loadFailed": "ዝርዝሩን መጫን አልቻልንም።",
+        "unblock": "ማገዱን አንሳ",
+        "unblocked": "ማገዱ ተነስቷል።",
+        "failed": "አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+      },
+      "review": {
+        "banner": {
+          "title": "የግምገማ ሁነታ",
+          "body": "በትምህርት ቤቱ የደህንነት ግምገማ ውስጥ ነዎት። የሚከፍቱት እያንዳንዱ ውይይት በስምዎና በምክንያትዎ ይመዘገባል።"
+        },
+        "title": "የደህንነት ግምገማ",
+        "subtitle": "በ{school} ለደህንነት ሲባል ሊነበቡ የሚችሉ ውይይቶች።",
+        "tabs": {
+          "label": "የግምገማ ክፍሎች",
+          "conversations": "ውይይቶች",
+          "reports": "ሪፖርቶች",
+          "blocks": "የተማሪዎች እገዳዎች"
+        },
+        "conversations": {
+          "help": "እነዚህ ማንም አሳዳጊ ማየት የማይችልባቸው ከተማሪ ጋር የሚደረጉ ውይይቶች፣ ተማሪዎች ያሉባቸው ትናንሽ ቡድኖች፣ እና ክፍት ሪፖርት ያላቸው ውይይቶች ናቸው። እዚህ የሚታየው ዝርዝር መረጃ ብቻ ነው።",
+          "empty": "የሚገመገም ነገር የለም።",
+          "loadFailed": "ውይይቶቹን መጫን አልቻልንም።",
+          "adminVisible": "ማንም አሳዳጊ ማየት አይችልም",
+          "openReports": "{count, plural, one {1 ክፍት ሪፖርት} other {# ክፍት ሪፖርቶች}}",
+          "read": "አንብብ"
+        },
+        "reports": {
+          "filter": "ሪፖርቶችን አሳይ",
+          "status": {
+            "OPEN": "ክፍት",
+            "RESOLVED": "የተፈታ"
+          },
+          "empty": "ሪፖርት የለም።",
+          "loadFailed": "ሪፖርቶቹን መጫን አልቻልንም።",
+          "read": "ውይይቱን አንብብ"
+        },
+        "blocks": {
+          "help": "ተማሪ አዋቂን ያገደባቸው ጊዜያት። ሌላ ምንም እዚህ አይታይም።",
+          "empty": "የሚታይ እገዳ የለም።",
+          "loadFailed": "ዝርዝሩን መጫን አልቻልንም።",
+          "row": "አንድ ተማሪ በ{when} አንድ አዋቂን አግዷል",
+          "read": "ውይይቱን አንብብ"
+        },
+        "reason": {
+          "title": "ይህን ለምን ማንበብ ያስፈልግዎታል?",
+          "description": "ውይይት ማንበብ በስምዎና በምክንያትዎ በኦዲት መዝገብ ይመዘገባል። ለማንበብ የደህንነት ምክንያት ያለዎትን ውይይቶች ብቻ ይክፈቱ።",
+          "audited": "ይህ መዳረሻ ኦዲት ይደረጋል። ምክንያትዎ ይቀመጣል፤ ስለዚህ የመልዕክት ጽሑፍ አይቅዱበት።",
+          "label": "ምክንያት (ከ{min} እስከ {max} ፊደላት)",
+          "help": "ለምሳሌ፦ አንድ ወላጅ ስለ አንድ መልዕክት ያቀረበው ሪፖርት።",
+          "remaining": "{count, plural, one {1 ፊደል ቀርቷል።} other {# ፊደላት ቀርተዋል።}}",
+          "tooLong": "ምክንያቱ በጣም ረጅም ነው።",
+          "failed": "ውይይቱን መክፈት አልቻልንም።",
+          "cancel": "ተወው",
+          "confirm": "ውይይቱን አንብብ"
+        },
+        "reader": {
+          "title": "በግምገማ ላይ ያለ ውይይት",
+          "description": "የተሰረዙና የተደበቁ መልዕክቶች እንዲሁም ቀደምት ስሪቶች ይታያሉ። ሲጨርሱ ይህን መስኮት ይዝጉ፤ ምንም አይቀመጥም።",
+          "older": "ቀደም ያሉ መልዕክቶችን ጫን",
+          "olderAudited": "ተጨማሪ መጫን እንደገና ይመዘገባል።",
+          "failed": "ተጨማሪ መጫን አልቻልንም።",
+          "close": "ዝጋ",
+          "photoAlt": "በውይይቱ ውስጥ ያለ ፎቶ",
+          "hideReason": "የተደበቀበት ምክንያት፦ {reason}",
+          "history": "{count, plural, one {1 ቀደም ያለ ስሪት} other {# ቀደም ያሉ ስሪቶች}}",
+          "reports": "{count, plural, one {1 ሪፖርት} other {# ሪፖርቶች}}",
+          "status": {
+            "EDITED": "ተስተካክሏል",
+            "DELETED": "ተሰርዟል",
+            "HIDDEN": "ተደብቋል",
+            "SCHEDULED": "ተይዟል",
+            "OTHER": "ሌላ"
+          }
+        }
+      }
     }
   },
   "family": {
@@ -4896,6 +5343,9 @@
       "backToList": "ሁሉም ማስታወቂያዎች",
       "home": "መነሻ",
       "detailTitle": "ማስታወቂያ"
+    },
+    "messaging": {
+      "unreadTab": "መልዕክቶች፣ {count} ያልተነበቡ"
     }
   },
   "invite": {

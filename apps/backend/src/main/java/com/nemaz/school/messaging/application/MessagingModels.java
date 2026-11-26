@@ -104,7 +104,11 @@ public final class MessagingModels {
 	}
 
 	public record MessagingCapabilitiesView(@NotNull boolean featureEnabled, @NotNull boolean canStartParentTeacher,
-			@NotNull boolean canStartStudentDirect, @NotNull List<GroupKind> creatableGroups,
+			@NotNull boolean canStartStudentDirect,
+			@Schema(description = "A teacher may start a DIRECT conversation with a student of their class (messaging.student.teacher_direct.enabled): the student's guardians then observe it, or the conversation is admin-visible")
+			@NotNull boolean canStartTeacherStudent,
+			@Schema(description = "A guardian may start a DIRECT conversation with a guardian of a classmate of their child (messaging.parent_parent.enabled)")
+			@NotNull boolean canStartParentParent, @NotNull List<GroupKind> creatableGroups,
 			@NotNull boolean canProposeStudentGroup, @NotNull boolean canModerate, @NotNull boolean canReview,
 			@NotNull int editWindowMinutes, @NotNull int maxMessageLength, @NotNull boolean studentMediaEnabled,
 			@NotNull boolean translationEnabled, OfficeHoursView officeHours,

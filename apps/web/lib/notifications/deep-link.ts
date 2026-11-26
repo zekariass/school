@@ -1,3 +1,4 @@
+import { messagingDeepLink } from "@/lib/messaging/deep-link";
 import { sanitizeNextPath } from "@/lib/safe-redirect";
 
 /**
@@ -45,6 +46,9 @@ export function resolveDeepLink(
     const slug = context.schoolSlug;
     return slug && SLUG.test(slug) ? `/s/${slug}/feed/approvals` : null;
   }
+  // Messaging: `/messages/{conversation}`, the approvals queue and the reviewers' page (ids are checked as UUIDs).
+  const messaging = messagingDeepLink(base);
+  if (messaging) return messaging;
   return WEB_PATHS[base] ?? safe;
 }
 

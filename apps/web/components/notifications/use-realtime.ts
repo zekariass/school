@@ -9,6 +9,9 @@ import { ank } from "@/lib/announcements/queries";
 import { isAnnouncementNotification } from "@/lib/announcements/view";
 import { getBrowserApi } from "@/lib/api-client";
 import { unwrap } from "@/lib/api-error";
+import { isAboutOpenConversation } from "@/lib/messaging/deep-link";
+import { ALL_MESSAGING_KEYS, doorbellKeys, parseDoorbell } from "@/lib/messaging/doorbell";
+import { setSocketUp } from "@/lib/messaging/socket-status";
 import { reconnectDelay } from "@/lib/notifications/backoff";
 import { notificationKeys } from "@/lib/notifications/keys";
 import { applyRealtimeEvent } from "@/lib/notifications/realtime-cache";
@@ -17,6 +20,8 @@ import { parseRealtimeEvent, type NotificationItem } from "@/lib/notifications/t
 import { useNotificationActions } from "./use-notification-actions";
 
 const QUEUE = "/user/queue/notifications";
+/** Message "doorbells": ids only (conversation, message). The content is always fetched through the API. */
+const MESSAGE_QUEUE = "/user/queue/messages";
 /** A connection that lasted this long counts as healthy: the backoff starts over. */
 const STABLE_AFTER_MS = 30_000;
 /** A tab hidden this long lets go of its connection (it reconnects when shown again). */
@@ -51,6 +56,8 @@ export function useRealtime() {
     let connectedBefore = false;
 
     function toastCreated(item: NotificationItem) {
+      // a "new message" toast for the conversation that is open would only repeat what is on screen
+      if (isAboutOpenConversation(item.data, window.location.pathname)) return;
       const { t: tr, open } = latest.current;
       toast(item.title, {
         description: item.body ?? undefined,
@@ -94,13 +101,24 @@ export function useRealtime() {
                 if (isAnnouncementNotification(event.notification.data)) void queryClient.invalidateQueries({ queryKey: ank.all });
               }
             });
-            if (connectedBefore) void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+            next.subscribe(MESSAGE_QUEUE, (frame) => {
+              const bell = parseDoorbell(frame.body);
+              if (!bell) return;
+              for (const queryKey of doorbellKeys(bell)) void queryClient.invalidateQueries({ queryKey });
+            });
+            setSocketUp(true);
+            if (connectedBefore) {
+              void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+              // doorbells missed while offline are not replayed: everything messaging shows is refetched
+              for (const queryKey of ALL_MESSAGING_KEYS) void queryClient.invalidateQueries({ queryKey });
+            }
             connectedBefore = true;
             clearTimeout(stableTimer);
             stableTimer = setTimeout(() => (attempt = 0), STABLE_AFTER_MS);
           },
           onWebSocketClose: () => {
             clearTimeout(stableTimer);
+            if (client === next) setSocketUp(false);
             if (client === next) {
               client = null;
               scheduleRetry();
@@ -119,6 +137,7 @@ export function useRealtime() {
       clearTimeout(stableTimer);
       const current = client;
       client = null;
+      setSocketUp(false);
       if (current) void current.deactivate();
     }
 
@@ -128,6 +147,8 @@ export function useRealtime() {
         return;
       }
       clearTimeout(hiddenTimer);
+      // a tab that was hidden may have missed doorbells
+      for (const queryKey of ALL_MESSAGING_KEYS) void queryClient.invalidateQueries({ queryKey });
       if (!client) {
         attempt = 0;
         void connect();

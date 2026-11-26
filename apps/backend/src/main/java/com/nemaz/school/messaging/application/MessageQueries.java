@@ -367,7 +367,8 @@ public class MessageQueries {
 
 	private static final String MESSAGE_SELECT = """
 			select m.id, m.conversation_id, m.seq, m.sender_id, m.sender_member_id, m.message_type, m.system_code, m.status,
-			       case when m.status in ('SENT', 'EDITED') then m.body end as body, m.body_language_code,
+			       case when m.status in ('SENT', 'EDITED') or (m.status = 'SCHEDULED' and m.sender_id = :viewer) then m.body end as body,
+			       m.body_language_code,
 			       m.reply_to_message_id, m.sent_at, m.edited_at, m.send_at,
 			       case when m.sender_id = :viewer and c.conversation_type = 'DIRECT' then
 			         (select min(r.read_at) from message_reads r where r.message_id = m.id and r.user_id <> m.sender_id) end as seen_at

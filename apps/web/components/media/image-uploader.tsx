@@ -13,7 +13,7 @@ import { IDLE, isBusy, uploadReducer, type UploadFailure } from "@/lib/media/upl
 interface ImageUploaderProps {
   purpose: MediaPurpose;
   /** What the media belongs to; omit for avatars. */
-  context?: { type: "USER" | "SCHOOL" | "ORGANIZATION" | "CLASS"; id: string };
+  context?: { type: "USER" | "SCHOOL" | "ORGANIZATION" | "CLASS" | "CONVERSATION"; id: string };
   hasImage: boolean;
   /** Called with the READY media; attach it to its owner (set the avatar, the logo, ...) and resolve when done. */
   onUploaded: (mediaId: string) => Promise<void>;
@@ -21,13 +21,15 @@ interface ImageUploaderProps {
   onRemove?: () => Promise<void>;
   labels: { choose: string; change: string; remove: string };
   disabled?: boolean;
+  /** Keeps the "JPEG, PNG up to 10 MB" line for screen readers only (tight layouts such as a composer). */
+  compact?: boolean;
 }
 
 /**
  * Choose a file, validate it with the rules from `GET /media/policies`, upload it with
  * progress and hand the READY media to `onUploaded`. Shows what happens and what went wrong.
  */
-export function ImageUploader({ purpose, context, hasImage, onUploaded, onRemove, labels, disabled }: ImageUploaderProps) {
+export function ImageUploader({ purpose, context, hasImage, onUploaded, onRemove, labels, disabled, compact }: ImageUploaderProps) {
   const t = useTranslations("media");
   const inputId = useId();
   const input = useRef<HTMLInputElement>(null);
@@ -146,7 +148,7 @@ export function ImageUploader({ purpose, context, hasImage, onUploaded, onRemove
       </div>
 
       {policy ? (
-        <p className="text-sm text-muted-foreground">
+        <p className={compact ? "sr-only" : "text-sm text-muted-foreground"}>
           {t("upload.accept", {
             types: typeLabels(Object.keys(policy.maxBytesByMimeType)).join(", "),
             size: maxMegabytes(policy),
