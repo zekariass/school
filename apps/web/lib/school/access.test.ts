@@ -48,7 +48,7 @@ describe("navItems", () => {
   });
 
   it("gives teachers the dashboard, their classes and the families queue", () => {
-    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "points"]);
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "attendance", "points"]);
   });
 
   it("shows Policies only with the policies permission", () => {
@@ -72,12 +72,25 @@ describe("navItems", () => {
     expect(navItems(schoolAccess(registrar, "sunrise"))).toEqual(["dashboard", "students", "features"]);
   });
 
+  it("shows Attendance to attendance readers and managers, and teachers", () => {
+    const reader: MeLike = {
+      scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["school.attendance.read"] }],
+    };
+    expect(navItems(schoolAccess(reader, "sunrise"))).toEqual(["dashboard", "attendance"]);
+    const manager: MeLike = {
+      scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["school.attendance.manage"] }],
+    };
+    expect(navItems(schoolAccess(manager, "sunrise"))).toContain("attendance");
+    expect(navItems(schoolAccess(reader, "moon"))).not.toContain("attendance");
+    expect(navItems(schoolAccess(schoolAdmin, "sunrise"))).not.toContain("attendance");
+  });
+
   it("keeps a teacher who also administers classes on the full Classes section", () => {
     const both: MeLike = {
       scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["class.manage"] }],
       memberships: [{ type: "TEACHER", schoolSlug: "sunrise" }],
     };
-    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "points"]);
+    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "attendance", "points"]);
   });
 });
 

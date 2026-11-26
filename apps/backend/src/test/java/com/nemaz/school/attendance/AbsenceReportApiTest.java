@@ -182,6 +182,19 @@ class AbsenceReportApiTest extends AttendanceTestSupport {
 	}
 
 	@Test
+	void aGuardianMayWithdrawAnAcknowledgedReport() throws Exception {
+		Setup s = setup("Withdraw acknowledged school");
+		LocalDate day = today().plusDays(2);
+		UUID report = uuid(file(s, s.guardian1(), s.s1(), day, day, "ILLNESS", null, 201), "id");
+		decide(s, s.lead(), report, "acknowledge", 200);
+		assertThat(student(roll(s, s.lead(), day), s.s1()).get("suggestedStatus").asString()).isEqualTo("EXCUSED");
+		JsonNode withdrawn = call(HttpMethod.POST, s.api() + "/absence-reports/" + report + "/cancel", s.guardian1(), null, 200);
+		assertThat(withdrawn.get("status").asString()).isEqualTo("CANCELLED");
+		assertThat(absent(student(roll(s, s.lead(), day), s.s1()), "suggestedStatus")).isTrue();
+		assertThat(absent(student(roll(s, s.lead(), day), s.s1()), "absence")).isTrue();
+	}
+
+	@Test
 	void onlyAnActiveUnrestrictedGuardianOfAnActiveStudentMayReport() throws Exception {
 		Setup s = setup("Who reports school");
 		LocalDate day = today().plusDays(1);

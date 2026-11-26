@@ -93,7 +93,8 @@
     "families": "Families",
     "policies": "Policies",
     "family": "My children",
-    "points": "Points & badges"
+    "points": "Points & badges",
+    "attendance": "Attendance"
   },
   "locale": {
     "label": "Language"
@@ -1387,7 +1388,9 @@
         "settings": "Settings",
         "consent": "Consent",
         "points": "Points",
-        "toolkit": "Toolkit"
+        "toolkit": "Toolkit",
+        "attendance": "Attendance",
+        "absences": "Absences"
       }
     },
     "roster": {
@@ -2468,6 +2471,247 @@
         "failed": "We couldn't save the badge.",
         "iconN": "Icon {n}"
       }
+    },
+    "absence": {
+      "title": "Absence reports",
+      "intro": "Parents report an absence ahead of time. Acknowledging one suggests Excused on the roll for those days; it never marks anyone by itself.",
+      "privacy": "The reason and note are health information. Only the child's lead, co and subject teachers and attendance managers can read them.",
+      "filter": "Show",
+      "filters": {
+        "PENDING": "Waiting",
+        "ACKNOWLEDGED": "Acknowledged",
+        "DECLINED": "Declined"
+      },
+      "loadFailed": "We couldn't load the absence reports.",
+      "empty": "No absence reports here.",
+      "reportedOn": "Reported {when}",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "range": "{from} to {to}",
+      "day": "{date}",
+      "reasonLabel": "Reason",
+      "noteLabel": "Parent's note",
+      "detailsHidden": "The reason is visible only to the child's lead, co and subject teachers.",
+      "status": {
+        "SUBMITTED": "Waiting for a teacher",
+        "ACKNOWLEDGED": "Acknowledged",
+        "DECLINED": "Declined",
+        "CANCELLED": "Cancelled"
+      },
+      "reason": {
+        "ILLNESS": "Illness",
+        "FAMILY": "Family reason",
+        "APPOINTMENT": "Appointment",
+        "OTHER": "Other"
+      },
+      "acknowledge": "Acknowledge",
+      "decline": "Decline",
+      "ack": {
+        "title": "Acknowledge this absence report?",
+        "body": "For {name}, {dates}. The roll will suggest Excused on those days. You can still mark the child as you see fit.",
+        "confirm": "Acknowledge"
+      },
+      "dec": {
+        "title": "Decline this absence report?",
+        "body": "For {name}, {dates}. The roll will not suggest Excused for those days. This cannot be changed afterwards.",
+        "confirm": "Decline"
+      },
+      "acknowledged": "Absence report acknowledged.",
+      "declined": "Absence report declined.",
+      "decideFailed": "We couldn't save your decision.",
+      "notForYou": "Absence reports are for the teachers and managers of this class.",
+      "list": "Absence reports of this class"
+    },
+    "attendance": {
+      "page": {
+        "title": "Attendance",
+        "subtitle": "See which classes have taken attendance today, and read attendance summaries.",
+        "tabs": {
+          "today": "Daily dashboard",
+          "reports": "Reports"
+        },
+        "notForYou": "Attendance is for teachers and attendance managers."
+      },
+      "slot": {
+        "label": "Roll call",
+        "DAY": "Whole day",
+        "AM": "Morning",
+        "PM": "Afternoon",
+        "P1": "Period 1",
+        "P2": "Period 2",
+        "P3": "Period 3",
+        "P4": "Period 4",
+        "P5": "Period 5",
+        "P6": "Period 6",
+        "P7": "Period 7",
+        "P8": "Period 8"
+      },
+      "date": {
+        "label": "Date",
+        "today": "Today",
+        "prev": "Previous day",
+        "next": "Next day",
+        "zone": "School time: {zone}",
+        "isToday": "Today"
+      },
+      "status": {
+        "PRESENT": "Present",
+        "ABSENT": "Absent",
+        "LATE": "Late",
+        "EXCUSED": "Excused",
+        "LEFT_EARLY": "Left early"
+      },
+      "roll": {
+        "loadFailed": "We couldn't load the roll.",
+        "notForYou": "Attendance is for the teachers and managers of this class.",
+        "hint": "Everyone starts as present. Tap a student to change the mark, or use Details to pick one. Then save.",
+        "markAllPresent": "Mark all present",
+        "markAllHelp": "Saves everyone who has no mark yet as present (excused where a parent's report was acknowledged). Marks already saved are never touched.",
+        "saveChanges": "Save changes",
+        "saving": "Saving…",
+        "refresh": "Refresh",
+        "refreshing": "Refreshing…",
+        "discardTitle": "Discard unsaved changes?",
+        "discardBody": "You changed marks that are not saved yet. If you continue, those changes are lost.",
+        "discardConfirm": "Discard changes",
+        "pending": "{count, plural, one {# change not saved} other {# changes not saved}}",
+        "unsaved": "{count, plural, one {# student not saved yet} other {# students not saved yet}}",
+        "allSaved": "Everything is saved.",
+        "saved": "Roll saved.",
+        "savedConflicts": "{count, plural, one {# mark was not saved because someone else changed it first.} other {# marks were not saved because someone else changed them first.}}",
+        "noStudents": "No students were in this class on this day.",
+        "listLabel": "Students and their marks",
+        "summaryLabel": "Summary of the roll",
+        "tapToChange": "Tap to change",
+        "rowLabel": "{name}: {status}. Press to change the mark.",
+        "announce": "{name}: {status}",
+        "notSaved": "Not saved yet",
+        "suggested": "Suggested: {status}",
+        "details": "Details",
+        "hideDetails": "Hide details",
+        "detailsFor": "Details for {name}",
+        "pickStatus": "Mark for {name}",
+        "minutesLate": "Minutes late",
+        "minutesInvalid": "Enter a whole number from 1 to 600.",
+        "minutesShort": "{minutes} min",
+        "note": "Note (only staff can read it)",
+        "hasNote": "Has a note",
+        "notePlaceholder": "A short note",
+        "recordedAt": "Saved",
+        "archived": "This class is archived. Its roll can be read but not changed.",
+        "readOnly": "You can read this roll but not change it.",
+        "locked": {
+          "title": "This roll is locked",
+          "body": "It locked on {when}. Only the lead teacher and attendance managers can still change it.",
+          "bodyMayEdit": "It locked on {when}. You may still change it, but the change is recorded with your reason.",
+          "reason": "Reason for the change",
+          "reasonHint": "Required to change a locked roll. It is kept in the audit log.",
+          "reasonRequired": "Give a reason before you save a change to a locked roll.",
+          "readOnlyNote": "You can read this roll but not change it."
+        },
+        "opensUntil": "Open for changes until {when}.",
+        "annotation": {
+          "withReason": "Parent reported: {reason}",
+          "plain": "Parent reported an absence",
+          "range": "{from} to {to}",
+          "day": "{date}",
+          "SUBMITTED": "waiting for a teacher",
+          "ACKNOWLEDGED": "acknowledged",
+          "reasons": {
+            "ILLNESS": "Illness",
+            "FAMILY": "Family reason",
+            "APPOINTMENT": "Appointment",
+            "OTHER": "Other"
+          },
+          "parentNote": "Parent's note"
+        },
+        "conflict": {
+          "title": "{count, plural, one {# mark was changed by someone else} other {# marks were changed by someone else}}",
+          "intro": "Nothing was overwritten. For each student, keep the saved mark or use yours.",
+          "stored": "Saved by someone else",
+          "mine": "Your mark",
+          "keepTheirs": "Keep theirs",
+          "useMine": "Use mine",
+          "keepAllTheirs": "Keep all theirs",
+          "useAllMine": "Use all mine",
+          "resolved": "Done.",
+          "forStudent": "Conflict for {name}"
+        }
+      },
+      "dashboard": {
+        "loadFailed": "We couldn't load the dashboard.",
+        "date": "Date",
+        "slot": "Roll call",
+        "notTakenOnly": "Only classes that have not taken attendance",
+        "summary": "{taken} of {total} classes have taken attendance.",
+        "notTakenCount": "{count, plural, one {# class has} other {# classes have}} not taken attendance yet.",
+        "caption": "Attendance of each class on the chosen day",
+        "class": "Class",
+        "state": "Roll",
+        "students": "Students",
+        "present": "Present",
+        "absent": "Absent",
+        "late": "Late",
+        "excused": "Excused",
+        "leftEarly": "Left early",
+        "unmarked": "Not marked",
+        "taken": "Taken",
+        "notTaken": "Not taken yet",
+        "empty": "No students",
+        "open": "Open roll",
+        "none": "There are no classes to show.",
+        "noneNotTaken": "Every loaded class has taken attendance.",
+        "totals": "Totals"
+      },
+      "report": {
+        "class": "Class",
+        "allClasses": "All classes",
+        "chooseClass": "Choose a class",
+        "student": "Student",
+        "studentSearch": "Find a student",
+        "studentAll": "All students",
+        "studentClear": "Clear student",
+        "studentNone": "No students match.",
+        "from": "From",
+        "to": "To",
+        "rangeHint": "Leave the dates empty for the last 30 days. Dates are school dates.",
+        "badRange": "Choose a start date that is not after the end date, at most 400 days apart.",
+        "export": "Download CSV",
+        "exported": "The report was downloaded.",
+        "exportFailed": "We couldn't download the report.",
+        "needClass": "Choose a class to see the report.",
+        "loadFailed": "We couldn't load the report.",
+        "empty": "No attendance was recorded for this choice.",
+        "caption": "Attendance marks per student and class",
+        "studentColumn": "Student",
+        "classColumn": "Class",
+        "marked": "Marks",
+        "present": "Present",
+        "absent": "Absent",
+        "late": "Late",
+        "excused": "Excused",
+        "leftEarly": "Left early",
+        "minutesLate": "Minutes late",
+        "sum": "{rows, plural, one {# row} other {# rows}} shown"
+      },
+      "settings": {
+        "module": "Attendance",
+        "slots": {
+          "title": "Roll calls per day",
+          "description": "Which roll calls a class takes each day: the whole day, morning and afternoon, or periods 1 to 8. The first one is the default."
+        },
+        "assistants": {
+          "title": "Assistant teachers take attendance",
+          "description": "Lets assistant teachers take and correct a class's roll. Lead, co and subject teachers always can."
+        },
+        "lockAfter": {
+          "title": "Lock a roll after (hours)",
+          "description": "Hours after the end of the day (school time) when a roll locks. After that only the lead teacher and attendance managers can change it, with a reason."
+        },
+        "notify": {
+          "title": "Tell parents about these marks",
+          "description": "Parents with notifications on are told when their child gets one of these marks. An empty list turns the notifications off."
+        }
+      }
     }
   },
   "family": {
@@ -2567,6 +2811,75 @@
         "undo": "Undo",
         "undone": "Undone.",
         "undoFailed": "We couldn't undo this."
+      }
+    },
+    "attendance": {
+      "title": "Attendance",
+      "subtitle": "Marks your child's teachers recorded.",
+      "loadFailed": "We couldn't load the attendance.",
+      "empty": "No attendance has been recorded yet.",
+      "caption": "Attendance history",
+      "statusColumn": "Status",
+      "date": "Date",
+      "class": "Class",
+      "status": {
+        "PRESENT": "Present",
+        "ABSENT": "Absent",
+        "LATE": "Late",
+        "EXCUSED": "Excused",
+        "LEFT_EARLY": "Left early"
+      },
+      "minutesLate": "{minutes} min late",
+      "notesNote": "Teachers' notes are not shown here.",
+      "studentTitle": "My attendance"
+    },
+    "absence": {
+      "title": "Report an absence",
+      "open": "Report an absence",
+      "intro": "Tell the teachers ahead of time that your child will be away.",
+      "privacy": "Who can read this: you, your child's lead, co and subject teachers, and the school's attendance managers. Not your child, other family members or assistant teachers. Please keep the note short and share only what teachers need.",
+      "from": "From",
+      "to": "To",
+      "reason": "Reason",
+      "reasonPlaceholder": "Choose a reason",
+      "note": "Note (optional)",
+      "noteHint": "At most 500 characters.",
+      "submit": "Send report",
+      "sending": "Sending…",
+      "cancel": "Cancel",
+      "sent": "The absence was reported.",
+      "sendFailed": "We couldn't send the report.",
+      "listTitle": "Reports you sent",
+      "listEmpty": "You have not reported any absence.",
+      "listFailed": "We couldn't load your reports.",
+      "range": "{from} to {to}",
+      "day": "{date}",
+      "status": {
+        "SUBMITTED": "Waiting for a teacher",
+        "ACKNOWLEDGED": "Acknowledged",
+        "DECLINED": "Declined",
+        "CANCELLED": "Cancelled"
+      },
+      "reasonName": {
+        "ILLNESS": "Illness",
+        "FAMILY": "Family reason",
+        "APPOINTMENT": "Appointment",
+        "OTHER": "Other"
+      },
+      "withdraw": "Withdraw",
+      "withdrawTitle": "Withdraw this report?",
+      "withdrawBody": "The teachers will no longer see it, and the roll will not suggest Excused for those days.",
+      "withdrawConfirm": "Withdraw report",
+      "withdrawn": "The report was withdrawn.",
+      "withdrawFailed": "We couldn't withdraw the report.",
+      "error": {
+        "required": "This is required.",
+        "invalid": "Enter a valid date.",
+        "order": "The last day cannot be before the first day.",
+        "tooFarBack": "You can report an absence from up to 7 days ago.",
+        "tooFarAhead": "You can report an absence up to 90 days ahead.",
+        "tooLong": "A report can cover at most 61 days.",
+        "noteTooLong": "The note can have at most 500 characters."
       }
     }
   },
