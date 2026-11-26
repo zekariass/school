@@ -179,9 +179,22 @@ public class Eligibility {
 				+ " and ob.member_role = 'OBSERVER' and " + accessible("ob") + "))";
 	}
 
-	/** Conversations a reviewer may read: admin-visible ones and those with an open report. */
+	/**
+	 * A group (not a DIRECT) with a student in it and at most this many active participants. The guardian floor does not reach
+	 * groups, and a teacher with two or three students is, in practice, a private chat with children that nobody else can see:
+	 * so reviewers may read it through the audited endpoint (reason required, rate limited). Whole-class conversations are larger
+	 * than this and have many witnesses; they stay reviewable only once reported. (Added by the reviewer of M9a.)
+	 */
+	public static final int SMALL_GROUP_WITH_STUDENTS_MAX_PARTICIPANTS = 8;
+
+	/** Conversations a reviewer may read: admin-visible ones, small groups with students, and those with an open report. */
 	public static String reviewable() {
 		return "(" + effectiveAdminVisible()
+				+ " or (c.conversation_type <> 'DIRECT'"
+				+ " and exists (select 1 from conversation_members sm where sm.conversation_id = c.id and sm.left_at is null"
+				+ " and sm.acting_as = 'STUDENT')"
+				+ " and (select count(*) from conversation_members pm where pm.conversation_id = c.id and pm.left_at is null"
+				+ " and pm.member_role <> 'OBSERVER') <= " + SMALL_GROUP_WITH_STUDENTS_MAX_PARTICIPANTS + ")"
 				+ " or exists (select 1 from message_reports rr where rr.conversation_id = c.id and rr.status = 'OPEN'))";
 	}
 

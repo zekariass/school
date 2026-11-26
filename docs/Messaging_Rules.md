@@ -148,6 +148,17 @@ Tests: `SafeguardingFloorTest.everySettingsCombinationKeepsTheFloor`, `.observer
 `.creationIsAuditedWithoutText`, `.adminsAreNeverAddedAsMembers`, `.observersAreReadOnly`; `ReadStateTest.observerReadsNeverCreateReceipts`;
 `RosterSyncTest.guardianLinkEventsMaintainTheObservers`.
 
+### R5 addendum: small groups with students are reviewable (added by the reviewer of M9a)
+
+The guardian floor covers DIRECT conversations only. A group of one teacher and two or three students has no guardian
+observers and, without this rule, nobody could read it unless a child filed a report: in practice a private chat with
+children. So **a group (not a DIRECT) that has at least one student and at most 8 active participants is reviewable**: a
+reviewer holding `school.messaging.review` may read it through the same audited endpoint (reason of 10 to 300 characters,
+rate limited, every read audited, reviewers never become members). Whole-class conversations are larger, have many
+witnesses and stay reviewable only once reported. The limit is `Eligibility.SMALL_GROUP_WITH_STUDENTS_MAX_PARTICIPANTS`.
+Test: `ReviewTest.onlyAdminVisibleOrReportedConversationsAreReviewable`. Open question for the owner: is 8 the right number,
+and should the guardians of the students in such a group also be told that it exists?
+
 ## R6 Groups
 
 1. Types: CLASS conversation, class **parent group**, staff group, student group, SCHOOL conversation.

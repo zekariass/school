@@ -89,10 +89,12 @@ class ReviewTest extends MessagingTestSupport {
 		send(m.lead(), observed, "observed by the guardians");
 		UUID classThread = classConversation(m);
 		UUID classMessage = send(m.student1(), classThread, "class chat");
-		for (UUID not : new UUID[] { ordinary, observed, classThread }) {
+		for (UUID not : new UUID[] { ordinary, observed }) {
 			assertThat(code(review(m.admin(), m, not, "should not be possible", 403))).isEqualTo("messaging.not_reviewable");
 		}
-		assertThat(get(m.api() + "/review/conversations", m.admin()).get("items")).isEmpty();
+		// the class chat has a teacher and a few students and no guardian floor: a small group with students is reviewable
+		assertThat(get(m.api() + "/review/conversations", m.admin()).get("items")).hasSize(1);
+		review(m.admin(), m, classThread, "a small group with students is reviewable without a report", 200);
 		// a report opens it
 		call(HttpMethod.POST, conv(ordinary) + "/messages/" + send(m.lead(), ordinary, "reply") + "/report", m.g1(), body("reason", "OTHER"), 204);
 		call(HttpMethod.POST, conv(classThread) + "/messages/" + classMessage + "/report", m.student2(), body("reason", "SPAM"), 204);
