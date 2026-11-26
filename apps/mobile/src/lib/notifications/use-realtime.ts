@@ -3,6 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
+import { ANNOUNCEMENTS_ROOT } from '@/lib/announcements/keys';
+import { isAnnouncementNotification } from '@/lib/announcements/notifications';
 import { API_BASE_URL } from '@/lib/http';
 import { getValidAccessToken, refreshTokens } from '@/lib/auth/session-auth';
 
@@ -47,6 +49,10 @@ export function useRealtime(enabled: boolean): void {
       queryClient.setQueryData<InboxData>(inboxKey(false), update.inbox);
       queryClient.setQueryData<InboxData>(inboxKey(true), update.unreadOnly);
       queryClient.setQueryData<number>(unreadCountKey, update.unreadCount);
+      // A new, changed, withdrawn or reminded announcement: the lists and the badge ask the server again (counts only; nothing stored).
+      if (event.type === 'notification.created' && isAnnouncementNotification(event.notification)) {
+        void queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENTS_ROOT] });
+      }
     };
 
     const teardown = () => {
@@ -93,6 +99,7 @@ export function useRealtime(enabled: boolean): void {
             // anything that happened while we were away
             void queryClient.invalidateQueries({ queryKey: INBOX_PREFIX });
             void queryClient.invalidateQueries({ queryKey: unreadCountKey });
+            void queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENTS_ROOT] });
           },
           onStompError: (frame) => {
             const reason = frame.headers.message ?? '';

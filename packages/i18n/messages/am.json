@@ -1101,6 +1101,320 @@
         "sendRejection": "ላክ",
         "failed": "አልሰራም። እባክዎ እንደገና ይሞክሩ።"
       }
+    },
+    "announcements": {
+      "title": "ማስታወቂያዎች",
+      "entry": "ማስታወቂያዎች",
+      "entryAttention": "ማስታወቂያዎች፦ {unread} ያልተነበቡ፣ {needsAck} ማረጋገጫዎን የሚጠብቁ",
+      "from": "ከ{name}",
+      "openLink": "አገናኙን ክፈት {link}",
+      "loadFailedTitle": "ማስታወቂያዎችን መጫን አልተቻለም",
+      "loadFailedBody": "ግንኙነትዎን ይፈትሹና እንደገና ለመሞከር ወደ ታች ይጎትቱ።",
+      "nextPageFailed": "ተጨማሪ ማስታወቂያዎችን መጫን አልተቻለም።",
+      "endOfList": "ያለው ይህ ብቻ ነው",
+      "schoolEntry": "የእኔ ማስታወቂያዎች",
+      "schoolEntryNamed": "የእኔ ማስታወቂያዎች፦ {school}",
+      "newForClass": "ለዚህ ክፍል አዲስ ማስታወቂያ",
+      "type": {
+        "normal": "ተራ",
+        "important": "አስፈላጊ",
+        "urgent": "አስቸኳይ",
+        "safety": "የደህንነት ማሳሰቢያ"
+      },
+      "typeHint": {
+        "normal": "የዕለት ተዕለት ዜና። እንደ ማንኛውም ማሳወቂያ ስልክ ላይ ይደርሳል።",
+        "important": "ሰዎች ሊያመልጣቸው የማይገባ ነገር።",
+        "urgent": "ወዲያውኑ ትኩረት የሚፈልግ። በጸጥታ ሰዓትም ቢሆን ለሁሉም ስልክ ይደርሳል።",
+        "safety": "የደህንነት ማሳሰቢያ። በጸጥታ ሰዓትም ቢሆን ለሁሉም ስልክ ይደርሳል።"
+      },
+      "filter": {
+        "label": "አሳይ",
+        "all": "ሁሉም",
+        "unread": "ያልተነበቡ",
+        "unreadCount": "ያልተነበቡ ({count})",
+        "needsAck": "ማረጋገጫ የሚሹ",
+        "needsAckCount": "ማረጋገጫ የሚሹ ({count})"
+      },
+      "sort": {
+        "label": "ቅደም ተከተል",
+        "newest": "አዲሶቹ መጀመሪያ",
+        "unreadFirst": "ያልተነበቡት መጀመሪያ"
+      },
+      "empty": {
+        "title": "እስካሁን ማስታወቂያ የለም",
+        "body": "ከትምህርት ቤትዎ የሚመጡ መልዕክቶች እዚህ ይታያሉ።",
+        "unreadTitle": "ያልተነበበ የለም",
+        "unreadBody": "ሁሉንም አንብበዋል።",
+        "ackTitle": "የሚያረጋግጡት ነገር የለም",
+        "ackBody": "ማረጋገጫዎን የሚጠብቅ ማስታወቂያ የለም።"
+      },
+      "status": {
+        "new": "አዲስ",
+        "needsAck": "እባክዎ ያረጋግጡ",
+        "confirmed": "ተረጋግጧል",
+        "draft": "ረቂቅ",
+        "scheduled": "በቀጠሮ የተያዘ",
+        "withdrawn": "ተነስቷል"
+      },
+      "detail": {
+        "title": "ማስታወቂያ",
+        "published": "የታተመው {when}",
+        "edited": "የተስተካከለው {when}",
+        "urgentNote": "ይህ አስቸኳይ ማስታወቂያ ነው። እባክዎ አሁኑኑ ያንብቡት።",
+        "safetyNote": "ይህ የደህንነት ማሳሰቢያ ነው። እባክዎ አሁኑኑ ያንብቡት።",
+        "withdrawnTitle": "ይህ ማስታወቂያ ተነስቷል",
+        "withdrawnOn": "የተነሳው {when}",
+        "withdrawnReason": "ምክንያት፦ {reason}",
+        "withdrawnNote": "መልዕክቱ ከአሁን በኋላ አይታይም። ጥያቄ ካለዎት ትምህርት ቤቱን ይጠይቁ።",
+        "notFoundTitle": "ማስታወቂያው አይገኝም",
+        "notFoundBody": "ተወግዶ ሊሆን ይችላል፣ ወይም ከአሁን በኋላ መዳረሻ የለዎትም።",
+        "original": "ዋናው ጽሑፍ",
+        "translatedBySchool": "በትምህርት ቤቱ የተተረጎመ",
+        "showOriginal": "ዋናውን አሳይ",
+        "showTranslation": "ትርጉሙን አሳይ"
+      },
+      "ack": {
+        "title": "ይህን እንዳነበቡ እባክዎ ያረጋግጡ",
+        "body": "ትምህርት ቤቱ እያንዳንዱ አንባቢ እንዲያረጋግጥ ይጠይቃል።",
+        "action": "አንብቤዋለሁ",
+        "doneTitle": "ይህን አረጋግጠዋል",
+        "doneBody": "የተረጋገጠው {when}።",
+        "renewTitle": "ይህ ተቀይሯል። እባክዎ እንደገና ያረጋግጡ",
+        "renewBody": "ካረጋገጡ በኋላ ትምህርት ቤቱ ማስታወቂያውን ቀይሮታል። እንደገና አንብበው አንድ ጊዜ ያረጋግጡ።",
+        "again": "እንደገና አረጋግጥ",
+        "failedTitle": "ማረጋገጥ አልተቻለም",
+        "failedBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።"
+      },
+      "manage": {
+        "title": "ለላኪው",
+        "status": {
+          "draft": "ይህ ረቂቅ ነው። ማንም አላየውም።",
+          "scheduled": "በቀጠሮ ተይዟል። በራሱ ይላካል።",
+          "published": "ታትሟል።",
+          "withdrawn": "ተነስቷል።"
+        },
+        "scheduledFor": "{when} ({zone}) ይላካል",
+        "scheduleBlocked": "በተያዘለት ጊዜ አልተላከም፤ ምክንያቱም ከአሁን በኋላ ለመላክ ፈቃድ ላይኖርዎት ይችላል። ይፈትሹና እንደገና ይላኩ።",
+        "recipients": "ለ{count} ሰዎች ደርሷል",
+        "deliveryRunning": "አሁንም እየደረሰ ነው።",
+        "edit": "አስተካክል እና ላክ",
+        "editPublished": "ጽሑፉን ቀይር",
+        "report": "ማን እንዳነበበው እይ",
+        "unschedule": "ወደ ረቂቅ መልስ",
+        "withdraw": "አንሳ",
+        "delete": "ረቂቁን ሰርዝ",
+        "deleteTitle": "ይህ ረቂቅ ይሰረዝ?",
+        "deleteBody": "ለዘለቄታው ይወገዳል።",
+        "failedTitle": "አልተሳካም",
+        "failedBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።"
+      },
+      "audience": {
+        "title": "ማን ይቀበለዋል",
+        "kindLabel": "የሚላክለት",
+        "kind": {
+          "school": "መላው ትምህርት ቤት",
+          "grade_level": "የክፍል ደረጃዎች",
+          "class": "ክፍሎች"
+        },
+        "wholeSchool": "በዚህ ትምህርት ቤት ከታች በተመረጡት ቡድኖች ውስጥ ያሉ ሁሉም።",
+        "rolesLabel": "የትኞቹ ሰዎች",
+        "role": {
+          "guardian": "ወላጆችና አሳዳጊዎች",
+          "student": "ተማሪዎች",
+          "staff": "ሠራተኞች"
+        },
+        "roleHint": {
+          "guardian": "በልጆቻቸው በኩል ይደርሳቸዋል",
+          "student": "መግባት የሚችሉ ተማሪዎች",
+          "staff": "መምህራንና ሌሎች ሠራተኞች"
+        },
+        "noRoles": "ቢያንስ አንድ የሰዎች ቡድን ይምረጡ።",
+        "noGrades": "ቢያንስ አንድ የክፍል ደረጃ ይምረጡ።",
+        "noClasses": "ቢያንስ አንድ ክፍል ይምረጡ።",
+        "noTargets": "ለማን እንደሆነ ይምረጡ።",
+        "noGradesExist": "ይህ ትምህርት ቤት እስካሁን የክፍል ደረጃ የለውም።",
+        "searchClasses": "ክፍሎችን ፈልግ",
+        "noMatch": "ምንም ክፍል አልተገኘም።",
+        "chosenClass": "የተመረጠ ክፍል",
+        "loadFailedTitle": "ዝርዝሩን መጫን አልተቻለም",
+        "loadFailedBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።",
+        "line": {
+          "school": "መላው ትምህርት ቤት፦ {roles}",
+          "campus": "ግቢዎች ({count})፦ {roles}",
+          "grade_level": "የክፍል ደረጃዎች ({count})፦ {roles}",
+          "class": "ክፍሎች ({count})፦ {roles}",
+          "user": "የተመረጡ ሰዎች ({count})፦ {roles}"
+        }
+      },
+      "compose": {
+        "title": "አዲስ ማስታወቂያ",
+        "editDraftTitle": "ማስታወቂያ አስተካክል",
+        "typeLabel": "የማስታወቂያው ዓይነት",
+        "urgentNeedsRight": "አስቸኳይና የደህንነት ማሳሰቢያዎች ከትምህርት ቤትዎ ልዩ ፈቃድ ይፈልጋሉ።",
+        "titleLabel": "ርዕስ",
+        "titlePlaceholder": "አጭርና ግልጽ ርዕስ",
+        "bodyLabel": "መልዕክት",
+        "bodyPlaceholder": "መልዕክትዎን ይጻፉ",
+        "counter": "{used} ከ{max}",
+        "plainTextNote": "ተራ ጽሑፍ ብቻ። በ http:// ወይም https:// የሚጀምሩ የድር አድራሻዎች አገናኝ ይሆናሉ።",
+        "languageLabel": "የመልዕክቱ ቋንቋ",
+        "optionsTitle": "አማራጮች",
+        "ackLabel": "አንባቢዎች እንዲያረጋግጡ ጠይቅ",
+        "ackHint": "እያንዳንዱ አንባቢ እንዳነበበ የሚያረጋግጥበት አዝራር ያገኛል፤ ያላረጋገጡትንም ማስታወስ ይችላሉ።",
+        "ackNeedsType": "ለአስፈላጊ፣ ለአስቸኳይና ለደህንነት ማሳሰቢያዎች ይገኛል።",
+        "inAppAlways": "ሁልጊዜ በመተግበሪያው ውስጥ ይታያል።",
+        "pushLabel": "ወደ ስልኮች ላክ",
+        "pushHint": "መተግበሪያው ባላቸው ስልኮች ላይ ማሳወቂያ።",
+        "emailLabel": "በኢሜይልም ላክ",
+        "emailHint": "ኢሜይል ያጠፉ ሰዎች አያገኙትም።",
+        "smsLabel": "በአጭር የጽሑፍ መልዕክትም ላክ",
+        "smsHint": "የጽሑፍ መልዕክት ያጠፉ ሰዎች አያገኙትም።",
+        "urgentChannels": "አስቸኳይና የደህንነት ማሳሰቢያዎች መተግበሪያው ላለው ለእያንዳንዱ ስልክ ይደርሳሉ፤ በጸጥታ ሰዓትም ሆነ ሰውየው ይህን ዓይነት ማሳወቂያ ድምጸ-ከል ቢያደርግም።",
+        "whenLabel": "መቼ",
+        "modeNow": "አሁን",
+        "modeSchedule": "በቀጠሮ",
+        "modeDraft": "ረቂቅ አስቀምጥ",
+        "draftHint": "ለእርስዎ ብቻ ይቀመጣል። እስኪልኩት ድረስ ማንም አይቀበለውም።",
+        "draftUnschedules": "ይህ በቀጠሮ የተያዘውን ማስታወቂያ ወደ ረቂቅ ይመልሰዋል።",
+        "draftSavedNote": "ረቂቅ በ«የእኔ ማስታወቂያዎች» ውስጥ ተቀምጧል።",
+        "blocked": {
+          "title": "ርዕስ ያክሉ።",
+          "titleLong": "ርዕሱ በጣም ረጅም ነው።",
+          "body": "መልዕክት ይጻፉ።",
+          "bodyLong": "መልዕክቱ በጣም ረጅም ነው።",
+          "type": "ይህን ዓይነት ማስታወቂያ መላክ አይችሉም።",
+          "schedule": "ቀኑንና ሰዓቱን ይምረጡ።",
+          "audience": "ለማን እንደሆነ ይፈትሹ።"
+        },
+        "review": {
+          "publish": "ገምግም እና ላክ",
+          "schedule": "ገምግም እና በቀጠሮ ያዝ"
+        },
+        "saveDraft": "ረቂቅ አስቀምጥ",
+        "nobody": "ይህን ማስታወቂያ ማንም አይቀበለውም። ለማን እንደሆነ ይለውጡ።",
+        "offlineTitle": "ግንኙነት የለም",
+        "offlineBody": "ማስታወቂያዎች የሚላኩት መስመር ላይ ሲሆኑ ብቻ ነው። ጽሑፍዎ እዚህ አለ። ሲገናኙ እንደገና ይሞክሩ።",
+        "failedTitle": "መላክ አልተቻለም",
+        "failedBody": "እባክዎ እንደገና ይሞክሩ።",
+        "notAllowedTitle": "እዚህ ማስታወቅ አይችሉም",
+        "notAllowedBody": "ትምህርት ቤትዎ ማስታወቂያ እንዲልኩ አይፈቅድልዎትም። የትምህርት ቤቱን አስተዳዳሪ ይጠይቁ።",
+        "webOnlyTitle": "ይህን በድር ላይ ይክፈቱ",
+        "webOnlyBody": "ይህ ማስታወቂያ ለተመረጡ ሰዎች ወይም ለአንድ ግቢ የተላከ ነው። በትምህርት ቤቱ ድረ ገጽ ላይ ያስተካክሉት።",
+        "discardTitle": "ይህ ማስታወቂያ ይተው?",
+        "discardBody": "የጻፉት አልተቀመጠም።",
+        "discardBodySaved": "ቀደም ብለው ያስቀመጡት ረቂቅ በ«የእኔ ማስታወቂያዎች» ውስጥ ይቆያል። ከዚያ በኋላ የተደረጉ ለውጦች ይጠፋሉ።",
+        "keepEditing": "ማስተካከሉን ቀጥል",
+        "discard": "ተው"
+      },
+      "confirm": {
+        "publishTitle": "ማስታወቂያ ላክ",
+        "scheduleTitle": "ማስታወቂያ በቀጠሮ ያዝ",
+        "reach": "ይህ ለ{count} ሰዎች ይደርሳል",
+        "part": {
+          "guardian": "ወላጆችና አሳዳጊዎች፦ {count}",
+          "student": "ተማሪዎች፦ {count}",
+          "staff": "ሠራተኞች፦ {count}"
+        },
+        "when": "{when} ይላካል።",
+        "ack": "አንባቢዎች እንዳነበቡ እንዲያረጋግጡ ይጠየቃሉ።",
+        "urgent": "አስቸኳይና የደህንነት ማሳሰቢያዎች የጸጥታ ሰዓትንና ድምጸ-ከል የተደረጉ ቅንብሮችን ችላ ይላሉ። መተግበሪያው ባለው ለእያንዳንዱ ስልክ ወዲያውኑ ማሳወቂያ ይደርሳል።",
+        "cannotUndo": "በኋላ ማንሳት ይችላሉ፤ ነገር ግን ሰዎች አስቀድመው አይተውት ይሆናል።",
+        "send": "አሁን ላክ",
+        "schedule": "በቀጠሮ ያዝ",
+        "keepEditing": "ማስተካከሉን ቀጥል"
+      },
+      "edit": {
+        "title": "ጽሑፉን ቀይር",
+        "intro": "ከተላከ በኋላ የሚቀየሩት ርዕሱና መልዕክቱ ብቻ ናቸው። የቀደመው ቅጂ በትምህርት ቤቱ መዝገብ ውስጥ ይቆያል።",
+        "materialTitle": "ይህ ለውጥ ለአንባቢዎች ይጠቅማል?",
+        "materialYes": "አዎ፣ ለሁሉም ንገር",
+        "materialYesHint": "አንባቢዎች እንደተቀየረ ማሳወቂያ ያገኛሉ።",
+        "materialYesAckHint": "አንባቢዎች ማሳወቂያ ያገኛሉ፤ እንደገና እንዲያረጋግጡም ይጠየቃሉ።",
+        "materialNo": "አይ፣ ትንሽ እርማት ነው",
+        "materialNoHint": "የፊደል ወይም የአገላለጽ እርማት ብቻ። ማንም አይነገረውም።",
+        "chooseMaterial": "አንባቢዎች ይነገራቸው እንደሆነ ይምረጡ።",
+        "save": "ለውጦችን አስቀምጥ",
+        "discardBody": "ለውጦችዎ አልተቀመጡም።"
+      },
+      "withdraw": {
+        "title": "ማስታወቂያ አንሳ",
+        "body": "አንባቢዎች እንደተነሳ ያያሉ፤ መልዕክቱንም ከዚያ በኋላ አያዩትም። እንደተነሳ ይነገራቸዋል።",
+        "reasonLabel": "ምክንያት (አማራጭ)",
+        "reasonHint": "አንባቢዎች ይህን ማስታወሻ ማየት ይችላሉ።",
+        "confirm": "አንሳ",
+        "failedTitle": "ማንሳት አልተቻለም",
+        "failedBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።"
+      },
+      "mine": {
+        "title": "የእኔ ማስታወቂያዎች",
+        "new": "አዲስ ማስታወቂያ",
+        "whoseLabel": "የማን",
+        "mineOnly": "የእኔ",
+        "wholeSchool": "መላው ትምህርት ቤት",
+        "statusLabel": "ሁኔታ",
+        "status": {
+          "all": "ሁሉም",
+          "draft": "ረቂቆች",
+          "scheduled": "በቀጠሮ የተያዙ",
+          "published": "የታተሙ",
+          "withdrawn": "የተነሱ"
+        },
+        "emptyTitle": "እስካሁን ምንም የለም",
+        "emptyBody": "የሚጽፏቸው ማስታወቂያዎች እዚህ ይዘረዘራሉ።"
+      },
+      "report": {
+        "title": "ማን አነበበው",
+        "delivered": "የደረሰ",
+        "read": "የተነበበ",
+        "confirmed": "የተረጋገጠ",
+        "meter": "{label}፦ {value} ከ{total}፣ {percent} በመቶ",
+        "meterValue": "{value} ከ{total}",
+        "deliveryRunning": "አሁንም እየደረሰ ነው።",
+        "failed": "{count} ሰዎች ጋር መድረስ አልተቻለም።",
+        "lateReaders": "{count} ሌሎች በኋላ ከፍተውታል።",
+        "reminders": "የተላኩ ማስታወሻዎች፦ {count}። የመጨረሻው፦ {when}",
+        "remind": "ያላረጋገጡትን አስታውስ",
+        "remindHint": "ማሳወቂያ ያገኛሉ። ማስታወሻ በተደጋጋሚ መላክ አይቻልም።",
+        "remindConfirmTitle": "ማስታወሻ ይላክ?",
+        "remindConfirmBody": "ገና ያላረጋገጡ ሁሉ ማሳወቂያ ያገኛሉ።",
+        "remindConfirm": "ማስታወሻ ላክ",
+        "reminded": "ማስታወሻው ለ{count} ሰዎች ተልኳል።",
+        "remindFailedTitle": "ማስታወሻውን መላክ አልተቻለም",
+        "remindFailedBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።",
+        "tryAgainIn": "ሌላ ማስታወሻ ከ{hours} ሰዓት ገደማ በኋላ መላክ ይችላሉ።",
+        "filterLabel": "እነዚህን ሰዎች አሳይ",
+        "filter": {
+          "unacknowledged": "ያላረጋገጡ",
+          "unread": "ያላነበቡ",
+          "acknowledged": "ያረጋገጡ",
+          "failed": "ያልደረሳቸው"
+        },
+        "none": {
+          "unacknowledged": "ሁሉም አረጋግጠዋል።",
+          "unread": "ሁሉም አንብበውታል።",
+          "acknowledged": "እስካሁን ማንም አላረጋገጠም።",
+          "failed": "ለሁሉም ደርሷል።"
+        },
+        "noneTitle": "እዚህ ማንም የለም",
+        "via": "በ{child} በኩል",
+        "rowRead": "አንብቧል",
+        "rowUnread": "አላነበበም",
+        "rowConfirmed": "አረጋግጧል",
+        "failedTitle": "ሪፖርቱን መጫን አልተቻለም",
+        "failedBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።"
+      },
+      "channels": {
+        "title": "የመገናኛ መንገዶች",
+        "hint": "ማስታወቂያዎች ሁልጊዜ በመተግበሪያው ውስጥ ይታያሉ። ትምህርት ቤቱ በኢሜይል ወይም በአጭር የጽሑፍ መልዕክት እንዲልክልዎ ይምረጡ። አስቸኳይ ማስታወቂያዎች እነዚህን ሁለት አይሽሩም።",
+        "email": "ኢሜይል",
+        "sms": "አጭር የጽሑፍ መልዕክት",
+        "smsBlocked": "ይህ ቁጥር ከላኪው የጽሑፍ መልዕክቶችን አቁሟል። ይህን መመለስ የሚችሉት እነሱ ብቻ ናቸው።",
+        "loadError": "ምርጫዎችዎን መጫን አልተቻለም።",
+        "saveError": "ምርጫዎን ማስቀመጥ አልተቻለም።"
+      },
+      "preferences": {
+        "urgentLock": "አስቸኳይና የደህንነት ማስታወቂያዎች ይህን ቢያጠፉም ሆነ በጸጥታ ሰዓት ሁልጊዜ ወደዚህ ስልክ ይደርሳሉ።"
+      }
     }
   },
   "schoolPicker": {

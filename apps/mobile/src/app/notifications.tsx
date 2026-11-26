@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslations } from 'use-intl';
@@ -97,7 +98,7 @@ function Row({ item, onPress }: { item: InboxItem; onPress: () => void }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={[unread ? t('mobile.notifications.unreadItem') : null, item.title, item.body, format(item.createdAt)]
+      accessibilityLabel={[unread ? t('mobile.notifications.unreadItem') : null, item.priority === 'URGENT' ? t('mobile.announcements.type.urgent') : null, item.title, item.body, format(item.createdAt)]
         .filter(Boolean)
         .join('. ')}
       onPress={onPress}
@@ -121,6 +122,14 @@ function Row({ item, onPress }: { item: InboxItem; onPress: () => void }) {
         }}
       />
       <View style={{ flex: 1, gap: spacing[1] }}>
+        {item.priority === 'URGENT' ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <SymbolView name={{ ios: 'exclamationmark.triangle.fill', android: 'warning', web: 'warning' }} size={16} tintColor={colors.destructive} />
+            <Text variant="label" style={{ color: colors.destructive }}>
+              {t('mobile.announcements.type.urgent')}
+            </Text>
+          </View>
+        ) : null}
         <Text variant={unread ? 'label' : 'body'}>{item.title}</Text>
         {item.body ? <Text tone="muted">{item.body}</Text> : null}
         <Text variant="caption">{format(item.createdAt)}</Text>

@@ -63,6 +63,56 @@ describe('routeForPath', () => {
       expect(routeForPath(`/feed/posts/${postId}`, HOME, { schoolId: '../../x' })).toBe(`/feed/post/${postId}`);
     });
   });
+  describe('the school id of a push (M8c follow-up)', () => {
+    const postId = '2c1d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    const storyId = '5c7d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    const schoolId = '3a9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    // The push data of the backend: `path`, the ids of the thing, and `schoolId` for every notification that has a school.
+    const push = { path: `/feed/posts/${postId}`, postId, schoolId, notificationId: 'n1' };
+    it('opens a post, a story and the queue in the school the push names', () => {
+      expect(routeForPath(push.path, HOME, push)).toBe(`/feed/post/${postId}?schoolId=${schoolId}`);
+      expect(routeForPath(`/feed/stories/${storyId}`, HOME, { ...push, storyId })).toBe(`/feed/story/${storyId}?schoolId=${schoolId}`);
+      expect(routeForPath('/feed/approvals', '/(teacher)/classes', { schoolId })).toBe(`/feed/approvals?schoolId=${schoolId}`);
+    });
+    it('reads the school from a raw APNs body too, object or text', () => {
+      expect(routeForPath(push.path, HOME, { body: push })).toBe(`/feed/post/${postId}?schoolId=${schoolId}`);
+      expect(routeForPath(push.path, HOME, { body: JSON.stringify(push) })).toBe(`/feed/post/${postId}?schoolId=${schoolId}`);
+    });
+    it('without a school (an older push) the route has none and the screen looks the post up', () => {
+      expect(routeForPath(push.path, HOME, { path: push.path })).toBe(`/feed/post/${postId}`);
+      expect(routeForPath(push.path, HOME, undefined)).toBe(`/feed/post/${postId}`);
+    });
+    it('the inbox row passes the school of the row', () => {
+      expect(routeForPath(push.path, HOME, { path: push.path, schoolId })).toBe(`/feed/post/${postId}?schoolId=${schoolId}`);
+    });
+  });
+  describe('announcements', () => {
+    const announcementId = '6d1d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    const schoolId = '3a9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    const path = `/announcements/${announcementId}`;
+    it('opens the announcement for every role, in the school the push names', () => {
+      for (const home of [HOME, '/(teacher)/classes', '/(student)/home']) {
+        expect(routeForPath(path, home, { path, announcementId, schoolId })).toBe(`/announcements/${announcementId}?schoolId=${schoolId}`);
+      }
+    });
+    it('opens it without a school for an older push (the screen asks the caller\'s schools)', () => {
+      expect(routeForPath(path, HOME, { path, announcementId })).toBe(`/announcements/${announcementId}`);
+      expect(routeForPath(path, HOME)).toBe(`/announcements/${announcementId}`);
+    });
+    it('reads the school from a raw APNs body', () => {
+      expect(routeForPath(path, HOME, { body: { path, schoolId } })).toBe(`/announcements/${announcementId}?schoolId=${schoolId}`);
+    });
+    it('opens the inbox for the bare path', () => {
+      expect(routeForPath('/announcements', HOME)).toBe('/announcements');
+    });
+    it('never follows a bad id, a path with extra parts or a missing role; a bad school id is dropped', () => {
+      expect(routeForPath('/announcements/not-an-id', HOME)).toBeNull();
+      expect(routeForPath(`${path}/report`, HOME)).toBeNull();
+      expect(routeForPath(`${path}/../x`, HOME)).toBeNull();
+      expect(routeForPath(path, null)).toBeNull();
+      expect(routeForPath(path, HOME, { schoolId: '../../x' })).toBe(`/announcements/${announcementId}`);
+    });
+  });
   it('ignores query, hash and a trailing slash', () => {
     expect(routeForPath('/notifications?x=1#top', HOME)).toBe('/notifications');
     expect(routeForPath('/notifications/', HOME)).toBe('/notifications');

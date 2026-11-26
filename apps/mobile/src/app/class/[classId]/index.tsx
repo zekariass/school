@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, RefreshControl, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
+import { ClassAnnouncementButton } from '@/components/announcements/school-entry';
 import { ClassBadge } from '@/components/class-card';
 import { ProblemBanner } from '@/components/problem-banner';
 import { RosterGrid } from '@/components/roster-grid';
@@ -107,6 +108,7 @@ export default function ClassDetail() {
                 label={t('mobile.feed.openClassFeed')}
                 onPress={() => router.push({ pathname: '/feed/class/[classId]', params: { classId: cls.id, schoolId: cls.schoolId } })}
               />
+              <ClassAnnouncementButton schoolId={cls.schoolId} classId={cls.id} />
               <Button
                 variant="secondary"
                 label={t('mobile.points.openClass')}

@@ -143,7 +143,7 @@ export function useCandidateSchoolIds(hint?: string | null): { ids: string[]; re
   return { ids: [...ids], ready: !me.isPending };
 }
 
-async function firstFound<T>(schoolIds: string[], load: (schoolId: string) => Promise<T>): Promise<{ schoolId: string; value: T } | null> {
+export async function firstFound<T>(schoolIds: string[], load: (schoolId: string) => Promise<T>): Promise<{ schoolId: string; value: T } | null> {
   for (const schoolId of schoolIds) {
     try {
       return { schoolId, value: await load(schoolId) };
@@ -157,22 +157,22 @@ async function firstFound<T>(schoolIds: string[], load: (schoolId: string) => Pr
 }
 
 /** A post by id alone (a notification names no school): asks the caller's schools in turn. `null` when none has it. */
-export function usePostAnywhere(postId: string | undefined, hint?: string | null) {
+export function usePostAnywhere(postId: string | undefined, hint?: string | null, enabled = true) {
   const { ids, ready } = useCandidateSchoolIds(hint);
   return useQuery({
     queryKey: [FEED_ROOT, 'post-any', postId ?? '', ids.join(',')],
-    enabled: !!postId && ready,
+    enabled: enabled && !!postId && ready,
     queryFn: () => firstFound(ids, (schoolId) => fetchPost(schoolId, postId!)),
     gcTime: FEED_GC_MS,
     retry: false,
   });
 }
 
-export function useStoryAnywhere(storyId: string | undefined, hint?: string | null) {
+export function useStoryAnywhere(storyId: string | undefined, hint?: string | null, enabled = true) {
   const { ids, ready } = useCandidateSchoolIds(hint);
   return useQuery({
     queryKey: [FEED_ROOT, 'story-any', storyId ?? '', ids.join(',')],
-    enabled: !!storyId && ready,
+    enabled: enabled && !!storyId && ready,
     queryFn: () => firstFound(ids, (schoolId) => fetchStory(schoolId, storyId!)),
     gcTime: FEED_GC_MS,
     retry: false,

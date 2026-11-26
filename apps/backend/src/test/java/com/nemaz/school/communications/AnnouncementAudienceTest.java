@@ -120,6 +120,7 @@ class AnnouncementAudienceTest extends CommunicationsTestSupport {
 		assertThat(capabilities.get("canCompose").asBoolean()).isTrue();
 		assertThat(capabilities.get("schoolWide").asBoolean()).isFalse();
 		assertThat(capabilities.get("classes").size()).isEqualTo(1);
+		assertThat(capabilities.get("timeZone").asText()).isNotBlank();
 		assertThat(get(c.api() + "/capabilities", c.admin()).get("schoolWide").asBoolean()).isTrue();
 	}
 
