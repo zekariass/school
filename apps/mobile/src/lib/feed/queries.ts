@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { ApiRequestError } from '@/lib/api-error';
 import { useMe } from '@/lib/auth/use-me';
 import { useMyChildren } from '@/lib/family/queries';
+import { useSession } from '@/lib/session/session-provider';
 
 import {
   FEED_GC_MS,
@@ -133,7 +134,8 @@ export function useStoryQuery(schoolId: string | undefined, storyId: string | un
 /** The schools the caller belongs to (as staff, student or guardian) and their children's schools, a hint first. */
 export function useCandidateSchoolIds(hint?: string | null): { ids: string[]; ready: boolean } {
   const me = useMe();
-  const children = useMyChildren();
+  const { activeRole } = useSession();
+  const children = useMyChildren(activeRole === 'guardian');
   const ids = new Set<string>();
   if (hint) ids.add(hint);
   for (const membership of me.data?.memberships ?? []) ids.add(membership.schoolId);

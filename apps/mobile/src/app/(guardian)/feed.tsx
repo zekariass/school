@@ -30,7 +30,7 @@ export default function GuardianFeedTab() {
   return <HomeFeed />;
 }
 
-type Target = { schoolId: string; classId: string; label: string };
+type Target = { schoolId: string; schoolName: string; classId: string; label: string };
 
 function HomeFeed() {
   const t = useTranslations();
@@ -47,7 +47,7 @@ function HomeFeed() {
     for (const kid of kids) {
       if (studentId && kid.studentId !== studentId) continue;
       for (const school of kid.schools) {
-        for (const cls of school.classes) found.set(cls.classId, { schoolId: school.schoolId, classId: cls.classId, label: `${cls.name} · ${school.schoolName}` });
+        for (const cls of school.classes) found.set(cls.classId, { schoolId: school.schoolId, schoolName: school.schoolName, classId: cls.classId, label: `${cls.name} · ${school.schoolName}` });
       }
     }
     return [...found.values()];
@@ -93,30 +93,40 @@ function HomeFeed() {
   );
 }
 
-/** "Share with the class": one class goes straight to the composer; with several the parent picks which. */
+/**
+ * "Share with the class" and "My posts": with one class (or school) they go straight on; with several the parent picks which.
+ * A family contribution waits for a teacher, and the contributor follows it in My posts.
+ */
 function ShareButton({ targets }: { targets: Target[] }) {
   const t = useTranslations();
   const { colors, minTouchTarget, radii } = useAppTheme();
-  const [open, setOpen] = useState(false);
-  const go = (target: Target) => {
-    setOpen(false);
+  const [open, setOpen] = useState<'share' | 'mine' | null>(null);
+  const schools = [...new Map(targets.map((target) => [target.schoolId, target])).values()];
+  const share = (target: Target) => {
+    setOpen(null);
     router.push({ pathname: '/feed/compose', params: { kind: 'contribution', schoolId: target.schoolId, classId: target.classId } });
   };
+  const mine = (target: Target) => {
+    setOpen(null);
+    router.push({ pathname: '/feed/my-posts', params: { schoolId: target.schoolId } });
+  };
+  const options = open === 'mine' ? schools : targets;
   return (
-    <>
-      <Button variant="secondary" label={t('mobile.feed.contribute.action')} onPress={() => (targets.length === 1 ? go(targets[0]!) : setOpen(true))} />
-      <Sheet visible={open} onClose={() => setOpen(false)} title={t('mobile.feed.contribute.pickClass')}>
-        {targets.map((target) => (
+    <View style={{ gap: 8 }}>
+      <Button variant="secondary" label={t('mobile.feed.contribute.action')} onPress={() => (targets.length === 1 ? share(targets[0]!) : setOpen('share'))} />
+      <Button variant="ghost" label={t('mobile.feed.myPosts.title')} onPress={() => (schools.length === 1 ? mine(schools[0]!) : setOpen('mine'))} />
+      <Sheet visible={open !== null} onClose={() => setOpen(null)} title={open === 'mine' ? t('mobile.feed.approvals.pickSchool') : t('mobile.feed.contribute.pickClass')}>
+        {options.map((target) => (
           <Pressable
-            key={target.classId}
+            key={open === 'mine' ? target.schoolId : target.classId}
             accessibilityRole="button"
-            accessibilityLabel={target.label}
-            onPress={() => go(target)}
+            accessibilityLabel={open === 'mine' ? target.schoolName : target.label}
+            onPress={() => (open === 'mine' ? mine(target) : share(target))}
             style={({ pressed }) => ({ minHeight: minTouchTarget, justifyContent: 'center', paddingHorizontal: 12, borderRadius: radii.lg, backgroundColor: pressed ? colors.muted : 'transparent' })}>
-            <Text variant="label">{target.label}</Text>
+            <Text variant="label">{open === 'mine' ? target.schoolName : target.label}</Text>
           </Pressable>
         ))}
       </Sheet>
-    </>
+    </View>
   );
 }

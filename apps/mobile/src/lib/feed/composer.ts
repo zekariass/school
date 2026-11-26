@@ -186,6 +186,23 @@ export function charLimit(kind: ComposerKind): number {
   return kind === 'story' ? MAX_STORY_CHARS : MAX_POST_CHARS;
 }
 
+/**
+ * Whether leaving would lose something: the words, the photos, their descriptions, the tags or the timing differ from how the
+ * composer opened (an untouched edit screen closes without asking).
+ */
+export function isDirty(initial: ComposerState, now: ComposerState): boolean {
+  if (initial === now) return false;
+  const photos = (state: ComposerState) => state.attachments.map((item) => `${item.key}:${item.caption}`).join('|');
+  return (
+    now.body.trim() !== initial.body.trim() ||
+    now.commentsEnabled !== initial.commentsEnabled ||
+    now.mode !== initial.mode ||
+    JSON.stringify(now.schedule) !== JSON.stringify(initial.schedule) ||
+    now.studentIds.join(',') !== initial.studentIds.join(',') ||
+    photos(now) !== photos(initial)
+  );
+}
+
 export type BlockedReason = 'uploading' | 'failed_upload' | 'empty' | 'too_long' | 'schedule_missing';
 
 /** Why the send button waits, or null. Light checks only; the API validates everything again. */

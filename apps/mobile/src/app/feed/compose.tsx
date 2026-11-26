@@ -20,6 +20,7 @@ import {
   composerFromPost,
   composerReducer,
   initialComposer,
+  isDirty,
   keyAfterFailure,
   keyFor,
   needsConfirmation,
@@ -114,7 +115,7 @@ function Composer({ kind, schoolId, classId, caps, existing }: { kind: ComposerK
 
   // --- who can be tagged -------------------------------------------------------------------------
   const roster = useRoster(kind === 'contribution' ? undefined : schoolId, classId);
-  const children = useMyChildren();
+  const children = useMyChildren(kind === 'contribution' && activeRole === 'guardian');
   const [search, setSearch] = useState('');
   const schoolStudents = useStudentSearch(!classId && kind !== 'contribution' ? schoolId : undefined, search);
   const options: StudentOption[] = useMemo(() => {
@@ -135,7 +136,8 @@ function Composer({ kind, schoolId, classId, caps, existing }: { kind: ComposerK
 
   // --- leaving -----------------------------------------------------------------------------------
   // Nothing is saved on the phone, so leaving with something typed or picked asks first.
-  const dirty = state.body.trim().length > 0 || state.attachments.length > 0 || (existing ? true : state.studentIds.length > 0);
+  const [opened] = useState(state);
+  const dirty = isDirty(opened, state);
   const [guard, setGuard] = useState(true);
   const disableGuard = usePreventRemove(dirty && guard, ({ repeat }) => {
     Alert.alert(t('mobile.feed.compose.discardTitle'), t('mobile.feed.compose.discardBody'), [

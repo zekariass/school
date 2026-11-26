@@ -5,6 +5,7 @@ import {
   blockedReason,
   composerFromPost,
   composerReducer,
+  isDirty,
   initialComposer,
   keyAfterFailure,
   keyFor,
@@ -187,5 +188,24 @@ describe('idempotency keys', () => {
     expect(keyAfterFailure(key, 503)).toBe(key);
     expect(keyAfterFailure(key, 422)).toBeNull();
     expect(keyAfterFailure(key, 409)).toBeNull();
+  });
+});
+
+describe('isDirty', () => {
+  const start = initialComposer('post', true);
+  it('is clean until something changes', () => {
+    expect(isDirty(start, start)).toBe(false);
+    expect(isDirty(start, run(start, { type: 'mode', value: 'PUBLISH' }))).toBe(false);
+    expect(isDirty(start, run(start, { type: 'body', value: '   ' }))).toBe(false);
+  });
+  it('asks when words, photos, tags or timing are there', () => {
+    expect(isDirty(start, run(start, { type: 'body', value: 'Hi' }))).toBe(true);
+    expect(isDirty(start, withPhoto(start))).toBe(true);
+    expect(isDirty(start, run(start, { type: 'toggleStudent', studentId: 's1' }))).toBe(true);
+    expect(isDirty(start, run(start, { type: 'mode', value: 'DRAFT' }))).toBe(true);
+  });
+  it('is clean again when the change is undone', () => {
+    const typed = run(start, { type: 'body', value: 'Hi' });
+    expect(isDirty(start, run(typed, { type: 'body', value: '' }))).toBe(false);
   });
 });

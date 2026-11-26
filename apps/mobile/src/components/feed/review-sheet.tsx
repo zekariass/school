@@ -24,7 +24,7 @@ import { StudentTagger } from './student-picker';
  */
 export function ReviewSheet({ post, onClose }: { post: PostView | null; onClose: () => void }) {
   return (
-    <Sheet visible={!!post} onClose={onClose} title={post ? undefined : undefined}>
+    <Sheet visible={!!post} onClose={onClose}>
       {post ? <ReviewBody key={post.id} post={post} onClose={onClose} /> : null}
     </Sheet>
   );
