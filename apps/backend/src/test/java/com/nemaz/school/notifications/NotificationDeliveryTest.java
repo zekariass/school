@@ -50,19 +50,19 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 		UUID english = user("en", null);
 		UUID unset = user(null, null);
 
-		var ids = this.notifications.notify(NotificationRequest.to("NEW_MESSAGE", List.of(amharic, english, unset))
-			.args("Abebe")
+		var ids = this.notifications.notify(NotificationRequest.to("NEW_POST", List.of(amharic, english, unset))
+			.args("Abebe", "Sara")
 			.path("/messages/123")
 			.build());
 
 		assertThat(ids).hasSize(3);
 		Map<String, Object> am = this.jdbc.queryForMap("select title, body, data::text as data from notifications where user_id = ?", amharic);
-		assertThat(am.get("title")).isEqualTo("ከAbebe አዲስ መልዕክት");
+		assertThat(am.get("title")).isEqualTo("በAbebe አዲስ ልጥፍ");
 		assertThat(am.get("data").toString()).contains("/messages/123");
 		assertThat(this.jdbc.queryForObject("select title from notifications where user_id = ?", String.class, english))
-			.isEqualTo("New message from Abebe");
+			.isEqualTo("New post in Abebe");
 		assertThat(this.jdbc.queryForObject("select title from notifications where user_id = ?", String.class, unset))
-			.isEqualTo("New message from Abebe");
+			.isEqualTo("New post in Abebe");
 	}
 
 	@Test
@@ -96,7 +96,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 		UUID user = user("en", null);
 		String first = device(user);
 		String second = device(user);
-		UUID id = this.notifications.notify(NotificationRequest.to("NEW_MESSAGE", user).args("Sara").path("/messages/1").build()).getFirst();
+		UUID id = this.notifications.notify(NotificationRequest.to("NEW_POST", user).args("Sara", "Teacher").path("/messages/1").build()).getFirst();
 
 		List<Map<String, Object>> rows = awaitDeliveries(id);
 		await().atMost(Duration.ofSeconds(10)).until(() -> deliveries(id).stream().allMatch((r) -> "SENT".equals(r.get("status"))));
@@ -106,7 +106,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 			assertThat(r.get("sent_at")).isNotNull();
 		});
 		assertThat(this.pushes.sentTo(first)).singleElement().satisfies((m) -> {
-			assertThat(m.title()).isEqualTo("New message from Sara");
+			assertThat(m.title()).isEqualTo("New post in Sara");
 			assertThat(m.data()).containsEntry("path", "/messages/1").containsEntry("notificationId", id.toString());
 			assertThat(m.urgent()).isFalse();
 		});
@@ -119,9 +119,9 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 		UUID user = user("en", null);
 		String device = device(user);
 		UUID school = this.personas.newSchool("Push school id");
-		UUID withSchool = this.notifications.notify(NotificationRequest.to("NEW_MESSAGE", user).args("Sara")
+		UUID withSchool = this.notifications.notify(NotificationRequest.to("NEW_POST", user).args("Sara", "Teacher")
 			.path("/messages/2").school(school).build()).getFirst();
-		UUID without = notifyOne("NEW_MESSAGE", user, "Sara");
+		UUID without = notifyOne("NEW_POST", user, "Sara");
 		await().atMost(Duration.ofSeconds(10)).until(() -> deliveries(withSchool).stream().allMatch((r) -> "SENT".equals(r.get("status")))
 				&& deliveries(without).stream().allMatch((r) -> "SENT".equals(r.get("status"))));
 		assertThat(this.pushes.sentTo(device)).anySatisfy((m) -> {
@@ -134,7 +134,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 	@Test
 	void aUserWithoutADeviceGetsTheInboxRowAndANoDeviceRecord() {
 		UUID user = user("en", null);
-		UUID id = notifyOne("NEW_MESSAGE", user, "Sara");
+		UUID id = notifyOne("NEW_POST", user, "Sara");
 
 		List<Map<String, Object>> rows = awaitDeliveries(id);
 		assertThat(rows).singleElement().satisfies((r) -> {
@@ -201,7 +201,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 		setQuietHours(user, "22:00", "06:00");
 		try {
 			this.clock.moveTo(LATE_EVENING); // 23:00 in Addis Ababa, 20:00 UTC
-			UUID late = notifyOne("NEW_MESSAGE", user, "Sara");
+			UUID late = notifyOne("NEW_POST", user, "Sara");
 			assertThat(awaitDeliveries(late)).singleElement().satisfies((r) -> {
 				assertThat(r.get("status")).isEqualTo("SUPPRESSED");
 				assertThat(r.get("suppressed_reason")).isEqualTo("QUIET_HOURS");
@@ -209,12 +209,12 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 			});
 
 			this.clock.moveTo(Instant.parse("2026-06-11T02:30:00Z")); // 05:30 local: still quiet after midnight
-			UUID early = notifyOne("NEW_MESSAGE", user, "Sara");
+			UUID early = notifyOne("NEW_POST", user, "Sara");
 			assertThat(awaitDeliveries(early)).singleElement()
 				.satisfies((r) -> assertThat(r.get("suppressed_reason")).isEqualTo("QUIET_HOURS"));
 
 			this.clock.moveTo(Instant.parse("2026-06-11T03:30:00Z")); // 06:30 local: quiet hours are over
-			UUID morning = notifyOne("NEW_MESSAGE", user, "Sara");
+			UUID morning = notifyOne("NEW_POST", user, "Sara");
 			await().atMost(Duration.ofSeconds(10)).until(() -> this.pushes.sentTo(token).size() == 1);
 			assertThat(deliveries(morning)).singleElement().satisfies((r) -> assertThat(r.get("status")).isEqualTo("SENT"));
 			assertThat(this.pushes.sentTo(token)).hasSize(1);
@@ -232,7 +232,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 		setQuietHours(user, "22:00", "06:00");
 		try {
 			this.clock.moveTo(LATE_EVENING);
-			notifyOne("NEW_MESSAGE", user, "Sara");
+			notifyOne("NEW_POST", user, "Sara");
 			await().atMost(Duration.ofSeconds(10)).until(() -> this.pushes.sentTo(token).size() == 1);
 		}
 		finally {
@@ -277,7 +277,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 		this.pushes.respondWith((m) -> m.token().equals(dead) ? PushResult.deviceNotRegistered()
 				: PushResult.sent("ok"));
 
-		UUID id = notifyOne("NEW_MESSAGE", user, "Sara");
+		UUID id = notifyOne("NEW_POST", user, "Sara");
 
 		await().atMost(Duration.ofSeconds(10))
 			.until(() -> this.jdbc.queryForObject("select revoked_at is not null from push_devices where push_token = ?",
@@ -291,7 +291,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 		assertThat(failed.get("last_error")).isEqualTo("DeviceNotRegistered");
 
 		// the revoked device is not used again
-		UUID next = notifyOne("NEW_MESSAGE", user, "Sara");
+		UUID next = notifyOne("NEW_POST", user, "Sara");
 		await().atMost(Duration.ofSeconds(10)).until(() -> deliveries(next).size() == 1);
 		assertThat(this.pushes.sentTo(dead)).hasSize(1);
 		assertThat(this.pushes.sentTo(alive)).hasSize(2);
@@ -302,7 +302,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 		UUID user = user("en", null);
 		String token = device(user);
 		this.pushes.respondWith((m) -> PushResult.failed("expo_http: timeout"));
-		UUID id = notifyOne("NEW_MESSAGE", user, "Sara");
+		UUID id = notifyOne("NEW_POST", user, "Sara");
 		await().atMost(Duration.ofSeconds(10))
 			.until(() -> deliveries(id).stream().anyMatch((r) -> "FAILED".equals(r.get("status"))));
 		try {
@@ -343,7 +343,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 		UUID user = user("en", null);
 		String token = device(user);
 		this.pushes.respondWith((m) -> PushResult.failed("expo_http: timeout"));
-		UUID id = notifyOne("NEW_MESSAGE", user, "Sara");
+		UUID id = notifyOne("NEW_POST", user, "Sara");
 		await().atMost(Duration.ofSeconds(10))
 			.until(() -> deliveries(id).stream().anyMatch((r) -> "FAILED".equals(r.get("status"))));
 		this.pushes.respondWith((m) -> PushResult.sent("ticket-1"));
@@ -366,7 +366,7 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 	void handlingTheSameEventTwiceSendsOnce() {
 		UUID user = user("en", null);
 		String token = device(user);
-		UUID id = notifyOne("NEW_MESSAGE", user, "Sara");
+		UUID id = notifyOne("NEW_POST", user, "Sara");
 		await().atMost(Duration.ofSeconds(10)).until(() -> this.pushes.sentTo(token).size() == 1);
 
 		// the outbox redelivers: simulate by publishing the same event again

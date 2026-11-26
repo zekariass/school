@@ -23,6 +23,18 @@ public interface NotificationService {
 	boolean alreadyNotified(UUID userId, String typeCode, String sourceType, UUID sourceId);
 
 	/**
+	 * True when {@code userId} has a notification of this type for this source that they have not read (or archived) yet:
+	 * lets chatty sources (a conversation) keep one open notification instead of one per event.
+	 */
+	boolean hasUnread(UUID userId, String typeCode, String sourceType, UUID sourceId);
+
+	/**
+	 * Marks the user's unread notifications of the given types for this source as read (opening a conversation reads its
+	 * message notifications), and tells the user's other open apps. Returns how many were marked.
+	 */
+	int markReadForSource(UUID userId, java.util.Collection<String> typeCodes, String sourceType, UUID sourceId);
+
+	/**
 	 * For each of the users who is inside their own quiet hours right now, when those end. Users not in quiet hours (or
 	 * without quiet hours) are absent. Lets other channels (email, SMS) follow the same policy as push.
 	 */

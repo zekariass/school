@@ -268,6 +268,987 @@
         "tags" : [ "auth" ]
       }
     },
+    "/api/v1/conversations/{conversationId}" : {
+      "get" : {
+        "operationId" : "getConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConversationView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One conversation the caller may use now (404 otherwise). guardiansCanSee tells a student whether a guardian can read their direct conversation with an adult",
+        "tags" : [ "messaging" ]
+      },
+      "patch" : {
+        "operationId" : "updateConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateConversationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GroupAdminView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Owners and moderators (and school.messaging.moderate or class managers, who need not be members) change a group's title, posting policy (ALL_MEMBERS or MODERATORS_ONLY) and status (ACTIVE, LOCKED, ARCHIVED). DIRECT conversations have no moderators (403)",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/approve" : {
+      "post" : {
+        "operationId" : "approveGroupConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GroupAdminView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Approves a student group proposal (lead or co-teacher of the class, or school.messaging.moderate). The class's lead and co-teachers become its moderators",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/leave" : {
+      "post" : {
+        "operationId" : "leaveConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Leaves a group (not DIRECT conversations, not as an observer)",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/members" : {
+      "get" : {
+        "operationId" : "listConversationMembers",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MemberListView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The people of a conversation as the caller may see them: teachers, staff and students by name, guardians only as role labels, observers marked (their count is observerCount)",
+        "tags" : [ "messaging" ]
+      },
+      "post" : {
+        "operationId" : "addConversationMembers",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AddConversationMembersRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MemberListView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Adds members to a group that is not roster-driven (409 messaging.roster_managed). Each must be eligible for the group (staff for staff groups, students of the class and its teachers for student groups): 400 messaging.member_not_eligible. Audited",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/members/{memberId}/remove" : {
+      "post" : {
+        "operationId" : "removeConversationMember",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "memberId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RemoveConversationMemberRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MemberListView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Removes a member (reason required, audited). Observers cannot be removed. A roster-driven group does not add a removed member back",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/messages" : {
+      "get" : {
+        "operationId" : "listMessages",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageMessageItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Messages of a conversation, newest first, keyset paged. Deleted and hidden messages are tombstones without text or images; messages of people the caller blocked are left out (never for an observer)",
+        "tags" : [ "messaging" ]
+      },
+      "post" : {
+        "operationId" : "sendMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SendMessageRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SendResultView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Sends a message: 201 when new, 200 with the original when this clientMessageId was already stored (also under concurrency). Plain text (control, bidi and zero-width characters are stripped; 1-2000 characters) or MEDIA (1-4 images uploaded first with purpose MESSAGE and context CONVERSATION). sendAt (adults only, 1 minute to 90 days ahead) schedules it. afterHours tells the sender a teacher recipient is outside office hours (delivered without a push). 403 messaging.observer_read_only, messaging.posting_restricted, messaging.you_blocked, messaging.not_allowed; 409 messaging.conversation_closed; 429 messaging.rate_limited (stricter for students)",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/messages/{messageId}" : {
+      "delete" : {
+        "operationId" : "deleteMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Deletes your own message: members see a tombstone, the original text moves to the history that only reviewers can read through the audited endpoint, images are discarded. A scheduled message is withdrawn",
+        "tags" : [ "messaging" ]
+      },
+      "get" : {
+        "operationId" : "getMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One message (404 when the caller may not see it)",
+        "tags" : [ "messaging" ]
+      },
+      "patch" : {
+        "operationId" : "editMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EditMessageRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Edits your own text message within messaging.edit_window_minutes (default 15; 409 messaging.edit_window_expired / messaging.edit_disabled). The earlier text is kept in the history",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/hide" : {
+      "post" : {
+        "operationId" : "hideMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/HideMessageRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A moderator hides a message with a reason (audited): members then see a tombstone. Owners and moderators of a group, school.messaging.moderate and class managers; school.messaging.review for conversations they may review",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/reaction" : {
+      "delete" : {
+        "operationId" : "removeMessageReaction",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "emoji",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Removes your reaction (idempotent)",
+        "tags" : [ "messaging" ]
+      },
+      "put" : {
+        "operationId" : "reactToMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MessageReactionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageItemView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Adds your reaction (one per user per emoji, from the fixed set of 12; idempotent). Observers cannot react",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/report" : {
+      "post" : {
+        "operationId" : "reportMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ReportMessageRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Any member (observers too) reports a message of somebody else: audit row, event MessageReported (ids only) and a notice to the conversation's moderators and the school's reviewers. 20 a day. Repeating is harmless",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/translation" : {
+      "post" : {
+        "operationId" : "translateMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "language",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageTranslationView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "See translation: off by default (messaging.translation.enabled; 403 messaging.translation_disabled), never for direct conversations between an adult and a student (403 messaging.translation_not_allowed), 503 messaging.translation_unavailable without a provider. Always labelled machine translated",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/unhide" : {
+      "post" : {
+        "operationId" : "unhideMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "messageId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Shows a hidden message again (same authority as hiding; audited)",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/mute" : {
+      "delete" : {
+        "operationId" : "unmuteConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Ends the mute",
+        "tags" : [ "messaging" ]
+      },
+      "put" : {
+        "operationId" : "muteConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MuteConversationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MuteResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Silences pushes of the conversation until the given time (at most a year)",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/read" : {
+      "post" : {
+        "operationId" : "markConversationRead",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MarkConversationReadRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Moves the read watermark to upToMessageId (default: the newest message); idempotent, never backwards. In DIRECT conversations the other person's messages get a Seen receipt (never for an observer)",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/conversations/{conversationId}/reject" : {
+      "post" : {
+        "operationId" : "rejectGroupConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GroupAdminView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Rejects a student group proposal",
+        "tags" : [ "messaging" ]
+      }
+    },
     "/api/v1/invitations/accept" : {
       "post" : {
         "operationId" : "acceptInvitation",
@@ -618,6 +1599,106 @@
         "tags" : [ "me" ]
       }
     },
+    "/api/v1/me/blocks" : {
+      "get" : {
+        "operationId" : "listMyBlocks",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/BlockView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The people the caller blocked",
+        "tags" : [ "messaging" ]
+      },
+      "post" : {
+        "operationId" : "blockPerson",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BlockPersonRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BlockView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Blocks a member of a conversation the caller may use: they can no longer start or continue a DIRECT conversation with the caller (the generic refusal), and their messages are hidden from the caller in groups. Never affects announcements or what observers see; a student cannot block their guardians or anybody observing a conversation they are in (403 messaging.cannot_block). A student's block of an adult is audited and listed for school safeguarding reviewers",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/me/blocks/{blockId}" : {
+      "delete" : {
+        "operationId" : "unblockPerson",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "blockId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Removes a block of the caller's",
+        "tags" : [ "messaging" ]
+      }
+    },
     "/api/v1/me/children" : {
       "get" : {
         "operationId" : "listMyChildren",
@@ -820,6 +1901,67 @@
         "tags" : [ "consent" ]
       }
     },
+    "/api/v1/me/conversations" : {
+      "get" : {
+        "operationId" : "listMyConversations",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "schoolId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "studentId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageConversationSummaryView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The caller's inbox: conversations they belong to or observe and may use right now, newest activity first, keyset paged, with unread counts (up to 100) and the last message preview (no body for deleted or hidden messages). Filter by schoolId or by studentId (the child a guardian acts for or a thread is about) to group by child",
+        "tags" : [ "messaging" ]
+      }
+    },
     "/api/v1/me/feed" : {
       "get" : {
         "operationId" : "getMyFeed",
@@ -910,6 +2052,35 @@
         },
         "summary" : "Redeem an invitation link token or printed parent code as the signed-in adult (STANDARD account with a verified phone or email, which is the proof). Creates a PENDING link (or returns the existing one); unknown, expired or used-up invitations are 404 invitation.not_found",
         "tags" : [ "guardians" ]
+      }
+    },
+    "/api/v1/me/messaging/unread-count" : {
+      "get" : {
+        "operationId" : "getMessagingUnreadCount",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UnreadCount"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Unread messages over all conversations the caller may use now",
+        "tags" : [ "messaging" ]
       }
     },
     "/api/v1/me/notification-preferences" : {
@@ -1144,6 +2315,38 @@
         },
         "summary" : "Stop pushes to one of my devices (idempotent)",
         "tags" : [ "notifications" ]
+      }
+    },
+    "/api/v1/me/scheduled-messages" : {
+      "get" : {
+        "operationId" : "listMyScheduledMessages",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MessageItemView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The caller's own scheduled messages that are not sent yet",
+        "tags" : [ "messaging" ]
       }
     },
     "/api/v1/me/stories" : {
@@ -9467,6 +10670,440 @@
         "tags" : [ "imports" ]
       }
     },
+    "/api/v1/schools/{schoolId}/messaging/capabilities" : {
+      "get" : {
+        "operationId" : "getMessagingCapabilities",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessagingCapabilitiesView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "What the caller may start and moderate in the school and the school's messaging limits (edit window, office hours, student images, translation). 404 for callers who cannot see the school, 403 messaging.feature_disabled",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/messaging/contacts" : {
+      "get" : {
+        "operationId" : "listMessagingContacts",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "studentId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "audience",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContactView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The only way to find somebody to message, about one child (studentId): a guardian of the child gets the child's teachers (by name) or, with audience=PARENTS and messaging.parent_parent.enabled, the guardians of classmates (labels only); a teacher of the child gets the child's guardians (labels only). Students get 403: they have no directory",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/messaging/conversations/direct" : {
+      "post" : {
+        "operationId" : "startDirectConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StartDirectConversationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConversationView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Starts (201) or returns (200) the DIRECT conversation with another person: guardian-teacher (studentId required, one thread per guardian, teacher and child), guardian-guardian (messaging.parent_parent.enabled, same class), teacher-student (messaging.student.teacher_direct.enabled; a student may start it only when the initiator setting is EITHER) or student-student (messaging.student.student_direct.enabled). Teacher-student conversations get the safeguarding floor: the student's guardians become read-only observers, or the conversation is admin-visible. Every refusal is the generic 403 messaging.not_allowed (403 messaging.you_blocked tells the blocker), 400 messaging.context_student_required",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/messaging/groups" : {
+      "get" : {
+        "operationId" : "listGroupConversations",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/GroupAdminView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Groups of the school the caller moderates (school.messaging.moderate: all), proposed (their own) or approves (lead and co-teachers of the class): metadata only, never messages. Filter by status such as PENDING_APPROVAL",
+        "tags" : [ "messaging" ]
+      },
+      "post" : {
+        "operationId" : "createGroupConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateGroupConversationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GroupAdminView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Creates a group: CLASS_STUDENTS and CLASS_PARENTS (a lead or co-teacher of the class or a class manager; members follow the roster), STAFF, STUDENT_GROUP (teachers; a student may propose one when messaging.student.group_create is STUDENTS_WITH_APPROVAL, then it stays PENDING_APPROVAL), SCHOOL_STAFF (school.messaging.moderate). Roles allowed come from messaging.group_create.roles. 403 messaging.group_not_allowed, 409 messaging.group_exists, 400 messaging.member_not_eligible",
+        "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/messaging/review/blocks" : {
+      "get" : {
+        "operationId" : "listStudentBlocksOfAdults",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/StudentBlockView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Blocks of adults by students of the school (ids only, no text), newest first",
+        "tags" : [ "messaging-review" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/messaging/review/conversations" : {
+      "get" : {
+        "operationId" : "listReviewableConversations",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageReviewConversationView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Conversations a reviewer may read: adult-student DIRECT conversations that no eligible guardian observes (adminVisible) and any conversation with an open report. Metadata and participants only, no text. Audited (messaging.review.list)",
+        "tags" : [ "messaging-review" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/messaging/review/conversations/{conversationId}/read" : {
+      "post" : {
+        "operationId" : "reviewConversation",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "conversationId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ReviewReadRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReviewedPageView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Reads a reviewable conversation, newest first, including deleted originals, hidden messages and earlier versions of edited ones. A reason of 10-300 characters is mandatory (400 messaging.review_reason_required), every call writes the audit entry messaging.review.read (reviewer, conversation, reason, count; never text), 30 an hour per reviewer (429 messaging.review_rate_limited). 403 messaging.not_reviewable for conversations that are neither admin-visible nor reported",
+        "tags" : [ "messaging-review" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/messaging/review/reports" : {
+      "get" : {
+        "operationId" : "listMessageReports",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ReportView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Message reports of the school (ids and reason codes only), newest first; filter by status OPEN or RESOLVED",
+        "tags" : [ "messaging-review" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/my-posts" : {
       "get" : {
         "operationId" : "listMyPosts",
@@ -13656,6 +15293,21 @@
         },
         "required" : [ "current", "endsOn", "id", "name", "startsOn", "status" ]
       },
+      "AddConversationMembersRequest" : {
+        "type" : "object",
+        "properties" : {
+          "userIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 100,
+            "minItems" : 1
+          }
+        },
+        "required" : [ "userIds" ]
+      },
       "AddStaffRequest" : {
         "type" : "object",
         "description" : "Set exactly one of phone or email (national phone formats are read in `country`, default ET). adminRole is only for ADMINISTRATOR.",
@@ -14556,6 +16208,23 @@
         },
         "required" : [ "planCode" ]
       },
+      "AttachmentView" : {
+        "type" : "object",
+        "properties" : {
+          "media" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "mediaId", "sortOrder" ]
+      },
       "AttendanceCounts" : {
         "type" : "object",
         "properties" : {
@@ -15276,6 +16945,41 @@
           }
         },
         "required" : [ "code", "criteria", "criteriaType", "descriptions", "id", "name", "names" ]
+      },
+      "BlockPersonRequest" : {
+        "type" : "object",
+        "properties" : {
+          "conversationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "memberId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "conversationId", "memberId" ]
+      },
+      "BlockView" : {
+        "type" : "object",
+        "properties" : {
+          "conversationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "person" : {
+            "$ref" : "#/components/schemas/ParticipantView"
+          }
+        },
+        "required" : [ "createdAt", "id" ]
       },
       "CampusResponse" : {
         "type" : "object",
@@ -16021,6 +17725,23 @@
         },
         "required" : [ "decidingRecordIds", "reason", "status" ]
       },
+      "ContactView" : {
+        "type" : "object",
+        "properties" : {
+          "conversationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "label" : {
+            "$ref" : "#/components/schemas/ParticipantViewLabel"
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "userId" ]
+      },
       "ContextRef" : {
         "type" : "object",
         "properties" : {
@@ -16030,10 +17751,23 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "USER", "SCHOOL", "ORGANIZATION", "CLASS" ]
+            "enum" : [ "USER", "SCHOOL", "ORGANIZATION", "CLASS", "CONVERSATION" ]
           }
         },
         "required" : [ "id", "type" ]
+      },
+      "ContextStudentView" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "studentId" ]
       },
       "ContributionApproveRequest" : {
         "type" : "object",
@@ -16094,6 +17828,106 @@
           }
         },
         "required" : [ "reason" ]
+      },
+      "ConversationSummaryView" : {
+        "type" : "object",
+        "properties" : {
+          "activityAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "canPost" : {
+            "type" : "boolean"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "contextStudent" : {
+            "$ref" : "#/components/schemas/ContextStudentView",
+            "description" : "The child this conversation is about or, for a guardian, who they are acting for: group the inbox by it. Absent for students except themselves"
+          },
+          "counterpart" : {
+            "$ref" : "#/components/schemas/ParticipantView",
+            "description" : "The other person of a DIRECT conversation"
+          },
+          "directKind" : {
+            "type" : "string",
+            "enum" : [ "GUARDIAN_TEACHER", "GUARDIAN_GUARDIAN", "TEACHER_STUDENT", "STUDENT_STUDENT" ]
+          },
+          "groupKind" : {
+            "type" : "string",
+            "enum" : [ "CLASS_STUDENTS", "CLASS_PARENTS", "STAFF", "STUDENT_GROUP", "SCHOOL_STAFF" ]
+          },
+          "guardiansCanSee" : {
+            "type" : "boolean",
+            "description" : "DIRECT conversations with an adult and a student: whether a guardian can see it (students are told \"your parent or guardian can see this conversation\")"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lastMessage" : {
+            "$ref" : "#/components/schemas/LastMessageView"
+          },
+          "muted" : {
+            "type" : "boolean"
+          },
+          "mutedUntil" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "myActingAs" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "GUARDIAN", "STUDENT", "STAFF" ]
+          },
+          "myRole" : {
+            "type" : "string",
+            "enum" : [ "OWNER", "MODERATOR", "MEMBER", "OBSERVER" ]
+          },
+          "onBehalfOfStudentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "postingPolicy" : {
+            "type" : "string"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "DIRECT", "GROUP", "CLASS", "SCHOOL" ]
+          },
+          "unreadCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "activityAt", "canPost", "id", "muted", "myActingAs", "myRole", "postingPolicy", "schoolId", "status", "type", "unreadCount" ]
+      },
+      "ConversationView" : {
+        "type" : "object",
+        "properties" : {
+          "canModerate" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "summary" : {
+            "$ref" : "#/components/schemas/ConversationSummaryView"
+          }
+        },
+        "required" : [ "canModerate", "createdAt", "summary" ]
       },
       "CountryCalendarResponse" : {
         "type" : "object",
@@ -16284,6 +18118,40 @@
           }
         },
         "required" : [ "name" ]
+      },
+      "CreateGroupConversationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Required for CLASS_STUDENTS, CLASS_PARENTS and STUDENT_GROUP"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "CLASS_STUDENTS", "CLASS_PARENTS", "STAFF", "STUDENT_GROUP", "SCHOOL_STAFF" ]
+          },
+          "memberUserIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 200,
+            "minItems" : 0
+          },
+          "postingPolicy" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "kind" ]
       },
       "CreateGroupRequest" : {
         "type" : "object",
@@ -16937,6 +18805,22 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageConversationSummaryView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConversationSummaryView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageDashboardClass" : {
         "type" : "object",
         "properties" : {
@@ -17001,6 +18885,22 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageMessageItemView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/MessageItemView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageNotificationView" : {
         "type" : "object",
         "properties" : {
@@ -17056,6 +18956,22 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/ReportRow"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageReviewConversationView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ReviewConversationView"
             }
           },
           "nextCursor" : {
@@ -17356,6 +19272,33 @@
         },
         "required" : [ "id", "policyType", "title" ]
       },
+      "EditMessageRequest" : {
+        "type" : "object",
+        "properties" : {
+          "body" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "body" ]
+      },
+      "EditView" : {
+        "type" : "object",
+        "properties" : {
+          "at" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "body" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "at", "body", "kind" ]
+      },
       "EngagementSettingsView" : {
         "type" : "object",
         "properties" : {
@@ -17653,6 +19596,62 @@
         },
         "required" : [ "active", "id", "name", "sequence" ]
       },
+      "GroupAdminView" : {
+        "type" : "object",
+        "description" : "A group as moderators and proposers see it: metadata only, never messages",
+        "properties" : {
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "groupKind" : {
+            "type" : "string",
+            "enum" : [ "CLASS_STUDENTS", "CLASS_PARENTS", "STAFF", "STUDENT_GROUP", "SCHOOL_STAFF" ]
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "memberCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "postingPolicy" : {
+            "type" : "string"
+          },
+          "proposedByMe" : {
+            "type" : "boolean"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "DIRECT", "GROUP", "CLASS", "SCHOOL" ]
+          }
+        },
+        "required" : [ "createdAt", "groupKind", "id", "memberCount", "postingPolicy", "proposedByMe", "status", "type" ]
+      },
+      "GuardianLabel" : {
+        "type" : "object",
+        "description" : "How a guardian is shown to others: relationshipType and studentGivenName are each present only when the viewer may know them (the child's teachers see \"Abebe's mother\"; other guardians see neither; a student sees the relationship of their own guardians)",
+        "properties" : {
+          "relationshipType" : {
+            "type" : "string",
+            "enum" : [ "MOTHER", "FATHER", "GRANDPARENT", "SIBLING", "AUNT_UNCLE", "LEGAL_GUARDIAN", "OTHER" ]
+          },
+          "studentGivenName" : {
+            "type" : "string"
+          }
+        }
+      },
       "GuardianLinkView" : {
         "type" : "object",
         "properties" : {
@@ -17738,6 +19737,17 @@
           }
         },
         "required" : [ "createdAt", "custodyRestricted", "guardianId", "guardianName", "id", "permissions", "primary", "relationshipType", "requestedVia", "status", "studentId", "studentName" ]
+      },
+      "HideMessageRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "reason" ]
       },
       "ImportJobView" : {
         "type" : "object",
@@ -18317,6 +20327,33 @@
         },
         "required" : [ "code", "direction", "name", "nativeName" ]
       },
+      "LastMessageView" : {
+        "type" : "object",
+        "properties" : {
+          "messageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "messageType" : {
+            "type" : "string"
+          },
+          "preview" : {
+            "type" : "string",
+            "description" : "First 120 characters; absent for deleted and hidden messages (tombstones) and for images"
+          },
+          "sender" : {
+            "$ref" : "#/components/schemas/ParticipantView"
+          },
+          "sentAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "messageId", "messageType", "status" ]
+      },
       "Leaderboard" : {
         "type" : "object",
         "properties" : {
@@ -18426,6 +20463,15 @@
           }
         },
         "required" : [ "code" ]
+      },
+      "MarkConversationReadRequest" : {
+        "type" : "object",
+        "properties" : {
+          "upToMessageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
       },
       "MarkedRead" : {
         "type" : "object",
@@ -18614,6 +20660,178 @@
         },
         "required" : [ "id", "kind", "mimeType", "variants" ]
       },
+      "MemberListView" : {
+        "type" : "object",
+        "properties" : {
+          "members" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ParticipantView"
+            }
+          },
+          "observerCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "members", "observerCount" ]
+      },
+      "MessageItemView" : {
+        "type" : "object",
+        "description" : "A message as the caller may see it. Deleted and hidden messages are tombstones: status DELETED or HIDDEN with no body, attachments or reactions",
+        "properties" : {
+          "attachments" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AttachmentView"
+            }
+          },
+          "body" : {
+            "type" : "string"
+          },
+          "bodyLanguageCode" : {
+            "type" : "string"
+          },
+          "canDelete" : {
+            "type" : "boolean"
+          },
+          "canEdit" : {
+            "type" : "boolean"
+          },
+          "conversationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "editedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "messageType" : {
+            "type" : "string"
+          },
+          "mine" : {
+            "type" : "boolean"
+          },
+          "reactions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ReactionView"
+            }
+          },
+          "replyToMessageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "scheduledFor" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "seenAt" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "Only on your own messages of a DIRECT conversation: when the other person first read it"
+          },
+          "sender" : {
+            "$ref" : "#/components/schemas/ParticipantView"
+          },
+          "sentAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "systemCode" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "attachments", "canDelete", "canEdit", "conversationId", "id", "messageType", "mine", "reactions", "status" ]
+      },
+      "MessageReactionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "emoji" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "emoji" ]
+      },
+      "MessageTranslationView" : {
+        "type" : "object",
+        "description" : "A machine translation of one message, always labelled: machineTranslated is true (unless the text is already in the target language)",
+        "properties" : {
+          "cached" : {
+            "type" : "boolean"
+          },
+          "machineTranslated" : {
+            "type" : "boolean"
+          },
+          "sourceLanguage" : {
+            "type" : "string"
+          },
+          "targetLanguage" : {
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "cached", "machineTranslated", "targetLanguage", "text" ]
+      },
+      "MessagingCapabilitiesView" : {
+        "type" : "object",
+        "properties" : {
+          "canModerate" : {
+            "type" : "boolean"
+          },
+          "canProposeStudentGroup" : {
+            "type" : "boolean"
+          },
+          "canReview" : {
+            "type" : "boolean"
+          },
+          "canStartParentTeacher" : {
+            "type" : "boolean"
+          },
+          "canStartStudentDirect" : {
+            "type" : "boolean"
+          },
+          "creatableGroups" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "CLASS_STUDENTS", "CLASS_PARENTS", "STAFF", "STUDENT_GROUP", "SCHOOL_STAFF" ]
+            }
+          },
+          "editWindowMinutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "featureEnabled" : {
+            "type" : "boolean"
+          },
+          "maxMessageLength" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "officeHours" : {
+            "$ref" : "#/components/schemas/OfficeHoursView"
+          },
+          "studentMediaEnabled" : {
+            "type" : "boolean"
+          },
+          "translationEnabled" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "canModerate", "canProposeStudentGroup", "canReview", "canStartParentTeacher", "canStartStudentDirect", "creatableGroups", "editWindowMinutes", "featureEnabled", "maxMessageLength", "studentMediaEnabled", "translationEnabled" ]
+      },
       "MetaResponse" : {
         "type" : "object",
         "properties" : {
@@ -18648,6 +20866,26 @@
           }
         },
         "required" : [ "toClassId" ]
+      },
+      "MuteConversationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "until" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "until" ]
+      },
+      "MuteResult" : {
+        "type" : "object",
+        "properties" : {
+          "mutedUntil" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "mutedUntil" ]
       },
       "MyChildren" : {
         "type" : "object",
@@ -18840,6 +21078,28 @@
         },
         "required" : [ "createdAt", "data", "id", "priority", "title", "typeCode" ]
       },
+      "OfficeHoursView" : {
+        "type" : "object",
+        "properties" : {
+          "days" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int32"
+            }
+          },
+          "end" : {
+            "type" : "string"
+          },
+          "start" : {
+            "type" : "string"
+          },
+          "timeZone" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "days", "end", "start", "timeZone" ]
+      },
       "OrganizationResponse" : {
         "type" : "object",
         "properties" : {
@@ -18940,6 +21200,60 @@
           }
         },
         "required" : [ "code" ]
+      },
+      "ParticipantView" : {
+        "type" : "object",
+        "description" : "A person in a conversation. displayName is present for teachers, staff, students and for yourself; a guardian is never named to anybody else: guardian carries the role label instead. memberId is valid inside this conversation only",
+        "properties" : {
+          "actingAs" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "GUARDIAN", "STUDENT", "STAFF" ]
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "guardian" : {
+            "$ref" : "#/components/schemas/GuardianLabel"
+          },
+          "memberId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "role" : {
+            "type" : "string",
+            "enum" : [ "OWNER", "MODERATOR", "MEMBER", "OBSERVER" ]
+          },
+          "self" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "actingAs", "memberId", "role", "self" ]
+      },
+      "ParticipantViewLabel" : {
+        "type" : "object",
+        "description" : "A person you may start a conversation with: teachers by name; guardians by label only",
+        "properties" : {
+          "actingAs" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "GUARDIAN", "STUDENT", "STAFF" ]
+          },
+          "className" : {
+            "type" : "string"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "guardian" : {
+            "$ref" : "#/components/schemas/GuardianLabel"
+          },
+          "subjectName" : {
+            "type" : "string"
+          },
+          "teacherRole" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "actingAs" ]
       },
       "PasswordSignInRequest" : {
         "type" : "object",
@@ -19579,7 +21893,7 @@
             "type" : "array",
             "items" : {
               "type" : "string",
-              "enum" : [ "USER", "SCHOOL", "ORGANIZATION", "CLASS" ]
+              "enum" : [ "USER", "SCHOOL", "ORGANIZATION", "CLASS", "CONVERSATION" ]
             }
           },
           "maxBytesByMimeType" : {
@@ -19687,6 +22001,22 @@
           }
         },
         "required" : [ "counts" ]
+      },
+      "ReactionView" : {
+        "type" : "object",
+        "properties" : {
+          "count" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "emoji" : {
+            "type" : "string"
+          },
+          "mine" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "count", "emoji", "mine" ]
       },
       "RecordedConsent" : {
         "type" : "object",
@@ -19798,6 +22128,32 @@
         },
         "required" : [ "platform", "provider", "token" ]
       },
+      "RemoveConversationMemberRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "reason" ]
+      },
+      "ReportMessageRequest" : {
+        "type" : "object",
+        "properties" : {
+          "note" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "reason" : {
+            "type" : "string",
+            "enum" : [ "INAPPROPRIATE", "BULLYING", "PRIVACY", "SAFETY", "SPAM", "OTHER" ]
+          }
+        },
+        "required" : [ "reason" ]
+      },
       "ReportRow" : {
         "type" : "object",
         "properties" : {
@@ -19835,6 +22191,34 @@
         },
         "required" : [ "categoryId", "categoryName", "polarity", "studentId", "studentName" ]
       },
+      "ReportView" : {
+        "type" : "object",
+        "properties" : {
+          "conversationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "messageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "reason" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "conversationId", "createdAt", "id", "messageId", "reason", "status" ]
+      },
       "ResolveRequest" : {
         "type" : "object",
         "properties" : {
@@ -19864,6 +22248,134 @@
             "minLength" : 0
           }
         }
+      },
+      "ReviewConversationView" : {
+        "type" : "object",
+        "properties" : {
+          "adminVisible" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "directKind" : {
+            "type" : "string",
+            "enum" : [ "GUARDIAN_TEACHER", "GUARDIAN_GUARDIAN", "TEACHER_STUDENT", "STUDENT_STUDENT" ]
+          },
+          "groupKind" : {
+            "type" : "string",
+            "enum" : [ "CLASS_STUDENTS", "CLASS_PARENTS", "STAFF", "STUDENT_GROUP", "SCHOOL_STAFF" ]
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lastMessageAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "openReports" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "participants" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ParticipantView"
+            }
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "DIRECT", "GROUP", "CLASS", "SCHOOL" ]
+          }
+        },
+        "required" : [ "adminVisible", "createdAt", "id", "openReports", "participants", "type" ]
+      },
+      "ReviewReadRequest" : {
+        "type" : "object",
+        "properties" : {
+          "cursor" : {
+            "type" : "string"
+          },
+          "limit" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "reason" : {
+            "type" : "string",
+            "description" : "Why the reviewer reads this conversation (10-300 characters); stored in the audit log, so never paste message content into it",
+            "maxLength" : 300,
+            "minLength" : 10
+          }
+        },
+        "required" : [ "reason" ]
+      },
+      "ReviewedMessageView" : {
+        "type" : "object",
+        "properties" : {
+          "attachmentMediaIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "body" : {
+            "type" : "string",
+            "description" : "The original text, also of deleted messages"
+          },
+          "hideReason" : {
+            "type" : "string"
+          },
+          "history" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EditView"
+            }
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "messageType" : {
+            "type" : "string"
+          },
+          "replyToMessageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "reportCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sender" : {
+            "$ref" : "#/components/schemas/ParticipantView"
+          },
+          "sentAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "attachmentMediaIds", "history", "id", "messageType", "reportCount", "status" ]
+      },
+      "ReviewedPageView" : {
+        "type" : "object",
+        "properties" : {
+          "messages" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ReviewedMessageView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "messages" ]
       },
       "RevokedCodes" : {
         "type" : "object",
@@ -20402,6 +22914,68 @@
         },
         "required" : [ "categories" ]
       },
+      "SendMessageRequest" : {
+        "type" : "object",
+        "description" : "A message. clientMessageId is generated by the client and makes the send idempotent (also an offline outbox)",
+        "properties" : {
+          "body" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 0
+          },
+          "bodyLanguageCode" : {
+            "type" : "string",
+            "maxLength" : 8,
+            "minLength" : 0
+          },
+          "clientMessageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "mediaIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 4,
+            "minItems" : 0
+          },
+          "messageType" : {
+            "type" : "string",
+            "description" : "TEXT or MEDIA; default MEDIA when mediaIds is given, else TEXT",
+            "maxLength" : 10,
+            "minLength" : 0
+          },
+          "replyToMessageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "sendAt" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "Schedule the message (adults only)"
+          }
+        },
+        "required" : [ "clientMessageId" ]
+      },
+      "SendResultView" : {
+        "type" : "object",
+        "properties" : {
+          "afterHours" : {
+            "type" : "boolean",
+            "description" : "The recipient teacher is outside office hours: the message is delivered without a push notification"
+          },
+          "created" : {
+            "type" : "boolean",
+            "description" : "false when this clientMessageId was already stored: the original message is returned"
+          },
+          "message" : {
+            "$ref" : "#/components/schemas/MessageItemView"
+          }
+        },
+        "required" : [ "afterHours", "created", "message" ]
+      },
       "SetAvatarRequest" : {
         "type" : "object",
         "properties" : {
@@ -20624,6 +23198,21 @@
         },
         "required" : [ "displayName", "id", "staffType", "status", "userId" ]
       },
+      "StartDirectConversationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "recipientUserId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The child the thread is about; required for guardian-teacher and guardian-guardian conversations"
+          }
+        },
+        "required" : [ "recipientUserId" ]
+      },
       "StoryCreateRequest" : {
         "type" : "object",
         "properties" : {
@@ -20746,6 +23335,32 @@
           }
         },
         "required" : [ "awardedAt", "badgeId", "code", "name" ]
+      },
+      "StudentBlockView" : {
+        "type" : "object",
+        "properties" : {
+          "blockedId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "blockerId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "conversationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "blockedId", "blockerId", "createdAt", "id" ]
       },
       "StudentClassRef" : {
         "type" : "object",
@@ -21651,6 +24266,26 @@
             },
             "maxItems" : 50,
             "minItems" : 0
+          }
+        }
+      },
+      "UpdateConversationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "postingPolicy" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "status" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
           }
         }
       },

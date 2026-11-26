@@ -278,7 +278,7 @@ class AuthorizationMatrixTest {
 						"context", Map.of("type", "ORGANIZATION", "id", f.organization())),
 				allow(201, PLATFORM_ADMIN, COUNTRY_ADMIN_ET)));
 		cases.add(new Case("POST upload for a purpose without a policy", HttpMethod.POST, (f) -> "/api/v1/media/uploads",
-				(f) -> Map.of("purpose", "MESSAGE", "filename", "x.jpg", "mimeType", "image/jpeg", "sizeBytes", 1000,
+				(f) -> Map.of("purpose", "PORTFOLIO", "filename", "x.jpg", "mimeType", "image/jpeg", "sizeBytes", 1000,
 						"context", Map.of("type", "SCHOOL", "id", f.schoolA())),
 				allow(403)));
 		cases.add(new Case("GET READY branding media", HttpMethod.GET,
@@ -662,6 +662,7 @@ class AuthorizationMatrixTest {
 		cases.addAll(attendanceCases());
 		cases.addAll(feedCases());
 		cases.addAll(announcementCases());
+		cases.addAll(messagingCases());
 		return cases;
 	}
 
@@ -1434,6 +1435,278 @@ class AuthorizationMatrixTest {
 		cases.add(school("DELETE story (author or moderator)", HttpMethod.DELETE,
 				(f) -> schools + f.schoolA() + "/stories/" + feedStory(f, freshClass(f)), null, 204, moderators, viewerOnly));
 		return cases;
+	}
+
+	// ---- messaging (M9a) ---------------------------------------------------------------------------------
+
+	@Autowired
+	com.nemaz.school.tenancy.SettingsService messagingSettings;
+
+	private UUID msgThread;
+
+	private UUID msgMessage;
+
+	private UUID msgOther;
+
+	private UUID msgBlock;
+
+	private static Name[] minus(Name[] all, Name... removed) {
+		java.util.Set<Name> out = new java.util.LinkedHashSet<>(java.util.Arrays.asList(all));
+		java.util.Arrays.asList(removed).forEach(out::remove);
+		return out.toArray(Name[]::new);
+	}
+
+	/** Removes every messaging row of school A: each call of the matrix starts from nothing. */
+	private void resetMessaging(Fixture f) {
+		this.jdbc.update("delete from messages where school_id = ?", f.schoolA());
+		this.jdbc.update("delete from user_blocks where school_id = ?", f.schoolA());
+		this.jdbc.update("delete from conversation_members where school_id = ?", f.schoolA());
+		this.jdbc.update("delete from conversations where school_id = ?", f.schoolA());
+		this.jdbc.update("delete from notifications where school_id = ? and type_code like '%MESSAGE%'", f.schoolA());
+	}
+
+	private UUID msgConversation(Fixture f, String type, String directKind, String groupKind, UUID classId, UUID student,
+			boolean safeguarded, UUID createdBy, String title, String status) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into conversations (id, conversation_type, school_id, class_id, context_student_id, direct_kind, direct_key,
+				                           group_kind, title, safeguarded, created_by, status)
+				values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", id, type, f.schoolA(), classId, student, directKind,
+				(directKind != null) ? "matrix:" + id : null, groupKind, title, safeguarded, createdBy, status);
+		return id;
+	}
+
+	private UUID msgMember(Fixture f, UUID conversation, Name who, String role, String acting, UUID onBehalf) {
+		return msgMemberOf(f, conversation, userOf(who), role, acting, onBehalf);
+	}
+
+	private UUID msgMemberOf(Fixture f, UUID conversation, UUID user, String role, String acting, UUID onBehalf) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into conversation_members (id, conversation_id, school_id, user_id, member_role, acting_as, on_behalf_of_student_id)
+				values (?, ?, ?, ?, ?, ?, ?)""", id, conversation, f.schoolA(), user, role, acting, onBehalf);
+		return id;
+	}
+
+	private UUID msgMessageRow(Fixture f, UUID conversation, UUID member, UUID sender, String body, String status) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into messages (id, conversation_id, school_id, sender_id, sender_member_id, message_type, body, client_message_id,
+				                      status, seq, sent_at)
+				values (?, ?, ?, ?, ?, 'TEXT', ?, ?, ?, nextval('message_seq'), now())""", id, conversation, f.schoolA(), sender, member,
+				body, Ids.newId(), status);
+		return id;
+	}
+
+	/** Guardian A1 and the lead teacher about student A1, with a message of the guardian. */
+	private String parentThread(Fixture f, String suffix) {
+		resetMessaging(f);
+		UUID a1 = userOf(STUDENT_A1);
+		this.msgThread = msgConversation(f, "DIRECT", "GUARDIAN_TEACHER", null, null, a1, false, userOf(GUARDIAN_A1), null, "ACTIVE");
+		UUID guardian = msgMember(f, this.msgThread, GUARDIAN_A1, "MEMBER", "GUARDIAN", a1);
+		msgMember(f, this.msgThread, TEACHER_LEAD_A, "MEMBER", "TEACHER", null);
+		this.msgMessage = msgMessageRow(f, this.msgThread, guardian, userOf(GUARDIAN_A1), "matrix message", "SENT");
+		return "/api/v1/conversations/" + this.msgThread + suffix;
+	}
+
+	private String messageUrl(Fixture f, String suffix) {
+		parentThread(f, "");
+		return "/api/v1/conversations/" + this.msgThread + "/messages/" + this.msgMessage + suffix;
+	}
+
+	/** A fresh class of school A with lead, subject teacher, student A1 and one more student, and its class conversation. */
+	private String classThread(Fixture f, String suffix, boolean pendingMessage) {
+		resetMessaging(f);
+		UUID classId = freshClass(f);
+		UUID other = this.personas.newStudent(f.schoolA(), "matrix-classmate");
+		this.personas.addStudentToClass(f.schoolA(), classId, other);
+		this.msgThread = msgConversation(f, "CLASS", null, "CLASS_STUDENTS", classId, null, false, userOf(TEACHER_LEAD_A), null, "ACTIVE");
+		msgMember(f, this.msgThread, TEACHER_LEAD_A, "OWNER", "TEACHER", null);
+		msgMember(f, this.msgThread, TEACHER_SUBJECT_A, "MEMBER", "TEACHER", null);
+		UUID a1 = msgMember(f, this.msgThread, STUDENT_A1, "MEMBER", "STUDENT", null);
+		msgMemberOf(f, this.msgThread, other, "MEMBER", "STUDENT", null);
+		this.msgMessage = msgMessageRow(f, this.msgThread, a1, userOf(STUDENT_A1), "matrix class message",
+				pendingMessage ? "HIDDEN" : "SENT");
+		return "/api/v1/conversations/" + this.msgThread + suffix;
+	}
+
+	private String classMessageUrl(Fixture f, String suffix, boolean hidden) {
+		classThread(f, "", hidden);
+		return "/api/v1/conversations/" + this.msgThread + "/messages/" + this.msgMessage + suffix;
+	}
+
+	private String staffMemberUrl(Fixture f, String suffix) {
+		staffGroup(f, "");
+		return "/api/v1/conversations/" + this.msgThread + "/members/" + this.msgOther + suffix;
+	}
+
+	/** A staff group of the lead (owner) and the subject teacher (member). */
+	private String staffGroup(Fixture f, String suffix) {
+		resetMessaging(f);
+		this.msgThread = msgConversation(f, "GROUP", null, "STAFF", null, null, false, userOf(TEACHER_LEAD_A), "Staff room", "ACTIVE");
+		msgMember(f, this.msgThread, TEACHER_LEAD_A, "OWNER", "TEACHER", null);
+		this.msgOther = msgMember(f, this.msgThread, TEACHER_SUBJECT_A, "MEMBER", "TEACHER", null);
+		return "/api/v1/conversations/" + this.msgThread + suffix;
+	}
+
+	/** A conversation of the lead and a student without guardian: admin-visible, reportable. */
+	private String adminVisible(Fixture f, String suffix) {
+		resetMessaging(f);
+		UUID classId = freshClass(f);
+		UUID alone = this.personas.newStudent(f.schoolA(), "matrix-alone");
+		this.personas.addStudentToClass(f.schoolA(), classId, alone);
+		this.msgThread = msgConversation(f, "DIRECT", "TEACHER_STUDENT", null, null, alone, true, userOf(TEACHER_LEAD_A), null, "ACTIVE");
+		UUID lead = msgMember(f, this.msgThread, TEACHER_LEAD_A, "MEMBER", "TEACHER", null);
+		msgMemberOf(f, this.msgThread, alone, "MEMBER", "STUDENT", null);
+		this.msgMessage = msgMessageRow(f, this.msgThread, lead, userOf(TEACHER_LEAD_A), "matrix reviewed message", "SENT");
+		this.messagingSettings.set("messaging.student.teacher_direct.enabled", com.nemaz.school.tenancy.SettingScope.school(f.schoolA()),
+				this.json.valueToTree(true), userOf(PLATFORM_ADMIN));
+		return suffix;
+	}
+
+	List<Case> messagingCases() {
+		List<Case> cases = new ArrayList<>();
+		String api = "/api/v1/";
+		Name[] sees = concat(READERS_OF_SCHOOL_A, SCHOOL_A_MEMBERS, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 });
+		Name[] managers = SCHOOL_A_MANAGERS;
+		Name[] members2 = { GUARDIAN_A1, TEACHER_LEAD_A };
+		String m = "/messaging";
+
+		// --- the school's messaging: who sees it, what they may start
+		cases.add(school("GET messaging capabilities", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + m + "/capabilities", null, 200, sees));
+		cases.add(school("GET messaging contacts of a child", HttpMethod.GET,
+				(f) -> SCHOOLS + f.schoolA() + m + "/contacts?studentId=" + userOf(STUDENT_A1), null, 200,
+				new Name[] { GUARDIAN_A1, TEACHER_LEAD_A, TEACHER_SUBJECT_A }, minus(sees, GUARDIAN_A1, TEACHER_LEAD_A, TEACHER_SUBJECT_A)));
+		cases.add(school("GET group conversations", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + m + "/groups", null, 200, sees));
+		cases.add(school("POST start parent-teacher conversation", HttpMethod.POST, (f) -> {
+			resetMessaging(f);
+			return SCHOOLS + f.schoolA() + m + "/conversations/direct";
+		}, (f) -> Map.of("recipientUserId", userOf(TEACHER_LEAD_A), "studentId", userOf(STUDENT_A1)), 201, new Name[] { GUARDIAN_A1 },
+				minus(sees, GUARDIAN_A1)));
+		cases.add(school("POST start teacher-guardian conversation", HttpMethod.POST, (f) -> {
+			resetMessaging(f);
+			return SCHOOLS + f.schoolA() + m + "/conversations/direct";
+		}, (f) -> Map.of("recipientUserId", userOf(GUARDIAN_A1), "studentId", userOf(STUDENT_A1)), 201,
+				new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A }, minus(sees, TEACHER_LEAD_A, TEACHER_SUBJECT_A)));
+		cases.add(school("POST start teacher-student conversation", HttpMethod.POST, (f) -> {
+			resetMessaging(f);
+			this.messagingSettings.set("messaging.student.teacher_direct.enabled", com.nemaz.school.tenancy.SettingScope.school(f.schoolA()),
+					this.json.valueToTree(true), userOf(PLATFORM_ADMIN));
+			return SCHOOLS + f.schoolA() + m + "/conversations/direct";
+		}, (f) -> Map.of("recipientUserId", userOf(STUDENT_A1)), 201, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A },
+				minus(sees, TEACHER_LEAD_A, TEACHER_SUBJECT_A)));
+		cases.add(new Case("POST create class conversation", HttpMethod.POST, (f) -> {
+			resetMessaging(f);
+			this.msgThread = freshClass(f);
+			return SCHOOLS + f.schoolA() + m + "/groups";
+		}, (f) -> Map.of("kind", "CLASS_STUDENTS", "classId", this.msgThread),
+				merge(allow(201, concat(managers, new Name[] { TEACHER_LEAD_A })), allow(403, TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1)), 404));
+		cases.add(school("POST create school conversation (moderators only)", HttpMethod.POST, (f) -> {
+			resetMessaging(f);
+			return SCHOOLS + f.schoolA() + m + "/groups";
+		}, (f) -> Map.of("kind", "SCHOOL_STAFF", "title", "All staff"), 201, managers, minus(sees, managers)));
+
+		// --- the caller's own data
+		cases.add(new Case("GET my conversations", HttpMethod.GET, (f) -> api + "me/conversations", null, allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET my messaging unread count", HttpMethod.GET, (f) -> api + "me/messaging/unread-count", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET my scheduled messages", HttpMethod.GET, (f) -> api + "me/scheduled-messages", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET my blocks", HttpMethod.GET, (f) -> api + "me/blocks", null, allow(200, EVERY_ACTIVE_PERSONA)));
+
+		// --- one conversation: its people only (everybody else, a stranger, another school's administrator, a former member: 404)
+		cases.add(new Case("GET conversation", HttpMethod.GET, (f) -> parentThread(f, ""), null, allow(200, members2), 404));
+		cases.add(new Case("GET conversation members", HttpMethod.GET, (f) -> parentThread(f, "/members"), null, allow(200, members2), 404));
+		cases.add(new Case("GET messages", HttpMethod.GET, (f) -> parentThread(f, "/messages"), null, allow(200, members2), 404));
+		cases.add(new Case("GET one message", HttpMethod.GET, (f) -> messageUrl(f, ""), null, allow(200, members2), 404));
+		cases.add(new Case("POST send message", HttpMethod.POST, (f) -> parentThread(f, "/messages"),
+				(f) -> Map.of("clientMessageId", Ids.newId(), "body", "matrix"), allow(201, members2), 404));
+		cases.add(new Case("PATCH edit own message", HttpMethod.PATCH, (f) -> messageUrl(f, ""), (f) -> Map.of("body", "edited"),
+				merge(allow(200, GUARDIAN_A1), allow(403, TEACHER_LEAD_A)), 404));
+		cases.add(new Case("DELETE own message", HttpMethod.DELETE, (f) -> messageUrl(f, ""), null,
+				merge(allow(204, GUARDIAN_A1), allow(403, TEACHER_LEAD_A)), 404));
+		cases.add(new Case("PUT message reaction", HttpMethod.PUT, (f) -> messageUrl(f, "/reaction"),
+				(f) -> Map.of("emoji", "👍"), allow(200, members2), 404));
+		cases.add(new Case("DELETE message reaction", HttpMethod.DELETE,
+				(f) -> messageUrl(f, "/reaction?emoji=" + java.net.URLEncoder.encode("👍", java.nio.charset.StandardCharsets.UTF_8)),
+				null, allow(200, members2), 404));
+		cases.add(new Case("POST report message", HttpMethod.POST, (f) -> messageUrl(f, "/report"), (f) -> Map.of("reason", "SPAM"),
+				merge(allow(204, TEACHER_LEAD_A), allow(409, GUARDIAN_A1)), 404));
+		cases.add(new Case("POST translate message", HttpMethod.POST, (f) -> messageUrl(f, "/translation?language=am"), null,
+				allow(403, members2), 404));
+		cases.add(new Case("POST mark conversation read", HttpMethod.POST, (f) -> parentThread(f, "/read"), (f) -> Map.of(),
+				allow(204, members2), 404));
+		cases.add(new Case("PUT mute conversation", HttpMethod.PUT, (f) -> parentThread(f, "/mute"),
+				(f) -> Map.of("until", java.time.Instant.now().plus(java.time.Duration.ofDays(1)).toString()), allow(200, members2), 404));
+		cases.add(new Case("DELETE mute conversation", HttpMethod.DELETE, (f) -> parentThread(f, "/mute"), null, allow(204, members2), 404));
+		cases.add(new Case("POST leave direct conversation (never allowed)", HttpMethod.POST, (f) -> parentThread(f, "/leave"), null,
+				allow(403, members2), 404));
+
+		// --- moderation of a class conversation: its owner and moderators, the school's moderators from outside, nobody else
+		Name[] moderators = concat(managers, new Name[] { TEACHER_LEAD_A });
+		cases.add(new Case("PATCH conversation settings", HttpMethod.PATCH, (f) -> classThread(f, "", false),
+				(f) -> Map.of("postingPolicy", "ALL_MEMBERS"), merge(allow(200, moderators), allow(403, TEACHER_SUBJECT_A, STUDENT_A1)), 404));
+		cases.add(new Case("POST hide message", HttpMethod.POST, (f) -> classMessageUrl(f, "/hide", false),
+				(f) -> Map.of("reason", "off topic"), merge(allow(204, moderators), allow(403, TEACHER_SUBJECT_A, STUDENT_A1)), 404));
+		cases.add(new Case("POST unhide message", HttpMethod.POST, (f) -> classMessageUrl(f, "/unhide", true),
+				null, merge(allow(204, moderators), allow(403, TEACHER_SUBJECT_A, STUDENT_A1)), 404));
+		cases.add(new Case("POST add group members", HttpMethod.POST, (f) -> staffGroup(f, "/members"),
+				(f) -> Map.of("userIds", List.of(userOf(TEACHER_SUBJECT_A))),
+				merge(allow(200, concat(managers, new Name[] { TEACHER_LEAD_A })), allow(403, TEACHER_SUBJECT_A)), 404));
+		cases.add(new Case("POST remove group member", HttpMethod.POST, (f) -> staffMemberUrl(f, "/remove"),
+				(f) -> Map.of("reason", "left the team"),
+				merge(allow(200, concat(managers, new Name[] { TEACHER_LEAD_A })), allow(403, TEACHER_SUBJECT_A)), 404));
+		cases.add(new Case("POST leave group", HttpMethod.POST, (f) -> staffGroup(f, "/leave"), null,
+				allow(204, TEACHER_LEAD_A, TEACHER_SUBJECT_A), 404));
+		cases.add(new Case("POST approve student group", HttpMethod.POST, (f) -> pendingGroup(f, "/approve"), null,
+				merge(allow(200, concat(managers, new Name[] { TEACHER_LEAD_A })), allow(403, STUDENT_A1)), 404));
+		cases.add(new Case("POST reject student group", HttpMethod.POST, (f) -> pendingGroup(f, "/reject"), null,
+				merge(allow(200, concat(managers, new Name[] { TEACHER_LEAD_A })), allow(403, STUDENT_A1)), 404));
+
+		// --- blocks
+		cases.add(new Case("POST block a member", HttpMethod.POST, (f) -> {
+			classThread(f, "", false);
+			this.msgOther = this.jdbc.queryForObject("select id from conversation_members where conversation_id = ? and user_id = ?",
+					UUID.class, this.msgThread, userOf(TEACHER_SUBJECT_A));
+			return api + "me/blocks";
+		}, (f) -> Map.of("conversationId", this.msgThread, "memberId", this.msgOther),
+				merge(allow(201, TEACHER_LEAD_A, STUDENT_A1), allow(400, TEACHER_SUBJECT_A)), 404));
+		cases.add(new Case("DELETE a block of the caller", HttpMethod.DELETE, (f) -> {
+			classThread(f, "", false);
+			this.msgBlock = Ids.newId();
+			this.jdbc.update("insert into user_blocks (id, blocker_id, blocked_id, school_id) values (?, ?, ?, ?)", this.msgBlock,
+					userOf(STUDENT_A1), userOf(TEACHER_SUBJECT_A), f.schoolA());
+			return api + "me/blocks/" + this.msgBlock;
+		}, null, allow(204, STUDENT_A1), 404));
+
+		// --- the audited review: administrators of the school and the safeguarding lead; everybody else who sees the school: 403
+		cases.add(school("GET reviewable conversations", HttpMethod.GET, (f) -> {
+			adminVisible(f, "");
+			return SCHOOLS + f.schoolA() + m + "/review/conversations";
+		}, null, 200, managers, minus(sees, concat(managers, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 }))));
+		cases.add(school("POST review a conversation", HttpMethod.POST, (f) -> {
+			adminVisible(f, "");
+			return SCHOOLS + f.schoolA() + m + "/review/conversations/" + this.msgThread + "/read";
+		}, (f) -> Map.of("reason", "matrix review of an admin-visible thread"), 200, managers,
+				minus(sees, concat(managers, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 }))));
+		Name[] notReviewers = minus(sees, concat(managers, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 }));
+		cases.add(school("GET message reports", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + m + "/review/reports", null, 200, managers,
+				notReviewers));
+		cases.add(school("GET students' blocks of adults", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + m + "/review/blocks", null, 200,
+				managers, notReviewers));
+		return cases;
+	}
+
+	/** A student group proposed by A1 that waits for approval in a fresh class of the lead. */
+	private String pendingGroup(Fixture f, String suffix) {
+		resetMessaging(f);
+		UUID classId = freshClass(f);
+		UUID other = this.personas.newStudent(f.schoolA(), "matrix-proposed");
+		this.personas.addStudentToClass(f.schoolA(), classId, other);
+		this.msgThread = msgConversation(f, "GROUP", null, "STUDENT_GROUP", classId, null, false, userOf(STUDENT_A1), "Maths club", "PENDING_APPROVAL");
+		msgMember(f, this.msgThread, STUDENT_A1, "MEMBER", "STUDENT", null);
+		msgMemberOf(f, this.msgThread, other, "MEMBER", "STUDENT", null);
+		return "/api/v1/conversations/" + this.msgThread + suffix;
 	}
 
 	@TestFactory

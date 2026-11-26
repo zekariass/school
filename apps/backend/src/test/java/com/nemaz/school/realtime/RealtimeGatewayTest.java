@@ -112,15 +112,15 @@ class RealtimeGatewayTest extends AuthTestSupport {
 		Persona user = this.personas.newUser("ws-notify");
 		try (StompTestClient client = withBearer(user.accessToken())) {
 			client.subscribe(QUEUE, user.userId(), this.publisher);
-			this.notifications.notify(NotificationRequest.to("NEW_MESSAGE", user.userId()).args("Sara").path("/messages/9").build());
-			this.notifications.notify(NotificationRequest.to("NEW_MESSAGE", user.userId()).args("Tom").build());
+			this.notifications.notify(NotificationRequest.to("NEW_POST", user.userId()).args("Sara", "Teacher").path("/messages/9").build());
+			this.notifications.notify(NotificationRequest.to("NEW_POST", user.userId()).args("Tom", "Teacher").build());
 
 			JsonNode first = this.json.readTree(client.nextMessage(10));
 			JsonNode second = this.json.readTree(client.nextMessage(10));
 			assertThat(first.get("type").asString()).isEqualTo("notification.created");
 			List<String> titles = List.of(first.get("notification").get("title").asString(),
 					second.get("notification").get("title").asString());
-			assertThat(titles).containsExactlyInAnyOrder("New message from Sara", "New message from Tom");
+			assertThat(titles).containsExactlyInAnyOrder("New post in Sara", "New post in Tom");
 			assertThat(Math.max(first.get("unreadCount").asInt(), second.get("unreadCount").asInt())).isEqualTo(2);
 			JsonNode sara = first.get("notification").get("title").asString().endsWith("Sara") ? first : second;
 			assertThat(sara.get("notification").get("data").get("path").asString()).isEqualTo("/messages/9");
@@ -131,7 +131,7 @@ class RealtimeGatewayTest extends AuthTestSupport {
 	@Test
 	void readingOnOneDeviceUpdatesTheBadgeOnTheOthers() throws Exception {
 		Persona user = this.personas.newUser("ws-read-sync");
-		UUID id = this.notifications.notify(NotificationRequest.to("NEW_MESSAGE", user.userId()).args("Sara").build()).getFirst();
+		UUID id = this.notifications.notify(NotificationRequest.to("NEW_POST", user.userId()).args("Sara", "Teacher").build()).getFirst();
 		try (StompTestClient client = withBearer(user.accessToken())) {
 			client.subscribe(QUEUE, user.userId(), this.publisher);
 			this.mvc.perform(post("/api/v1/notifications/" + id + "/read").with(user.bearer())).andExpect(status().isNoContent());
@@ -141,7 +141,7 @@ class RealtimeGatewayTest extends AuthTestSupport {
 			assertThat(event.get("ids").get(0).asString()).isEqualTo(id.toString());
 			assertThat(event.get("unreadCount").asInt()).isZero();
 
-			this.notifications.notify(NotificationRequest.to("NEW_MESSAGE", user.userId()).args("Tom").build());
+			this.notifications.notify(NotificationRequest.to("NEW_POST", user.userId()).args("Tom", "Teacher").build());
 			assertThat(this.json.readTree(client.nextMessage(10)).get("type").asString()).isEqualTo("notification.created");
 			this.mvc.perform(post("/api/v1/notifications/read-all").with(user.bearer())).andExpect(status().isOk());
 			JsonNode all = this.json.readTree(client.nextMessage(10));

@@ -34,6 +34,16 @@ public interface MediaPurposePolicy {
 		return (context.type() == ContextType.SCHOOL) ? context.id() : null;
 	}
 
+	/**
+	 * Whether the uploader may read their own media whatever the policy says. The default is yes (an avatar, a post
+	 * photo before it is published). Purposes whose media becomes part of a private conversation answer no once it is
+	 * attached: reading then follows {@link #canRead} like for everybody, so a person who lost access to the
+	 * conversation loses the picture they sent too.
+	 */
+	default boolean ownerAlwaysReads(MediaInfo media) {
+		return true;
+	}
+
 	/** Whether each signed-URL read is written to the audit log (sensitive purposes). */
 	default boolean auditReads() {
 		return false;

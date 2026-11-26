@@ -265,6 +265,20 @@ public class Personas {
 		return id;
 	}
 
+	/** An ACTIVE non-teaching staff member of the school ({@code staffType} ADMINISTRATOR or SUPPORT_STAFF; no role assignment). */
+	public UUID newStaff(UUID schoolId, String label, String staffType) {
+		UUID id = createUser(label, "ACTIVE");
+		this.jdbc.update("""
+				insert into school_staff (id, school_id, user_id, staff_type, status, started_on)
+				values (?, ?, ?, ?, 'ACTIVE', current_date)""", Ids.newId(), schoolId, id, staffType);
+		return id;
+	}
+
+	/** Sets a user's date of birth (fixtures; the API never returns it). */
+	public void setDateOfBirth(UUID userId, java.time.LocalDate dateOfBirth) {
+		this.jdbc.update("update users set date_of_birth = ? where id = ?", java.sql.Date.valueOf(dateOfBirth), userId);
+	}
+
 	/** An ACTIVE managed student of the school (no phone or email, no class). */
 	public UUID newStudent(UUID schoolId, String label) {
 		UUID id = Ids.newId();

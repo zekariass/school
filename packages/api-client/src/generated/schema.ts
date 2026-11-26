@@ -123,6 +123,268 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/conversations/{conversationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One conversation the caller may use now (404 otherwise). guardiansCanSee tells a student whether a guardian can read their direct conversation with an adult */
+        get: operations["getConversation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Owners and moderators (and school.messaging.moderate or class managers, who need not be members) change a group's title, posting policy (ALL_MEMBERS or MODERATORS_ONLY) and status (ACTIVE, LOCKED, ARCHIVED). DIRECT conversations have no moderators (403) */
+        patch: operations["updateConversation"];
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approves a student group proposal (lead or co-teacher of the class, or school.messaging.moderate). The class's lead and co-teachers become its moderators */
+        post: operations["approveGroupConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Leaves a group (not DIRECT conversations, not as an observer) */
+        post: operations["leaveConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The people of a conversation as the caller may see them: teachers, staff and students by name, guardians only as role labels, observers marked (their count is observerCount) */
+        get: operations["listConversationMembers"];
+        put?: never;
+        /** Adds members to a group that is not roster-driven (409 messaging.roster_managed). Each must be eligible for the group (staff for staff groups, students of the class and its teachers for student groups): 400 messaging.member_not_eligible. Audited */
+        post: operations["addConversationMembers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/members/{memberId}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Removes a member (reason required, audited). Observers cannot be removed. A roster-driven group does not add a removed member back */
+        post: operations["removeConversationMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Messages of a conversation, newest first, keyset paged. Deleted and hidden messages are tombstones without text or images; messages of people the caller blocked are left out (never for an observer) */
+        get: operations["listMessages"];
+        put?: never;
+        /** Sends a message: 201 when new, 200 with the original when this clientMessageId was already stored (also under concurrency). Plain text (control, bidi and zero-width characters are stripped; 1-2000 characters) or MEDIA (1-4 images uploaded first with purpose MESSAGE and context CONVERSATION). sendAt (adults only, 1 minute to 90 days ahead) schedules it. afterHours tells the sender a teacher recipient is outside office hours (delivered without a push). 403 messaging.observer_read_only, messaging.posting_restricted, messaging.you_blocked, messaging.not_allowed; 409 messaging.conversation_closed; 429 messaging.rate_limited (stricter for students) */
+        post: operations["sendMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/messages/{messageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One message (404 when the caller may not see it) */
+        get: operations["getMessage"];
+        put?: never;
+        post?: never;
+        /** Deletes your own message: members see a tombstone, the original text moves to the history that only reviewers can read through the audited endpoint, images are discarded. A scheduled message is withdrawn */
+        delete: operations["deleteMessage"];
+        options?: never;
+        head?: never;
+        /** Edits your own text message within messaging.edit_window_minutes (default 15; 409 messaging.edit_window_expired / messaging.edit_disabled). The earlier text is kept in the history */
+        patch: operations["editMessage"];
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A moderator hides a message with a reason (audited): members then see a tombstone. Owners and moderators of a group, school.messaging.moderate and class managers; school.messaging.review for conversations they may review */
+        post: operations["hideMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/reaction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Adds your reaction (one per user per emoji, from the fixed set of 12; idempotent). Observers cannot react */
+        put: operations["reactToMessage"];
+        post?: never;
+        /** Removes your reaction (idempotent) */
+        delete: operations["removeMessageReaction"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Any member (observers too) reports a message of somebody else: audit row, event MessageReported (ids only) and a notice to the conversation's moderators and the school's reviewers. 20 a day. Repeating is harmless */
+        post: operations["reportMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/translation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** See translation: off by default (messaging.translation.enabled; 403 messaging.translation_disabled), never for direct conversations between an adult and a student (403 messaging.translation_not_allowed), 503 messaging.translation_unavailable without a provider. Always labelled machine translated */
+        post: operations["translateMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/messages/{messageId}/unhide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Shows a hidden message again (same authority as hiding; audited) */
+        post: operations["unhideMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/mute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Silences pushes of the conversation until the given time (at most a year) */
+        put: operations["muteConversation"];
+        post?: never;
+        /** Ends the mute */
+        delete: operations["unmuteConversation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Moves the read watermark to upToMessageId (default: the newest message); idempotent, never backwards. In DIRECT conversations the other person's messages get a Seen receipt (never for an observer) */
+        post: operations["markConversationRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rejects a student group proposal */
+        post: operations["rejectGroupConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invitations/accept": {
         parameters: {
             query?: never;
@@ -244,6 +506,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The people the caller blocked */
+        get: operations["listMyBlocks"];
+        put?: never;
+        /** Blocks a member of a conversation the caller may use: they can no longer start or continue a DIRECT conversation with the caller (the generic refusal), and their messages are hidden from the caller in groups. Never affects announcements or what observers see; a student cannot block their guardians or anybody observing a conversation they are in (403 messaging.cannot_block). A student's block of an adult is audited and listed for school safeguarding reviewers */
+        post: operations["blockPerson"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/blocks/{blockId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a block of the caller's */
+        delete: operations["unblockPerson"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/children": {
         parameters: {
             query?: never;
@@ -314,6 +611,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's inbox: conversations they belong to or observe and may use right now, newest activity first, keyset paged, with unread counts (up to 100) and the last message preview (no body for deleted or hidden messages). Filter by schoolId or by studentId (the child a guardian acts for or a thread is about) to group by child */
+        get: operations["listMyConversations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/feed": {
         parameters: {
             query?: never;
@@ -342,6 +656,23 @@ export interface paths {
         put?: never;
         /** Redeem an invitation link token or printed parent code as the signed-in adult (STANDARD account with a verified phone or email, which is the proof). Creates a PENDING link (or returns the existing one); unknown, expired or used-up invitations are 404 invitation.not_found */
         post: operations["redeemGuardianInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/messaging/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unread messages over all conversations the caller may use now */
+        get: operations["getMessagingUnreadCount"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -430,6 +761,23 @@ export interface paths {
         post?: never;
         /** Stop pushes to one of my devices (idempotent) */
         delete: operations["deletePushDevice"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/scheduled-messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's own scheduled messages that are not sent yet */
+        get: operations["listMyScheduledMessages"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2617,6 +2965,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/messaging/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the caller may start and moderate in the school and the school's messaging limits (edit window, office hours, student images, translation). 404 for callers who cannot see the school, 403 messaging.feature_disabled */
+        get: operations["getMessagingCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/messaging/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The only way to find somebody to message, about one child (studentId): a guardian of the child gets the child's teachers (by name) or, with audience=PARENTS and messaging.parent_parent.enabled, the guardians of classmates (labels only); a teacher of the child gets the child's guardians (labels only). Students get 403: they have no directory */
+        get: operations["listMessagingContacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/messaging/conversations/direct": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Starts (201) or returns (200) the DIRECT conversation with another person: guardian-teacher (studentId required, one thread per guardian, teacher and child), guardian-guardian (messaging.parent_parent.enabled, same class), teacher-student (messaging.student.teacher_direct.enabled; a student may start it only when the initiator setting is EITHER) or student-student (messaging.student.student_direct.enabled). Teacher-student conversations get the safeguarding floor: the student's guardians become read-only observers, or the conversation is admin-visible. Every refusal is the generic 403 messaging.not_allowed (403 messaging.you_blocked tells the blocker), 400 messaging.context_student_required */
+        post: operations["startDirectConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/messaging/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Groups of the school the caller moderates (school.messaging.moderate: all), proposed (their own) or approves (lead and co-teachers of the class): metadata only, never messages. Filter by status such as PENDING_APPROVAL */
+        get: operations["listGroupConversations"];
+        put?: never;
+        /** Creates a group: CLASS_STUDENTS and CLASS_PARENTS (a lead or co-teacher of the class or a class manager; members follow the roster), STAFF, STUDENT_GROUP (teachers; a student may propose one when messaging.student.group_create is STUDENTS_WITH_APPROVAL, then it stays PENDING_APPROVAL), SCHOOL_STAFF (school.messaging.moderate). Roles allowed come from messaging.group_create.roles. 403 messaging.group_not_allowed, 409 messaging.group_exists, 400 messaging.member_not_eligible */
+        post: operations["createGroupConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/messaging/review/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Blocks of adults by students of the school (ids only, no text), newest first */
+        get: operations["listStudentBlocksOfAdults"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/messaging/review/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conversations a reviewer may read: adult-student DIRECT conversations that no eligible guardian observes (adminVisible) and any conversation with an open report. Metadata and participants only, no text. Audited (messaging.review.list) */
+        get: operations["listReviewableConversations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/messaging/review/conversations/{conversationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reads a reviewable conversation, newest first, including deleted originals, hidden messages and earlier versions of edited ones. A reason of 10-300 characters is mandatory (400 messaging.review_reason_required), every call writes the audit entry messaging.review.read (reviewer, conversation, reason, count; never text), 30 an hour per reviewer (429 messaging.review_rate_limited). 403 messaging.not_reviewable for conversations that are neither admin-visible nor reported */
+        post: operations["reviewConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/messaging/review/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Message reports of the school (ids and reason codes only), newest first; filter by status OPEN or RESOLVED */
+        get: operations["listMessageReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/my-posts": {
         parameters: {
             query?: never;
@@ -3688,6 +4173,9 @@ export interface components {
             /** @enum {string} */
             status: "PLANNED" | "ACTIVE" | "CLOSED";
         };
+        AddConversationMembersRequest: {
+            userIds: string[];
+        };
         /** @description Set exactly one of phone or email (national phone formats are read in `country`, default ET). adminRole is only for ADMINISTRATOR. */
         AddStaffRequest: {
             /** @enum {string} */
@@ -4034,6 +4522,13 @@ export interface components {
             /** @enum {string} */
             status?: "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELLED" | "EXPIRED";
         };
+        AttachmentView: {
+            media?: components["schemas"]["MediaSummary"];
+            /** Format: uuid */
+            mediaId: string;
+            /** Format: int32 */
+            sortOrder: number;
+        };
         AttendanceCounts: {
             /** Format: int32 */
             absent?: number;
@@ -4370,6 +4865,21 @@ export interface components {
             /** Format: int32 */
             sortOrder?: number;
         };
+        BlockPersonRequest: {
+            /** Format: uuid */
+            conversationId: string;
+            /** Format: uuid */
+            memberId: string;
+        };
+        BlockView: {
+            /** Format: uuid */
+            conversationId?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            person?: components["schemas"]["ParticipantView"];
+        };
         CampusResponse: {
             code?: string;
             /** Format: date-time */
@@ -4683,11 +5193,23 @@ export interface components {
             /** @enum {string} */
             status: "GRANTED" | "DENIED" | "UNKNOWN";
         };
+        ContactView: {
+            /** Format: uuid */
+            conversationId?: string;
+            label?: components["schemas"]["ParticipantViewLabel"];
+            /** Format: uuid */
+            userId: string;
+        };
         ContextRef: {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            type: "USER" | "SCHOOL" | "ORGANIZATION" | "CLASS";
+            type: "USER" | "SCHOOL" | "ORGANIZATION" | "CLASS" | "CONVERSATION";
+        };
+        ContextStudentView: {
+            displayName?: string;
+            /** Format: uuid */
+            studentId: string;
         };
         ContributionApproveRequest: {
             confirmNoUnconsentedStudents?: boolean;
@@ -4701,6 +5223,50 @@ export interface components {
         };
         ContributionRejectRequest: {
             reason: string;
+        };
+        ConversationSummaryView: {
+            /** Format: date-time */
+            activityAt: string;
+            canPost: boolean;
+            /** Format: uuid */
+            classId?: string;
+            /** @description The child this conversation is about or, for a guardian, who they are acting for: group the inbox by it. Absent for students except themselves */
+            contextStudent?: components["schemas"]["ContextStudentView"];
+            /** @description The other person of a DIRECT conversation */
+            counterpart?: components["schemas"]["ParticipantView"];
+            /** @enum {string} */
+            directKind?: "GUARDIAN_TEACHER" | "GUARDIAN_GUARDIAN" | "TEACHER_STUDENT" | "STUDENT_STUDENT";
+            /** @enum {string} */
+            groupKind?: "CLASS_STUDENTS" | "CLASS_PARENTS" | "STAFF" | "STUDENT_GROUP" | "SCHOOL_STAFF";
+            /** @description DIRECT conversations with an adult and a student: whether a guardian can see it (students are told "your parent or guardian can see this conversation") */
+            guardiansCanSee?: boolean;
+            /** Format: uuid */
+            id: string;
+            lastMessage?: components["schemas"]["LastMessageView"];
+            muted: boolean;
+            /** Format: date-time */
+            mutedUntil?: string;
+            /** @enum {string} */
+            myActingAs: "TEACHER" | "GUARDIAN" | "STUDENT" | "STAFF";
+            /** @enum {string} */
+            myRole: "OWNER" | "MODERATOR" | "MEMBER" | "OBSERVER";
+            /** Format: uuid */
+            onBehalfOfStudentId?: string;
+            postingPolicy: string;
+            /** Format: uuid */
+            schoolId: string;
+            status: string;
+            title?: string;
+            /** @enum {string} */
+            type: "DIRECT" | "GROUP" | "CLASS" | "SCHOOL";
+            /** Format: int32 */
+            unreadCount: number;
+        };
+        ConversationView: {
+            canModerate: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            summary: components["schemas"]["ConversationSummaryView"];
         };
         CountryCalendarResponse: {
             code: string;
@@ -4759,6 +5325,18 @@ export interface components {
             name: string;
             /** Format: int32 */
             sequence?: number;
+        };
+        CreateGroupConversationRequest: {
+            /**
+             * Format: uuid
+             * @description Required for CLASS_STUDENTS, CLASS_PARENTS and STUDENT_GROUP
+             */
+            classId?: string;
+            /** @enum {string} */
+            kind: "CLASS_STUDENTS" | "CLASS_PARENTS" | "STAFF" | "STUDENT_GROUP" | "SCHOOL_STAFF";
+            memberUserIds?: string[];
+            postingPolicy?: string;
+            title?: string;
         };
         CreateGroupRequest: {
             name: string;
@@ -4967,6 +5545,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageConversationSummaryView: {
+            items: components["schemas"]["ConversationSummaryView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageDashboardClass: {
             items: components["schemas"]["DashboardClass"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -4987,6 +5570,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageMessageItemView: {
+            items: components["schemas"]["MessageItemView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageNotificationView: {
             items: components["schemas"]["NotificationView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -5004,6 +5592,11 @@ export interface components {
         };
         CursorPageReportRow: {
             items: components["schemas"]["ReportRow"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageReviewConversationView: {
+            items: components["schemas"]["ReviewConversationView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -5123,6 +5716,15 @@ export interface components {
             schoolId?: string;
             title: string;
         };
+        EditMessageRequest: {
+            body: string;
+        };
+        EditView: {
+            /** Format: date-time */
+            at: string;
+            body: string;
+            kind: string;
+        };
         EngagementSettingsView: {
             badgesEnabled?: boolean;
             leaderboardEnabled?: boolean;
@@ -5241,6 +5843,31 @@ export interface components {
             /** Format: int32 */
             sequence: number;
         };
+        /** @description A group as moderators and proposers see it: metadata only, never messages */
+        GroupAdminView: {
+            /** Format: uuid */
+            classId?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            groupKind: "CLASS_STUDENTS" | "CLASS_PARENTS" | "STAFF" | "STUDENT_GROUP" | "SCHOOL_STAFF";
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            memberCount: number;
+            postingPolicy: string;
+            proposedByMe: boolean;
+            status: string;
+            title?: string;
+            /** @enum {string} */
+            type: "DIRECT" | "GROUP" | "CLASS" | "SCHOOL";
+        };
+        /** @description How a guardian is shown to others: relationshipType and studentGivenName are each present only when the viewer may know them (the child's teachers see "Abebe's mother"; other guardians see neither; a student sees the relationship of their own guardians) */
+        GuardianLabel: {
+            /** @enum {string} */
+            relationshipType?: "MOTHER" | "FATHER" | "GRANDPARENT" | "SIBLING" | "AUNT_UNCLE" | "LEGAL_GUARDIAN" | "OTHER";
+            studentGivenName?: string;
+        };
         GuardianLinkView: {
             /** @description SMS/email invitations: whether the adult proved the invited phone or email; school.guardians.manage only */
             contactMatchesInvitation?: boolean;
@@ -5280,6 +5907,9 @@ export interface components {
             verificationMethod?: "SCHOOL_INVITE" | "SCHOOL_VERIFIED" | "DOCUMENT" | "PLATFORM_ADMIN";
             /** Format: date-time */
             verifiedAt?: string;
+        };
+        HideMessageRequest: {
+            reason: string;
         };
         ImportJobView: {
             /** @description Field key to zero-based column index */
@@ -5501,6 +6131,17 @@ export interface components {
             nativeName: string;
             script?: string;
         };
+        LastMessageView: {
+            /** Format: uuid */
+            messageId: string;
+            messageType: string;
+            /** @description First 120 characters; absent for deleted and hidden messages (tombstones) and for images */
+            preview?: string;
+            sender?: components["schemas"]["ParticipantView"];
+            /** Format: date-time */
+            sentAt?: string;
+            status: string;
+        };
         Leaderboard: {
             /** Format: uuid */
             classId: string;
@@ -5545,6 +6186,10 @@ export interface components {
         LoginCodeRequest: {
             /** @description A QR token or a text code such as K7M2P-9XQ4T */
             code: string;
+        };
+        MarkConversationReadRequest: {
+            /** Format: uuid */
+            upToMessageId?: string;
         };
         MarkedRead: {
             /** Format: int32 */
@@ -5618,6 +6263,69 @@ export interface components {
             /** Format: int32 */
             width?: number;
         };
+        MemberListView: {
+            members: components["schemas"]["ParticipantView"][];
+            /** Format: int32 */
+            observerCount: number;
+        };
+        /** @description A message as the caller may see it. Deleted and hidden messages are tombstones: status DELETED or HIDDEN with no body, attachments or reactions */
+        MessageItemView: {
+            attachments: components["schemas"]["AttachmentView"][];
+            body?: string;
+            bodyLanguageCode?: string;
+            canDelete: boolean;
+            canEdit: boolean;
+            /** Format: uuid */
+            conversationId: string;
+            /** Format: date-time */
+            editedAt?: string;
+            /** Format: uuid */
+            id: string;
+            messageType: string;
+            mine: boolean;
+            reactions: components["schemas"]["ReactionView"][];
+            /** Format: uuid */
+            replyToMessageId?: string;
+            /** Format: date-time */
+            scheduledFor?: string;
+            /**
+             * Format: date-time
+             * @description Only on your own messages of a DIRECT conversation: when the other person first read it
+             */
+            seenAt?: string;
+            sender?: components["schemas"]["ParticipantView"];
+            /** Format: date-time */
+            sentAt?: string;
+            status: string;
+            systemCode?: string;
+        };
+        MessageReactionRequest: {
+            emoji: string;
+        };
+        /** @description A machine translation of one message, always labelled: machineTranslated is true (unless the text is already in the target language) */
+        MessageTranslationView: {
+            cached: boolean;
+            machineTranslated: boolean;
+            sourceLanguage?: string;
+            targetLanguage: string;
+            text: string;
+        };
+        MessagingCapabilitiesView: {
+            canModerate: boolean;
+            canProposeStudentGroup: boolean;
+            canReview: boolean;
+            canStartParentTeacher: boolean;
+            canStartStudentDirect: boolean;
+            creatableGroups: ("CLASS_STUDENTS" | "CLASS_PARENTS" | "STAFF" | "STUDENT_GROUP" | "SCHOOL_STAFF")[];
+            /** Format: int32 */
+            editWindowMinutes: number;
+            featureEnabled: boolean;
+            /** Format: int32 */
+            maxMessageLength: number;
+            officeHours?: components["schemas"]["OfficeHoursView"];
+            studentMediaEnabled: boolean;
+            translationEnabled: boolean;
+        };
         MetaResponse: {
             apiVersion: string;
             buildVersion: string;
@@ -5629,6 +6337,14 @@ export interface components {
         MoveStudentRequest: {
             /** Format: uuid */
             toClassId: string;
+        };
+        MuteConversationRequest: {
+            /** Format: date-time */
+            until: string;
+        };
+        MuteResult: {
+            /** Format: date-time */
+            mutedUntil: string;
         };
         MyChildren: {
             children: components["schemas"]["Child"][];
@@ -5714,6 +6430,12 @@ export interface components {
             title: string;
             typeCode: string;
         };
+        OfficeHoursView: {
+            days: number[];
+            end: string;
+            start: string;
+            timeZone: string;
+        };
         OrganizationResponse: {
             countryCode: string;
             /** Format: date-time */
@@ -5751,6 +6473,28 @@ export interface components {
             country?: string;
             email?: string;
             phone?: string;
+        };
+        /** @description A person in a conversation. displayName is present for teachers, staff, students and for yourself; a guardian is never named to anybody else: guardian carries the role label instead. memberId is valid inside this conversation only */
+        ParticipantView: {
+            /** @enum {string} */
+            actingAs: "TEACHER" | "GUARDIAN" | "STUDENT" | "STAFF";
+            displayName?: string;
+            guardian?: components["schemas"]["GuardianLabel"];
+            /** Format: uuid */
+            memberId: string;
+            /** @enum {string} */
+            role: "OWNER" | "MODERATOR" | "MEMBER" | "OBSERVER";
+            self: boolean;
+        };
+        /** @description A person you may start a conversation with: teachers by name; guardians by label only */
+        ParticipantViewLabel: {
+            /** @enum {string} */
+            actingAs: "TEACHER" | "GUARDIAN" | "STUDENT" | "STAFF";
+            className?: string;
+            displayName?: string;
+            guardian?: components["schemas"]["GuardianLabel"];
+            subjectName?: string;
+            teacherRole?: string;
         };
         PasswordSignInRequest: {
             country?: string;
@@ -5991,7 +6735,7 @@ export interface components {
             total: number;
         };
         PurposePolicy: {
-            contextTypes: ("USER" | "SCHOOL" | "ORGANIZATION" | "CLASS")[];
+            contextTypes: ("USER" | "SCHOOL" | "ORGANIZATION" | "CLASS" | "CONVERSATION")[];
             /** @description Allowed MIME types with their maximum size in bytes */
             maxBytesByMimeType: {
                 [key: string]: number;
@@ -6034,6 +6778,12 @@ export interface components {
             /** @enum {string} */
             mine?: "LIKE" | "HEART" | "CLAP" | "STAR";
         };
+        ReactionView: {
+            /** Format: int32 */
+            count: number;
+            emoji: string;
+            mine: boolean;
+        };
         RecordedConsent: {
             /** @enum {string} */
             consentType: "ACCOUNT_PARTICIPATION" | "MEDIA_PUBLICATION" | "TERMS" | "PRIVACY";
@@ -6075,6 +6825,14 @@ export interface components {
             provider: "EXPO" | "FCM" | "APNS" | "WEBPUSH";
             token: string;
         };
+        RemoveConversationMemberRequest: {
+            reason: string;
+        };
+        ReportMessageRequest: {
+            note?: string;
+            /** @enum {string} */
+            reason: "INAPPROPRIATE" | "BULLYING" | "PRIVACY" | "SAFETY" | "SPAM" | "OTHER";
+        };
         ReportRow: {
             /** Format: int32 */
             awards?: number;
@@ -6094,6 +6852,18 @@ export interface components {
             studentId: string;
             studentName: string;
         };
+        ReportView: {
+            /** Format: uuid */
+            conversationId: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            messageId: string;
+            reason: string;
+            status: string;
+        };
         ResolveRequest: {
             /**
              * @description How a possible duplicate is decided: LINK to an existing student (studentId), CREATE_NEW, or SKIP the row
@@ -6110,6 +6880,53 @@ export interface components {
             /** Format: uuid */
             clientOpId?: string;
             note?: string;
+        };
+        ReviewConversationView: {
+            adminVisible: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            directKind?: "GUARDIAN_TEACHER" | "GUARDIAN_GUARDIAN" | "TEACHER_STUDENT" | "STUDENT_STUDENT";
+            /** @enum {string} */
+            groupKind?: "CLASS_STUDENTS" | "CLASS_PARENTS" | "STAFF" | "STUDENT_GROUP" | "SCHOOL_STAFF";
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            lastMessageAt?: string;
+            /** Format: int32 */
+            openReports: number;
+            participants: components["schemas"]["ParticipantView"][];
+            /** @enum {string} */
+            type: "DIRECT" | "GROUP" | "CLASS" | "SCHOOL";
+        };
+        ReviewReadRequest: {
+            cursor?: string;
+            /** Format: int32 */
+            limit?: number;
+            /** @description Why the reviewer reads this conversation (10-300 characters); stored in the audit log, so never paste message content into it */
+            reason: string;
+        };
+        ReviewedMessageView: {
+            attachmentMediaIds: string[];
+            /** @description The original text, also of deleted messages */
+            body?: string;
+            hideReason?: string;
+            history: components["schemas"]["EditView"][];
+            /** Format: uuid */
+            id: string;
+            messageType: string;
+            /** Format: uuid */
+            replyToMessageId?: string;
+            /** Format: int32 */
+            reportCount: number;
+            sender?: components["schemas"]["ParticipantView"];
+            /** Format: date-time */
+            sentAt?: string;
+            status: string;
+        };
+        ReviewedPageView: {
+            messages: components["schemas"]["ReviewedMessageView"][];
+            nextCursor?: string;
         };
         RevokedCodes: {
             /** Format: int32 */
@@ -6336,6 +7153,30 @@ export interface components {
             /** Format: int32 */
             total?: number;
         };
+        /** @description A message. clientMessageId is generated by the client and makes the send idempotent (also an offline outbox) */
+        SendMessageRequest: {
+            body?: string;
+            bodyLanguageCode?: string;
+            /** Format: uuid */
+            clientMessageId: string;
+            mediaIds?: string[];
+            /** @description TEXT or MEDIA; default MEDIA when mediaIds is given, else TEXT */
+            messageType?: string;
+            /** Format: uuid */
+            replyToMessageId?: string;
+            /**
+             * Format: date-time
+             * @description Schedule the message (adults only)
+             */
+            sendAt?: string;
+        };
+        SendResultView: {
+            /** @description The recipient teacher is outside office hours: the message is delivered without a push notification */
+            afterHours: boolean;
+            /** @description false when this clientMessageId was already stored: the original message is returned */
+            created: boolean;
+            message: components["schemas"]["MessageItemView"];
+        };
         SetAvatarRequest: {
             /** Format: uuid */
             mediaId: string;
@@ -6431,6 +7272,15 @@ export interface components {
              */
             userId: string;
         };
+        StartDirectConversationRequest: {
+            /** Format: uuid */
+            recipientUserId: string;
+            /**
+             * Format: uuid
+             * @description The child the thread is about; required for guardian-teacher and guardian-guardian conversations
+             */
+            studentId?: string;
+        };
         StoryCreateRequest: {
             caption?: string;
             captionLanguageCode?: string;
@@ -6475,6 +7325,18 @@ export interface components {
             description?: string;
             icon?: string;
             name: string;
+        };
+        StudentBlockView: {
+            /** Format: uuid */
+            blockedId: string;
+            /** Format: uuid */
+            blockerId: string;
+            /** Format: uuid */
+            conversationId?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
         };
         StudentClassRef: {
             /** Format: uuid */
@@ -6890,6 +7752,11 @@ export interface components {
             icon?: string;
             name?: string;
             subjectIds?: string[];
+        };
+        UpdateConversationRequest: {
+            postingPolicy?: string;
+            status?: string;
+            title?: string;
         };
         UpdateGradeRequest: {
             active?: boolean;
@@ -7311,6 +8178,731 @@ export interface operations {
             };
         };
     };
+    getConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupAdminView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    approveGroupConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupAdminView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    leaveConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listConversationMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberListView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    addConversationMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddConversationMembersRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberListView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    removeConversationMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                memberId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveConversationMemberRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberListView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMessages: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageMessageItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    sendMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendResultView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    editMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    hideMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HideMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reactToMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageReactionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    removeMessageReaction: {
+        parameters: {
+            query: {
+                emoji: string;
+            };
+            header?: never;
+            path: {
+                conversationId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageItemView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reportMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    translateMessage: {
+        parameters: {
+            query?: {
+                language?: string;
+            };
+            header?: never;
+            path: {
+                conversationId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageTranslationView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unhideMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    muteConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MuteConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MuteResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unmuteConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    markConversationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MarkConversationReadRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    rejectGroupConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupAdminView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     acceptInvitation: {
         parameters: {
             query?: never;
@@ -7598,6 +9190,97 @@ export interface operations {
             };
         };
     };
+    listMyBlocks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    blockPerson: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BlockPersonRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BlockView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unblockPerson: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                blockId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listMyChildren: {
         parameters: {
             query?: never;
@@ -7782,6 +9465,40 @@ export interface operations {
             };
         };
     };
+    listMyConversations: {
+        parameters: {
+            query?: {
+                schoolId?: string;
+                studentId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageConversationSummaryView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getMyFeed: {
         parameters: {
             query?: {
@@ -7835,6 +9552,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GuardianLinkView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getMessagingUnreadCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCount"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -8053,6 +9799,35 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMyScheduledMessages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageItemView"][];
+                };
             };
             /** @description Error (RFC 9457 problem details) */
             default: {
@@ -13612,6 +15387,308 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportRowView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getMessagingCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessagingCapabilitiesView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMessagingContacts: {
+        parameters: {
+            query?: {
+                studentId?: string;
+                audience?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    startDirectConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartDirectConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listGroupConversations: {
+        parameters: {
+            query?: {
+                status?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupAdminView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createGroupConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGroupConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupAdminView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStudentBlocksOfAdults: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentBlockView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listReviewableConversations: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageReviewConversationView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reviewConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewReadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewedPageView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMessageReports: {
+        parameters: {
+            query?: {
+                status?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportView"][];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

@@ -92,13 +92,25 @@ public final class Permissions {
 	/** URGENT and SAFETY announcements: they bypass quiet hours and cannot be muted (M10). */
 	public static final String SCHOOL_ANNOUNCEMENTS_URGENT = "school.announcements.urgent";
 
+	/**
+	 * Moderate the school's group conversations (M9): create school and staff groups, approve student groups, add and remove
+	 * members, lock, archive, hide messages. Does not allow reading anybody's messages.
+	 */
+	public static final String SCHOOL_MESSAGING_MODERATE = "school.messaging.moderate";
+
+	/**
+	 * Review admin-visible and reported conversations through the audited, reason-bound read endpoint, and list students'
+	 * blocks of adults (M9, safeguarding).
+	 */
+	public static final String SCHOOL_MESSAGING_REVIEW = "school.messaging.review";
+
 	/** Every permission code, in seed order. */
 	public static final List<String> ALL = List.of(PLATFORM_ORGANIZATIONS_MANAGE, PLATFORM_SCHOOLS_MANAGE,
 			PLATFORM_SUBSCRIPTIONS_MANAGE, PLATFORM_FEATURES_MANAGE, PLATFORM_SETTINGS_MANAGE, PLATFORM_ROLES_MANAGE,
 			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ, SCHOOL_ACADEMIC_MANAGE, SCHOOL_STAFF_MANAGE,
 			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE, SCHOOL_IMPORT_MANAGE, SCHOOL_GUARDIANS_MANAGE, SCHOOL_POLICIES_MANAGE,
 			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ, SCHOOL_FEED_MANAGE,
-			SCHOOL_ANNOUNCEMENTS_MANAGE, SCHOOL_ANNOUNCEMENTS_URGENT);
+			SCHOOL_ANNOUNCEMENTS_MANAGE, SCHOOL_ANNOUNCEMENTS_URGENT, SCHOOL_MESSAGING_MODERATE, SCHOOL_MESSAGING_REVIEW);
 
 	private Permissions() {
 	}

@@ -71,6 +71,31 @@ public class NotificationStore {
 		return Boolean.TRUE.equals(exists);
 	}
 
+	public boolean existsUnreadForSource(UUID userId, String typeCode, String sourceType, UUID sourceId) {
+		Boolean exists = this.jdbc.queryForObject("""
+				select exists (select 1 from notifications
+				               where user_id = ? and type_code = ? and source_type = ? and source_id = ?
+				                 and read_at is null and archived_at is null)""", Boolean.class, userId, typeCode, sourceType,
+				sourceId);
+		return Boolean.TRUE.equals(exists);
+	}
+
+	/** Marks the user's unread notifications of these types for the source as read; returns their ids. */
+	public List<UUID> markReadBySource(UUID userId, Collection<String> typeCodes, String sourceType, UUID sourceId, Instant now) {
+		if (typeCodes.isEmpty()) {
+			return List.of();
+		}
+		return this.named.query("""
+				update notifications set read_at = :now
+				where user_id = :user and type_code in (:types) and source_type = :sourceType and source_id = :sourceId
+				  and read_at is null returning id""",
+				new MapSqlParameterSource("now", Timestamp.from(now)).addValue("user", userId)
+					.addValue("types", typeCodes)
+					.addValue("sourceType", sourceType)
+					.addValue("sourceId", sourceId),
+				(rs, i) -> rs.getObject("id", UUID.class));
+	}
+
 	public List<NotificationRow> findByIds(Collection<UUID> ids) {
 		if (ids.isEmpty()) {
 			return List.of();

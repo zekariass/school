@@ -176,11 +176,11 @@ public class MediaReads {
 		Media m = this.media.findById(mediaId)
 			.filter((x) -> x.getStatus() != MediaStatus.DELETED)
 			.orElseThrow(() -> ApiException.notFound("media.not_found"));
-		if (m.getOwnerId().equals(user.userId())) {
-			return m;
-		}
 		MediaPurposePolicy policy = this.policies.find(m.getPurpose()).orElse(null);
 		MediaInfo info = m.info();
+		if (m.getOwnerId().equals(user.userId()) && (policy == null || policy.ownerAlwaysReads(info))) {
+			return m;
+		}
 		boolean allowed = policy != null && (policy.canManage(user, info)
 				|| (m.getStatus() == MediaStatus.READY && policy.canRead(user, info)));
 		if (!allowed) {
