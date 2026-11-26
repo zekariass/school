@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useState } from 'react';
-import { ActivityIndicator, RefreshControl, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
 import { ClassCard } from '@/components/class-card';
@@ -54,6 +56,7 @@ function StudentHome() {
       <TabHeader />
       <PushPromptCard />
       <Text variant="title">{name ? t('mobile.student.greeting', { name }) : t('mobile.student.greetingNoName')}</Text>
+      <CalendarEntry />
 
       {classes.isPending ? (
         <View style={{ paddingVertical: spacing[8] }}>
@@ -95,5 +98,30 @@ function StudentClassCard({ cls }: { cls: MyClass }) {
       lines={lines}
       accessibilityLabel={[cls.name, names ? t('mobile.student.withTeachers', { names }) : null].filter(Boolean).join(', ')}
     />
+  );
+}
+
+/** A student has five tabs already (Android shows at most five), so the calendar is a prominent card on the home screen. */
+function CalendarEntry() {
+  const t = useTranslations();
+  const { colors, radii, spacing, minTouchTarget } = useAppTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t('mobile.calendar.entry.title')}
+      accessibilityHint={t('mobile.calendar.entry.body')}
+      onPress={() => router.push('/events')}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[3], minHeight: minTouchTarget + 16, padding: spacing[4], borderRadius: radii['2xl'], backgroundColor: colors.accent }}>
+      <SymbolView name={{ ios: 'calendar', android: 'calendar_month', web: 'calendar_month' } as SymbolViewProps['name']} size={32} tintColor={colors.accentForeground} />
+      <View style={{ flex: 1 }}>
+        <Text variant="heading" style={{ color: colors.accentForeground }}>
+          {t('mobile.calendar.entry.title')}
+        </Text>
+        <Text variant="caption" style={{ color: colors.accentForeground }}>
+          {t('mobile.calendar.entry.body')}
+        </Text>
+      </View>
+      <SymbolView name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' } as SymbolViewProps['name']} size={18} tintColor={colors.accentForeground} />
+    </Pressable>
   );
 }

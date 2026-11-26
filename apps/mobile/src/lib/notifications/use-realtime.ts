@@ -5,6 +5,8 @@ import { AppState } from 'react-native';
 
 import { ANNOUNCEMENTS_ROOT } from '@/lib/announcements/keys';
 import { isAnnouncementNotification } from '@/lib/announcements/notifications';
+import { CALENDAR_ROOT } from '@/lib/calendar/keys';
+import { isCalendarNotification } from '@/lib/calendar/notifications';
 import { API_BASE_URL } from '@/lib/http';
 import { parseDoorbell } from '@/lib/messaging/doorbell';
 import { liveStatus } from '@/lib/messaging/live-status';
@@ -57,6 +59,10 @@ export function useRealtime(enabled: boolean): void {
       // A new, changed, withdrawn or reminded announcement: the lists and the badge ask the server again (counts only; nothing stored).
       if (event.type === 'notification.created' && isAnnouncementNotification(event.notification)) {
         void queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENTS_ROOT] });
+      }
+      // An event was added, moved, cancelled or is about to start: open calendar windows and event screens ask the server again.
+      if (event.type === 'notification.created' && isCalendarNotification(event.notification)) {
+        void queryClient.invalidateQueries({ queryKey: [CALENDAR_ROOT] });
       }
     };
 
@@ -113,6 +119,7 @@ export function useRealtime(enabled: boolean): void {
             void queryClient.invalidateQueries({ queryKey: INBOX_PREFIX });
             void queryClient.invalidateQueries({ queryKey: unreadCountKey });
             void queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENTS_ROOT] });
+            void queryClient.invalidateQueries({ queryKey: [CALENDAR_ROOT] });
           },
           onStompError: (frame) => {
             const reason = frame.headers.message ?? '';

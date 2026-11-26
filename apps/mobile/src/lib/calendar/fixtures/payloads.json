@@ -1,0 +1,667 @@
+{
+  "capabilities": {
+    "admin": {
+      "canManage": true,
+      "canCreateSchoolEvents": true,
+      "classes": [],
+      "canCreateAnyClassEvent": true,
+      "canCreateParentMeetings": false,
+      "calendarEnabled": true,
+      "timeZone": "Africa/Addis_Ababa"
+    },
+    "lead": {
+      "canManage": false,
+      "canCreateSchoolEvents": false,
+      "classes": [
+        {
+          "id": "33333333-3333-4333-8333-00000000001a",
+          "name": "1A"
+        }
+      ],
+      "canCreateAnyClassEvent": true,
+      "canCreateParentMeetings": true,
+      "calendarEnabled": true,
+      "timeZone": "Africa/Addis_Ababa"
+    },
+    "assistant": {
+      "canManage": false,
+      "canCreateSchoolEvents": false,
+      "classes": [],
+      "canCreateAnyClassEvent": false,
+      "canCreateParentMeetings": false,
+      "calendarEnabled": true,
+      "timeZone": "Africa/Addis_Ababa"
+    },
+    "guardian": 200
+  },
+  "unionGuardianDecember": {
+    "items": [
+      {
+        "id": "01a21945-6377-7087-868e-8ffa342ef227",
+        "source": "EVENT",
+        "kind": "SCHOOL_EVENT",
+        "title": "Sports day",
+        "location": "Field",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "SCHOOL",
+        "allDay": true,
+        "startAt": "2026-12-01T21:00:00Z",
+        "endAt": "2026-12-03T21:00:00Z",
+        "startDate": "2026-12-02",
+        "endDate": "2026-12-03",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6377-7087-868e-8ffa342ef227",
+        "recurring": false,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261207T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-07T06:00:00Z",
+        "endAt": "2026-12-07T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261207T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261209T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-09T06:00:00Z",
+        "endAt": "2026-12-09T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261209T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261214T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-14T06:00:00Z",
+        "endAt": "2026-12-14T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261214T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261216T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-16T06:00:00Z",
+        "endAt": "2026-12-16T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261216T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261221T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-21T06:00:00Z",
+        "endAt": "2026-12-21T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261221T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261223T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-23T06:00:00Z",
+        "endAt": "2026-12-23T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261223T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "HOLIDAY:11111111-1111-4111-8111-0000000000c1:11111111-1111-4111-8111-000000000001",
+        "source": "HOLIDAY",
+        "kind": "SCHOOL_BREAK",
+        "title": "Winter break",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "allDay": true,
+        "startAt": "2026-12-23T21:00:00Z",
+        "endAt": "2026-12-26T21:00:00Z",
+        "startDate": "2026-12-24",
+        "endDate": "2026-12-26",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "recurring": false,
+        "modified": false,
+        "rsvpEnabled": false,
+        "titleI18n": {
+          "am": "የክረምት እረፍት",
+          "en": "Winter break"
+        }
+      }
+    ],
+    "truncated": false,
+    "from": "2026-11-29T10:00:00Z",
+    "to": "2027-01-04T14:00:00Z"
+  },
+  "unionGuardianSeptember": {
+    "items": [
+      {
+        "id": "PERIOD:11111111-1111-4111-8111-0000000000b1:START",
+        "source": "ACADEMIC_PERIOD",
+        "kind": "PERIOD_START",
+        "title": "Term 1",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "allDay": true,
+        "startAt": "2026-09-10T21:00:00Z",
+        "endAt": "2026-09-11T21:00:00Z",
+        "startDate": "2026-09-11",
+        "endDate": "2026-09-11",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "recurring": false,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "YEAR:11111111-1111-4111-8111-0000000000a1:START",
+        "source": "ACADEMIC_PERIOD",
+        "kind": "YEAR_START",
+        "title": "2026/27",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "allDay": true,
+        "startAt": "2026-09-10T21:00:00Z",
+        "endAt": "2026-09-11T21:00:00Z",
+        "startDate": "2026-09-11",
+        "endDate": "2026-09-11",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "recurring": false,
+        "modified": false,
+        "rsvpEnabled": false
+      }
+    ],
+    "truncated": false,
+    "from": "2026-08-30T10:00:00Z",
+    "to": "2026-10-05T14:00:00Z"
+  },
+  "unionAfterExceptions": {
+    "items": [
+      {
+        "id": "01a21945-6377-7087-868e-8ffa342ef227",
+        "source": "EVENT",
+        "kind": "SCHOOL_EVENT",
+        "title": "Sports day",
+        "location": "Field",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "SCHOOL",
+        "allDay": true,
+        "startAt": "2026-12-01T21:00:00Z",
+        "endAt": "2026-12-03T21:00:00Z",
+        "startDate": "2026-12-02",
+        "endDate": "2026-12-03",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6377-7087-868e-8ffa342ef227",
+        "recurring": false,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261207T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-07T06:00:00Z",
+        "endAt": "2026-12-07T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261207T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261209T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-09T06:00:00Z",
+        "endAt": "2026-12-09T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "CANCELLED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261209T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261214T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir (hall)",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-15T11:00:00Z",
+        "endAt": "2026-12-15T12:00:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261214T060000Z",
+        "recurring": true,
+        "modified": true,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261216T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-16T06:00:00Z",
+        "endAt": "2026-12-16T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261216T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261221T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-21T06:00:00Z",
+        "endAt": "2026-12-21T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261221T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "01a21945-6399-7ec0-91c8-0d7da62bd676@20261223T060000Z",
+        "source": "EVENT",
+        "kind": "CLASS_EVENT",
+        "title": "Choir",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "scope": "CLASS",
+        "classId": "33333333-3333-4333-8333-00000000001a",
+        "allDay": false,
+        "startAt": "2026-12-23T06:00:00Z",
+        "endAt": "2026-12-23T07:30:00Z",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "eventId": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+        "occurrenceId": "20261223T060000Z",
+        "recurring": true,
+        "modified": false,
+        "rsvpEnabled": false
+      },
+      {
+        "id": "HOLIDAY:11111111-1111-4111-8111-0000000000c1:11111111-1111-4111-8111-000000000001",
+        "source": "HOLIDAY",
+        "kind": "SCHOOL_BREAK",
+        "title": "Winter break",
+        "schoolId": "11111111-1111-4111-8111-000000000001",
+        "allDay": true,
+        "startAt": "2026-12-23T21:00:00Z",
+        "endAt": "2026-12-26T21:00:00Z",
+        "startDate": "2026-12-24",
+        "endDate": "2026-12-26",
+        "timeZone": "Africa/Addis_Ababa",
+        "status": "SCHEDULED",
+        "recurring": false,
+        "modified": false,
+        "rsvpEnabled": false,
+        "titleI18n": {
+          "am": "የክረምት እረፍት",
+          "en": "Winter break"
+        }
+      }
+    ],
+    "truncated": false,
+    "from": "2026-11-29T10:00:00Z",
+    "to": "2027-01-04T14:00:00Z"
+  },
+  "choirViewLead": {
+    "id": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+    "schoolId": "11111111-1111-4111-8111-000000000001",
+    "scope": "CLASS",
+    "classId": "33333333-3333-4333-8333-00000000001a",
+    "eventType": "CLASS_EVENT",
+    "title": "Choir",
+    "timeZone": "Africa/Addis_Ababa",
+    "allDay": false,
+    "startAt": "2026-12-07T06:00:00Z",
+    "endAt": "2026-12-07T07:30:00Z",
+    "recurrenceRule": "FREQ=WEEKLY;BYDAY=MO,WE;COUNT=6",
+    "recurring": true,
+    "recurrenceEndsAt": "2026-12-23T07:30:00Z",
+    "rsvpEnabled": false,
+    "status": "SCHEDULED",
+    "createdBy": "22222222-2222-4222-8222-000000000002",
+    "createdByName": "Lead Teacher",
+    "rsvp": {
+      "enabled": false,
+      "canAnswer": false
+    },
+    "overrides": [],
+    "capabilities": {
+      "canEdit": true,
+      "canCancel": true,
+      "canDelete": false
+    },
+    "createdAt": "2026-11-26T19:11:47.609674Z",
+    "updatedAt": "2026-11-26T19:11:47.609674Z"
+  },
+  "choirViewWithOverrides": {
+    "id": "01a21945-6399-7ec0-91c8-0d7da62bd676",
+    "schoolId": "11111111-1111-4111-8111-000000000001",
+    "scope": "CLASS",
+    "classId": "33333333-3333-4333-8333-00000000001a",
+    "eventType": "CLASS_EVENT",
+    "title": "Choir",
+    "timeZone": "Africa/Addis_Ababa",
+    "allDay": false,
+    "startAt": "2026-12-07T06:00:00Z",
+    "endAt": "2026-12-07T07:30:00Z",
+    "recurrenceRule": "FREQ=WEEKLY;BYDAY=MO,WE;COUNT=6",
+    "recurring": true,
+    "recurrenceEndsAt": "2026-12-23T07:30:00Z",
+    "rsvpEnabled": false,
+    "status": "SCHEDULED",
+    "createdBy": "22222222-2222-4222-8222-000000000002",
+    "createdByName": "Lead Teacher",
+    "rsvp": {
+      "enabled": false,
+      "canAnswer": false
+    },
+    "overrides": [
+      {
+        "occurrenceId": "20261209T060000Z",
+        "occurrenceStart": "2026-12-09T06:00:00Z",
+        "status": "CANCELLED",
+        "reason": "Teacher away"
+      },
+      {
+        "occurrenceId": "20261214T060000Z",
+        "occurrenceStart": "2026-12-14T06:00:00Z",
+        "status": "MODIFIED",
+        "title": "Choir (hall)",
+        "startAt": "2026-12-15T11:00:00Z",
+        "endAt": "2026-12-15T12:00:00Z"
+      }
+    ],
+    "capabilities": {
+      "canEdit": true,
+      "canCancel": true,
+      "canDelete": false
+    },
+    "createdAt": "2026-11-26T19:11:47.609674Z",
+    "updatedAt": "2026-11-26T19:11:47.609674Z"
+  },
+  "meetingViewOrganiser": {
+    "id": "01a21945-64eb-7131-8674-fe0e0dc8cd30",
+    "schoolId": "11111111-1111-4111-8111-000000000001",
+    "scope": "INVITEES",
+    "eventType": "PARENT_MEETING",
+    "title": "Report talk about Abel",
+    "timeZone": "Africa/Addis_Ababa",
+    "allDay": false,
+    "startAt": "2026-12-11T12:00:00Z",
+    "endAt": "2026-12-11T12:30:00Z",
+    "recurring": false,
+    "rsvpEnabled": true,
+    "status": "SCHEDULED",
+    "createdBy": "22222222-2222-4222-8222-000000000002",
+    "createdByName": "Lead Teacher",
+    "regardingStudentId": "44444444-4444-4444-8444-000000000001",
+    "rsvp": {
+      "enabled": true,
+      "canAnswer": false,
+      "counts": {
+        "yes": 0,
+        "no": 0,
+        "maybe": 0,
+        "pending": 2
+      },
+      "participants": [
+        {
+          "userId": "22222222-2222-4222-8222-000000000011",
+          "displayName": "Guardian of Abel",
+          "status": "PENDING"
+        },
+        {
+          "userId": "22222222-2222-4222-8222-000000000012",
+          "displayName": "Guardian of both",
+          "status": "PENDING"
+        }
+      ]
+    },
+    "overrides": [],
+    "capabilities": {
+      "canEdit": true,
+      "canCancel": true,
+      "canDelete": false
+    },
+    "createdAt": "2026-11-26T19:11:47.947708Z",
+    "updatedAt": "2026-11-26T19:11:47.947708Z"
+  },
+  "meetingViewGuardian": {
+    "id": "01a21945-64eb-7131-8674-fe0e0dc8cd30",
+    "schoolId": "11111111-1111-4111-8111-000000000001",
+    "scope": "INVITEES",
+    "eventType": "PARENT_MEETING",
+    "title": "Report talk about Abel",
+    "timeZone": "Africa/Addis_Ababa",
+    "allDay": false,
+    "startAt": "2026-12-11T12:00:00Z",
+    "endAt": "2026-12-11T12:30:00Z",
+    "recurring": false,
+    "rsvpEnabled": true,
+    "status": "SCHEDULED",
+    "createdBy": "22222222-2222-4222-8222-000000000002",
+    "createdByName": "Lead Teacher",
+    "regardingStudentId": "44444444-4444-4444-8444-000000000001",
+    "rsvp": {
+      "enabled": true,
+      "mine": "PENDING",
+      "canAnswer": true
+    },
+    "overrides": [],
+    "capabilities": {
+      "canEdit": false,
+      "canCancel": false,
+      "canDelete": false
+    },
+    "createdAt": "2026-11-26T19:11:47.947708Z",
+    "updatedAt": "2026-11-26T19:11:47.947708Z"
+  },
+  "meetingViewOrganiserAnswered": {
+    "id": "01a21945-64eb-7131-8674-fe0e0dc8cd30",
+    "schoolId": "11111111-1111-4111-8111-000000000001",
+    "scope": "INVITEES",
+    "eventType": "PARENT_MEETING",
+    "title": "Report talk about Abel",
+    "timeZone": "Africa/Addis_Ababa",
+    "allDay": false,
+    "startAt": "2026-12-11T12:00:00Z",
+    "endAt": "2026-12-11T12:30:00Z",
+    "recurring": false,
+    "rsvpEnabled": true,
+    "status": "SCHEDULED",
+    "createdBy": "22222222-2222-4222-8222-000000000002",
+    "createdByName": "Lead Teacher",
+    "regardingStudentId": "44444444-4444-4444-8444-000000000001",
+    "rsvp": {
+      "enabled": true,
+      "canAnswer": false,
+      "counts": {
+        "yes": 1,
+        "no": 0,
+        "maybe": 0,
+        "pending": 1
+      },
+      "participants": [
+        {
+          "userId": "22222222-2222-4222-8222-000000000011",
+          "displayName": "Guardian of Abel",
+          "status": "YES",
+          "respondedAt": "2026-11-26T19:11:48.164237Z"
+        },
+        {
+          "userId": "22222222-2222-4222-8222-000000000012",
+          "displayName": "Guardian of both",
+          "status": "PENDING"
+        }
+      ]
+    },
+    "overrides": [],
+    "capabilities": {
+      "canEdit": true,
+      "canCancel": true,
+      "canDelete": false
+    },
+    "createdAt": "2026-11-26T19:11:47.947708Z",
+    "updatedAt": "2026-11-26T19:11:47.947708Z"
+  },
+  "invitationNotification": {
+    "id": "01a21945-64f1-7f6f-a449-88df71b4c789",
+    "typeCode": "EVENT_INVITATION",
+    "schoolId": "11111111-1111-4111-8111-000000000001",
+    "title": "Parent meeting invitation",
+    "body": "Lead Teacher invites you to a parent meeting on 2026-12-11 15:00. Open the calendar to answer.",
+    "data": {
+      "path": "/calendar/events/01a21945-64eb-7131-8674-fe0e0dc8cd30",
+      "eventId": "01a21945-64eb-7131-8674-fe0e0dc8cd30"
+    },
+    "sourceType": "EVENT",
+    "sourceId": "01a21945-64eb-7131-8674-fe0e0dc8cd30",
+    "priority": "NORMAL",
+    "createdAt": "2026-11-26T19:11:47.953319Z"
+  },
+  "shiftRefusedAm": {
+    "detail": "አንድ ድግግሞሽ ከተከታታዩ ቦታው ቢበዛ 7 ቀን ብቻ ሊንቀሳቀስ ይችላል።",
+    "status": 400,
+    "title": "ልክ ያልሆነ ጥያቄ",
+    "type": "urn:school:problem:event.occurrence_shift_too_large",
+    "code": "event.occurrence_shift_too_large",
+    "requestId": "01a21945-6483-73ad-9187-86a23d8ab3a9"
+  },
+  "rsvpOnRepeating": {
+    "detail": "This event does not ask for answers.",
+    "status": 409,
+    "title": "Conflict",
+    "type": "urn:school:problem:event.rsvp_disabled",
+    "code": "event.rsvp_disabled",
+    "requestId": "01a21945-65f1-7301-bf73-b1ef5f3be60e"
+  },
+  "sportsDayView": {
+    "id": "01a21945-6377-7087-868e-8ffa342ef227",
+    "schoolId": "11111111-1111-4111-8111-000000000001",
+    "scope": "SCHOOL",
+    "eventType": "SCHOOL_EVENT",
+    "title": "Sports day",
+    "description": "Bring water",
+    "location": "Field",
+    "timeZone": "Africa/Addis_Ababa",
+    "allDay": true,
+    "startAt": "2026-12-01T21:00:00Z",
+    "endAt": "2026-12-03T21:00:00Z",
+    "startDate": "2026-12-02",
+    "endDate": "2026-12-03",
+    "recurring": false,
+    "rsvpEnabled": false,
+    "status": "SCHEDULED",
+    "createdBy": "22222222-2222-4222-8222-000000000001",
+    "createdByName": "Smoke Admin",
+    "rsvp": {
+      "enabled": false,
+      "canAnswer": false
+    },
+    "overrides": [],
+    "capabilities": {
+      "canEdit": true,
+      "canCancel": true,
+      "canDelete": false
+    },
+    "createdAt": "2026-11-26T19:11:47.575732Z",
+    "updatedAt": "2026-11-26T19:11:47.575732Z"
+  }
+}
