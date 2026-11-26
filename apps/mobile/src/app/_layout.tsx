@@ -123,6 +123,8 @@ function RootNavigator() {
         </Stack.Protected>
 
         <Stack.Protected guard={signedIn}>
+          {/* The feed (M8): class and school feeds, a post, a story, the composer, my posts, approvals. */}
+          <Stack.Screen name="feed" />
           <Stack.Screen name="notifications" options={{ ...header, title: t('mobile.notifications.title') }} />
           {/* Guardians decide on consent requests. */}
           <Stack.Screen name="consent" options={{ ...header, title: t('consent.title') }} />

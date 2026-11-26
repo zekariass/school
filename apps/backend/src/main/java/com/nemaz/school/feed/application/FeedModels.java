@@ -132,7 +132,8 @@ public final class FeedModels {
 	public record FeedCapabilities(boolean canPost, boolean canPostSchoolWide, boolean canModerate, boolean canContribute,
 			boolean contributionNeedsApproval, boolean commentsDefaultEnabled, boolean canComment,
 			@NotNull List<MediaKind> contributionMediaKinds, int pinLimit, boolean translationEnabled,
-			@Schema(description = "Children of the caller (or the caller) who may be tagged in a contribution of this class") @NotNull List<UUID> contributionStudentIds) {
+			@Schema(description = "Children of the caller (or the caller) who may be tagged in a contribution of this class") @NotNull List<UUID> contributionStudentIds,
+			@Schema(description = "IANA time zone of the class's campus or of the school: clients show and pick scheduled times in it, never in the phone's zone") @NotNull String timeZone) {
 	}
 
 }

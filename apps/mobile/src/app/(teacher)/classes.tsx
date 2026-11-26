@@ -10,7 +10,7 @@ import { ProblemBanner } from '@/components/problem-banner';
 import { PushPromptCard } from '@/components/push-prompt-card';
 import { OfflineNote } from '@/components/sync/offline-note';
 import { TabHeader } from '@/components/tab-header';
-import { EmptyState, Screen, Text } from '@/components/ui';
+import { Button, EmptyState, Screen, Text } from '@/components/ui';
 import { useMyClasses } from '@/lib/people/queries';
 import { useSession } from '@/lib/session/session-provider';
 import { useAppTheme } from '@/lib/theme/theme-provider';
@@ -41,6 +41,7 @@ function TeacherClasses() {
 
   const mine = (classes.data ?? []).filter((cls) => cls.role === 'TEACHER');
   const multiSchool = new Set(mine.map((cls) => cls.schoolId)).size > 1;
+  const schools = [...new Map(mine.map((cls) => [cls.schoolId, { id: cls.schoolId, name: cls.schoolName ?? '' }])).values()];
 
   return (
     <Screen
@@ -89,6 +90,14 @@ function TeacherClasses() {
               />
             );
           })}
+          {schools.map((school) => (
+            <Button
+              key={school.id}
+              variant="ghost"
+              label={multiSchool ? t('mobile.feed.schoolNewsNamed', { school: school.name }) : t('mobile.feed.schoolNews')}
+              onPress={() => router.push({ pathname: '/feed/school/[schoolId]', params: { schoolId: school.id } })}
+            />
+          ))}
         </View>
       )}
     </Screen>

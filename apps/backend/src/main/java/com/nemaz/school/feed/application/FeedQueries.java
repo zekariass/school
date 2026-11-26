@@ -1,7 +1,9 @@
 package com.nemaz.school.feed.application;
 
 import java.sql.Timestamp;
+import java.time.DateTimeException;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -225,9 +227,11 @@ public class FeedQueries {
 		boolean moderate = manager;
 		Set<UUID> contributionStudents = Set.of();
 		boolean studentContributor = false;
+		UUID campusId = null;
 		FeedScope scope = FeedScope.SCHOOL;
 		if (classId != null) {
 			ClassRef ref = this.access.viewableClass(user, schoolId, classId);
+			campusId = ref.campusId();
 			scope = FeedScope.CLASS;
 			canPost = !ref.archived() && this.access.canPostToClass(user, ref);
 			moderate = this.access.moderatesClass(user, schoolId, classId);
@@ -242,7 +246,25 @@ public class FeedQueries {
 		return new FeedCapabilities(canPost, manager, moderate, !contributionStudents.isEmpty(),
 				studentContributor || settings.parentApprovalRequired(schoolId), settings.commentsDefault(schoolId),
 				canComment, kinds, settings.pinLimit(schoolId), settings.translation(schoolId),
-				new ArrayList<>(contributionStudents));
+				new ArrayList<>(contributionStudents), timeZoneOf(schoolId, campusId));
+	}
+
+	/** The time zone scheduled posts are read in: the campus's own when it has one, else the school's (UTC when unknown). */
+	private String timeZoneOf(UUID schoolId, UUID campusId) {
+		String name = this.jdbc.sql("""
+				select coalesce(c.timezone, s.timezone) from schools s left join campuses c on c.id = :campus and c.school_id = s.id
+				where s.id = :school""")
+			.param("school", schoolId)
+			.param("campus", campusId)
+			.query(String.class)
+			.optional()
+			.orElse("UTC");
+		try {
+			return ZoneId.of(name).getId();
+		}
+		catch (DateTimeException ex) {
+			return "UTC";
+		}
 	}
 
 }

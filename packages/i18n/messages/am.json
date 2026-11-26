@@ -794,6 +794,311 @@
         "declineBody": "የወላጁ ማሳወቂያ በመዝገብ ላይ ይቆያል። አጭር ማስታወሻ ማከል ይችላሉ።",
         "declineNote": "ማስታወሻ (አማራጭ)"
       }
+    },
+    "feed": {
+      "tab": "ዜና",
+      "classFeedTitle": "የክፍል ዜና",
+      "schoolFeedTitle": "የትምህርት ቤት ዜና",
+      "postTitle": "ልጥፍ",
+      "posts": "ልጥፎች",
+      "openClassFeed": "የክፍል ዜና",
+      "schoolNews": "የትምህርት ቤት ዜና",
+      "schoolNewsNamed": "የትምህርት ቤት ዜና፦ {school}",
+      "schoolWide": "ለመላው ትምህርት ቤት",
+      "newPost": "አዲስ ልጥፍ",
+      "newSchoolPost": "አዲስ የትምህርት ቤት ልጥፍ",
+      "allChildren": "ሁሉም ልጆች",
+      "childFilter": "የሚታዩ ልጥፎች ስለ",
+      "whichFeed": "የትኛው ዜና",
+      "you": "እርስዎ",
+      "edited": "ተስተካክሏል",
+      "pinned": "ከላይ የተቀመጠ",
+      "familyContribution": "ከቤተሰብ የመጣ",
+      "moreActions": "ተጨማሪ እርምጃዎች",
+      "close": "ዝጋ",
+      "openPostHint": "ልጥፉን ይከፍታል",
+      "openPhotoHint": "ፎቶውን በሙሉ ማያ ገጽ ይከፍታል",
+      "photoLabel": "ፎቶ {n} ከ{total}",
+      "photoCounter": "{n} / {total}",
+      "morePhotos": "+{count}",
+      "tagsLine": "በዚህ ልጥፍ ውስጥ፦ {names}",
+      "seenCount": "ያዩት፦ {count}",
+      "comment": "አስተያየት",
+      "commentCount": "አስተያየቶች፦ {count}",
+      "commentsButton": "አስተያየቶች፦ {count}። ልጥፉን ክፈት",
+      "commentsOff": "አስተያየት መስጠት ተዘግቷል",
+      "reactionWithCount": "{name}፣ {count}",
+      "reactionFailed": "ምላሽዎ አልተቀመጠም። እባክዎ እንደገና ይሞክሩ።",
+      "actionFailed": "አልሰራም",
+      "actionFailedBody": "እባክዎ ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
+      "loadFailedTitle": "ዜናውን መጫን አልቻልንም",
+      "loadFailedBody": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ። ምንም አልጠፋም።",
+      "nextPageFailed": "ተጨማሪ ልጥፎችን መጫን አልተቻለም።",
+      "endOfFeed": "ለአሁኑ ይህ ብቻ ነው። አዲስ ልጥፎችን ለማየት ወደ ታች ይጎትቱ።",
+      "age": {
+        "now": "አሁን",
+        "minutes": "ከ{value} ደቂቃ በፊት",
+        "hours": "ከ{value} ሰዓት በፊት"
+      },
+      "author": {
+        "TEACHER": "መምህር",
+        "SCHOOL_ADMIN": "ትምህርት ቤት",
+        "GUARDIAN": "ቤተሰብ",
+        "STUDENT": "ተማሪ"
+      },
+      "status": {
+        "DRAFT": "ረቂቅ",
+        "PENDING_APPROVAL": "መምህሩን በመጠበቅ ላይ",
+        "SCHEDULED": "የታቀደ",
+        "PUBLISHED": "የታተመ",
+        "REJECTED": "ያልተፈቀደ",
+        "HIDDEN": "የተደበቀ",
+        "ARCHIVED": "የወረደ"
+      },
+      "reaction": {
+        "HEART": "ፍቅር",
+        "LIKE": "ወድጃለሁ",
+        "CLAP": "ጭብጨባ",
+        "STAR": "ኮከብ"
+      },
+      "withheld": {
+        "title": "ፎቶዎቹ ተደብቀዋል",
+        "body": "በእነዚህ ፎቶዎች ውስጥ ያለ ተማሪ አሁን የፎቶ ፈቃድ የለውም። ጽሑፉ ይቀራል፤ ፈቃድ እንደገና ሲሰጥ ፎቶዎቹ ይመለሳሉ።"
+      },
+      "notice": {
+        "rejected": "መምህሩ ይህን አልፈቀደም፦ {reason}",
+        "hidden": "አስተባባሪ ይህን ልጥፍ ደብቋል፦ {reason}",
+        "notPublished": "ይህ ልጥፍ አልታተመም፦ {reason}",
+        "pending": "መምህሩ እንዲፈቅደው በመጠበቅ ላይ ነው። ሌላ ሰው እስካሁን ማየት አይችልም።",
+        "scheduled": "በ{when} (በትምህርት ቤት ሰዓት) ይታተማል።",
+        "withheldForOthers": "በዚህ ልጥፍ ውስጥ ያሉ ፎቶዎች ከሌሎች ሁሉ ተደብቀዋል፤ በውስጣቸው ያለ ተማሪ አሁን የፎቶ ፈቃድ የለውምና። እርስዎ አሁንም ያያሉ።"
+      },
+      "publishError": {
+        "consent": "የተጠቀሰ ተማሪ የፎቶ ፈቃድ የለውም። ምልክቱን ያስወግዱ ወይም ትምህርት ቤቱ ፈቃዱን እንዲመዘግብ ይጠይቁ።",
+        "confirmation": "ፎቶዎቹ ምንም የተጠቀሰ ተማሪ የላቸውም፤ የእርስዎ ማረጋገጫ ያስፈልግ ነበር።",
+        "other": "የሆነ ነገር አግዶታል። እንደገና ለመሞከር ልጥፉን ይክፈቱ።"
+      },
+      "menu": {
+        "edit": "አስተካክል",
+        "publish": "አሁን አትም",
+        "unschedule": "ዕቅዱን ሰርዝ",
+        "pin": "ከላይ አስቀምጥ",
+        "unpin": "ከላይ አውርድ",
+        "archive": "አውርድ",
+        "hide": "ልጥፉን ደብቅ",
+        "unhide": "እንደገና አሳይ",
+        "report": "ሪፖርት አድርግ",
+        "delete": "ሰርዝ"
+      },
+      "archive": {
+        "title": "ይህን ልጥፍ ልውረድ?",
+        "body": "ሌላ ሰው አያየውም። በኋላ እንደገና ማተም ይችላሉ።"
+      },
+      "hide": {
+        "title": "ይህን ልጥፍ ልደብቅ?",
+        "body": "ከጸሐፊውና ከአስተባባሪዎች በስተቀር ለሁሉም ይጠፋል። ጸሐፊው ይነገረዋል።"
+      },
+      "delete": {
+        "title": "ይህን ልሰርዝ?",
+        "body": "ይህ መልሶ አይመለስም። ፎቶዎቹም አብረው ይሰረዛሉ።"
+      },
+      "report": {
+        "title": "ይህን ልጥፍ ሪፖርት ያድርጉ",
+        "body": "ምን እንደተሳሳተ ይንገሩን። ሪፖርቶችን የትምህርት ቤቱ አስተባባሪዎች ብቻ ያያሉ።",
+        "thanks": "አመሰግናለሁ። እናየዋለን።",
+        "failed": "ሪፖርቱን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+        "reason": {
+          "INAPPROPRIATE": "ተገቢ አይደለም",
+          "PRIVACY": "መታየት የሌለበትን ሰው ያሳያል",
+          "SPAM": "ያልተፈለገ መልዕክት",
+          "OTHER": "ሌላ ነገር"
+        }
+      },
+      "translation": {
+        "see": "ትርጉሙን ይመልከቱ",
+        "seeOriginal": "ዋናውን ይመልከቱ",
+        "label": "በማሽን የተተረጎመ",
+        "failed": "ትርጉሙ አልሰራም። እባክዎ እንደገና ይሞክሩ።",
+        "unavailable": "ትርጉም አሁን አይገኝም።"
+      },
+      "comments": {
+        "title": "አስተያየቶች",
+        "none": "እስካሁን አስተያየት የለም።",
+        "write": "አስተያየት ይጻፉ",
+        "placeholder": "ደግ ነገር ይበሉ",
+        "hint": "ይህን ልጥፍ ማየት የሚችል ሁሉ ያነበዋል።",
+        "send": "ላክ",
+        "offline": "ከመስመር ውጭ ነዎት። አስተያየትዎ እዚህ አለ፤ ሲገናኙ እንደገና ይሞክሩ።",
+        "notAllowed": "እዚህ አስተያየቶችን ማንበብ ይችላሉ፤ መጻፍ ግን አይችሉም።",
+        "hiddenNote": "ከሌሎች የተደበቀ",
+        "deleteTitle": "ይህን አስተያየት ልሰርዝ?",
+        "deleteBody": "ይህ መልሶ አይመለስም።"
+      },
+      "post": {
+        "notFoundTitle": "ይህ ልጥፍ አይገኝም",
+        "notFoundBody": "ተወግዶ ሊሆን ይችላል፤ ወይም ከአሁን በኋላ ማየት አይችሉ ይሆናል።"
+      },
+      "empty": {
+        "classTitle": "እስካሁን ልጥፍ የለም",
+        "classBody": "መምህሩ አንድ ነገር ሲያጋራ እዚህ ይታያል።",
+        "classBodyTeacher": "ፎቶ ወይም ጥቂት ቃላት ለክፍልዎና ለቤተሰቦቻቸው ያጋሩ።",
+        "schoolTitle": "እስካሁን የትምህርት ቤት ዜና የለም",
+        "schoolBody": "ለመላው ትምህርት ቤት የሚሆን ዜና እዚህ ይታያል።",
+        "homeTitle": "እስካሁን እዚህ ምንም የለም",
+        "homeBody": "ከልጆችዎ ክፍል እና ትምህርት ቤት የሚመጡ ልጥፎችና ታሪኮች እዚህ ይታያሉ።"
+      },
+      "story": {
+        "title": "ታሪክ",
+        "stripLabel": "ታሪኮች",
+        "add": "ታሪክ ያክሉ",
+        "addShort": "ጨምር",
+        "none": "አሁን ምንም ታሪክ የለም",
+        "new": "አዲስ",
+        "seen": "የታየ",
+        "tileLabel": "የ{author} ታሪክ፣ {state}፣ {left}",
+        "photoLabel": "የ{author} የታሪክ ፎቶ",
+        "hoursLeft": "{value} ሰዓት ቀርቷል",
+        "minutesLeft": "{value} ደቂቃ ቀርቷል",
+        "endsSoon": "በቅርቡ ያበቃል",
+        "next": "ቀጣይ ታሪክ",
+        "previous": "ቀዳሚ ታሪክ",
+        "pause": "አቁም",
+        "play": "አጫውት",
+        "progress": "ታሪክ {n} ከ{total}",
+        "deleteTitle": "ይህን ታሪክ ልሰርዝ?",
+        "deleteBody": "አሁኑኑ ለሁሉም ይጠፋል።",
+        "goneTitle": "ይህ ታሪክ አብቅቷል",
+        "goneBody": "ታሪኮች ለ24 ሰዓት ይቆያሉ።"
+      },
+      "compose": {
+        "title": "አዲስ ልጥፍ",
+        "editTitle": "ልጥፍ አስተካክል",
+        "storyTitle": "አዲስ ታሪክ",
+        "contributionTitle": "ከክፍሉ ጋር ያጋሩ",
+        "bodyLabel": "ምን ማጋራት ይፈልጋሉ?",
+        "bodyPlaceholder": "ጥቂት ቃላት ይጻፉ",
+        "captionLabel": "ለታሪኩ የሚሆኑ ቃላት (አማራጭ)",
+        "captionPlaceholder": "ጥቂት ቃላት",
+        "counter": "{used} ከ{max} ፊደላት",
+        "tooLong": "በጣም ረጅም ነው፤ ገደቡ {max} ፊደላት ነው።",
+        "photos": "ፎቶዎች",
+        "photosHint": "እስከ {max} ፎቶዎች። መጀመሪያ በስልክዎ ላይ ይቀነሳሉ፤ የቦታ መረጃም አይኖራቸውም።",
+        "storyPhotoHint": "አንድ ፎቶ፣ ለ24 ሰዓት ይታያል።",
+        "comments": "አስተያየት ፍቀድ",
+        "commentsHint": "ልጥፉን ማየት የሚችሉ ሰዎች መልስ መስጠት ይችላሉ።",
+        "when": "መቼ ይለጠፍ",
+        "modeNow": "አሁን ለጥፍ",
+        "modeSchedule": "ቀጠሮ ያዝ",
+        "modeDraft": "ረቂቅ",
+        "draftHint": "ረቂቅ ለእርስዎ ብቻ ይታያል። በኋላ ከ«የእኔ ልጥፎች» መለጠፍ ይችላሉ።",
+        "post": "ለጥፍ",
+        "schedule": "ቀጠሮ ያዝ",
+        "saveDraft": "ረቂቅ አስቀምጥ",
+        "saveChanges": "ለውጦችን አስቀምጥ",
+        "shareStory": "ታሪክ አጋራ",
+        "share": "አጋራ",
+        "sendForApproval": "ለፈቃድ ላክ",
+        "waitUploads": "ፎቶዎቹ መጫናቸውን እስኪጨርሱ ይጠብቁ።",
+        "fixUploads": "አንድ ፎቶ አልተጫነም። እንደገና ይሞክሩት ወይም ያስወግዱት።",
+        "offlineTitle": "ከመስመር ውጭ ነዎት",
+        "offlineBody": "ለመለጠፍ ግንኙነት ያስፈልጋል። ጽሑፍዎና ፎቶዎችዎ እዚህ አሉ፤ ሲገናኙ እንደገና ይሞክሩ። በስልክዎ ላይ አይቀመጡም፤ ስለዚህ ይህን ማያ ገጽ አይዝጉ።",
+        "failedTitle": "መለጠፍ አልተቻለም",
+        "failedBody": "ምንም አልጠፋም። እባክዎ እንደገና ይሞክሩ።",
+        "discardTitle": "ይህ ልጥፍ ይጣል?",
+        "discardBody": "ጽሑፍዎና ፎቶዎችዎ አልተለጠፉም፤ የትም አልተቀመጡም።",
+        "keepEditing": "ማስተካከሌን ልቀጥል",
+        "discard": "ጣል"
+      },
+      "photo": {
+        "ready": "ዝግጁ",
+        "caption": "ፎቶውን ይግለጹ",
+        "captionPlaceholder": "ለምሳሌ፦ ልጆች ሲስሉ",
+        "captionHint": "ፎቶውን ማየት ለማይችሉ ሰዎች ይረዳል።",
+        "earlier": "ወደ ፊት አምጣ",
+        "later": "ወደ ኋላ ውሰድ",
+        "remove": "አስወግድ"
+      },
+      "tags": {
+        "title": "በፎቶዎቹ ውስጥ ያሉ ተማሪዎች",
+        "hint": "በፎቶዎቹ ውስጥ ያሉ ተማሪዎችን ምልክት ያድርጉ። እያንዳንዳቸው የፎቶ ፈቃድ ያስፈልጋቸዋል።",
+        "hintContribution": "ልጅዎ በፎቶዎቹ ውስጥ ካለ ምልክት ያድርጉት።",
+        "none": "ማንም ምልክት አልተደረገበትም",
+        "choose": "ተማሪዎችን ምረጥ",
+        "change": "ቀይር",
+        "search": "በስም ፈልግ",
+        "noMatch": "በዚህ ስም ተማሪ የለም።",
+        "others": "እና ሌሎች {count}"
+      },
+      "gate": {
+        "title": "የፎቶ ፈቃድ ይጎድላል",
+        "body": "ትምህርት ቤቱ ለእነዚህ የፎቶ ፈቃድ የለውም፦ {names}።",
+        "bodyNoNames": "ትምህርት ቤቱ ምልክት ላደረጉባቸው አንዳንድ ተማሪዎች የፎቶ ፈቃድ የለውም።",
+        "unnamed": "ሌሎች {count} ተማሪዎች",
+        "ways": "ምልክታቸውን አስወግደው መለጠፍ ወይም ትምህርት ቤቱ ፈቃዱን እንዲመዘግብ ጠይቀው እንደገና መሞከር ይችላሉ። የጻፉት ምንም አይጠፋም።",
+        "removeTags": "እነዚያን ምልክቶች አስወግድ",
+        "openEditor": "ይህን ለማስተካከል ልጥፉን ይክፈቱ።"
+      },
+      "confirm": {
+        "title": "ማንም ምልክት ያልተደረገባቸው ፎቶዎች",
+        "why": "ማንም ተማሪ ምልክት ካልተደረገበት፣ በፎቶዎቹ ውስጥ ያለውን እንዲያረጋግጡ እንፈልጋለን።",
+        "statement": "የሚዲያ ፈቃድ የሌለው ማንም ተማሪ በእነዚህ ፎቶዎች ውስጥ እንደሌለ አረጋግጣለሁ።",
+        "required": "ለመቀጠል እባክዎ ያረጋግጡ።"
+      },
+      "schedule": {
+        "title": "መቼ ይለጠፍ?",
+        "date": "ቀን",
+        "time": "ሰዓት",
+        "dayBefore": "ቀዳሚ ቀን",
+        "dayAfter": "ቀጣይ ቀን",
+        "earlier": "በ15 ደቂቃ ቀድም",
+        "later": "በ15 ደቂቃ አርፍድ",
+        "zone": "የትምህርት ቤት ሰዓት ({zone})",
+        "past": "ወደፊት ያለ ሰዓት ይምረጡ።",
+        "tooFar": "ቀጠሮ ማስያዝ የሚቻለው እስከ 90 ቀን ድረስ ብቻ ነው።",
+        "invalid": "ቀን እና ሰዓት ይምረጡ።"
+      },
+      "contribute": {
+        "action": "ከክፍሉ ጋር ያጋሩ",
+        "pickClass": "የትኛው ክፍል?",
+        "needsApproval": "ያጋሩትን ሌላ ሰው ከማየቱ በፊት መምህር ያየዋል።",
+        "noApproval": "ያጋሩት ወዲያውኑ ለክፍሉ ይታያል።",
+        "sentTitle": "ተልኳል። መምህሩን በመጠበቅ ላይ",
+        "sentBody": "መምህር ያየዋል። በ«የእኔ ልጥፎች» ውስጥ መከተል ይችላሉ።",
+        "sharedTitle": "ተጋርቷል",
+        "sharedBody": "ልጥፍዎ አሁን በክፍሉ ዜና ውስጥ አለ።"
+      },
+      "myPosts": {
+        "title": "የእኔ ልጥፎች",
+        "filter": "ልጥፎቼን አጣራ",
+        "filters": {
+          "ALL": "ሁሉም",
+          "DRAFT": "ረቂቆች",
+          "SCHEDULED": "የታቀዱ",
+          "PENDING_APPROVAL": "በመጠበቅ ላይ",
+          "REJECTED": "ያልተፈቀዱ",
+          "PUBLISHED": "የታተሙ"
+        },
+        "emptyTitle": "እዚህ ምንም የለም",
+        "emptyBody": "ረቂቆችዎ፣ የታቀዱ ልጥፎችዎና ያጋሯቸው እዚህ ይታያሉ።"
+      },
+      "approvals": {
+        "title": "ፈቃዶች",
+        "pickSchool": "ትምህርት ቤት ይምረጡ",
+        "emptyTitle": "የሚጠብቅ ምንም የለም",
+        "emptyBody": "ቤተሰብ አንድ ነገር ሲያጋራ እዚህ መፍቀድ ይችላሉ።",
+        "noneTitle": "ለእርስዎ ምንም ፈቃድ የለም",
+        "noneBody": "ቤተሰቦች ያጋሩትን መፍቀድ የሚችሉ ክፍል የሚመሩ መምህራን ብቻ ናቸው።",
+        "review": "ተመልከት",
+        "reviewTitle": "ከመታየቱ በፊት ይመልከቱ",
+        "tagTitle": "በፎቶዎቹ ውስጥ ያሉ ተማሪዎች",
+        "consentNote": "ሲፈቅዱ የፎቶ ፈቃድ ለእያንዳንዱ ምልክት ለተደረገበት ተማሪ ይረጋገጣል።",
+        "approve": "ፍቀድና አትም",
+        "reject": "አትፍቀድ",
+        "reasonLabel": "ለምን አይሆንም?",
+        "reasonHint": "ቤተሰቡ ይህን ያነባል። እባክዎ ደግ ይሁኑ።",
+        "sendRejection": "ላክ",
+        "failed": "አልሰራም። እባክዎ እንደገና ይሞክሩ።"
+      }
     }
   },
   "schoolPicker": {

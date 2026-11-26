@@ -97,6 +97,8 @@ export class UploadError extends Error {
 
 export interface UploadParams {
   purpose: MediaPurpose;
+  /** What the media belongs to (POST and STORY photos: the class or the school they are for). */
+  context?: { type: 'CLASS' | 'SCHOOL'; id: string };
   image: PreparedImage;
   onStage?: (stage: UploadStage) => void;
   onProgress?: (bytesSent: number, totalBytes: number) => void;
@@ -108,13 +110,13 @@ export interface UploadParams {
  * `school.storage.public-endpoint`: reachable from the phone), have the API verify it, and
  * wait for processing. Resolves with the READY media id.
  */
-export async function uploadImage({ purpose, image, onStage, onProgress, signal }: UploadParams): Promise<string> {
+export async function uploadImage({ purpose, context, image, onStage, onProgress, signal }: UploadParams): Promise<string> {
   onStage?.('requesting');
   const ticket = await apiCall('requesting', async () =>
     unwrap(
       await api.POST('/api/v1/media/uploads', {
         headers: { 'Idempotency-Key': randomUUID() },
-        body: { purpose, filename: image.fileName, mimeType: image.mimeType, sizeBytes: image.sizeBytes },
+        body: { purpose, ...(context ? { context } : {}), filename: image.fileName, mimeType: image.mimeType, sizeBytes: image.sizeBytes },
         signal,
       }),
     ),
@@ -165,5 +167,24 @@ async function apiCall<T>(stage: UploadStage, call: () => Promise<T>): Promise<T
       throw new UploadError(rejected ? 'rejected' : error.status ? 'other' : 'network', stage, error.problem);
     }
     throw new UploadError('network', stage);
+  }
+}
+
+/** Best effort: removes an upload that will not be used (the photo of a post that was never made). Failures are ignored. */
+export async function discardUpload(mediaId: string): Promise<void> {
+  try {
+    await api.DELETE('/api/v1/media/{id}', { params: { path: { id: mediaId } } });
+  } catch {
+    // the API removes unattached uploads on its own schedule
+  }
+}
+
+/** Removes the converted copy on the device (the cache folder): children's photos should not linger after posting. */
+export function deletePrepared(uri: string): void {
+  if (!uri) return;
+  try {
+    new File(uri).delete();
+  } catch {
+    // already gone
   }
 }

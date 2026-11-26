@@ -38,6 +38,31 @@ describe('routeForPath', () => {
     expect(routeForPath('/children', HOME, { studentId: '../../x', date: '2026-11-25' })).toBe(HOME);
     expect(routeForPath('/children', '/(teacher)/classes', { studentId, date: '2026-11-25' })).toBe('/(teacher)/classes');
   });
+  describe('the feed', () => {
+    const postId = '2c1d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    const schoolId = '3a9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    const classId = '4b8d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    it('opens a post for everybody, with the school when the notification names it', () => {
+      expect(routeForPath(`/feed/posts/${postId}`, HOME)).toBe(`/feed/post/${postId}`);
+      expect(routeForPath(`/feed/posts/${postId}`, '/(teacher)/classes', { schoolId })).toBe(`/feed/post/${postId}?schoolId=${schoolId}`);
+      expect(routeForPath(`/feed/posts/${postId}`, '/(student)/home', { body: { schoolId } })).toBe(`/feed/post/${postId}?schoolId=${schoolId}`);
+    });
+    it('opens a story', () => {
+      const storyId = '5c7d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+      expect(routeForPath(`/feed/stories/${storyId}`, HOME)).toBe(`/feed/story/${storyId}`);
+    });
+    it('opens the approval queue for a teacher, and the home of anybody else', () => {
+      expect(routeForPath('/feed/approvals', '/(teacher)/classes', { classId })).toBe(`/feed/approvals?classId=${classId}`);
+      expect(routeForPath('/feed/approvals', '/(teacher)/classes', { classId, schoolId })).toBe(`/feed/approvals?schoolId=${schoolId}&classId=${classId}`);
+      expect(routeForPath('/feed/approvals', HOME)).toBe(HOME);
+    });
+    it('never follows a bad id or a missing role', () => {
+      expect(routeForPath('/feed/posts/not-an-id', HOME)).toBeNull();
+      expect(routeForPath(`/feed/posts/${postId}/../x`, HOME)).toBeNull();
+      expect(routeForPath(`/feed/posts/${postId}`, null)).toBeNull();
+      expect(routeForPath(`/feed/posts/${postId}`, HOME, { schoolId: '../../x' })).toBe(`/feed/post/${postId}`);
+    });
+  });
   it('ignores query, hash and a trailing slash', () => {
     expect(routeForPath('/notifications?x=1#top', HOME)).toBe('/notifications');
     expect(routeForPath('/notifications/', HOME)).toBe('/notifications');
