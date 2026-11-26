@@ -16,7 +16,9 @@ import com.nemaz.school.identity.UserDirectory;
 import com.nemaz.school.identity.UserDirectory.UserPreferences;
 import com.nemaz.school.notifications.NotificationPriority;
 import com.nemaz.school.notifications.NotificationRequest;
+import com.nemaz.school.common.tx.AfterCommit;
 import com.nemaz.school.notifications.NotificationService;
+import com.nemaz.school.realtime.RealtimePublisher;
 import com.nemaz.school.notifications.NotificationsCreated;
 import com.nemaz.school.notifications.domain.NotificationRow;
 import com.nemaz.school.notifications.domain.NotificationType;
@@ -48,9 +50,12 @@ class DefaultNotificationService implements NotificationService {
 
 	private final DeliveryStore deliveries;
 
+	private final RealtimePublisher realtime;
+
 	DefaultNotificationService(NotificationTypeStore types, NotificationStore store, UserDirectory users,
 			NotificationRenderer renderer, ApplicationEventPublisher events, Clock clock, PreferenceStore preferences,
-			DeliveryStore deliveries) {
+			DeliveryStore deliveries, RealtimePublisher realtime) {
+		this.realtime = realtime;
 		this.preferences = preferences;
 		this.deliveries = deliveries;
 		this.types = types;
@@ -101,6 +106,24 @@ class DefaultNotificationService implements NotificationService {
 	@Transactional(readOnly = true)
 	public boolean alreadyNotified(UUID userId, String typeCode, String sourceType, UUID sourceId) {
 		return this.store.existsForSource(userId, typeCode, sourceType, sourceId);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public boolean hasUnread(UUID userId, String typeCode, String sourceType, UUID sourceId) {
+		return this.store.existsUnreadForSource(userId, typeCode, sourceType, sourceId);
+	}
+
+	@Override
+	@Transactional
+	public int markReadForSource(UUID userId, Collection<String> typeCodes, String sourceType, UUID sourceId) {
+		List<UUID> ids = this.store.markReadBySource(userId, typeCodes, sourceType, sourceId, this.clock.instant());
+		if (!ids.isEmpty()) {
+			int unread = this.store.unreadCount(userId);
+			AfterCommit.run(() -> this.realtime.toUser(userId, RealtimePublisher.NOTIFICATIONS_QUEUE,
+					RealtimeEvents.Read.ids(ids, unread)));
+		}
+		return ids.size();
 	}
 
 	@Override

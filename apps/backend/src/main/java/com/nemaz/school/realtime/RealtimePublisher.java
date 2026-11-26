@@ -12,6 +12,9 @@ public interface RealtimePublisher {
 	/** The queue clients subscribe to as {@code /user/queue/notifications}. */
 	String NOTIFICATIONS_QUEUE = "/queue/notifications";
 
+	/** The queue of message doorbells ({@code /user/queue/messages}): ids only, content is fetched through the API. */
+	String MESSAGES_QUEUE = "/queue/messages";
+
 	/**
 	 * @param destination a user queue such as {@link #NOTIFICATIONS_QUEUE}
 	 * @param payload serialized as JSON

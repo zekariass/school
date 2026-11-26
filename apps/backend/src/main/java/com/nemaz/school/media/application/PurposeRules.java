@@ -56,7 +56,8 @@ final class PurposeRules {
 		Set<ContextType> schoolOrClass = Set.of(ContextType.SCHOOL, ContextType.CLASS);
 		RULES.put(MediaPurpose.POST, new Rule(schoolOrClass, images));
 		RULES.put(MediaPurpose.STORY, new Rule(schoolOrClass, images));
-		RULES.put(MediaPurpose.MESSAGE, new Rule(school, everything));
+		// Messages: images only (re-encoded, never an original), uploaded into the conversation they will be sent in.
+		RULES.put(MediaPurpose.MESSAGE, new Rule(Set.of(ContextType.CONVERSATION), images));
 		RULES.put(MediaPurpose.PORTFOLIO, new Rule(school, everything));
 		RULES.put(MediaPurpose.SUBMISSION, new Rule(school, everything));
 		RULES.put(MediaPurpose.ASSIGNMENT, new Rule(school, imagesAndPdf));

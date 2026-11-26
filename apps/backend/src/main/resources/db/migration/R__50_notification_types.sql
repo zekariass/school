@@ -11,7 +11,7 @@
 insert into notification_types (code, category, default_channels, can_be_urgent, user_can_disable, description,
                                 defer_in_quiet_hours, urgent_overrides_preferences) values
   ('ATTENDANCE_MARKED',       'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student was marked absent or late', false, false),
-  ('NEW_MESSAGE',             'MESSAGING', '{IN_APP,PUSH}', false, true,  'A new direct or group message', false, false),
+  ('NEW_MESSAGE',             'MESSAGING', '{IN_APP,PUSH}', false, true,  'A new direct or group message (generic text: never the message, the child or the sender''s name)', true, false),
   ('POINT_AWARDED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student received points', false, false),
   ('NEW_POST',                'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A new class post', false, false),
   ('NEW_STORY',               'CLASSROOM', '{IN_APP}',      false, true,  'A new class story', false, false),
@@ -37,7 +37,12 @@ insert into notification_types (code, category, default_channels, can_be_urgent,
   ('ANNOUNCEMENT_UPDATED',    'SCHOOL',    '{IN_APP,PUSH}', true,  true,  'An announcement was changed in a way that matters', true, true),
   ('ANNOUNCEMENT_REMINDER',   'SCHOOL',    '{IN_APP,PUSH}', true,  true,  'Reminder to acknowledge an announcement', true, true),
   ('ANNOUNCEMENT_WITHDRAWN',  'SCHOOL',    '{IN_APP}',      false, true,  'An announcement was withdrawn by its sender', false, false),
-  ('ANNOUNCEMENT_PUBLISH_BLOCKED', 'SCHOOL', '{IN_APP,PUSH}', false, false, 'A scheduled announcement was not published because its author may no longer send it (to the author)', false, false)
+  ('ANNOUNCEMENT_PUBLISH_BLOCKED', 'SCHOOL', '{IN_APP,PUSH}', false, false, 'A scheduled announcement was not published because its author may no longer send it (to the author)', false, false),
+  ('NEW_MESSAGE_QUIET',       'MESSAGING', '{IN_APP}',      false, true,  'A new message that arrived outside the recipient''s office hours (in-app only, no push)', false, false),
+  ('MESSAGE_OBSERVER_ADDED',  'SAFETY',    '{IN_APP,PUSH}', false, false, 'A guardian can now read (not write in) a conversation of their child with an adult', false, false),
+  ('MESSAGE_REPORTED',        'SAFETY',    '{IN_APP,PUSH}', false, false, 'A message was reported (to the conversation''s moderators and the school''s reviewers; never the text)', false, false),
+  ('GROUP_APPROVAL_REQUESTED','MESSAGING', '{IN_APP,PUSH}', false, true,  'A student group waits for a teacher''s approval (to the class''s lead and co-teachers)', false, false),
+  ('MESSAGE_SCHEDULE_BLOCKED','MESSAGING', '{IN_APP,PUSH}', false, false, 'A scheduled message was not sent because the sender may no longer send it (to the sender)', false, false)
 on conflict (code) do update
   set category = excluded.category,
       default_channels = excluded.default_channels,
