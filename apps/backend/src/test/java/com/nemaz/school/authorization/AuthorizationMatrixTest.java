@@ -663,6 +663,7 @@ class AuthorizationMatrixTest {
 		cases.addAll(feedCases());
 		cases.addAll(announcementCases());
 		cases.addAll(messagingCases());
+		cases.addAll(calendarCases());
 		return cases;
 	}
 
@@ -1311,6 +1312,147 @@ class AuthorizationMatrixTest {
 		cases.add(school("POST remind the unacknowledged", HttpMethod.POST,
 				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", true) + "/remind", null, 200, acts,
 				readerOnly));
+		return cases;
+	}
+
+	// ---- calendar and events (M11a) ---------------------------------------------------------------------------
+
+	/** A native event row as the fixtures need it (the API paths are tested in the calendar package). */
+	private UUID calendarRow(Fixture f, String scope, UUID classId, UUID owner, boolean cancelled, boolean rsvp, String rule) {
+		UUID id = Ids.newId();
+		boolean personal = "PERSONAL".equals(scope);
+		boolean meeting = "INVITEES".equals(scope);
+		java.sql.Timestamp start = new java.sql.Timestamp((rule != null) ? java.time.Instant.parse("2027-03-01T06:00:00Z").toEpochMilli()
+				: System.currentTimeMillis() + 5L * 86_400_000L);
+		this.jdbc.update("""
+				insert into events (id, scope_type, school_id, class_id, owner_id, event_type, title, start_at, end_at, timezone,
+				                    recurrence_rule, rsvp_enabled, regarding_student_id, status, cancelled_at, created_by)
+				values (?, ?, ?, ?, ?, ?, 'Matrix', ?, ?, 'Africa/Addis_Ababa', ?, ?, ?, ?, ?, ?)""", id, scope,
+				personal ? null : f.schoolA(), classId, personal ? owner : null,
+				meeting ? "PARENT_MEETING" : ("CLASS".equals(scope) ? "CLASS_EVENT" : (personal ? "OTHER" : "SCHOOL_EVENT")), start,
+				new java.sql.Timestamp(start.getTime() + 3_600_000L), rule, rsvp || meeting,
+				meeting ? userOf(STUDENT_A1) : null, cancelled ? "CANCELLED" : "SCHEDULED",
+				cancelled ? new java.sql.Timestamp(System.currentTimeMillis()) : null, owner);
+		if (meeting) {
+			this.jdbc.update("insert into event_participants (event_id, user_id, role) values (?, ?, 'ORGANIZER')", id, owner);
+			this.jdbc.update("insert into event_participants (event_id, user_id, role, rsvp_status) values (?, ?, 'ATTENDEE', 'PENDING')", id,
+					userOf(GUARDIAN_A1));
+		}
+		return id;
+	}
+
+	List<Case> calendarCases() {
+		List<Case> cases = new ArrayList<>();
+		String events = "/events";
+		// who sees school A (members, administrators, guardians with an ACTIVE link to one of its students)
+		Name[] sees = concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MANAGERS, SCHOOL_A_MEMBERS, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 });
+		Name[] seesWithoutManaging = concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 });
+		// class events: managers of the class, its teachers, its students, their guardians
+		Name[] class8AViewers = concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 });
+		Name[] class8AReadOnly = { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 };
+		Name[] class8AChangers = concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_LEAD_A });
+
+		// --- creating
+		cases.add(school("POST school-wide event", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + events,
+				(f) -> Map.of("title", "Matrix", "scope", "SCHOOL", "startAt", "2027-04-01T06:00:00Z", "endAt", "2027-04-01T07:00:00Z"), 201,
+				SCHOOL_A_MANAGERS, seesWithoutManaging));
+		cases.add(school("POST campus event", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + events,
+				(f) -> Map.of("title", "Matrix", "scope", "CAMPUS", "campusId", f.campusA(), "allDay", true, "startDate", "2027-04-01",
+						"endDate", "2027-04-02"), 201, SCHOOL_A_MANAGERS, seesWithoutManaging));
+		cases.add(school("POST grade event", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + events,
+				(f) -> Map.of("title", "Matrix", "scope", "GRADE_LEVEL", "gradeLevelId", f.gradeA(), "startAt", "2027-04-01T06:00:00Z",
+						"endAt", "2027-04-01T07:00:00Z"), 201, SCHOOL_A_MANAGERS, seesWithoutManaging));
+		Map<Name, Integer> classCreate = merge(allow(201, class8AChangers), allow(403, TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1));
+		cases.add(new Case("POST class event (lead, managers)", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + events,
+				(f) -> Map.of("title", "Matrix", "scope", "CLASS", "classId", f.class8A(), "startAt", "2027-04-01T06:00:00Z", "endAt",
+						"2027-04-01T07:00:00Z", "recurrenceRule", "FREQ=WEEKLY;COUNT=3"), classCreate, 404));
+		cases.add(school("POST parent meeting (teachers of the student)", HttpMethod.POST, (f) -> SCHOOLS + f.schoolA() + events,
+				(f) -> Map.of("title", "Matrix", "eventType", "PARENT_MEETING", "regardingStudentId", userOf(STUDENT_A1), "startAt",
+						java.time.Instant.now().plus(java.time.Duration.ofDays(3)).toString(), "endAt",
+						java.time.Instant.now().plus(java.time.Duration.ofDays(3)).plusSeconds(1800).toString()), 201,
+				new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A }, concat(SCHOOL_A_MANAGERS, SCHOOL_A_VISITING_ADMINS,
+						new Name[] { TEACHER_OTHER_A, STUDENT_A1, STUDENT_A2, STUDENT_FORMER_A, GUARDIAN_A1, GUARDIAN_OF_A2 })));
+		cases.add(school("GET calendar capabilities", HttpMethod.GET, (f) -> SCHOOLS + f.schoolA() + events + "/capabilities", null, 200,
+				sees));
+		cases.add(new Case("POST personal event", HttpMethod.POST, (f) -> "/api/v1/me/events",
+				(f) -> Map.of("title", "Matrix", "startAt", "2027-04-01T06:00:00Z", "endAt", "2027-04-01T07:00:00Z"),
+				allow(201, EVERY_ACTIVE_PERSONA)));
+
+		// --- the union: every signed-in user has one
+		cases.add(new Case("GET calendar", HttpMethod.GET,
+				(f) -> "/api/v1/calendar?from=2027-04-01T00:00:00Z&to=2027-05-01T00:00:00Z", null, allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(school("GET calendar of school A", HttpMethod.GET,
+				(f) -> "/api/v1/calendar?from=2027-04-01T00:00:00Z&to=2027-05-01T00:00:00Z&schoolId=" + f.schoolA(), null, 200, sees));
+
+		// --- a school-wide event: everybody who sees the school reads it; managers change it
+		cases.add(school("GET school event", HttpMethod.GET,
+				(f) -> "/api/v1/events/" + calendarRow(f, "SCHOOL", null, userOf(SCHOOL_ADMIN_A), false, false, null), null, 200, sees));
+		cases.add(school("PATCH school event", HttpMethod.PATCH,
+				(f) -> "/api/v1/events/" + calendarRow(f, "SCHOOL", null, userOf(SCHOOL_ADMIN_A), false, false, null),
+				(f) -> Map.of("title", "Edited"), 200, SCHOOL_A_MANAGERS, seesWithoutManaging));
+		cases.add(school("POST cancel school event", HttpMethod.POST,
+				(f) -> "/api/v1/events/" + calendarRow(f, "SCHOOL", null, userOf(SCHOOL_ADMIN_A), false, false, null) + "/cancel",
+				(f) -> Map.of("reason", "Matrix"), 200, SCHOOL_A_MANAGERS, seesWithoutManaging));
+		cases.add(school("DELETE cancelled school event", HttpMethod.DELETE,
+				(f) -> "/api/v1/events/" + calendarRow(f, "SCHOOL", null, userOf(SCHOOL_ADMIN_A), true, false, null), null, 204,
+				SCHOOL_A_MANAGERS, seesWithoutManaging));
+		cases.add(school("PUT answer a school event", HttpMethod.PUT,
+				(f) -> "/api/v1/events/" + calendarRow(f, "SCHOOL", null, userOf(SCHOOL_ADMIN_A), false, true, null) + "/rsvp",
+				(f) -> Map.of("status", "YES"), 200, sees));
+
+		// --- a class event: the class's people read it, its lead and the managers change it
+		cases.add(school("GET class event", HttpMethod.GET,
+				(f) -> "/api/v1/events/" + calendarRow(f, "CLASS", f.class8A(), userOf(TEACHER_LEAD_A), false, false, null), null, 200,
+				class8AViewers));
+		cases.add(school("PATCH class event", HttpMethod.PATCH,
+				(f) -> "/api/v1/events/" + calendarRow(f, "CLASS", f.class8A(), userOf(TEACHER_LEAD_A), false, false, null),
+				(f) -> Map.of("title", "Edited"), 200, class8AChangers, class8AReadOnly));
+		cases.add(school("POST cancel class event", HttpMethod.POST,
+				(f) -> "/api/v1/events/" + calendarRow(f, "CLASS", f.class8A(), userOf(TEACHER_LEAD_A), false, false, null) + "/cancel",
+				null, 200, class8AChangers, class8AReadOnly));
+		cases.add(school("DELETE cancelled class event", HttpMethod.DELETE,
+				(f) -> "/api/v1/events/" + calendarRow(f, "CLASS", f.class8A(), userOf(TEACHER_LEAD_A), true, false, null), null, 204,
+				class8AChangers, class8AReadOnly));
+
+		// --- exceptions of a repeating class event
+		String occurrence = "20270301T060000Z";
+		cases.add(school("POST cancel one occurrence", HttpMethod.POST,
+				(f) -> "/api/v1/events/" + calendarRow(f, "CLASS", f.class8A(), userOf(TEACHER_LEAD_A), false, false, "FREQ=WEEKLY")
+						+ "/occurrences/" + occurrence + "/cancel",
+				null, 200, class8AChangers, class8AReadOnly));
+		cases.add(school("PATCH one occurrence", HttpMethod.PATCH,
+				(f) -> "/api/v1/events/" + calendarRow(f, "CLASS", f.class8A(), userOf(TEACHER_LEAD_A), false, false, "FREQ=WEEKLY")
+						+ "/occurrences/" + occurrence,
+				(f) -> Map.of("title", "One-off title"), 200, class8AChangers, class8AReadOnly));
+		cases.add(school("DELETE one occurrence's exception", HttpMethod.DELETE,
+				(f) -> "/api/v1/events/" + calendarRow(f, "CLASS", f.class8A(), userOf(TEACHER_LEAD_A), false, false, "FREQ=WEEKLY")
+						+ "/occurrences/" + occurrence,
+				null, 200, class8AChangers, class8AReadOnly));
+
+		// --- a personal event: its owner only (everybody else is told it does not exist, even administrators)
+		cases.add(new Case("GET personal event", HttpMethod.GET,
+				(f) -> "/api/v1/events/" + calendarRow(f, "PERSONAL", null, userOf(TEACHER_LEAD_A), false, false, null), null,
+				allow(200, TEACHER_LEAD_A), 404));
+		cases.add(new Case("PATCH personal event", HttpMethod.PATCH,
+				(f) -> "/api/v1/events/" + calendarRow(f, "PERSONAL", null, userOf(TEACHER_LEAD_A), false, false, null),
+				(f) -> Map.of("title", "Mine"), allow(200, TEACHER_LEAD_A), 404));
+		cases.add(new Case("DELETE personal event", HttpMethod.DELETE,
+				(f) -> "/api/v1/events/" + calendarRow(f, "PERSONAL", null, userOf(TEACHER_LEAD_A), false, false, null), null,
+				allow(204, TEACHER_LEAD_A), 404));
+
+		// --- a parent meeting: its organiser and the invited guardian only, administrators included
+		cases.add(new Case("GET parent meeting", HttpMethod.GET,
+				(f) -> "/api/v1/events/" + calendarRow(f, "INVITEES", null, userOf(TEACHER_LEAD_A), false, true, null), null,
+				allow(200, TEACHER_LEAD_A, GUARDIAN_A1), 404));
+		cases.add(new Case("PATCH parent meeting", HttpMethod.PATCH,
+				(f) -> "/api/v1/events/" + calendarRow(f, "INVITEES", null, userOf(TEACHER_LEAD_A), false, true, null),
+				(f) -> Map.of("title", "Edited"), merge(allow(200, TEACHER_LEAD_A), allow(403, GUARDIAN_A1)), 404));
+		cases.add(new Case("POST cancel parent meeting", HttpMethod.POST,
+				(f) -> "/api/v1/events/" + calendarRow(f, "INVITEES", null, userOf(TEACHER_LEAD_A), false, true, null) + "/cancel", null,
+				merge(allow(200, TEACHER_LEAD_A), allow(403, GUARDIAN_A1)), 404));
+		cases.add(new Case("PUT answer a parent meeting", HttpMethod.PUT,
+				(f) -> "/api/v1/events/" + calendarRow(f, "INVITEES", null, userOf(TEACHER_LEAD_A), false, true, null) + "/rsvp",
+				(f) -> Map.of("status", "MAYBE"), merge(allow(200, GUARDIAN_A1), allow(403, TEACHER_LEAD_A)), 404));
 		return cases;
 	}
 

@@ -42,7 +42,10 @@ insert into notification_types (code, category, default_channels, can_be_urgent,
   ('MESSAGE_OBSERVER_ADDED',  'SAFETY',    '{IN_APP,PUSH}', false, false, 'A guardian can now read (not write in) a conversation of their child with an adult', false, false),
   ('MESSAGE_REPORTED',        'SAFETY',    '{IN_APP,PUSH}', false, false, 'A message was reported (to the conversation''s moderators and the school''s reviewers; never the text)', false, false),
   ('GROUP_APPROVAL_REQUESTED','MESSAGING', '{IN_APP,PUSH}', false, true,  'A student group waits for a teacher''s approval (to the class''s lead and co-teachers)', false, false),
-  ('MESSAGE_SCHEDULE_BLOCKED','MESSAGING', '{IN_APP,PUSH}', false, false, 'A scheduled message was not sent because the sender may no longer send it (to the sender)', false, false)
+  ('MESSAGE_SCHEDULE_BLOCKED','MESSAGING', '{IN_APP,PUSH}', false, false, 'A scheduled message was not sent because the sender may no longer send it (to the sender)', false, false),
+  ('EVENT_INVITATION',        'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An invitation to a parent meeting, or a new event when the school asks for it', true, false),
+  ('EVENT_UPDATED',           'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An event was moved to another time or place', true, false),
+  ('EVENT_CANCELLED',         'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An event or one of its occurrences was cancelled', true, false)
 on conflict (code) do update
   set category = excluded.category,
       default_channels = excluded.default_channels,

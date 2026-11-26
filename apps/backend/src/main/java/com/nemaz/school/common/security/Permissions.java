@@ -104,13 +104,20 @@ public final class Permissions {
 	 */
 	public static final String SCHOOL_MESSAGING_REVIEW = "school.messaging.review";
 
+	/**
+	 * The school calendar (M11): create, change, cancel and delete school-wide, campus and grade events, and any class event
+	 * of the school. Teachers create events for their own classes without it (setting), and parent meetings are the
+	 * teacher's own.
+	 */
+	public static final String SCHOOL_CALENDAR_MANAGE = "school.calendar.manage";
+
 	/** Every permission code, in seed order. */
 	public static final List<String> ALL = List.of(PLATFORM_ORGANIZATIONS_MANAGE, PLATFORM_SCHOOLS_MANAGE,
 			PLATFORM_SUBSCRIPTIONS_MANAGE, PLATFORM_FEATURES_MANAGE, PLATFORM_SETTINGS_MANAGE, PLATFORM_ROLES_MANAGE,
 			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ, SCHOOL_ACADEMIC_MANAGE, SCHOOL_STAFF_MANAGE,
 			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE, SCHOOL_IMPORT_MANAGE, SCHOOL_GUARDIANS_MANAGE, SCHOOL_POLICIES_MANAGE,
 			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ, SCHOOL_FEED_MANAGE,
-			SCHOOL_ANNOUNCEMENTS_MANAGE, SCHOOL_ANNOUNCEMENTS_URGENT, SCHOOL_MESSAGING_MODERATE, SCHOOL_MESSAGING_REVIEW);
+			SCHOOL_ANNOUNCEMENTS_MANAGE, SCHOOL_ANNOUNCEMENTS_URGENT, SCHOOL_MESSAGING_MODERATE, SCHOOL_MESSAGING_REVIEW, SCHOOL_CALENDAR_MANAGE);
 
 	private Permissions() {
 	}

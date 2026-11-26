@@ -1489,6 +1489,15 @@ create table event_participants (                -- invitations / RSVPs, e.g. pa
 ```
 The calendar API combines `events` with `assignments.due_at`, `course_live_sessions`, `tutoring_sessions`, `holidays` and `academic_periods` boundaries. Each source is filtered by the user's access.
 
+*As built (M11a, `V11_01__calendar.sql`; deviations from the sketch above):*
+- `events.scope_type` adds **INVITEES** (visible only to the people invited; every PARENT_MEETING has it and only it: a CHECK ties the two). COURSE stays allowed by the CHECK but unsupported by the API; `course_id` has no FK until the courses table exists (P3). PERSONAL events carry `owner_id` and no `school_id` (they belong to a user; CHECKs tie `scope_type = 'PERSONAL'` to both). SCHOOL, CAMPUS, GRADE_LEVEL and CLASS rows are checked to carry exactly the ids of their scope; `campus_id`, `grade_level_id` and `class_id` are composite FKs `(x, school_id)`.
+- **All-day** events are calendar dates in the event's zone: `start_date`/`end_date` (inclusive) are set exactly when `all_day`, and `start_at`/`end_at` hold the instants of the start of the first day and of the day after the last one (end exclusive), so window queries need no special case. Timed events: `end_at >= start_at`.
+- `recurrence_rule` is an RFC 5545 RRULE **subset** (FREQ DAILY/WEEKLY/MONTHLY, INTERVAL, BYDAY for weekly, BYMONTHDAY for monthly, UNTIL or COUNT; no EXDATE inside the text). Cancelled occurrences and changed occurrences are rows of the new **`event_overrides`** (key: `event_id`, `occurrence_start`, the instant the occurrence has in the series; CANCELLED is the series' EXDATE, MODIFIED carries the fields that differ). `recurrence_ends_at` is the end of the last occurrence of a finite series (null: endless). Series are stored once; occurrences are expanded per request. A CHECK forbids RSVP on a repeating event.
+- `event_participants` drops `regarding_student_id` (it is on the event: `events.regarding_student_id`, mandatory for PARENT_MEETING) and adds `invited_at`; `role` and `rsvp_status` are CHECKed. A parent meeting's participants are the organiser and the guardians resolved at creation (ACTIVE, not custody-restricted, `can_view_academics`); the guardians' links are re-checked against `student_guardians` at every read. Ordinary events create a row only when somebody answers.
+- New **`event_reminders`** (`event_id`, `occurrence_start`, `user_id`): the memory of the reminder job (one reminder per person per occurrence).
+- Also on `events`: `cancelled_at/by`, `cancellation_reason` (cancelling never deletes), `deleted_at` (soft delete, only of cancelled or personal events), `rsvp_enabled` (true for every parent meeting).
+- Settings (`R__20`, module `calendar`): `calendar.teachers_can_create_class_events`, `calendar.notify.new_events`, `calendar.notify.changes`, `calendar.reminder.event_minutes`, `calendar.reminder.parent_meeting_minutes`, `calendar.reminder.audience`. Permission `school.calendar.manage`. Notification types `EVENT_INVITATION`, `EVENT_UPDATED`, `EVENT_CANCELLED` (UPCOMING_EVENT already existed).
+
 ### 4.15 SIS integration & roster import (P1)
 
 ```sql
