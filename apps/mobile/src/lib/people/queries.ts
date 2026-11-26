@@ -3,6 +3,9 @@ import { useInfiniteQuery, useQuery, useQueryClient, type QueryClient } from '@t
 
 import { api } from '@/lib/api';
 import { request, unwrap } from '@/lib/api-error';
+import { rosterFromCache, rosterToCache } from '@/lib/offline/cache';
+import { offlineCache } from '@/lib/offline/runtime';
+import { useCachedQuery } from '@/lib/offline/use-cached-query';
 
 import {
   classKey,
@@ -16,11 +19,27 @@ import {
 } from './keys';
 import { toRoster } from './roster';
 
-/** The caller's active classes as student or teacher (`GET /me/classes`). Cached offline. */
+type MyClass = components['schemas']['MyClass'];
+
+/**
+ * The caller's active classes as student or teacher (`GET /me/classes`). A teacher's list is also kept in the
+ * offline cache (class names are not child data), and every successful refresh purges what is cached for classes
+ * they no longer teach.
+ */
 export function useMyClasses() {
-  return useQuery({
+  return useCachedQuery<MyClass[]>({
     queryKey: myClassesKey,
-    queryFn: () => request(async () => unwrap(await api.GET('/api/v1/me/classes'))),
+    enabled: true,
+    kind: 'classes',
+    scope: '',
+    fetch: () =>
+      request(async () => {
+        const classes = unwrap(await api.GET('/api/v1/me/classes'));
+        void offlineCache.purgeClassesExcept(classes.filter((cls) => cls.role === 'TEACHER').map((cls) => cls.id)).catch(() => {});
+        return classes;
+      }),
+    toCache: (classes) => classes.filter((cls) => cls.role === 'TEACHER'),
+    fromCache: (stored) => (Array.isArray(stored) ? (stored as MyClass[]) : null),
   });
 }
 
@@ -58,14 +77,16 @@ export function useClassTeachers(schoolId: string | undefined, classId: string |
 }
 
 /**
- * The class roster. The cached copy keeps name and avatar only (`toRoster`): date of birth and the
- * like are fetched on the student's own screen and never persisted.
+ * The class roster. What is kept offline is id, name and avatar only (`rosterToCache`): date of birth and the like
+ * are fetched on the student's own screen and never persisted.
  */
 export function useRoster(schoolId: string | undefined, classId: string | undefined) {
-  return useQuery({
+  return useCachedQuery({
     queryKey: rosterKey(classId ?? ''),
     enabled: !!schoolId && !!classId,
-    queryFn: () =>
+    kind: 'roster',
+    scope: classId ?? '',
+    fetch: () =>
       request(async () =>
         toRoster(
           unwrap(
@@ -75,6 +96,11 @@ export function useRoster(schoolId: string | undefined, classId: string | undefi
           ),
         ),
       ),
+    toCache: rosterToCache,
+    fromCache: (stored) => {
+      const roster = rosterFromCache(stored);
+      return roster.length > 0 || (Array.isArray(stored) && stored.length === 0) ? roster : null;
+    },
   });
 }
 

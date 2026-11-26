@@ -89,6 +89,10 @@ describe('sign-in method and remembered role in the session state', () => {
 
   it('opens with the remembered role when restoring a session', () => {
     const restored = sessionReducer(INITIAL_SESSION, { type: 'restored', roles: ['teacher', 'student'], preferredRole: 'student', profile });
+    const offline = sessionReducer(INITIAL_SESSION, { type: 'restored', roles: ['teacher'], profile, offline: true });
+    expect(offline).toMatchObject({ status: 'signedIn', offline: true });
+    expect(sessionReducer(offline, { type: 'signedIn', roles: ['teacher'], profile })).toMatchObject({ offline: false });
+    expect(sessionReducer(offline, { type: 'signedOut' })).toMatchObject({ offline: false });
     expect(restored.activeRole).toBe('student');
   });
 });

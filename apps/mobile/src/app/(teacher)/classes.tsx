@@ -8,6 +8,7 @@ import { ClassCard } from '@/components/class-card';
 import { PlaceholderScreen } from '@/components/placeholder-screen';
 import { ProblemBanner } from '@/components/problem-banner';
 import { PushPromptCard } from '@/components/push-prompt-card';
+import { OfflineNote } from '@/components/sync/offline-note';
 import { TabHeader } from '@/components/tab-header';
 import { EmptyState, Screen, Text } from '@/components/ui';
 import { useMyClasses } from '@/lib/people/queries';
@@ -49,6 +50,7 @@ function TeacherClasses() {
       <TabHeader />
       <PushPromptCard />
       <Text variant="title">{t('mobile.classes.title')}</Text>
+      <OfflineNote fromCache={classes.fromCache} fetchedAt={classes.fetchedAt} />
 
       {classes.isPending ? (
         <View style={{ paddingVertical: spacing[8] }}>

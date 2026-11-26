@@ -6,9 +6,11 @@ import type { Totals } from '@school/classroom-toolkit';
 import { problemOf } from '@/lib/api-error';
 import type { RosterEntry } from '@/lib/people/roster';
 
-import type { QueueEvent } from './award-queue';
-import { canUndoAt } from './award-outcome';
-import { awardQueue, useAwardQueueEvents, useQueuedAwards } from './award-runtime';
+import { syncEngine, usePendingOperations, useSyncEvents } from '@/lib/sync/runtime';
+import { isAwardOp, type SyncEvent } from '@/lib/sync/types';
+
+import { canUndoAt, confirmationFromState } from './award-outcome';
+import { awardView } from './award-view';
 import { formatSigned, signedPoints } from './categories';
 import { playFeedback } from './feedback';
 import type { FeedbackKind } from './feedback-plan';
@@ -76,7 +78,8 @@ export function useClassAwards({ schoolId, classId, ownerId, roster, categories,
   const [last, setLast] = useState<LastAward | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const burstCounter = useRef(0);
-  const queued = useQueuedAwards();
+  const pendingOperations = usePendingOperations();
+  const queued = useMemo(() => pendingOperations.filter(isAwardOp).map(awardView), [pendingOperations]);
   const reverse = useReverseAward(schoolId);
   const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -84,7 +87,7 @@ export function useClassAwards({ schoolId, classId, ownerId, roster, categories,
   const requestedAt = overview?.requestedAt;
 
   const base = useMemo<Totals | null>(
-    () => (overview ? Object.fromEntries(overview.points.students.map((student) => [student.studentId, student.total ?? 0])) : null),
+    () => (overview ? overview.totals : null),
     [overview],
   );
 
@@ -170,12 +173,14 @@ export function useClassAwards({ schoolId, classId, ownerId, roster, categories,
   );
 
   const onEvent = useCallback(
-    (event: QueueEvent) => {
-      if (event.item.classId !== classId) return;
-      if (event.type === 'confirmed') {
-        const category = categories.find((candidate) => candidate.id === event.item.categoryId);
+    (event: SyncEvent) => {
+      if (!isAwardOp(event.item) || event.item.classId !== classId) return;
+      const item = awardView(event.item);
+      if (event.type === 'applied') {
+        const confirmation = confirmationFromState(event.state);
+        const category = categories.find((candidate) => candidate.id === item.categoryId);
         const entry = pendingFromQueued(
-          event.item,
+          item,
           category ? { polarity: category.polarity, defaultPoints: category.defaultPoints ?? 1 } : undefined,
           rosterIds,
         );
@@ -183,13 +188,13 @@ export function useClassAwards({ schoolId, classId, ownerId, roster, categories,
 
         let toUndo: LastAward | null = null;
         setLast((current) => {
-          if (current?.opId !== event.item.opId) return current;
+          if (current?.opId !== item.opId) return current;
           const updated: LastAward = {
             ...current,
             state: 'confirmed',
-            batchId: event.confirmation.batchId,
-            transactionIds: event.confirmation.transactionIds,
-            undoableUntil: event.confirmation.undoableUntil,
+            batchId: confirmation.batchId,
+            transactionIds: confirmation.transactionIds,
+            undoableUntil: confirmation.undoableUntil,
           };
           if (current.undoWhenConfirmed) toUndo = updated;
           return updated;
@@ -199,12 +204,12 @@ export function useClassAwards({ schoolId, classId, ownerId, roster, categories,
         if (refetchTimer.current) clearTimeout(refetchTimer.current);
         refetchTimer.current = setTimeout(refetchOverview, SETTLE_MS + 500);
       } else if (event.type === 'rejected' || event.type === 'expired') {
-        setLast((current) => (current?.opId === event.item.opId ? null : current));
+        setLast((current) => (current?.opId === item.opId ? null : current));
       }
     },
     [classId, categories, rosterIds, rememberConfirmed, refetchOverview, runReverse],
   );
-  useAwardQueueEvents(onEvent);
+  useSyncEvents(onEvent);
 
   const award = useCallback(
     async (target: AwardTarget, category: PointCategory, pointsOverride: number | null) => {
@@ -214,15 +219,19 @@ export function useClassAwards({ schoolId, classId, ownerId, roster, categories,
       const opId = newOpId();
       const delta = signedPoints({ polarity: category.polarity, defaultPoints: category.defaultPoints }, pointsOverride);
 
-      const result = await awardQueue.enqueue({
+      const result = await syncEngine.enqueue({
+        type: 'POINT_AWARD',
         opId,
         ownerId,
         schoolId,
         classId,
-        categoryId: category.id,
-        studentIds: target.kind === 'class' ? [] : [...target.ids],
-        wholeClass: target.kind === 'class',
-        points: pointsOverride,
+        baseVersion: null,
+        payload: {
+          categoryId: category.id,
+          studentIds: target.kind === 'class' ? [] : [...target.ids],
+          wholeClass: target.kind === 'class',
+          points: pointsOverride,
+        },
       });
       if (result === 'full') {
         setProblem(t('mobile.points.queue.full'));
@@ -253,7 +262,7 @@ export function useClassAwards({ schoolId, classId, ownerId, roster, categories,
         undoWhenConfirmed: false,
         undoing: false,
       });
-      void awardQueue.flush(true);
+      void syncEngine.flush(true);
     },
     [schoolId, ownerId, classId, rosterIds, roster, reduceMotion, showBursts, t],
   );
@@ -265,7 +274,7 @@ export function useClassAwards({ schoolId, classId, ownerId, roster, categories,
       return;
     }
     // Not confirmed yet: take it out of the queue; if it is being sent right now, undo it as soon as it lands.
-    const result = await awardQueue.cancel(last.opId);
+    const result = await syncEngine.cancel(last.opId);
     if (result === 'cancelled') {
       playFeedback('undo', reduceMotion);
       setLast(null);

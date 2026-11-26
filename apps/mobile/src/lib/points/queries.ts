@@ -3,6 +3,8 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 
 import { api } from '@/lib/api';
 import { request, unwrap } from '@/lib/api-error';
+import { totalsFromCache, totalsToCache } from '@/lib/offline/cache';
+import { useCachedQuery } from '@/lib/offline/use-cached-query';
 
 import {
   categoriesKey,
@@ -25,12 +27,17 @@ export type StudentBadge = S['StudentBadgeView'];
 export type ActivityTemplate = S['TemplateView'];
 export type Section = S['Section'];
 
-/** The skills a teacher can award in a class (the school's and the class's own). Cached for offline awards. */
+/**
+ * The skills a teacher can award in a class (the school's and the class's own). Kept in the offline cache, so
+ * awarding works with no connection.
+ */
 export function useCategories(schoolId: string | undefined, classId: string | undefined) {
-  return useQuery({
+  return useCachedQuery<PointCategory[]>({
     queryKey: categoriesKey(schoolId ?? '', classId ?? ''),
     enabled: !!schoolId && !!classId,
-    queryFn: () =>
+    kind: 'categories',
+    scope: classId ?? '',
+    fetch: () =>
       request(async () =>
         unwrap(
           await api.GET('/api/v1/schools/{schoolId}/point-categories', {
@@ -38,31 +45,48 @@ export function useCategories(schoolId: string | undefined, classId: string | un
           }),
         ),
       ),
+    // Skills are the school's palette, not child data.
+    toCache: (categories) => categories,
+    fromCache: (stored) => (Array.isArray(stored) ? (stored as PointCategory[]) : null),
   });
 }
 
 export interface ClassPointsSnapshot {
-  points: ClassPoints;
+  /** Net points per student id. */
+  totals: Record<string, number>;
   /** When the request started: the optimistic totals use it to know what the overview can contain. */
   requestedAt: number;
 }
 
-/** The class overview (teachers only). Never persisted: it lists children with their points. */
+/**
+ * The class overview's totals (teachers only), kept in the offline cache as numbers per student id: the grid shows
+ * the last known totals with no connection. Never in TanStack's persisted cache.
+ */
 export function useClassPoints(schoolId: string | undefined, classId: string | undefined) {
-  return useQuery({
+  return useCachedQuery<ClassPointsSnapshot>({
     queryKey: classPointsKey(classId ?? ''),
     enabled: !!schoolId && !!classId,
     staleTime: 15_000,
-    queryFn: (): Promise<ClassPointsSnapshot> => {
+    kind: 'totals',
+    scope: classId ?? '',
+    fetch: () => {
       const requestedAt = Date.now();
       return request(async () => ({
         requestedAt,
-        points: unwrap(
-          await api.GET('/api/v1/schools/{schoolId}/classes/{classId}/points', {
-            params: { path: { schoolId: schoolId!, classId: classId! } },
-          }),
+        totals: totalsToCache(
+          unwrap(
+            await api.GET('/api/v1/schools/{schoolId}/classes/{classId}/points', {
+              params: { path: { schoolId: schoolId!, classId: classId! } },
+            }),
+          ).students,
         ),
       }));
+    },
+    toCache: (snapshot) => snapshot,
+    fromCache: (stored) => {
+      const raw = (typeof stored === 'object' && stored !== null ? stored : {}) as { totals?: unknown; requestedAt?: unknown };
+      const totals = totalsFromCache(raw.totals);
+      return totals && typeof raw.requestedAt === 'number' ? { totals, requestedAt: raw.requestedAt } : null;
     },
   });
 }
@@ -194,12 +218,14 @@ export function useReverseAward(schoolId: string | undefined) {
   });
 }
 
-/** Routines and checklists the teacher may use: their own, those shared with their classes and the school's. (A classId filter would leave out the school-wide ones.) */
+/** Routines and checklists the teacher may use: their own, those shared with their classes and the school's. (A classId filter would leave out the school-wide ones.) Kept in the offline cache. */
 export function useRoutineTemplates(schoolId: string | undefined, classId: string | undefined) {
-  return useQuery({
+  return useCachedQuery<ActivityTemplate[]>({
     queryKey: templatesKey(schoolId ?? '', classId ?? ''),
     enabled: !!schoolId && !!classId,
-    queryFn: () =>
+    kind: 'templates',
+    scope: classId ?? '',
+    fetch: () =>
       request(async () => {
         const [routines, checklists] = await Promise.all([
           api.GET('/api/v1/schools/{schoolId}/activity-templates', {
@@ -211,6 +237,9 @@ export function useRoutineTemplates(schoolId: string | undefined, classId: strin
         ]);
         return [...unwrap(routines).items, ...unwrap(checklists).items];
       }),
+    // Lesson routines are plain teaching material, not child data.
+    toCache: (templates) => templates,
+    fromCache: (stored) => (Array.isArray(stored) ? (stored as ActivityTemplate[]) : null),
   });
 }
 

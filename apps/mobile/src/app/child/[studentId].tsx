@@ -88,6 +88,12 @@ export default function ChildPoints() {
         </Card>
       ) : null}
 
+      <Button
+        variant="ghost"
+        label={t('mobile.attendance.guardian.open', { name: firstName })}
+        onPress={() => router.push({ pathname: '/child/[studentId]/attendance', params: { studentId: child.studentId } })}
+      />
+
       {child.schools.map((school) => {
         const homeButton = canAward ? (
           <Button

@@ -84,7 +84,7 @@ export function usePushRuntime(enabled: boolean, activeRole: Role | null): void 
     const data = request.content.data;
     const id = notificationIdFromData(data);
     if (id) markRead.mutate(id);
-    const target = routeForPath(pathFromNotificationData(data), activeRole ? homeRouteFor(activeRole) : null);
+    const target = routeForPath(pathFromNotificationData(data), activeRole ? homeRouteFor(activeRole) : null, data);
     if (target) {
       const go = () => router.navigate(target as Parameters<typeof router.navigate>[0]);
       try {
