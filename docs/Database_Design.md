@@ -2,7 +2,7 @@
 
 *Version 1, 24 November 2026. Source: `Education_Platform.md` (20 Nov 2026), with the resolutions recorded in [Spec_Review.md](Spec_Review.md). Finding ids (R-xx) refer to that review.*
 
-Target: **PostgreSQL 18**, one shared database, used by a Spring Boot modular monolith (`com.nemaz.school.<module>`). Flyway owns the schema. Every table is tagged with the phase that first needs it (**P1–P6**, using the phase re-sequencing in R-08).
+Target: **PostgreSQL 18**, one shared database, used by a Spring Boot modular monolith (`com.nemaz.school.<module>`). Flyway owns the schema. Every table is tagged with the phase that first needs it (**P1–P5**, using the phase re-sequencing in R-08; the AI phase P6 was removed on 26 November 2026, D34). **Scope revision of 26 November 2026 (D32–D40):** online courses, hosted video, the tutor booking marketplace, the Student AI Tutor and Tutor Copilot, NFC/RFID/GPS attendance, the transfer workflow, the double-entry ledger and the timetable generator are not part of the design; the tutor marketplace is a **directory** (§4.27) and the school AI assistant is **deferred** (§4.37).
 
 ---
 
@@ -19,7 +19,7 @@ Target: **PostgreSQL 18**, one shared database, used by a Spring Boot modular mo
 | Money | `amount_minor bigint` plus `currency_code char(3)`. No floats. Rates are in basis points (`*_bps int`). |
 | Localized labels | Small configuration labels (category names, grade names, curriculum text) use `name_i18n jsonb`, e.g. `{"en":"Kindness","am":"ደግነት"}`. User content is stored once in its original language, and translations go in `content_translations` (§71, R-24). |
 | Tenant column | Every school-owned row carries `school_id`, even if it can be derived from its parent row (§98). A **composite FK** makes it consistent with the parent, e.g. `foreign key (class_id, school_id) references classes(id, school_id)`, so a row can't point at another tenant's class. Parents expose `unique (id, school_id)` for this. Optional Postgres row-level security can be added later on `school_id`. |
-| Scope | Content with a scope uses `scope_type` plus **typed nullable FKs** (`school_id`, `class_id`, `course_id`, …) and a CHECK that exactly the right FK is set. It does not use an untyped `scope_id`, so referential integrity is kept. |
+| Scope | Content with a scope uses `scope_type` plus **typed nullable FKs** (`school_id`, `class_id`, …) and a CHECK that exactly the right FK is set. It does not use an untyped `scope_id`, so referential integrity is kept. |
 | Extensions | `citext` (emails and usernames), `btree_gist` (exclusion constraints), `pg_trgm` (name and tutor search). |
 | Naming | snake_case, plural table names, `*_id` FKs, `*_at` instants, `*_on` dates, `is_*` / `can_*` booleans. |
 
@@ -48,20 +48,28 @@ The code blocks below are design DDL. They're complete enough to turn straight i
 | 15 | SIS integration | import_mapping_profiles, import_jobs, import_job_rows, external_systems, external_entity_mappings, sync_runs | P1 (sync_runs later) |
 | 16 | Portfolios | portfolios, portfolio_collections, portfolio_items, portfolio_attachments, portfolio_comments, portfolio_feedback, portfolio_approvals | P1 basic, P2 full |
 | 17 | Moderation & safeguarding | content_reports, moderation_cases, moderation_actions, safeguarding_incidents, safeguarding_incident_notes | P1 |
-| 18 | Consent & data governance | policy_documents, policy_versions, consent_records, data_sharing_grants, retention_policies, legal_holds, data_subject_requests | P1 (grants P4, retention P2) |
+| 18 | Consent & data governance | policy_documents, policy_versions, consent_records, retention_policies, legal_holds, data_subject_requests | P1 (retention P2) |
 | 19 | Audit & platform infrastructure | audit_logs, event_publication (outbox), shedlock, report_jobs | P0–P1 |
-| 20 | Subscriptions | subscription_plans, plan_prices, plan_entitlements, subscriptions | P1 (manual), P5 billing |
+| 20 | Subscriptions | subscription_plans, plan_prices, plan_entitlements, subscriptions | P1 (manual), P4 (tutor listing), P5 (school billing) |
 | 21 | Curriculum | education_systems, curriculum_versions, academic_levels, curriculum_subjects, curriculum_topics, learning_objectives, school_curriculum_adoptions, curriculum_mappings, learning_evidence, mastery_records | P2 |
 | 22 | Assignments, assessment, grading | grading_schemes, grading_scheme_bands, assessment_rubrics, rubric_criteria, rubric_levels, assignments, assignment_attachments, assignment_targets, assignment_submissions, submission_attachments, assessments, assessment_results, assessment_result_rubric_scores, period_grades, quizzes, quiz_questions, quiz_attempts, quiz_attempt_answers | P2 |
 | 23 | Digital library | resource_categories, library_resources, resource_access_rules, resource_collections, resource_collection_items | P2 |
-| 24 | Courses | courses, course_instructors, course_audience_rules, course_sections, course_lessons, course_materials, course_enrollments, lesson_progress, course_live_sessions, course_live_participants | P3 |
-| 25 | Video | video_rooms, video_recordings, session_transcripts | P3 |
-| 26 | Payments core | payment_providers, country_payment_providers, orders, order_items, payments, payment_transactions, payment_webhook_events | P3 |
-| 27 | Tutor marketplace | tutor_subjects, tutor_languages, tutor_qualifications, verification_requirements, tutor_verification_requests, tutor_verification_documents, cancellation_policies, tutor_services, tutor_availability, tutor_availability_exceptions, tutoring_relationships, booking_series, tutoring_sessions, tutor_bookings, booking_status_history, tutoring_participants, tutoring_session_notes, trial_assessments, tutor_reviews, tutor_match_requests, tutor_match_results | P4 |
-| 28 | Marketplace finance & school fees | refunds, platform_commissions, tutor_earnings, tutor_payout_accounts, tutor_payouts, fee_items, invoices, invoice_lines | P5 |
-| 29 | AI (copilot & student tutor) | ai_prompt_templates, ai_model_configs, ai_feature_enablements, ai_benchmark_items, ai_evaluation_runs, ai_generations, ai_usage_events, ai_usage_quotas, ai_tutor_sessions, ai_tutor_messages, ai_practice_attempts | P6 |
+| 24 | *(removed, D33)* Courses | none | removed |
+| 25 | *(removed, D33)* Video | none | removed |
+| 26 | Payments core | payment_providers, country_payment_providers, platform_invoices, payments, payment_transactions, payment_webhook_events | P3 |
+| 27 | Tutor directory | tutor_subjects, tutor_languages, tutor_locations, tutor_availability, tutor_qualifications, verification_requirements, tutor_verification_requests, tutor_verification_documents, tutor_inquiries | P4 |
+| 28 | School fee base | fee_items, invoices, invoice_lines | P3 |
+| 29 | *(removed, D34)* AI (copilot & student tutor) | none | removed |
+| 30 | Timetable & academic plans | bell_schedules, bell_periods, rooms, subject_period_requirements, timetable_versions, timetable_entries, timetable_entry_teachers, timetable_overrides, academic_plans, academic_plan_items | P2 |
+| 31 | Lesson planning | lesson_plan_templates, lesson_plans, lesson_plan_objectives, lesson_plan_revisions, lesson_plan_reviews | P2 |
+| 32 | Assessment plans, results & documents | assessment_plans, assessment_plan_components, subject_marklists, result_amendments, period_results, report_card_templates, report_cards, transcripts | P2 |
+| 33 | Question banks & secure exams | question_banks, bank_questions, exam_sittings, exam_accommodations, quiz_attempt_events | P2 |
+| 34 | Attendance QR & staff attendance | attendance_credentials, attendance_qr_sessions, attendance_checkins, staff_attendance_records, staff_attendance_corrections | P1 extension (M7d, M7e) |
+| 35 | Student numbers & ID cards | student_number_formats, student_number_counters, id_card_templates, id_cards | P2 |
+| 36 | School fees: schedules, verification, cash, receipts | fee_structures, fee_structure_items, payment_plans, student_fee_assignments, fee_discounts, fee_billing_schedules, invoice_runs, invoice_installments, verification_providers, school_receiving_accounts, external_payment_claims, manual_payments, payment_allocations, receipt_sequences, receipts, cash_sessions | P3 |
+| 37 | *(deferred, D34)* School AI assistant | not created | deferred |
 
-That is 213 tables in total. Roughly 110 of them (domains 1–20, minus the rows tagged later) are needed for P1.
+That is 223 tables in total: 213 in the original design, minus 46 removed on 26 November 2026 (courses, video, the tutor booking marketplace, marketplace finance, the AI tutor tables and tutor data sharing; D32–D34), plus 56 added the same day for school operations and the tutor directory (domains 30–36, `tutor_locations`, `tutor_inquiries`, `platform_invoices`). Roughly 110 of them (domains 1–20, minus the rows tagged later) plus the 5 attendance-QR tables of domain 34 are needed for P1. Payroll and HR are out of scope (D14).
 
 ---
 
@@ -104,33 +112,33 @@ erDiagram
     STUDENT_PROFILES ||--o{ PORTFOLIO_ITEMS : owns
 ```
 
-### 3.2 Learning & marketplace (P3–P5)
+### 3.2 Tutor directory, payments & school fees (P3–P4)
 
 ```mermaid
 erDiagram
-    COURSES ||--o{ COURSE_SECTIONS : has
-    COURSE_SECTIONS ||--o{ COURSE_LESSONS : has
-    COURSES ||--o{ COURSE_ENROLLMENTS : has
-    STUDENT_PROFILES ||--o{ COURSE_ENROLLMENTS : "enrolled in"
-    COURSES ||--o{ COURSE_LIVE_SESSIONS : schedules
-    COURSE_LIVE_SESSIONS |o--|| VIDEO_ROOMS : uses
+    TUTOR_PROFILES ||--o{ TUTOR_SUBJECTS : teaches
+    TUTOR_PROFILES ||--o{ TUTOR_LOCATIONS : "teaches in (area)"
+    TUTOR_PROFILES ||--o{ TUTOR_AVAILABILITY : "weekly pattern"
+    TUTOR_PROFILES ||--o{ TUTOR_VERIFICATION_REQUESTS : "reviewed by platform"
+    TUTOR_PROFILES ||--o{ TUTOR_INQUIRIES : "contacted by"
+    TUTOR_INQUIRIES ||--|| CONVERSATIONS : "opens (TUTOR_INQUIRY)"
+    TUTOR_PROFILES ||--o{ SUBSCRIPTIONS : "pays a listing"
+    SUBSCRIPTIONS ||--o{ PLATFORM_INVOICES : bills
+    PLATFORM_INVOICES ||--o{ PAYMENTS : "settled by"
 
-    TUTOR_PROFILES ||--o{ TUTOR_SERVICES : offers
-    TUTOR_SERVICES ||--o{ TUTOR_BOOKINGS : "booked as"
-    TUTORING_SESSIONS ||--o{ TUTOR_BOOKINGS : "fulfils (1..n)"
-    TUTORING_SESSIONS ||--o{ TUTORING_PARTICIPANTS : has
-    TUTORING_SESSIONS |o--|| VIDEO_ROOMS : uses
-    TUTORING_RELATIONSHIPS ||--o{ TUTOR_BOOKINGS : groups
-    TUTORING_RELATIONSHIPS ||--o{ DATA_SHARING_GRANTS : "authorizes"
-    TUTOR_BOOKINGS ||--o| TUTOR_REVIEWS : "reviewed by"
-
-    ORDERS ||--o{ ORDER_ITEMS : contains
-    ORDER_ITEMS |o--o| TUTOR_BOOKINGS : "pays for"
-    ORDER_ITEMS |o--o| COURSE_ENROLLMENTS : "pays for"
-    ORDERS ||--o{ PAYMENTS : "settled by"
-    PAYMENTS ||--o{ REFUNDS : has
-    ORDER_ITEMS ||--o| TUTOR_EARNINGS : generates
-    TUTOR_PAYOUTS ||--o{ TUTOR_EARNINGS : settles
+    FEE_STRUCTURES ||--o{ FEE_STRUCTURE_ITEMS : contains
+    FEE_STRUCTURES ||--o{ FEE_BILLING_SCHEDULES : "billed by"
+    FEE_BILLING_SCHEDULES ||--o{ INVOICE_RUNS : triggers
+    INVOICE_RUNS ||--o{ INVOICES : creates
+    STUDENT_PROFILES ||--o{ INVOICES : "billed to"
+    INVOICES ||--o{ PAYMENTS : "paid online by"
+    INVOICES ||--o{ EXTERNAL_PAYMENT_CLAIMS : "claimed against"
+    EXTERNAL_PAYMENT_CLAIMS ||--o| MANUAL_PAYMENTS : "verified into"
+    PAYMENTS ||--o{ PAYMENT_ALLOCATIONS : allocates
+    MANUAL_PAYMENTS ||--o{ PAYMENT_ALLOCATIONS : allocates
+    PAYMENT_ALLOCATIONS }o--|| INVOICES : pays
+    PAYMENTS ||--o| RECEIPTS : "receipt for"
+    MANUAL_PAYMENTS ||--o| RECEIPTS : "receipt for"
 ```
 
 ---
@@ -335,7 +343,7 @@ create unique index ux_settings_scope on settings
   (key, scope_type, coalesce(country_code,''), coalesce(organization_id, '00000000-0000-0000-0000-000000000000'), coalesce(school_id, '00000000-0000-0000-0000-000000000000'));
 
 create table feature_definitions (
-  key             text primary key,              -- attendance, points, feed, messaging, library, courses, marketplace, tutoring, payments, ai_copilot, ai_student_tutor; plus the capacity keys max_students and storage_bytes, which exist only so plan_entitlements.limit_value has a key to attach to (M1a)
+  key             text primary key,              -- attendance, points, feed, messaging, library, tutor_directory, payments, school_fees; plus the capacity keys max_students and storage_bytes, which exist only so plan_entitlements.limit_value has a key to attach to (M1a)
   description     text,
   default_enabled boolean not null default false
 );
@@ -520,26 +528,25 @@ create table teacher_profiles (                  -- school-world identity; separ
   created_at              timestamptz not null default now()
 );
 
-create table tutor_profiles (                    -- marketplace identity (P4)
+create table tutor_profiles (                    -- directory identity (P4): a listing, not a marketplace seller
   user_id                 uuid primary key references users,
   country_code            char(2) not null references countries,
   headline                text,
   bio                     text,
   years_experience        smallint,
-  offers_online           boolean not null default true,
-  offers_in_person        boolean not null default false,
-  address_id              uuid references addresses,     -- approximate area only is shown publicly
+  teaches_online          boolean not null default false, -- with the tutor's own tools; the platform hosts nothing
+  teaches_in_person       boolean not null default true,
   service_radius_km       smallint,
   age_groups              text[],                -- EARLY_YEARS|PRIMARY|LOWER_SECONDARY|UPPER_SECONDARY|ADULT
-  intro_video_media_id    uuid references media,
+  rate_from_minor         bigint,                -- informational, shown on the listing
+  rate_unit               text,                  -- HOUR|SESSION|MONTH
+  currency_code           char(3) references currencies,
+  accepting_learners      boolean not null default true, -- false pauses new inquiries
   verification_status     text not null default 'UNVERIFIED', -- UNVERIFIED|PENDING_REVIEW|VERIFIED|SUSPENDED|REJECTED (§88)
   verified_at             timestamptz,
-  listing_status          text not null default 'DRAFT',      -- DRAFT|LISTED|HIDDEN
-  rating_avg              numeric(3,2),          -- denormalized from tutor_reviews
-  rating_count            int not null default 0,
-  price_from_minor        bigint,                -- denormalized for search
-  currency_code           char(3) references currencies
-  -- + std
+  listing_status          text not null default 'DRAFT',      -- DRAFT|PENDING_REVIEW|LISTED|PAUSED|EXPIRED|SUSPENDED
+  listed_at               timestamptz
+  -- + std (no address: areas are in tutor_locations; no rating: there are no reviews, D32)
 );
 
 -- Employment / staff membership in a school (R-02)
@@ -609,10 +616,9 @@ create unique index ux_student_guardian_live on student_guardians (student_id, g
 -- Invitations: guardian link, staff, class join, course invite (§125, §41)
 create table invitations (
   id                  uuid primary key default uuidv7(),
-  invitation_type     text not null,             -- GUARDIAN_LINK|STAFF|STUDENT_ACCOUNT|CLASS_JOIN|COURSE
+  invitation_type     text not null,             -- GUARDIAN_LINK|STAFF|STUDENT_ACCOUNT|CLASS_JOIN
   school_id           uuid references schools,
   class_id            uuid references classes,
-  course_id           uuid references courses,  -- P3 column
   student_id          uuid references student_profiles,  -- for GUARDIAN_LINK
   relationship_type   text,
   payload             jsonb,                     -- e.g. staff_type, role
@@ -845,7 +851,7 @@ create table sync_operations (
   unique (device_id, client_operation_id)
 );
 
-create table idempotency_keys (                  -- online POSTs (payments, bookings, message send)
+create table idempotency_keys (                  -- online POSTs (payments, fee claims, message send)
   key             text not null,
   user_id         uuid not null references users,
   request_hash    text not null,
@@ -993,7 +999,7 @@ create table media (
   id                  uuid primary key default uuidv7(),
   owner_id            uuid not null references users,
   school_id           uuid references schools,
-  purpose             text not null,             -- AVATAR|POST|STORY|MESSAGE|PORTFOLIO|SUBMISSION|ASSIGNMENT|LIBRARY|COURSE|RECORDING|TRANSCRIPT|VERIFICATION_DOC|IMPORT_FILE|REPORT|BRANDING
+  purpose             text not null,             -- AVATAR|POST|STORY|MESSAGE|PORTFOLIO|SUBMISSION|ASSIGNMENT|LIBRARY|VERIFICATION_DOC|IMPORT_FILE|REPORT|BRANDING|PAYMENT_PROOF|ID_PHOTO|RECEIPT
   storage_provider    text not null default 'R2',
   bucket              text not null,
   object_key          text not null unique,      -- derived from purpose, e.g. schools/{schoolId}/posts/{mediaId}/original
@@ -1041,12 +1047,11 @@ There is no `media_access` ACL (R-30). Media is read only through its owning obj
 ```sql
 create table posts (
   id                  uuid primary key default uuidv7(),
-  scope_type          text not null,             -- CLASS|SCHOOL|COURSE (§81; GROUP deferred R-13)
-  school_id           uuid references schools,   -- null only for COURSE scope on non-school courses (R-36)
+  scope_type          text not null,             -- CLASS|SCHOOL (§81; GROUP deferred R-13; COURSE removed, D33)
+  school_id           uuid references schools,
   class_id            uuid,
-  course_id           uuid references courses,   -- P3 column
   author_id           uuid not null references users,
-  author_role         text not null,             -- TEACHER|SCHOOL_ADMIN|GUARDIAN|STUDENT|INSTRUCTOR
+  author_role         text not null,             -- TEACHER|SCHOOL_ADMIN|GUARDIAN|STUDENT
   post_type           text not null default 'POST', -- POST|ACTIVITY|ACHIEVEMENT
   body                text,
   body_language_code  text references languages,
@@ -1061,9 +1066,8 @@ create table posts (
   is_pinned           boolean not null default false,
   deleted_at          timestamptz,
   foreign key (class_id, school_id) references classes (id, school_id),
-  check ( (scope_type='CLASS'  and class_id is not null and school_id is not null and course_id is null)
-       or (scope_type='SCHOOL' and school_id is not null and class_id is null and course_id is null)
-       or (scope_type='COURSE' and course_id is not null and class_id is null) )
+  check ( (scope_type='CLASS'  and class_id is not null and school_id is not null)
+       or (scope_type='SCHOOL' and school_id is not null and class_id is null) )
   -- + std
 );
 create index ix_posts_class_feed  on posts (class_id, published_at desc) where status = 'PUBLISHED' and deleted_at is null;
@@ -1158,7 +1162,7 @@ create table content_translations (
 
 **As built (M8a):** `V8_01__feed.sql`. Deviations from the DDL above:
 - **Media (§4.9):** `media.context_type` gains `CLASS` (media of a class post or story belongs to the class; school-wide ones to the `SCHOOL`). The purposes are the existing `POST` and `STORY` (not a new `POST_MEDIA`), restricted to images (JPEG, PNG, WebP) in `SCHOOL` or `CLASS` contexts until video processing exists in Phase 3. `media.school_id` is set for class media through `MediaPurposePolicy.schoolOf`.
-- **posts:** no `course_id` or `COURSE` scope yet (P3); `school_id` is `NOT NULL`; `status` gains `ARCHIVED` (taken down by its author, can be republished; `HIDDEN` is a moderator's hide) and the default is `DRAFT`. `approved_by`/`approved_at` became `decided_by`/`decided_at` (they record a rejection as well); `rejection_reason` also holds a moderator's hide reason. New columns: `pinned_at`, `edited_at` (the edit marker), `media_confirmed_by`/`media_confirmed_at` (the author's recorded confirmation that nobody without consent appears in untagged photos; dropped when the photos or tags change), `publish_error_code` (why a scheduled publish was blocked: the post returned to `DRAFT`), `deleted_by`. Checks: only `PUBLISHED` posts are pinned, only `SCHEDULED` posts must carry `scheduled_for`, contributions are class posts. `unique (id, school_id)`.
+- **posts:** no `course_id` or `COURSE` scope (COURSE is removed, D33); `school_id` is `NOT NULL`; `status` gains `ARCHIVED` (taken down by its author, can be republished; `HIDDEN` is a moderator's hide) and the default is `DRAFT`. `approved_by`/`approved_at` became `decided_by`/`decided_at` (they record a rejection as well); `rejection_reason` also holds a moderator's hide reason. New columns: `pinned_at`, `edited_at` (the edit marker), `media_confirmed_by`/`media_confirmed_at` (the author's recorded confirmation that nobody without consent appears in untagged photos; dropped when the photos or tags change), `publish_error_code` (why a scheduled publish was blocked: the post returned to `DRAFT`), `deleted_by`. Checks: only `PUBLISHED` posts are pinned, only `SCHEDULED` posts must carry `scheduled_for`, contributions are class posts. `unique (id, school_id)`.
 - **post_media:** `unique (media_id)`: a file belongs to at most one post (the service also keeps it out of stories). **post_student_tags:** unchanged (`ix_post_student_tags_student`).
 - **post_comments:** `school_id` and `author_role` are `NOT NULL`; `status` is `VISIBLE|HIDDEN|DELETED` (no `PENDING_APPROVAL`); `moderated_by`; `parent_comment_id` exists but replies are not exposed yet; the body is 1 to 1000 characters.
 - **post_views / story_views:** only the count is ever returned; names are never exposed (decision: conservative).
@@ -1170,11 +1174,9 @@ create table content_translations (
 ```sql
 create table conversations (
   id                  uuid primary key default uuidv7(),
-  conversation_type   text not null,             -- DIRECT|GROUP|CLASS|SCHOOL|COURSE|TUTORING (§28)
+  conversation_type   text not null,             -- DIRECT|GROUP|CLASS|SCHOOL|TUTOR_INQUIRY (§28; school_id is null only for TUTOR_INQUIRY, Messaging_Rules R14)
   school_id           uuid references schools,
   class_id            uuid,
-  course_id           uuid references courses,          -- P3 column
-  tutoring_relationship_id uuid references tutoring_relationships, -- P4 column
   context_student_id  uuid references student_profiles, -- parent↔teacher thread "about" a child (§29)
   title               text,
   avatar_media_id     uuid references media,
@@ -1275,7 +1277,7 @@ Who may start a conversation with whom is decided in the service layer from rela
 
 **As built in M9a (migration `V10_01__messaging`; the rule book is `docs/Messaging_Rules.md`).** Deviations from the DDL above:
 
-- `conversations`: `school_id` is `NOT NULL` (COURSE and TUTORING conversations and their columns arrive with P3/P4); `avatar_media_id` is not built. New columns: `direct_kind` (`GUARDIAN_TEACHER`, `GUARDIAN_GUARDIAN`, `TEACHER_STUDENT`, `STUDENT_STUDENT`), `direct_key` (the unique thread key: one thread per guardian, teacher and child; unique per school), `group_kind` (`CLASS_STUDENTS`, `CLASS_PARENTS`, `STAFF`, `STUDENT_GROUP`, `SCHOOL_STAFF`; one live `CLASS_*` conversation per class), `safeguarded` (the adult-student floor applies), `admin_visible` (no eligible observer; the review endpoint reads it; the effective value is computed live), `approved_by/approved_at` and `activity_at` (inbox order). `status` adds `PENDING_APPROVAL` and `REJECTED`. `conversation_type` stays `DIRECT|GROUP|CLASS|SCHOOL`.
+- `conversations`: `school_id` is `NOT NULL` (`TUTOR_INQUIRY` conversations arrive with P4 and need `school_id` nullable for that type only: the M27 migration relaxes the column and its constraints, with a CHECK that ties NULL to TUTOR_INQUIRY); `avatar_media_id` is not built. New columns: `direct_kind` (`GUARDIAN_TEACHER`, `GUARDIAN_GUARDIAN`, `TEACHER_STUDENT`, `STUDENT_STUDENT`), `direct_key` (the unique thread key: one thread per guardian, teacher and child; unique per school), `group_kind` (`CLASS_STUDENTS`, `CLASS_PARENTS`, `STAFF`, `STUDENT_GROUP`, `SCHOOL_STAFF`; one live `CLASS_*` conversation per class), `safeguarded` (the adult-student floor applies), `admin_visible` (no eligible observer; the review endpoint reads it; the effective value is computed live), `approved_by/approved_at` and `activity_at` (inbox order). `status` adds `PENDING_APPROVAL` and `REJECTED`. `conversation_type` stays `DIRECT|GROUP|CLASS|SCHOOL`.
 - `conversation_members`: `school_id` (composite FK), `left_reason` (`REMOVED`, `LEFT`, `ROSTER`, `LINK_CHANGED`), `added_by`, `last_read_seq` (the watermark as a number). `acting_as` is `NOT NULL`. A membership row never grants access: every read and write re-checks the live eligibility (`messaging.infrastructure.Eligibility`).
 - `messages`: `seq` (global increasing number given when the message is sent; ordering, keyset paging and the read watermark use it, because UUIDv7 ids are only ordered to the millisecond; a scheduled message gets it when released), `sent_at`, `sender_member_id` (the capacity it was sent in), `system_code`, `hidden_at/hidden_by/hide_reason`, `blocked_code`, `notified_at` (the delivery listener's claim). `status` adds `CANCELLED` and `BLOCKED`. The body of a deleted message is moved to `message_edits` and nulled.
 - New tables: `message_edits` (earlier versions of an edit, the original of a deletion; readable only through the audited review endpoint) and `message_reports` (one row per reporter and message; ids and a reason code, plus the reporter's optional note, which is never copied anywhere else).
@@ -1454,12 +1456,11 @@ create table push_devices (                      -- also the device identity for
 ```sql
 create table events (                            -- native events only (R-17)
   id                  uuid primary key default uuidv7(),
-  scope_type          text not null,             -- SCHOOL|CAMPUS|GRADE_LEVEL|CLASS|COURSE|PERSONAL
+  scope_type          text not null,             -- SCHOOL|CAMPUS|GRADE_LEVEL|CLASS|PERSONAL
   school_id           uuid references schools,
   campus_id           uuid references campuses,
   grade_level_id      uuid references grade_levels,
   class_id            uuid references classes,
-  course_id           uuid references courses,   -- P3 column
   owner_id            uuid references users,     -- PERSONAL
   event_type          text not null,             -- SCHOOL_EVENT|CLASS_EVENT|EXAM|PARENT_MEETING|OTHER
   title               text not null,
@@ -1487,10 +1488,10 @@ create table event_participants (                -- invitations / RSVPs, e.g. pa
   primary key (event_id, user_id)
 );
 ```
-The calendar API combines `events` with `assignments.due_at`, `course_live_sessions`, `tutoring_sessions`, `holidays` and `academic_periods` boundaries. Each source is filtered by the user's access.
+The calendar API combines `events` with `assignments.due_at`, the published timetable, `holidays` and `academic_periods` boundaries. Each source is filtered by the user's access.
 
 *As built (M11a, `V11_01__calendar.sql`; deviations from the sketch above):*
-- `events.scope_type` adds **INVITEES** (visible only to the people invited; every PARENT_MEETING has it and only it: a CHECK ties the two). COURSE stays allowed by the CHECK but unsupported by the API; `course_id` has no FK until the courses table exists (P3). PERSONAL events carry `owner_id` and no `school_id` (they belong to a user; CHECKs tie `scope_type = 'PERSONAL'` to both). SCHOOL, CAMPUS, GRADE_LEVEL and CLASS rows are checked to carry exactly the ids of their scope; `campus_id`, `grade_level_id` and `class_id` are composite FKs `(x, school_id)`.
+- `events.scope_type` adds **INVITEES** (visible only to the people invited; every PARENT_MEETING has it and only it: a CHECK ties the two). COURSE is removed from the design (D33): the built CHECK still allows it and the API never uses it, and a cleanup migration drops it. PERSONAL events carry `owner_id` and no `school_id` (they belong to a user; CHECKs tie `scope_type = 'PERSONAL'` to both). SCHOOL, CAMPUS, GRADE_LEVEL and CLASS rows are checked to carry exactly the ids of their scope; `campus_id`, `grade_level_id` and `class_id` are composite FKs `(x, school_id)`.
 - **All-day** events are calendar dates in the event's zone: `start_date`/`end_date` (inclusive) are set exactly when `all_day`, and `start_at`/`end_at` hold the instants of the start of the first day and of the day after the last one (end exclusive), so window queries need no special case. Timed events: `end_at >= start_at`.
 - `recurrence_rule` is an RFC 5545 RRULE **subset** (FREQ DAILY/WEEKLY/MONTHLY, INTERVAL, BYDAY for weekly, BYMONTHDAY for monthly, UNTIL or COUNT; no EXDATE inside the text). Cancelled occurrences and changed occurrences are rows of the new **`event_overrides`** (key: `event_id`, `occurrence_start`, the instant the occurrence has in the series; CANCELLED is the series' EXDATE, MODIFIED carries the fields that differ). `recurrence_ends_at` is the end of the last occurrence of a finite series (null: endless). Series are stored once; occurrences are expanded per request. A CHECK forbids RSVP on a repeating event.
 - `event_participants` drops `regarding_student_id` (it is on the event: `events.regarding_student_id`, mandatory for PARENT_MEETING) and adds `invited_at`; `role` and `rsvp_status` are CHECKed. A parent meeting's participants are the organiser and the guardians resolved at creation (ACTIVE, not custody-restricted, `can_view_academics`); the guardians' links are re-checked against `student_guardians` at every read. Ordinary events create a row only when somebody answers.
@@ -1685,7 +1686,7 @@ create table content_reports (                   -- R-18 step 1
   id              uuid primary key default uuidv7(),
   reporter_id     uuid not null references users,
   school_id       uuid references schools,
-  target_type     text not null,                 -- POST|POST_COMMENT|STORY|MESSAGE|USER|PORTFOLIO_ITEM|TUTOR_PROFILE|COURSE|TUTOR_REVIEW|LIBRARY_RESOURCE|MEDIA|AI_OUTPUT
+  target_type     text not null,                 -- POST|POST_COMMENT|STORY|MESSAGE|USER|PORTFOLIO_ITEM|TUTOR_PROFILE|LIBRARY_RESOURCE|MEDIA
   target_id       uuid not null,
   reason_code     text not null,                 -- SPAM|HARASSMENT|INAPPROPRIATE|SAFETY_CONCERN|COPYRIGHT|PRIVACY|INACCURATE|OTHER
   details         text,
@@ -1780,7 +1781,7 @@ create table safeguarding_incident_notes (
 ```sql
 create table policy_documents (
   id              uuid primary key default uuidv7(),
-  policy_type     text not null,                 -- TERMS|PRIVACY|ACCOUNT_PARTICIPATION|MEDIA_PUBLICATION|RECORDING|TRANSCRIPTION|AI_PROCESSING|RESEARCH_ANALYTICS
+  policy_type     text not null,                 -- TERMS|PRIVACY|ACCOUNT_PARTICIPATION|MEDIA_PUBLICATION|RECORDING|TRANSCRIPTION|AI_PROCESSING|RESEARCH_ANALYTICS  (RECORDING, TRANSCRIPTION and AI_PROCESSING exist in the built check but are unused: no recording or AI feature ships, D33, D34)
   country_code    char(2) references countries,
   school_id       uuid references schools,       -- school-specific wording
   title           text not null
@@ -1806,7 +1807,7 @@ create table consent_records (                   -- append-only; latest row per 
   subject_user_id     uuid not null references users,    -- the child (or the adult themself)
   granted_by_user_id  uuid not null references users,    -- guardian or self
   school_id           uuid references schools,
-  scope_ref_type      text,                      -- null = general; TUTORING_RELATIONSHIP|COURSE|VIDEO_ROOM
+  scope_ref_type      text,                      -- null = general (scoped consents are not used in this version)
   scope_ref_id        uuid,
   decision            text not null,             -- GRANTED|DENIED|WITHDRAWN
   method              text not null,             -- IN_APP|PAPER_RECORDED_BY_SCHOOL|VERBAL_RECORDED_BY_SCHOOL
@@ -1818,25 +1819,12 @@ create table consent_records (                   -- append-only; latest row per 
 );
 create index ix_consent_lookup on consent_records (subject_user_id, consent_type, created_at desc);
 
-create table data_sharing_grants (               -- R-21 (P4)
-  id                  uuid primary key default uuidv7(),
-  student_id          uuid not null references student_profiles,
-  granted_by          uuid not null references users,    -- guardian
-  grantee_user_id     uuid not null references users,    -- tutor
-  tutoring_relationship_id uuid references tutoring_relationships,
-  data_categories     text[] not null,           -- SCHOOL_GRADES|ATTENDANCE|PORTFOLIO|AI_TUTOR_PROGRESS|LEARNING_GOALS
-  status              text not null default 'ACTIVE', -- ACTIVE|REVOKED|EXPIRED
-  granted_at          timestamptz not null default now(),
-  expires_at          timestamptz,
-  revoked_at          timestamptz
-);
-
 create table retention_policies (                -- P2
   id              uuid primary key default uuidv7(),
   scope_type      text not null,                 -- PLATFORM|COUNTRY|SCHOOL
   country_code    char(2) references countries,
   school_id       uuid references schools,
-  data_category   text not null,                 -- RECORDINGS|TRANSCRIPTS|AI_OUTPUTS|MESSAGES|STUDENT_RECORDS|SUPPORT_EVIDENCE|AUDIT_LOGS
+  data_category   text not null,                 -- MESSAGES|STUDENT_RECORDS|SUPPORT_EVIDENCE|AUDIT_LOGS
   retention_days  int not null,
   action          text not null,                 -- DELETE|ANONYMIZE|ARCHIVE
   -- + std
@@ -1930,7 +1918,7 @@ create table report_jobs (                       -- async report generation (§9
 
 *As built (M1b, `V1_07`):* `audit_logs` has monthly partitions `audit_logs_yYYYYmMM` (current month and three ahead, kept by a daily ShedLock job) plus a default partition `audit_logs_default` so a row outside every month never fails a business transaction; it should stay empty. `outcome` has a CHECK. UPDATE/DELETE are not revoked yet (single database role); no code path updates or deletes rows.
 
-### 4.20 Subscriptions (P1 manual, P5 billing)
+### 4.20 Subscriptions (P1 manual; tutor listing P4; school billing P5)
 
 ```sql
 create table subscription_plans (
@@ -2058,7 +2046,7 @@ create table school_curriculum_adoptions (       -- which version a school follo
 create table curriculum_mappings (
   id                  uuid primary key default uuidv7(),
   learning_objective_id uuid not null references learning_objectives,
-  target_type         text not null,             -- ASSIGNMENT|ASSESSMENT|QUIZ_QUESTION|COURSE_LESSON|PORTFOLIO_ITEM|LIBRARY_RESOURCE|ACTIVITY_TEMPLATE
+  target_type         text not null,             -- ASSIGNMENT|ASSESSMENT|QUIZ_QUESTION|BANK_QUESTION|LESSON_PLAN|PORTFOLIO_ITEM|LIBRARY_RESOURCE|ACTIVITY_TEMPLATE
   target_id           uuid not null,
   tagged_by           uuid references users,
   created_at          timestamptz not null default now(),
@@ -2071,11 +2059,10 @@ create table learning_evidence (
   id                  uuid primary key default uuidv7(),
   student_id          uuid not null references student_profiles,
   learning_objective_id uuid not null references learning_objectives,
-  school_id           uuid references schools,   -- null for marketplace/AI evidence
-  source_type         text not null,             -- ASSESSMENT_RESULT|QUIZ_ATTEMPT|PORTFOLIO_ITEM|AI_PRACTICE|TUTOR_NOTE
+  school_id           uuid references schools,
+  source_type         text not null,             -- ASSESSMENT_RESULT|QUIZ_ATTEMPT|PORTFOLIO_ITEM
   source_id           uuid not null,
   score_normalized    numeric(5,4),              -- 0..1
-  is_ai_generated     boolean not null default false,
   observed_at         timestamptz not null,
   recorded_by         uuid references users
 );
@@ -2092,7 +2079,7 @@ create table mastery_records (                   -- human decision only
 );
 ```
 
-### 4.22 Assignments, assessment & grading (P2; course scope P3)
+### 4.22 Assignments, assessment & grading (P2)
 
 ```sql
 create table grading_schemes (                   -- §26
@@ -2142,13 +2129,12 @@ create table rubric_levels (
   sort_order      smallint not null
 );
 
--- Work students hand in (R-15). Scope: class or course.
+-- Work students hand in (R-15). Scope: class.
 create table assignments (
   id                  uuid primary key default uuidv7(),
-  scope_type          text not null,             -- CLASS|COURSE
+  scope_type          text not null,             -- CLASS (COURSE removed, D33)
   school_id           uuid references schools,
   class_id            uuid,
-  course_id           uuid references courses,   -- P3
   subject_id          uuid references subjects,
   academic_period_id  uuid references academic_periods,
   created_by          uuid not null references users,
@@ -2164,7 +2150,7 @@ create table assignments (
   assigned_to_all     boolean not null default true,  -- false → assignment_targets
   status              text not null default 'DRAFT',  -- DRAFT|SCHEDULED|PUBLISHED|CLOSED|ARCHIVED
   foreign key (class_id, school_id) references classes (id, school_id),
-  check ((scope_type='CLASS' and class_id is not null) or (scope_type='COURSE' and course_id is not null))
+  check (scope_type='CLASS' and class_id is not null)
   -- + std
 );
 
@@ -2244,7 +2230,6 @@ create table assessment_results (
   status              text not null default 'DRAFT', -- DRAFT|FINAL|PUBLISHED
   graded_by           uuid references users,
   graded_at           timestamptz,
-  ai_generation_id    uuid references ai_generations, -- P6: AI-suggested, human-approved
   unique (assessment_id, student_id)
   -- + std
 );
@@ -2275,12 +2260,11 @@ create table period_grades (                     -- report-card line (replaces v
   -- + std
 );
 
--- Shared quiz engine: school assessments, course lessons, AI practice (R-15)
+-- Shared quiz engine: school assessments and practice quizzes (R-15)
 create table quizzes (
   id              uuid primary key default uuidv7(),
-  owner_type      text not null,                 -- SCHOOL|COURSE|PLATFORM
+  owner_type      text not null,                 -- SCHOOL|PLATFORM
   school_id       uuid references schools,
-  course_id       uuid references courses,
   created_by      uuid not null references users,
   title           text not null,
   settings        jsonb not null default '{}',   -- time_limit_s, shuffle, attempts_allowed, show_answers_after
@@ -2305,9 +2289,8 @@ create table quiz_attempts (
   id                  uuid primary key default uuidv7(),
   quiz_id             uuid not null references quizzes,
   student_id          uuid not null references student_profiles,
-  context_type        text not null,             -- ASSESSMENT|COURSE_LESSON|PRACTICE
+  context_type        text not null,             -- ASSESSMENT|PRACTICE
   assessment_id       uuid references assessments,
-  course_enrollment_id uuid references course_enrollments,
   attempt_number      smallint not null default 1,
   status              text not null default 'IN_PROGRESS', -- IN_PROGRESS|SUBMITTED|GRADED
   started_at          timestamptz not null default now(),
@@ -2374,11 +2357,10 @@ create table library_resources (
 create table resource_access_rules (
   id              uuid primary key default uuidv7(),
   resource_id     uuid not null references library_resources on delete cascade,
-  rule_type       text not null,                 -- PUBLIC|SCHOOL|GRADE_LEVEL|CLASS|COURSE|USER
+  rule_type       text not null,                 -- PUBLIC|SCHOOL|GRADE_LEVEL|CLASS|USER
   school_id       uuid references schools,
   grade_level_id  uuid references grade_levels,
   class_id        uuid references classes,
-  course_id       uuid references courses,       -- "ENROLLED_ONLY"
   user_id         uuid references users,
   audience_roles  text[] not null default '{STUDENT,TEACHER,GUARDIAN}'
 );
@@ -2400,197 +2382,21 @@ create table resource_collection_items (
 );
 ```
 
-### 4.24 Courses (P3)
+### 4.24 Courses (removed)
 
-```sql
-create table courses (
-  id                  uuid primary key default uuidv7(),
-  owner_type          text not null,             -- SCHOOL|TEACHER|TUTOR|ORGANIZATION|PLATFORM (§39)
-  school_id           uuid references schools,
-  organization_id     uuid references organizations,
-  owner_user_id       uuid references users,     -- TEACHER / TUTOR owner
-  country_code        char(2) not null references countries,
-  title               text not null,
-  slug                citext not null unique,
-  subtitle            text,
-  description         text,
-  language_code       text not null references languages,
-  delivery_mode       text not null,             -- PRE_RECORDED|LIVE|HYBRID (§38)
-  audience            text not null,             -- PUBLIC|SCHOOL|CLASS|INVITE_ONLY (R-06)
-  enrollment_policy   text not null,             -- OPEN|APPROVAL_REQUIRED|INVITE_ONLY
-  pricing_model       text not null default 'FREE', -- FREE|ONE_TIME
-  price_minor         bigint,
-  currency_code       char(3) references currencies,
-  capacity            int,
-  curriculum_subject_id uuid references curriculum_subjects,
-  academic_level_id   uuid references academic_levels,
-  cover_media_id      uuid references media,
-  starts_on           date,
-  ends_on             date,
-  status              text not null default 'DRAFT', -- DRAFT|IN_REVIEW|PUBLISHED|UNLISTED|ARCHIVED
-  published_at        timestamptz,
-  created_by          uuid not null references users,
-  check (audience not in ('SCHOOL','CLASS') or (owner_type = 'SCHOOL' and school_id is not null)), -- R-20
-  check (pricing_model = 'FREE' or (price_minor > 0 and currency_code is not null))
-  -- + std
-);
+*Removed 26 November 2026 (D33).* There are no online courses, course sections, lessons, course enrollments, lesson progress or live sessions. Learning material for a class is the **digital library** (§4.23) plus **assignments** (§4.22); a student's progress is their assignments, assessments and portfolio. The tables `courses`, `course_instructors`, `course_audience_rules`, `course_sections`, `course_lessons`, `course_materials`, `course_enrollments`, `lesson_progress`, `course_live_sessions` and `course_live_participants`, and every `course_id` column and `COURSE` scope value in other sections, are not built.
 
-create table course_instructors (
-  course_id       uuid references courses on delete cascade,
-  user_id         uuid references users,
-  role            text not null,                 -- OWNER|INSTRUCTOR|ASSISTANT
-  primary key (course_id, user_id)
-);
+### 4.25 Video (removed)
 
-create table course_audience_rules (             -- for SCHOOL/CLASS audience
-  id              uuid primary key default uuidv7(),
-  course_id       uuid not null references courses on delete cascade,
-  school_id       uuid not null references schools,
-  grade_level_id  uuid references grade_levels,
-  class_id        uuid references classes
-);
-
-create table course_sections (
-  id              uuid primary key default uuidv7(),
-  course_id       uuid not null references courses on delete cascade,
-  title           text not null,
-  sort_order      smallint not null
-);
-
-create table course_lessons (
-  id                  uuid primary key default uuidv7(),
-  course_id           uuid not null references courses,
-  section_id          uuid not null references course_sections on delete cascade,
-  title               text not null,
-  lesson_type         text not null,             -- VIDEO|TEXT|PDF|AUDIO|LIVE_SESSION|QUIZ|ASSIGNMENT (§43)
-  body                text,                      -- TEXT lessons
-  media_id            uuid references media,
-  quiz_id             uuid references quizzes,
-  assignment_id       uuid references assignments,
-  live_session_id     uuid references course_live_sessions,
-  duration_seconds    int,
-  is_preview          boolean not null default false, -- visible before enrollment
-  is_final_assessment boolean not null default false,
-  sort_order          smallint not null,
-  status              text not null default 'DRAFT'   -- DRAFT|PUBLISHED
-  -- + std
-);
-
-create table course_materials (
-  id                  uuid primary key default uuidv7(),
-  course_id           uuid not null references courses,
-  lesson_id           uuid references course_lessons,
-  title               text not null,
-  media_id            uuid references media,
-  library_resource_id uuid references library_resources,
-  sort_order          smallint not null default 0
-);
-
-create table course_enrollments (                -- §41
-  id                  uuid primary key default uuidv7(),
-  course_id           uuid not null references courses,
-  student_id          uuid not null references student_profiles,
-  enrolled_by         uuid references users,     -- guardian for minors
-  source              text not null,             -- SELF|GUARDIAN|INVITE|SCHOOL_ASSIGNED|PURCHASE
-  status              text not null default 'PENDING', -- PENDING|ACTIVE|REJECTED|COMPLETED|CANCELLED|EXPIRED|SUSPENDED (R-11)
-  requested_at        timestamptz not null default now(),
-  approved_at         timestamptz,
-  approved_by         uuid references users,
-  enrolled_at         timestamptz,
-  completed_at        timestamptz,
-  expires_at          timestamptz,
-  order_item_id       uuid references order_items,
-  progress_percent    numeric(5,2) not null default 0
-  -- + std
-);
-create unique index ux_course_enrollment_live on course_enrollments (course_id, student_id) where status in ('PENDING','ACTIVE');
-
-create table lesson_progress (
-  enrollment_id       uuid references course_enrollments on delete cascade,
-  lesson_id           uuid references course_lessons,
-  status              text not null default 'NOT_STARTED', -- NOT_STARTED|IN_PROGRESS|COMPLETED
-  position_seconds    int,
-  completed_at        timestamptz,
-  last_accessed_at    timestamptz,
-  primary key (enrollment_id, lesson_id)
-);
-
-create table course_live_sessions (              -- §44
-  id                  uuid primary key default uuidv7(),
-  course_id           uuid not null references courses,
-  title               text not null,
-  host_user_id        uuid not null references users,
-  scheduled_start     timestamptz not null,
-  scheduled_end       timestamptz not null,
-  timezone            text not null,
-  video_room_id       uuid references video_rooms,
-  recording_media_id  uuid references media,
-  status              text not null default 'SCHEDULED' -- SCHEDULED|LIVE|ENDED|CANCELLED
-  -- + std
-);
-
-create table course_live_participants (
-  live_session_id     uuid references course_live_sessions on delete cascade,
-  user_id             uuid references users,
-  role                text not null,             -- HOST|CO_HOST|STUDENT|OBSERVER
-  attendance_status   text,                      -- ATTENDED|ABSENT|PARTIAL
-  joined_at           timestamptz,
-  left_at             timestamptz,
-  primary key (live_session_id, user_id)
-);
-```
-Course discussions (§114) use `posts` with scope COURSE and/or a `conversations` row of type COURSE.
-
-### 4.25 Video (P3)
-
-```sql
-create table video_rooms (                       -- shared infra, separate domains (§57)
-  id                  uuid primary key default uuidv7(),
-  provider            text not null,             -- AGORA
-  provider_room_ref   text not null,             -- channel name
-  context_type        text not null,             -- COURSE_LIVE_SESSION|TUTORING_SESSION
-  context_id          uuid not null,
-  recording_enabled   boolean not null default false, -- only after consent verified (R-35)
-  transcription_enabled boolean not null default false,
-  consent_checked_at  timestamptz,
-  status              text not null default 'CREATED', -- CREATED|OPEN|CLOSED
-  opened_at           timestamptz,
-  closed_at           timestamptz,
-  created_at          timestamptz not null default now(),
-  unique (context_type, context_id)
-);
-
-create table video_recordings (
-  id                  uuid primary key default uuidv7(),
-  video_room_id       uuid not null references video_rooms,
-  provider_recording_ref text,
-  media_id            uuid references media,
-  started_by          uuid not null references users,
-  consent_verified    boolean not null,
-  started_at          timestamptz not null,
-  stopped_at          timestamptz,
-  status              text not null,             -- RECORDING|PROCESSING|READY|FAILED|DELETED
-  retention_until     timestamptz
-);
-
-create table session_transcripts (               -- P6 copilot input; consent-gated
-  id                  uuid primary key default uuidv7(),
-  video_room_id       uuid not null references video_rooms,
-  media_id            uuid references media,     -- transcript file
-  language_code       text references languages,
-  consent_verified    boolean not null,
-  status              text not null,
-  retention_until     timestamptz,
-  created_at          timestamptz not null default now()
-);
-```
-Join tokens are short-lived and never stored. Each issue is logged in `audit_logs` (`video.join_token.issue`).
+*Removed 26 November 2026 (D33).* There is no hosted video: no `video_rooms`, `video_recordings` or `session_transcripts`, no live sessions and no recordings. Tutors who teach online use their own tools; the platform does not host or record lessons.
 
 ### 4.26 Payments core (P3)
 
+*Revised 26 November 2026 (D32, D37).* The payment core serves two things only: **school fee invoices** (§4.36) and **platform invoices** for tutor listing subscriptions and school plans. It has no orders, order items, commissions, payouts or provider refunds. Money paid to a school is the school's; the platform's own revenue (listing fees, school plans) is separate (§106).
+
 ```sql
 create table payment_providers (
-  code            text primary key,              -- CHAPA|TELEBIRR|MPESA|STRIPE ...
+  code            text primary key,              -- CHAPA|TELEBIRR|ARIFPAY ... (an adapter per provider)
   name            text not null,
   provider_type   text not null                  -- CARD|MOBILE_MONEY|BANK|WALLET|AGGREGATOR
 );
@@ -2604,66 +2410,55 @@ create table country_payment_providers (         -- §61
   primary key (country_code, provider_code)
 );
 
-create table orders (
+create table platform_invoices (                 -- what the PLATFORM charges: tutor listing, school plan
   id                  uuid primary key default uuidv7(),
-  buyer_id            uuid not null references users,
-  beneficiary_student_id uuid references student_profiles,
-  country_code        char(2) not null references countries,
-  currency_code       char(3) not null references currencies,
-  subtotal_minor      bigint not null,
-  discount_minor      bigint not null default 0,
-  tax_minor           bigint not null default 0,
-  total_minor         bigint not null,
-  status              text not null default 'PENDING', -- PENDING|AWAITING_PAYMENT|PAID|PARTIALLY_REFUNDED|REFUNDED|CANCELLED|EXPIRED
-  expires_at          timestamptz,
-  paid_at             timestamptz
-  -- + std
-);
-
-create table order_items (
-  id                  uuid primary key default uuidv7(),
-  order_id            uuid not null references orders,
-  item_type           text not null,             -- COURSE_ENROLLMENT|TUTOR_BOOKING|SUBSCRIPTION
-  course_id           uuid references courses,
-  tutor_booking_id    uuid references tutor_bookings,
-  subscription_id     uuid references subscriptions,
+  invoice_no          text not null unique,
+  subscriber_type     text not null,             -- TUTOR|SCHOOL
+  tutor_id            uuid references tutor_profiles,
+  school_id           uuid references schools,
+  subscription_id     uuid not null references subscriptions,
   description         text not null,
-  quantity            int not null default 1,
-  unit_price_minor    bigint not null,
-  total_minor         bigint not null,
-  seller_type         text not null,             -- PLATFORM|TUTOR|SCHOOL|ORGANIZATION
-  seller_user_id      uuid references users,
-  seller_school_id    uuid references schools,
-  commission_rate_bps int not null default 0
+  period_start        date not null,
+  period_end          date not null,
+  currency_code       char(3) not null references currencies,
+  amount_minor        bigint not null check (amount_minor >= 0),
+  status              text not null default 'ISSUED', -- ISSUED|PAID|OVERDUE|VOID
+  issued_at           timestamptz not null default now(),
+  due_date            date not null,
+  paid_at             timestamptz,
+  check ((subscriber_type = 'TUTOR' and tutor_id is not null and school_id is null)
+      or (subscriber_type = 'SCHOOL' and school_id is not null and tutor_id is null))
+  -- + std
 );
 
 create table payments (
   id                  uuid primary key default uuidv7(),
-  order_id            uuid references orders,
-  invoice_id          uuid references invoices,  -- P5 school fees
+  invoice_id          uuid references invoices,  -- a school fee invoice (§4.36)
+  platform_invoice_id uuid references platform_invoices, -- a listing or plan charge
   payer_id            uuid not null references users,
   provider_code       text not null references payment_providers,
   amount_minor        bigint not null,
   currency_code       char(3) not null references currencies,
-  status              text not null default 'INITIATED', -- INITIATED|PENDING|SUCCEEDED|FAILED|CANCELLED|REFUNDED|PARTIALLY_REFUNDED
+  status              text not null default 'INITIATED', -- INITIATED|PENDING|SUCCEEDED|FAILED|CANCELLED|REVERSED
+  verification_status text not null default 'PENDING',   -- PENDING|VERIFIED|MISMATCH
   provider_reference  text,
   checkout_url        text,
   idempotency_key     text not null unique,
   failure_reason      text,
   initiated_at        timestamptz not null default now(),
   completed_at        timestamptz,
-  check (num_nonnulls(order_id, invoice_id) = 1)
+  check (num_nonnulls(invoice_id, platform_invoice_id) = 1)
   -- + std
 );
 
 create table payment_transactions (              -- provider-level events
   id                  uuid primary key default uuidv7(),
   payment_id          uuid not null references payments,
-  transaction_type    text not null,             -- AUTHORIZE|CAPTURE|CHARGE|REFUND|VERIFY|RECONCILE
+  transaction_type    text not null,             -- CHARGE|VERIFY|RECONCILE|REVERSAL
   provider_transaction_ref text,
   amount_minor        bigint,
   status              text not null,
-  raw_payload         jsonb,
+  raw_payload         jsonb,                     -- never logged; retention-limited
   created_at          timestamptz not null default now()
 );
 
@@ -2673,6 +2468,7 @@ create table payment_webhook_events (            -- idempotent webhook intake
   provider_event_id   text not null,
   payload             jsonb not null,
   signature_valid     boolean not null,
+  verified_amount_minor bigint,                  -- from the provider's status API, not from the payload
   status              text not null default 'RECEIVED', -- RECEIVED|PROCESSED|IGNORED|FAILED
   received_at         timestamptz not null default now(),
   processed_at        timestamptz,
@@ -2680,7 +2476,11 @@ create table payment_webhook_events (            -- idempotent webhook intake
 );
 ```
 
-### 4.27 Tutor marketplace (P4)
+*Rules:* a payment is SUCCEEDED only after a valid signature, a server-side status query and an amount, currency and reference match (D30, §4.36); the browser never marks a payment paid. A refund is not a provider call in this version: money returned to a payer is recorded as a reversal (`payment_allocations` reversal row, `payments.status = REVERSED`) and settled outside the platform.
+
+### 4.27 Tutor directory (P4)
+
+*Replaces the tutor marketplace, 26 November 2026 (D32, D35, D36).* Tutors **list** themselves: subjects, levels, languages, area and a weekly availability pattern. Families **find** a tutor and **message** them through the platform. There are no services, bookings, sessions, payments for lessons, reviews, commissions, payouts, matching or video; lessons are arranged between the tutor and the family, outside the platform. A tutor **pays a listing subscription** (`TUTOR` subscriptions, §4.20) to stay listed. `tutor_profiles` is defined in §4.4.
 
 ```sql
 create table tutor_subjects (
@@ -2699,6 +2499,25 @@ create table tutor_languages (
   primary key (tutor_id, language_code)
 );
 
+create table tutor_locations (                   -- where the tutor teaches: AREA level only, never an address
+  id                  uuid primary key default uuidv7(),
+  tutor_id            uuid not null references tutor_profiles,
+  administrative_area_id uuid not null references administrative_areas, -- city, sub-city or woreda
+  neighbourhood       text,                      -- free text, at most 80 characters
+  is_primary          boolean not null default false
+);
+
+create table tutor_availability (                -- a weekly pattern, informational (no slots, nothing is reserved)
+  id              uuid primary key default uuidv7(),
+  tutor_id        uuid not null references tutor_profiles,
+  day_of_week     smallint not null check (day_of_week between 1 and 7), -- ISO, 1 = Monday
+  start_time      time not null,
+  end_time        time not null,
+  timezone        text not null,
+  is_active       boolean not null default true,
+  check (end_time > start_time)
+);
+
 create table tutor_qualifications (
   id                  uuid primary key default uuidv7(),
   tutor_id            uuid not null references tutor_profiles,
@@ -2706,7 +2525,7 @@ create table tutor_qualifications (
   title               text not null,
   institution         text,
   year_awarded        smallint,
-  document_media_id   uuid references media,
+  document_media_id   uuid references media,     -- private; never shown publicly
   verification_status text not null default 'PENDING', -- PENDING|VERIFIED|REJECTED
   verified_by         uuid references users,
   verified_at         timestamptz
@@ -2730,307 +2549,54 @@ create table tutor_verification_requests (
   submitted_at    timestamptz not null default now(),
   reviewed_by     uuid references users,
   reviewed_at     timestamptz,
-  reviewer_notes  text
+  reviewer_notes  text                            -- never shown to the tutor verbatim; a reason code is
 );
 
 create table tutor_verification_documents (
   request_id      uuid references tutor_verification_requests on delete cascade,
   requirement_id  uuid references verification_requirements,
-  media_id        uuid not null references media,
+  media_id        uuid not null references media, -- purpose VERIFICATION_DOC: private, platform reviewers only
   status          text not null default 'PENDING', -- PENDING|ACCEPTED|REJECTED
   primary key (request_id, requirement_id)
 );
 
-create table cancellation_policies (
-  id                  uuid primary key default uuidv7(),
-  tutor_id            uuid references tutor_profiles, -- null = platform template
-  name                text not null,
-  free_cancel_hours   smallint not null,
-  late_cancel_refund_pct smallint not null,
-  tutor_no_show_refund_pct smallint not null default 100,
-  description         text
-);
-
-create table tutor_services (                    -- §50
+create table tutor_inquiries (                   -- one conversation opened by a family with a tutor
   id                  uuid primary key default uuidv7(),
   tutor_id            uuid not null references tutor_profiles,
-  title               text not null,
-  description         text,
-  curriculum_subject_id uuid references curriculum_subjects,
-  subject_name        text not null,
-  level_from_id       uuid references academic_levels,
-  level_to_id         uuid references academic_levels,
-  service_type        text not null,             -- ONE_TO_ONE|SMALL_GROUP (§52)
-  delivery_mode       text not null,             -- ONLINE|IN_PERSON|BOTH
-  duration_minutes    smallint not null,
-  price_minor         bigint not null,
-  currency_code       char(3) not null references currencies,
-  max_students        smallint not null default 1,
-  is_trial            boolean not null default false, -- introductory lesson (§128)
-  min_notice_hours    smallint not null default 12,
-  booking_window_days smallint not null default 30,
-  requires_guardian_approval boolean not null default true,
-  cancellation_policy_id uuid references cancellation_policies,
-  status              text not null default 'DRAFT', -- DRAFT|ACTIVE|PAUSED|ARCHIVED
-  check (service_type = 'SMALL_GROUP' or max_students = 1)
-  -- + std
-);
-
-create table tutor_availability (                -- §53 weekly pattern
-  id              uuid primary key default uuidv7(),
-  tutor_id        uuid not null references tutor_profiles,
-  day_of_week     smallint not null check (day_of_week between 1 and 7), -- ISO, 1 = Monday
-  start_time      time not null,
-  end_time        time not null,
-  timezone        text not null,
-  effective_from  date,
-  effective_to    date,
-  is_active       boolean not null default true,
-  check (end_time > start_time)
-);
-
-create table tutor_availability_exceptions (     -- R-23
-  id              uuid primary key default uuidv7(),
-  tutor_id        uuid not null references tutor_profiles,
-  exception_type  text not null,                 -- UNAVAILABLE|EXTRA_AVAILABILITY
-  starts_at       timestamptz not null,
-  ends_at         timestamptz not null,
-  reason          text
-);
-
-create table tutoring_relationships (            -- R-21: tutor ↔ learner (↔ guardian)
-  id              uuid primary key default uuidv7(),
-  tutor_id        uuid not null references tutor_profiles,
-  student_id      uuid not null references student_profiles,
-  guardian_id     uuid references guardian_profiles, -- required if student is a minor
-  status          text not null default 'TRIAL', -- TRIAL|ACTIVE|PAUSED|ENDED
-  learning_goals  text,
-  started_at      timestamptz not null default now(),
-  ended_at        timestamptz,
-  ended_by        uuid references users
-);
-create unique index ux_tutoring_rel_live on tutoring_relationships (tutor_id, student_id) where status <> 'ENDED';
-
-create table booking_series (                    -- recurring weekly lessons (R-22)
-  id              uuid primary key default uuidv7(),
-  service_id      uuid not null references tutor_services,
-  tutoring_relationship_id uuid not null references tutoring_relationships,
-  recurrence_rule text not null,                 -- RRULE
-  starts_on       date not null,
-  ends_on         date,
-  status          text not null default 'ACTIVE' -- ACTIVE|PAUSED|ENDED
-);
-
-create table tutoring_sessions (                 -- R-04: independent of bookings
-  id                  uuid primary key default uuidv7(),
-  tutor_id            uuid not null references tutor_profiles,
-  service_id          uuid not null references tutor_services,
-  session_type        text not null,             -- ONE_TO_ONE|SMALL_GROUP
-  delivery_mode       text not null,             -- ONLINE|IN_PERSON
-  scheduled_start     timestamptz not null,
-  scheduled_end       timestamptz not null,
-  capacity            smallint not null default 1,
-  video_room_id       uuid references video_rooms,
-  location_address_id uuid references addresses,
-  started_at          timestamptz,
-  ended_at            timestamptz,
-  status              text not null default 'SCHEDULED', -- SCHEDULED|IN_PROGRESS|COMPLETED|CANCELLED|TUTOR_NO_SHOW
-  exclude using gist (tutor_id with =, tstzrange(scheduled_start, scheduled_end) with &&)
-    where (status in ('SCHEDULED','IN_PROGRESS'))       -- no double-booking (R-23)
-  -- + std
-);
-
-create table tutor_bookings (                    -- §54 + R-05, R-22
-  id                  uuid primary key default uuidv7(),
-  service_id          uuid not null references tutor_services,
-  tutor_id            uuid not null references tutor_profiles,
-  student_id          uuid not null references student_profiles,
-  booked_by           uuid not null references users,
-  guardian_id         uuid references guardian_profiles,
-  tutoring_relationship_id uuid not null references tutoring_relationships,
-  tutoring_session_id uuid references tutoring_sessions,  -- set when confirmed
-  booking_series_id   uuid references booking_series,
-  is_trial            boolean not null default false,
-  scheduled_start     timestamptz not null,
-  scheduled_end       timestamptz not null,
-  timezone            text not null,
-  delivery_mode       text not null,
-  learner_goal        text,
-  status              text not null default 'REQUESTED',
-     -- REQUESTED|PENDING_GUARDIAN_APPROVAL|PENDING_PAYMENT|CONFIRMED|DECLINED|CANCELLED|COMPLETED|NO_SHOW|REFUNDED
-  price_minor         bigint not null,
-  currency_code       char(3) not null references currencies,
-  order_id            uuid references orders,
-  guardian_approved_by uuid references users,
-  guardian_approved_at timestamptz,
-  cancelled_by        uuid references users,
-  cancelled_at        timestamptz,
-  cancellation_reason text,
-  rescheduled_from_booking_id uuid references tutor_bookings
-  -- + std
-);
-
-create table booking_status_history (
-  id              uuid primary key default uuidv7(),
-  booking_id      uuid not null references tutor_bookings,
-  from_status     text,
-  to_status       text not null,
-  actor_id        uuid references users,
-  reason          text,
-  created_at      timestamptz not null default now()
-);
-
-create table tutoring_participants (
-  session_id      uuid references tutoring_sessions on delete cascade,
-  user_id         uuid references users,
-  booking_id      uuid references tutor_bookings,
-  role            text not null,                 -- TUTOR|STUDENT|GUARDIAN_OBSERVER
-  attendance_status text,                        -- ATTENDED|ABSENT|LATE|LEFT_EARLY
-  joined_at       timestamptz,
-  left_at         timestamptz,
-  primary key (session_id, user_id)
-);
-
-create table tutoring_session_notes (            -- §116 session notes; copilot drafts (§129)
-  id                  uuid primary key default uuidv7(),
-  session_id          uuid not null references tutoring_sessions,
-  student_id          uuid not null references student_profiles,
-  author_id           uuid not null references users,
-  topics_covered      text,
-  notes               text,
-  homework            text,
-  next_steps          text,
-  visibility          text not null default 'TUTOR_ONLY', -- TUTOR_ONLY|GUARDIAN|GUARDIAN_AND_STUDENT
-  ai_generation_id    uuid references ai_generations,
-  status              text not null default 'DRAFT',      -- DRAFT|APPROVED|SHARED
-  approved_at         timestamptz,
-  shared_at           timestamptz
-  -- + std
-);
-
-create table trial_assessments (                 -- §128 post-trial structured assessment
-  id                  uuid primary key default uuidv7(),
-  booking_id          uuid not null unique references tutor_bookings,
-  tutor_id            uuid not null references tutor_profiles,
-  student_id          uuid not null references student_profiles,
-  goals               text,
-  strengths           text,
-  areas_to_practise   text,
-  proposed_plan       text,
-  ai_generation_id    uuid references ai_generations,
-  status              text not null default 'DRAFT', -- DRAFT|SHARED
-  shared_at           timestamptz
-  -- + std
-);
-
-create table tutor_reviews (                     -- §58; tied to a real booking
-  id                  uuid primary key default uuidv7(),
-  tutor_id            uuid not null references tutor_profiles,
-  booking_id          uuid not null unique references tutor_bookings,
-  reviewer_id         uuid not null references users,
-  rating              smallint not null check (rating between 1 and 5),
-  comment             text,
-  tutor_response      text,
-  status              text not null default 'PUBLISHED', -- PENDING|PUBLISHED|HIDDEN|REMOVED
-  created_at          timestamptz not null default now()
-);
-
-create table tutor_match_requests (              -- §128 transparent matching
-  id                  uuid primary key default uuidv7(),
-  requested_by        uuid not null references users,
-  student_id          uuid references student_profiles,
-  curriculum_subject_id uuid references curriculum_subjects,
+  inquirer_id         uuid not null references users,
+  inquirer_role       text not null,             -- GUARDIAN|ADULT_LEARNER
+  learner_age_band    text not null,             -- PRIMARY|LOWER_SECONDARY|UPPER_SECONDARY|ADULT (never a name or a date of birth)
   subject_name        text,
-  academic_level_id   uuid references academic_levels,
-  learning_goal       text,
-  current_level       text,
-  preferred_language_code text references languages,
-  delivery_mode       text,
-  budget_max_minor    bigint,
-  currency_code       char(3) references currencies,
-  schedule_preferences jsonb,
-  location_address_id uuid references addresses,
+  conversation_id     uuid not null unique references conversations,
+  status              text not null default 'OPEN', -- OPEN|REPLIED|CLOSED|BLOCKED
+  first_replied_at    timestamptz,
+  closed_at           timestamptz,
   created_at          timestamptz not null default now()
 );
-
-create table tutor_match_results (
-  request_id      uuid references tutor_match_requests on delete cascade,
-  tutor_id        uuid references tutor_profiles,
-  rank            smallint not null,
-  score           numeric(6,4) not null,
-  factors         jsonb not null,                -- per-factor scores + human-readable "why" (§128)
-  primary key (request_id, tutor_id)
-);
+create unique index ux_tutor_inquiry_live on tutor_inquiries (tutor_id, inquirer_id) where status in ('OPEN','REPLIED');
+create index ix_tutor_inquiry_inquirer on tutor_inquiries (inquirer_id, created_at desc);
 ```
 
-### 4.28 Marketplace finance & school fees (P5)
+*Changes to existing tables (P4):* `users.adult_confirmed_at timestamptz`: set only when the account has a phone verified by OTP **and** a date of birth showing 18 or over, entered at sign-up and changeable only through support (audited); never set for an account that is, or ever was, a student profile or a managed account. An adult learner without it cannot start an inquiry. *Residual risk (accepted):* the date of birth is declared, so a teenager could register as an adult; the phone check, the refusal for any student profile, the report flow and the review flag on messages that read like a child's are the mitigations.
+
+*Listing state.* A tutor is **visible in the directory** only when all three hold: `tutor_profiles.verification_status = 'VERIFIED'`, `tutor_profiles.listing_status = 'LISTED'`, and the tutor has a **live `TUTOR` subscription** (`TRIALING` or `ACTIVE`, or `PAST_DUE` for at most the 7-day grace). Lapsing hides the listing (`EXPIRED`) and keeps the data; paying again relists it without a new review unless the profile text or photo changed. The platform suspends a listing at once on a moderation decision (`SUSPENDED`).
+
+*Rules (D32, D35, D36):*
+- **Paying buys a listing, not rank.** Search results are ordered by relevance to the filters and by recency of activity; there is no paid placement and no opaque score (§128's transparency rule). The ordering factors are shown on the results page.
+- **Search** (authenticated guardians and adult learners only; **student accounts get no directory**, Messaging_Rules R4.6): filters subject, level, language, area or city, in-person or online, price range, day of week, verified. Backed by `pg_trgm` and ordinary indexes; no separate search engine (§119). No tutor contact details are ever returned by search or profile endpoints.
+- **Public profile data** is limited to: display name, photo, headline, bio, subjects and levels, languages, area-level locations, delivery mode, rate (`rate_from_minor`, `rate_unit`, informational), weekly availability, years of experience, and the verified badge. **Never**: phone, e-mail, exact address, identity or qualification documents, verification notes, the tutor's other accounts.
+- **Contact is a platform conversation of type `TUTOR_INQUIRY`** (Messaging_Rules R14). Only a **guardian** or an **independent adult learner (18 or over, `users.adult_confirmed_at` set)** may start one; **students under 18 never contact a tutor, directly or through their own account** (confirmed by the owner, 26 November 2026) (R4.5 stays) and a tutor can never start a conversation. A guardian writes on behalf of the child: the tutor sees "Parent" and the child's **age band and subject only**, never a name, school, class or photo unless the guardian types it. Limits: 5 new inquiries per user per day and 1 live inquiry per tutor and user; a tutor may be contacted by at most 30 new people per week (they can pause new inquiries); first messages are text only, 1,000 characters, no attachments, and a tutor's first reply goes through the usual messaging rate limits. Phone numbers and e-mail addresses in messages are not blocked (they cannot be) but trigger a visible safety notice to both sides.
+- **No access to school data (R-21 withdrawn).** There is no `tutoring_relationships` or `data_sharing_grants` table: a tutor never sees grades, attendance, portfolios, class membership or school messages, and a school never sees a family's tutor inquiries (§103).
+- **Safety.** Lessons happen off the platform, so the product says so plainly on the listing, in the first message screen and in the tutor terms: the platform does not run, supervise or guarantee lessons; for minors the guardian is present or meets the tutor first; meet in public places or at home with an adult present. Verification (national identity, qualifications, and where the country requires it, police clearance) is a **platform review** before listing, and a re-review when the identity or qualification changes. Anyone can **report** a tutor or a message (`content_reports` target `TUTOR_PROFILE` or `MESSAGE`, reason category `TUTOR_CONDUCT`), either side can **block**, and a case can suspend the listing immediately. Repeated first-contact with many minors' guardians, or messages that move a child off-platform, are flagged for review.
+- **No reviews or ratings in this version.** Reviews need a verified lesson to be trustworthy and nothing in the platform proves a lesson happened. Revisit with real demand.
+- **Tutor money:** the platform takes no part in lesson payments and no commission. The tutor's only payment to the platform is the listing subscription (§4.26 `platform_invoices`).
+- **A teacher** may list as a tutor under a **separate** profile (§40); school and tutor identities never mix (school role data is not reused for the listing).
+
+### 4.28 School fee base tables (P3; extended by §4.36)
+
+*Revised 26 November 2026 (D32, D37): the marketplace finance tables (`refunds`, `platform_commissions`, `tutor_earnings`, `tutor_payout_accounts`, `tutor_payouts`) are removed.* School fees stay a separate domain from platform charges (§60).
 
 ```sql
-create table refunds (
-  id                  uuid primary key default uuidv7(),
-  payment_id          uuid not null references payments,
-  order_item_id       uuid references order_items,
-  amount_minor        bigint not null,
-  reason              text not null,             -- CANCELLATION|TUTOR_NO_SHOW|DISPUTE|GOODWILL
-  status              text not null default 'REQUESTED', -- REQUESTED|APPROVED|PROCESSING|SUCCEEDED|FAILED|REJECTED
-  requested_by        uuid references users,
-  approved_by         uuid references users,
-  provider_reference  text,
-  completed_at        timestamptz
-  -- + std
-);
-
-create table platform_commissions (              -- platform revenue (§106)
-  id                  uuid primary key default uuidv7(),
-  order_item_id       uuid not null unique references order_items,
-  rate_bps            int not null,
-  amount_minor        bigint not null,
-  currency_code       char(3) not null references currencies,
-  reversed_minor      bigint not null default 0,
-  created_at          timestamptz not null default now()
-);
-
-create table tutor_payout_accounts (
-  id                  uuid primary key default uuidv7(),
-  tutor_id            uuid not null references tutor_profiles,
-  method              text not null,             -- BANK_TRANSFER|MOBILE_MONEY
-  provider_code       text references payment_providers,
-  account_token       text not null,             -- tokenized / vault reference, never raw numbers
-  display_hint        text,                      -- "•••• 4821"
-  is_default          boolean not null default false,
-  verified_at         timestamptz
-  -- + std
-);
-
-create table tutor_payouts (
-  id                  uuid primary key default uuidv7(),
-  tutor_id            uuid not null references tutor_profiles,
-  payout_account_id   uuid not null references tutor_payout_accounts,
-  amount_minor        bigint not null,
-  currency_code       char(3) not null references currencies,
-  period_start        date,
-  period_end          date,
-  status              text not null default 'PENDING', -- PENDING|PROCESSING|PAID|FAILED|CANCELLED
-  provider_reference  text,
-  paid_at             timestamptz
-  -- + std
-);
-
-create table tutor_earnings (                    -- tutor money ≠ platform revenue (§106)
-  id                  uuid primary key default uuidv7(),
-  tutor_id            uuid not null references tutor_profiles,
-  order_item_id       uuid not null unique references order_items,
-  gross_minor         bigint not null,
-  commission_minor    bigint not null,
-  net_minor           bigint not null,
-  currency_code       char(3) not null references currencies,
-  status              text not null default 'PENDING', -- PENDING|AVAILABLE|ON_HOLD|PAID_OUT|REVERSED
-  available_at        timestamptz,               -- after session completes + hold period
-  payout_id           uuid references tutor_payouts
-  -- + std
-);
-
--- School fees: separate domain from marketplace (§60)
 create table fee_items (
   id                  uuid primary key default uuidv7(),
   school_id           uuid not null references schools,
@@ -3056,8 +2622,8 @@ create table invoices (
   subtotal_minor      bigint not null,
   discount_minor      bigint not null default 0,
   total_minor         bigint not null,
-  amount_paid_minor   bigint not null default 0,
-  status              text not null default 'DRAFT', -- DRAFT|ISSUED|PARTIALLY_PAID|PAID|OVERDUE|VOID
+  amount_paid_minor   bigint not null default 0,  -- recomputed from payment_allocations
+  status              text not null default 'DRAFT', -- DRAFT|ISSUED|PARTIALLY_PAID|PAID|OVERDUE|VOID|CANCELLED
   unique (school_id, invoice_number)
   -- + std
 );
@@ -3069,165 +2635,1080 @@ create table invoice_lines (
   description         text not null,
   quantity            int not null default 1,
   unit_amount_minor   bigint not null,
+  discount_minor      bigint not null default 0,
   total_minor         bigint not null
 );
 ```
 
-### 4.29 AI: Tutor Copilot & Student AI Tutor (P6)
+### 4.29 AI: Tutor Copilot & Student AI Tutor (removed)
+
+*Removed 26 November 2026 (D34).* There is no Tutor Copilot and no Student AI Tutor, and therefore no AI gateway in this version: the tables `ai_prompt_templates`, `ai_model_configs`, `ai_feature_enablements`, `ai_benchmark_items`, `ai_evaluation_runs`, `ai_generations`, `ai_usage_events`, `ai_usage_quotas`, `ai_tutor_sessions`, `ai_tutor_messages` and `ai_practice_attempts`, `assessment_results.ai_generation_id`, `learning_evidence.is_ai_generated` and the `AI_PRACTICE` evidence source are not built. The **school AI assistant** is **deferred** (§4.37); if it is built, its AI platform tables are designed at that time.
+
+### 4.30 Timetable & academic plans (P2)
+
+*Added 26 November 2026 (Spec_Review D29, simplified by D40). Spec §134.1.* A timetable is **versioned**: building a version by hand produces a DRAFT, publishing makes it immutable, and a later version supersedes it from an effective date. **There is no automatic generator in this version (D40)**; it is deferred until a school with many classes needs it. **Clash-freedom is enforced by the database**, not only by the generator: within one version a class, a teacher and a room can each be in one place per (weekday, period).
 
 ```sql
-create table ai_prompt_templates (
+create table bell_schedules (                    -- the period grid of a school or campus
   id              uuid primary key default uuidv7(),
-  task_type       text not null,                 -- LESSON_PLAN|QUESTION_GENERATION|IN_SESSION_PROMPT|SESSION_SUMMARY|PARENT_REPORT|HOMEWORK_SUGGESTION|TRIAL_ASSESSMENT|TRANSLATION|STUDENT_TUTOR
-  version         int not null,
-  template        text not null,
-  status          text not null default 'DRAFT', -- DRAFT|APPROVED|RETIRED
-  approved_by     uuid references users,
-  approved_at     timestamptz,
-  unique (task_type, version)
+  school_id       uuid not null references schools,
+  campus_id       uuid,
+  academic_year_id uuid references academic_years,
+  name            text not null,
+  is_default      boolean not null default false,
+  status          text not null default 'ACTIVE',-- ACTIVE|ARCHIVED
+  foreign key (campus_id, school_id) references campuses (id, school_id),
+  unique (id, school_id)
+  -- + std
 );
 
-create table ai_model_configs (                  -- routing separate from billing (§129)
+create table bell_periods (
   id              uuid primary key default uuidv7(),
-  task_type       text not null,
-  provider        text not null,
-  model_id        text not null,
-  prompt_template_id uuid references ai_prompt_templates,
-  parameters      jsonb,
-  cost_per_1k_input_micros  bigint,
-  cost_per_1k_output_micros bigint,
-  is_active       boolean not null default false
+  bell_schedule_id uuid not null references bell_schedules on delete cascade,
+  school_id       uuid not null references schools,
+  period_no       smallint not null,
+  label_i18n      jsonb not null default '{}',
+  kind            text not null default 'LESSON',-- LESSON|BREAK|LUNCH|ASSEMBLY
+  starts_at       time not null,                 -- wall clock in the campus/school zone
+  ends_at         time not null,
+  check (ends_at > starts_at),
+  unique (bell_schedule_id, period_no),
+  unique (id, school_id)
 );
 
-create table ai_feature_enablements (            -- gate per subject × language (§130, §131)
-  id                  uuid primary key default uuidv7(),
-  feature             text not null,             -- TUTOR_COPILOT|STUDENT_TUTOR
-  country_code        char(2) references countries,
-  school_id           uuid references schools,
-  curriculum_subject_id uuid references curriculum_subjects,
-  language_code       text references languages,
-  status              text not null default 'EVALUATING', -- EVALUATING|ENABLED|SUSPENDED
-  evaluation_run_id   uuid references ai_evaluation_runs,
-  suspended_reason    text,
-  changed_by          uuid references users,
-  changed_at          timestamptz not null default now()
+create table rooms (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  campus_id       uuid,
+  name            text not null,
+  room_type       text not null default 'CLASSROOM', -- CLASSROOM|LAB|LIBRARY|HALL|SPORTS|OTHER
+  capacity        smallint,
+  is_active       boolean not null default true,
+  foreign key (campus_id, school_id) references campuses (id, school_id),
+  unique (id, school_id)
+  -- + std
 );
 
-create table ai_benchmark_items (                -- human-reviewed benchmark questions
-  id                  uuid primary key default uuidv7(),
-  curriculum_subject_id uuid references curriculum_subjects,
-  learning_objective_id uuid references learning_objectives,
-  language_code       text not null references languages,
-  prompt              text not null,
-  reference_answer    text not null,
-  rubric              jsonb,
-  reviewed_by         uuid not null references users,
-  is_active           boolean not null default true
+create table subject_period_requirements (      -- weekly period targets, used for the coverage check of the builder
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  class_id        uuid not null,
+  subject_id      uuid not null,
+  teacher_id      uuid references users,         -- the teacher the generator must use (from class_teachers)
+  periods_per_week smallint not null check (periods_per_week between 1 and 20),
+  max_per_day     smallint not null default 2,
+  needs_double    boolean not null default false,-- a double period
+  room_type       text,
+  foreign key (class_id, school_id) references classes (id, school_id),
+  foreign key (subject_id, school_id) references subjects (id, school_id),
+  unique (class_id, subject_id)
+  -- + std
 );
 
-create table ai_evaluation_runs (
-  id                  uuid primary key default uuidv7(),
-  feature             text not null,
-  model_config_id     uuid not null references ai_model_configs,
-  curriculum_subject_id uuid references curriculum_subjects,
-  language_code       text references languages,
-  items_evaluated     int not null,
-  score               numeric(5,4),
-  passed              boolean,
-  reviewed_by         uuid references users,
-  report_media_id     uuid references media,
-  run_at              timestamptz not null default now()
+create table timetable_versions (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  campus_id       uuid,
+  academic_year_id uuid not null references academic_years,
+  academic_period_id uuid references academic_periods,
+  bell_schedule_id uuid not null references bell_schedules,
+  version_no      int not null,
+  name            text not null,
+  status          text not null default 'DRAFT', -- DRAFT|PUBLISHED|SUPERSEDED|ARCHIVED
+  effective_from  date,
+  effective_to    date,
+  published_by    uuid references users,
+  published_at    timestamptz,
+  foreign key (campus_id, school_id) references campuses (id, school_id),
+  unique (school_id, academic_year_id, version_no),
+  unique (id, school_id)
+  -- + std
 );
 
-create table ai_generations (                    -- every important AI output (§129 controls)
-  id                  uuid primary key default uuidv7(),
-  task_type           text not null,
-  requested_by        uuid not null references users,
-  school_id           uuid references schools,
-  about_student_id    uuid references student_profiles,
-  context_type        text,                      -- TUTORING_SESSION|BOOKING|ASSIGNMENT|COURSE_LESSON|ANNOUNCEMENT ...
-  context_id          uuid,
-  model_config_id     uuid not null references ai_model_configs,
-  provider            text not null,
-  model_id            text not null,
-  prompt_template_version int not null,
-  source_refs         jsonb,                     -- references only, minimized personal data (§131)
-  output              jsonb not null,
-  input_tokens        int,
-  output_tokens       int,
-  cost_micros         bigint,
-  status              text not null default 'GENERATED', -- GENERATED|EDITED|APPROVED|REJECTED|DISCARDED
-  reviewed_by         uuid references users,
-  reviewed_at         timestamptz,
-  created_at          timestamptz not null default now()
+create table timetable_entries (
+  id              uuid primary key default uuidv7(),
+  timetable_version_id uuid not null,
+  school_id       uuid not null,
+  class_id        uuid not null,
+  subject_id      uuid not null,
+  room_id         uuid,
+  weekday         smallint not null check (weekday between 1 and 7),
+  period_id       uuid not null,
+  is_pinned       boolean not null default false,-- the generator must not move it
+  foreign key (timetable_version_id, school_id) references timetable_versions (id, school_id),
+  foreign key (class_id, school_id) references classes (id, school_id),
+  foreign key (period_id, school_id) references bell_periods (id, school_id),
+  foreign key (room_id, school_id) references rooms (id, school_id),
+  unique (id, school_id),
+  unique (timetable_version_id, class_id, weekday, period_id),            -- a class is in one place
+  unique (timetable_version_id, room_id, weekday, period_id)              -- a room hosts one lesson (NULL rooms never clash)
+  -- + std
 );
 
-create table ai_usage_events (                   -- metering; billing computed separately
-  id                  uuid primary key default uuidv7(),
-  user_id             uuid references users,
-  school_id           uuid references schools,
-  tutor_id            uuid references tutor_profiles,
-  task_type           text not null,
-  units               int not null,
-  cost_micros         bigint,
-  generation_id       uuid references ai_generations,
-  created_at          timestamptz not null default now()
+create table timetable_entry_teachers (          -- one row per teacher of a lesson (LEAD, CO)
+  entry_id        uuid not null,
+  school_id       uuid not null,
+  timetable_version_id uuid not null,            -- copied so the teacher clash is a unique index
+  teacher_id      uuid not null references users,
+  weekday         smallint not null,
+  period_id       uuid not null,
+  role            text not null default 'LEAD',  -- LEAD|CO
+  primary key (entry_id, teacher_id),
+  foreign key (entry_id, school_id) references timetable_entries (id, school_id) on delete cascade,
+  unique (timetable_version_id, teacher_id, weekday, period_id)          -- a teacher is in one place
 );
 
-create table ai_usage_quotas (
-  id                  uuid primary key default uuidv7(),
-  scope_type          text not null,             -- SCHOOL|TUTOR|USER
-  school_id           uuid references schools,
-  tutor_id            uuid references tutor_profiles,
-  user_id             uuid references users,
-  task_type           text,                      -- null = all tasks
-  period              text not null,             -- DAY|MONTH
-  limit_units         int not null,
-  used_units          int not null default 0,
-  period_start        timestamptz not null
+create table timetable_overrides (               -- one date: substitution, cancellation, room change
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  entry_id        uuid not null,
+  on_date         date not null,
+  override_type   text not null,                 -- SUBSTITUTE|CANCELLED|ROOM_CHANGE
+  substitute_teacher_id uuid references users,
+  room_id         uuid,
+  reason_code     text,                          -- ABSENCE|EVENT|EXAM|OTHER (code only)
+  created_by      uuid not null references users,
+  foreign key (entry_id, school_id) references timetable_entries (id, school_id),
+  unique (entry_id, on_date)
+  -- + std
 );
 
-create table ai_tutor_sessions (                 -- Student AI Tutor (§130)
-  id                  uuid primary key default uuidv7(),
-  student_id          uuid not null references student_profiles,
-  school_id           uuid references schools,
-  curriculum_subject_id uuid references curriculum_subjects,
-  learning_objective_id uuid references learning_objectives,
-  language_code       text not null references languages,
-  mode                text not null,             -- EXPLAIN|GUIDED_PRACTICE|QUIZ|REVISION|EXAM_PREP
-  status              text not null default 'ACTIVE', -- ACTIVE|ENDED|ENDED_BY_LIMIT|ESCALATED
-  started_at          timestamptz not null default now(),
-  ended_at            timestamptz,
-  message_count       int not null default 0,
-  safety_flag_count   int not null default 0
+create table academic_plans (                    -- the annual academic plan of a school or campus
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  campus_id       uuid,
+  academic_year_id uuid not null references academic_years,
+  name            text not null,
+  status          text not null default 'DRAFT', -- DRAFT|PUBLISHED|ARCHIVED
+  published_by    uuid references users,
+  published_at    timestamptz,
+  foreign key (campus_id, school_id) references campuses (id, school_id),
+  unique (id, school_id)
+  -- + std
 );
 
-create table ai_tutor_messages (
-  id                  uuid primary key default uuidv7(),
-  session_id          uuid not null references ai_tutor_sessions on delete cascade,
-  role                text not null,             -- STUDENT|ASSISTANT|SYSTEM
-  content             text not null,
-  is_hint             boolean not null default false,
-  source_refs         jsonb,                     -- curriculum/library citations vs "AI-generated" (§130)
-  generation_id       uuid references ai_generations,
-  flagged             boolean not null default false,
-  created_at          timestamptz not null default now()
-);
-
-create table ai_practice_attempts (              -- feeds learning_evidence (source_type AI_PRACTICE)
-  id                  uuid primary key default uuidv7(),
-  session_id          uuid not null references ai_tutor_sessions,
-  student_id          uuid not null references student_profiles,
-  learning_objective_id uuid references learning_objectives,
-  question            jsonb not null,
-  student_answer      text,
-  is_correct          boolean,
-  hints_used          smallint not null default 0,
-  difficulty          smallint,
-  created_at          timestamptz not null default now()
+create table academic_plan_items (
+  id              uuid primary key default uuidv7(),
+  plan_id         uuid not null,
+  school_id       uuid not null,
+  item_type       text not null,                 -- TERM_START|TERM_END|EXAM_WINDOW|HOLIDAY|ACTIVITY|DEADLINE|MEETING|TRAINING
+  title           text not null,
+  starts_on       date not null,
+  ends_on         date not null,
+  academic_period_id uuid references academic_periods,
+  grade_level_id  uuid,
+  event_id        uuid references events,        -- the calendar event published from this item (R-17)
+  check (ends_on >= starts_on),
+  foreign key (plan_id, school_id) references academic_plans (id, school_id) on delete cascade
+  -- + std
 );
 ```
-Flags on AI output use `content_reports` with `target_type = 'AI_OUTPUT'`. Suspending a subject × language combination sets `ai_feature_enablements.status = 'SUSPENDED'`.
+
+*Changes to existing tables:* `attendance_sessions.timetable_entry_id uuid` (P2 column; a per-period roll is created from a timetable entry, DB §4.6) and `classes.home_room_id uuid` (optional).
+
+*Rules:*
+- A **PUBLISHED version is immutable.** A change is a new version (copied from the published one, edited, published with an effective date) or a `timetable_overrides` row for one date. The unique indexes above are the clash guarantee for hand edits and for the generator alike; the generator only proposes, the service re-validates every entry.
+- **Manual builder with a coverage check (D40).** The builder shows, per class and subject, the periods placed against `subject_period_requirements` and refuses a placement that would clash (the same rules as the unique indexes, so the user sees the reason before the database refuses). Copying a published version into a new DRAFT is the way to change a timetable. A future solver would only ever produce a DRAFT through the same service.
+- **Who:** `school.timetable.manage` (administrators, deputies) builds, generates, publishes and overrides. Teachers read their own timetable, students and guardians read the class's published timetable (`ClassAccess.canView`; guardians see the child's class, never a teacher's other classes).
+- Publishing writes `timetable_overrides`-aware **calendar items** through a `CalendarSource` bean (`TIMETABLE`, R-17: no copies in `events`), notifies affected teachers (`TIMETABLE_PUBLISHED`, title and school name only) and audits (`timetable.publish`, ids and counts).
+- Substitutions notify the substitute and the class's guardians only as "lesson changed", never naming why.
+- An academic plan item that becomes a calendar `events` row follows the calendar rules (§4.14); the plan stays the source and `event_id` the link.
+
+### 4.31 Lesson planning (P2)
+
+*Added 26 November 2026 (D28). Spec §134.2.* Plans form a chain ANNUAL → TERM (scheme of work) → WEEKLY → DAILY. The **format is data**: a template lists the fields a country or school requires, so the Ministry of Education layout is a template row and not code.
+
+```sql
+create table lesson_plan_templates (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid references schools,       -- null = platform/country template
+  country_code    char(2) references countries,
+  education_system_id uuid references education_systems,
+  plan_level      text not null,                 -- ANNUAL|TERM|WEEKLY|DAILY
+  name            text not null,
+  source          text not null default 'SCHOOL',-- MOE|PLATFORM|SCHOOL
+  template_version int not null default 1,
+  fields          jsonb not null,                -- [{key, type, required, label_i18n, max_length}]
+  is_active       boolean not null default true,
+  unique (id, template_version)
+  -- + std
+);
+
+create table lesson_plans (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  plan_level      text not null,                 -- ANNUAL|TERM|WEEKLY|DAILY
+  template_id     uuid not null references lesson_plan_templates,
+  template_version int not null,
+  owner_id        uuid not null references users,
+  class_id        uuid,
+  subject_id      uuid,
+  academic_year_id uuid not null references academic_years,
+  academic_period_id uuid references academic_periods,
+  parent_plan_id  uuid references lesson_plans,  -- the plan one level up
+  week_start      date,                          -- WEEKLY
+  plan_date       date,                          -- DAILY
+  timetable_entry_id uuid,                       -- DAILY, timetable-driven
+  title           text not null,
+  content         jsonb not null default '{}',   -- validated against the template's fields
+  status          text not null default 'DRAFT', -- DRAFT|SUBMITTED|CHANGES_REQUESTED|APPROVED|ARCHIVED
+  current_revision int not null default 1,
+  submitted_at    timestamptz,
+  approved_at     timestamptz,
+  foreign key (class_id, school_id) references classes (id, school_id),
+  foreign key (subject_id, school_id) references subjects (id, school_id),
+  foreign key (timetable_entry_id, school_id) references timetable_entries (id, school_id),
+  check ((plan_level = 'WEEKLY') = (week_start is not null)),
+  check ((plan_level = 'DAILY') = (plan_date is not null)),
+  unique (id, school_id)
+  -- + std
+);
+create unique index ux_lesson_plan_daily_entry on lesson_plans (timetable_entry_id, plan_date)
+  where plan_level = 'DAILY' and timetable_entry_id is not null and status <> 'ARCHIVED';
+
+create table lesson_plan_objectives (            -- curriculum tagging (§127)
+  lesson_plan_id  uuid not null references lesson_plans on delete cascade,
+  learning_objective_id uuid not null references learning_objectives,
+  primary key (lesson_plan_id, learning_objective_id)
+);
+
+create table lesson_plan_revisions (             -- append-only history of what was submitted
+  lesson_plan_id  uuid not null references lesson_plans on delete cascade,
+  revision        int not null,
+  content         jsonb not null,
+  created_by      uuid not null references users,
+  created_at      timestamptz not null default now(),
+  primary key (lesson_plan_id, revision)
+);
+
+create table lesson_plan_reviews (
+  id              uuid primary key default uuidv7(),
+  lesson_plan_id  uuid not null references lesson_plans on delete cascade,
+  school_id       uuid not null references schools,
+  revision        int not null,
+  reviewer_id     uuid not null references users,
+  decision        text not null,                 -- APPROVED|CHANGES_REQUESTED
+  comment         text,
+  decided_at      timestamptz not null default now(),
+  check (decision = 'APPROVED' or comment is not null)
+);
+```
+
+*Rules:* a submitted revision is frozen (an edit after submit creates the next revision and returns the plan to DRAFT); the reviewer is never the owner (`check` in the service, tested); reviewers are LEAD teachers of the class, heads of department and `school.lesson_plans.review`; **plans are visible to staff only** (the owner, reviewers, `school.lesson_plans.read`), students and guardians never read a plan (a school may publish a lesson's *objectives* through the class feed instead); plans are written about a class and a topic, **not about individual students**: the editor tells teachers that notes about a learner belong in portfolio feedback, and `lesson_plans` has no student reference. The timetable-driven flow creates DAILY skeletons for a week from the published timetable (one per entry, idempotent through the unique index above) and links `timetable_entry_id`.
+
+### 4.32 Assessment plans, marklists, period results, report cards & transcripts (P2)
+
+*Added 26 November 2026 (D25–D27). Spec §134.3.* This extends §4.22. `assessments`, `assessment_results` and `period_grades` stay the base records; the tables below add the **plan** that says what counts, the **marklist** workflow that finalizes marks, the per-student **period result** (total, average, rank), and **issued documents** that are immutable and verifiable.
+
+```sql
+create table assessment_plans (                  -- continuous assessment plan of a subject in a class and period
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  class_id        uuid not null,
+  subject_id      uuid not null,
+  academic_period_id uuid not null references academic_periods,
+  grading_scheme_id uuid not null references grading_schemes,
+  status          text not null default 'DRAFT', -- DRAFT|ACTIVE|LOCKED
+  locked_at       timestamptz,
+  foreign key (class_id, school_id) references classes (id, school_id),
+  foreign key (subject_id, school_id) references subjects (id, school_id),
+  unique (class_id, subject_id, academic_period_id),
+  unique (id, school_id)
+  -- + std
+);
+
+create table assessment_plan_components (
+  id              uuid primary key default uuidv7(),
+  plan_id         uuid not null,
+  school_id       uuid not null,
+  name            text not null,
+  component_type  text not null,                 -- QUIZ|TEST|ASSIGNMENT|MIDTERM|FINAL|PROJECT|PARTICIPATION|CUSTOM
+  weight_pct      numeric(5,2) not null check (weight_pct > 0 and weight_pct <= 100),
+  max_score       numeric(7,2) not null,
+  drop_lowest_n   smallint not null default 0,
+  sort_order      smallint not null default 0,
+  foreign key (plan_id, school_id) references assessment_plans (id, school_id) on delete cascade,
+  unique (id, school_id)
+  -- + std
+);
+-- A plan becomes ACTIVE only when its weights add up to 100 (service rule, tested).
+
+create table subject_marklists (                 -- the finalizing workflow of one subject's marks
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  class_id        uuid not null,
+  subject_id      uuid not null,
+  academic_period_id uuid not null references academic_periods,
+  assessment_plan_id uuid not null,
+  status          text not null default 'DRAFT', -- DRAFT|SUBMITTED|APPROVED|PUBLISHED|REOPENED
+  submitted_by    uuid references users,
+  submitted_at    timestamptz,
+  approved_by     uuid references users,
+  approved_at     timestamptz,
+  published_at    timestamptz,
+  foreign key (assessment_plan_id, school_id) references assessment_plans (id, school_id),
+  unique (class_id, subject_id, academic_period_id)
+  -- + std
+);
+
+create table result_amendments (                 -- append-only: every change after SUBMITTED
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  marklist_id     uuid not null references subject_marklists,
+  student_id      uuid not null references student_profiles,
+  assessment_result_id uuid references assessment_results,
+  period_grade_id uuid references period_grades,
+  old_score       numeric(7,2),
+  new_score       numeric(7,2),
+  old_label       text,
+  new_label       text,
+  reason          text not null,
+  amended_by      uuid not null references users,
+  approved_by     uuid references users,         -- required once the marklist is PUBLISHED
+  amended_at      timestamptz not null default now(),
+  check (num_nonnulls(assessment_result_id, period_grade_id) = 1)
+);
+
+create table period_results (                    -- one row per student and period, across subjects
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  student_id      uuid not null references student_profiles,
+  class_id        uuid not null,
+  academic_period_id uuid not null references academic_periods,
+  total_score     numeric(8,2),
+  average_score   numeric(6,2),
+  subjects_counted smallint,
+  grade_label     text,
+  class_rank      int,                           -- competition ranking: 1,2,2,4
+  class_size      int,
+  grade_rank      int,                           -- optional, across the grade level
+  grade_size      int,
+  conduct_label   text,
+  promotion_decision text not null default 'NONE', -- NONE|PROMOTED|REPEAT|CONDITIONAL (year-end period only)
+  homeroom_comment text,
+  status          text not null default 'DRAFT', -- DRAFT|FINAL|PUBLISHED
+  computed_at     timestamptz,
+  published_at    timestamptz,
+  foreign key (class_id, school_id) references classes (id, school_id),
+  unique (student_id, class_id, academic_period_id)
+  -- + std
+);
+
+create table report_card_templates (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid references schools,       -- null = platform or country template
+  country_code    char(2) references countries,
+  name            text not null,
+  template_version int not null default 1,
+  layout          jsonb not null,                -- sections, columns, labels (i18n), signature blocks
+  shows_rank      boolean not null default false,
+  is_active       boolean not null default true
+  -- + std
+);
+
+create table report_cards (                      -- an ISSUED document: immutable
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  student_id      uuid not null references student_profiles,
+  class_id        uuid not null,
+  academic_period_id uuid not null references academic_periods,
+  template_id     uuid not null references report_card_templates,
+  template_version int not null,
+  snapshot        jsonb not null,                -- everything printed: marks, labels, rank, comments
+  content_sha256  text not null,
+  media_id        uuid references media,         -- the PDF (purpose REPORT, access follows this row)
+  verification_hash text not null unique,        -- HMAC of the verification token; the token is never stored
+  status          text not null default 'ISSUED',-- ISSUED|REVOKED|SUPERSEDED
+  issued_by       uuid not null references users,
+  issued_at       timestamptz not null default now(),
+  revoked_at      timestamptz,
+  revoked_reason  text,
+  replaced_by     uuid references report_cards,
+  foreign key (class_id, school_id) references classes (id, school_id)
+);
+create unique index ux_report_card_current on report_cards (student_id, class_id, academic_period_id) where status = 'ISSUED';
+
+create table transcripts (                       -- cumulative record across years: ISSUED = immutable
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  student_id      uuid not null references student_profiles,
+  transcript_no   text not null,
+  scope           text not null default 'FULL',  -- FULL|YEAR_RANGE
+  from_year_id    uuid references academic_years,
+  to_year_id      uuid references academic_years,
+  purpose         text not null,                 -- TRANSFER|STUDENT_COPY|SCHOLARSHIP|OTHER
+  snapshot        jsonb not null,                -- this school's own published results
+  content_sha256  text not null,
+  media_id        uuid references media,
+  verification_hash text not null unique,
+  status          text not null default 'ISSUED',-- ISSUED|REVOKED
+  requested_by    uuid references users,
+  issued_by       uuid not null references users,
+  signed_by       uuid references users,         -- the head who signs (a second person)
+  issued_at       timestamptz not null default now(),
+  revoked_at      timestamptz,
+  revoked_reason  text,
+  unique (school_id, transcript_no)
+);
+```
+
+*Changes to existing tables:* `assessments.assessment_plan_component_id uuid` (P2 column; the results of an assessment that belongs to a component feed the plan's computation; an assessment without one is allowed but does not count toward a plan-based period grade); `period_grades.marklist_id uuid` ; `report_jobs.report_type` gains `MARKLIST`, `PERIOD_RESULTS`, `REPORT_CARDS`, `TRANSCRIPT`, `STAFF_ATTENDANCE_SUMMARY`, `PERIOD_ATTENDANCE`, `ID_CARDS`, `FEE_ARREARS`, `COLLECTION_SUMMARY`, `CASH_BOOK`, `RECEIPTS_REGISTER`, `CLAIMS_LOG`.
+
+*Rules:*
+- **Computation is deterministic and idempotent.** `period_grades.computed_score` = the weighted sum of the plan's components (after `drop_lowest_n`; an excused result is left out and its weight redistributed; an absent result counts as 0 unless the school setting `grading.absent_counts_as_zero` is off). `period_results` and ranks are recomputed from PUBLISHED-eligible grades by a listener/job that never adds deltas.
+- **Marklist workflow:** only the class's subject teacher (LEAD, SUBJECT; assistants never) edits a DRAFT or REOPENED marklist; SUBMITTED locks entry; APPROVED is optional (a school setting `grading.marklist_approval_required`, approver = head of department or `school.grading.approve`, never the submitter); PUBLISHED makes results visible to the child and guardians. After PUBLISHED, **any change is a `result_amendments` row with a reason and an approver other than the author**; history is append-only; the guardian is notified of a change to a published result (`RESULT_AMENDED`: subject and date, never the scores).
+- **Ranking (D26):** `grading.rank.visibility` = `NONE | STAFF | OWN` (default `NONE`; the Ethiopia country configuration defaults to `OWN`). `OWN` shows a student and their guardians **only their own** `class_rank` and `class_size`, never a list; there is no endpoint that lists students by rank for guardians or students; staff with `school.grading.read` see it per class. Ties use competition ranking and the tie rule is printed on the card. Rank is never sent in a push or in an announcement. A student with an unpublished or missing subject is ranked only when the school setting says so (`grading.rank.requires_all_subjects`, default true) and otherwise shows no rank.
+- **Issued documents (D27):** a report card or transcript is generated from the **snapshot**, never from live tables, so reprinting years later gives the same page. `content_sha256` and `verification_hash` are written once; a correction supersedes (new row, `replaced_by`) or revokes (`revoked_reason`), never edits. The PDF is a `media` row of purpose `REPORT` and is served through its owning row's policy (the child, ACTIVE guardians with `can_view_academics` and not custody-restricted, `school.grading.read`); **no signed URL is ever cached or logged**.
+- **Verification (public):** the PDF carries a QR with `https://<school-host>/verify/{token}` where the token is 128 random bits (base64url, 22 characters). The endpoint looks the token up by HMAC, answers in constant time with only **document type, school name, issue date and status** (VALID|REVOKED|SUPERSEDED|UNKNOWN: unknown and malformed look the same), **no student name, marks or rank**, is rate-limited per IP and token prefix, sets `no-referrer`/`noindex`, and is not an authenticated route. A verifier who needs the contents must ask the school.
+- **Transcripts** cover this school's own PUBLISHED results (all years). The platform holds no prior-school records (D39); a school that needs earlier results keeps the paper transcript it was given. A head signs (`signed_by` differs from `issued_by`). **Transcripts are not withheld over unpaid fees by default** (setting `fees.hold_records_on_arrears`, default false: withholding a child's records is a rights issue and a school must opt in knowingly; the setting is audited).
+- **Retention:** issued documents and snapshots follow the school's student-record retention policy (§4.18), under legal hold when set; media of revoked documents is kept for audit but never served.
+
+### 4.33 Question banks & secure online exams (P2)
+
+*Added 26 November 2026 (D23–D24). Spec §134.4.* The shared quiz engine (§4.22) keeps its tables. A **bank** is a reusable pool of questions organised by subject and grade; a quiz **copies** the questions it uses, so editing a bank later never changes an exam that was already taken.
+
+```sql
+create table question_banks (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid references schools,       -- null = platform-curated bank (read-only for schools)
+  owner_id        uuid references users,
+  name            text not null,
+  subject_id      uuid,
+  grade_level_id  uuid,
+  visibility      text not null default 'PRIVATE', -- PRIVATE|SUBJECT_TEAM|SCHOOL
+  status          text not null default 'ACTIVE',  -- ACTIVE|ARCHIVED
+  unique (id, school_id)
+  -- + std
+);
+
+create table bank_questions (
+  id              uuid primary key default uuidv7(),
+  bank_id         uuid not null references question_banks on delete cascade,
+  school_id       uuid references schools,
+  question_type   text not null,                 -- as quiz_questions.question_type
+  prompt          text not null,
+  prompt_media_id uuid references media,
+  options         jsonb,
+  correct_answer  jsonb not null,                -- never sent to student or guardian clients
+  points          numeric(6,2) not null default 1,
+  explanation     text,
+  difficulty      smallint check (difficulty between 1 and 5),
+  language        char(2) references languages,
+  status          text not null default 'DRAFT', -- DRAFT|APPROVED|RETIRED
+  question_version int not null default 1,
+  approved_by     uuid references users,
+  created_by      uuid not null references users
+  -- + std
+);
+-- Curriculum tagging reuses the objective-tagging table (§4.21) with target_type = 'BANK_QUESTION'.
+
+create table exam_sittings (                     -- a scheduled online exam
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  class_id        uuid not null,
+  assessment_id   uuid not null references assessments,
+  quiz_id         uuid not null references quizzes,
+  opens_at        timestamptz not null,
+  closes_at       timestamptz not null,
+  duration_s      int not null,                  -- per student, from their own start
+  grace_s         int not null default 10,
+  access_code_hash text,                         -- optional code read out in the room
+  ip_allowlist    cidr[],                        -- optional: only from the school network
+  single_device   boolean not null default true,
+  shuffle_questions boolean not null default true,
+  shuffle_options boolean not null default true,
+  results_release text not null default 'MANUAL',-- MANUAL|AFTER_CLOSE
+  status          text not null default 'SCHEDULED', -- SCHEDULED|OPEN|CLOSED|GRADED|CANCELLED
+  created_by      uuid not null references users,
+  foreign key (class_id, school_id) references classes (id, school_id),
+  check (closes_at > opens_at)
+  -- + std
+);
+
+create table exam_accommodations (               -- extra time etc. for a learner
+  id              uuid primary key default uuidv7(),
+  exam_sitting_id uuid not null references exam_sittings on delete cascade,
+  student_id      uuid not null references student_profiles,
+  school_id       uuid not null references schools,
+  extra_time_pct  smallint not null default 0 check (extra_time_pct between 0 and 100),
+  reason_code     text,                          -- a code only; never a diagnosis
+  granted_by      uuid not null references users,
+  unique (exam_sitting_id, student_id)
+);
+
+create table quiz_attempt_events (               -- integrity SIGNALS; never content
+  id              bigint generated always as identity primary key,
+  attempt_id      uuid not null references quiz_attempts on delete cascade,
+  event_type      text not null,                 -- FOCUS_LOST|FOCUS_RETURNED|OFFLINE|RECONNECTED|DEVICE_CHANGED|LATE_SUBMIT_REFUSED
+  occurred_at     timestamptz not null default now(),
+  client_ts       timestamptz,
+  meta            jsonb                          -- counts and durations only
+);
+```
+
+*Changes to existing tables:* `quiz_questions.bank_question_id uuid` and `quiz_questions.bank_question_version int` (the snapshot link); `quiz_attempts.exam_sitting_id uuid`, `quiz_attempts.shuffle_seed int`, `quiz_attempts.deadline_at timestamptz` (the **server** computes it at start: `min(started_at + duration (+ accommodation), closes_at)`), `quiz_attempts.device_hash text`.
+
+*Rules:*
+- **No webcam, microphone, screen recording or biometric proctoring (D24).** Children's images and audio are among the most sensitive data the platform holds (§131). "Secure" means: a scheduled window, a **server-side timer** (a late answer is refused with `exam.attempt_closed`, whatever the device clock says), one active attempt and one device (`single_device`: a second device ends the first and records `DEVICE_CHANGED`), a per-student seeded shuffle, an optional access code, an optional school-network allowlist, and **integrity signals** (focus lost, offline, reconnect) that the teacher sees as a count and timeline per attempt. Signals are evidence for a conversation, **never an automatic penalty and never a verdict**. A camera option may be reconsidered only with a data-protection impact assessment and a new consent type.
+- **Answers never leave the server early.** `correct_answer` and `explanation` are mapped by a separate DTO that the student/guardian API classes cannot reach (an architecture test fails the build if a student-facing DTO has a `correctAnswer` property), and the attempt endpoint returns the paper for the attempt's own seed one question set at a time. Results and answers are released only by `results_release`.
+- **Bank access:** `PRIVATE` = owner; `SUBJECT_TEAM` = ACTIVE teachers of that subject in the school; `SCHOOL` = all ACTIVE teachers (never students or guardians); platform-curated banks are read-only copies. **No cross-school sharing** in the first version (the leak path); a school may copy a platform bank. APPROVED questions may be used in sittings; an approver differs from the author when the school enables `quizzes.bank.review_required`. Using a bank question in a quiz copies it; `usage` is derived from `quiz_questions.bank_question_id`.
+- **Exam paper confidentiality:** from creation until `opens_at`, a sitting's quiz is readable only by its creator, the class's LEAD teacher and `school.exams.manage`; the question list is not included in audit rows, events or notifications; the sitting open/close notifications carry the title and time only.
+- **Accommodations** (extra time) are entered by a teacher or administrator with the class; `reason_code` is read only by those roles; it never reaches events, the child's peers or the guardians' notification text.
+- **Grading:** auto-gradable types are graded at submit; ESSAY/SHORT_TEXT queue for the teacher (`GRADING`); a regrade writes `result_amendments` after publication (§4.32).
+
+### 4.34 Attendance methods & staff attendance (P1 extension)
+
+*Added 26 November 2026 (D17, D19, D20); narrowed the same day to **manual marking and QR only** (D38: no NFC, RFID, GPS or kiosks). Spec §134.5.* Attendance is taken by hand (the existing roll, §4.6) or **evidenced** by a QR scan. **Every method ends in `RollService`**: a check-in produces a mark through the same code that the online roll and the sync endpoint use (validation, lock window, class membership on that date, conflict rule), so a method can never bypass those rules.
+
+```sql
+create table attendance_credentials (            -- a student's or staff member's static QR (on an ID card)
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  student_id      uuid references student_profiles,
+  staff_id        uuid references school_staff,
+  token_hash      text not null unique,          -- HMAC of the token with a server pepper; the token is never stored
+  hint            text,                          -- last 4 characters, for the help desk only
+  id_card_id      uuid,                          -- the card it is printed on (§4.35)
+  issued_by       uuid not null references users,
+  issued_at       timestamptz not null default now(),
+  expires_at      timestamptz,
+  revoked_at      timestamptz,
+  revoked_reason  text,                          -- LOST|REPLACED|LEFT_SCHOOL|SUSPECTED_COPY|OTHER
+  last_used_at    timestamptz,
+  check (num_nonnulls(student_id, staff_id) = 1)
+);
+create unique index ux_attendance_credential_active on attendance_credentials (student_id)
+  where student_id is not null and revoked_at is null;
+create unique index ux_attendance_credential_active_staff on attendance_credentials (staff_id)
+  where staff_id is not null and revoked_at is null;
+
+create table attendance_qr_sessions (            -- a rotating code shown by a teacher (a roll) or a manager (staff day)
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  subject_kind    text not null,                 -- STUDENT|STAFF
+  attendance_session_id uuid references attendance_sessions, -- STUDENT: the roll
+  campus_id       uuid,                          -- STAFF: the campus whose staff may scan
+  opened_by       uuid not null references users,
+  opens_at        timestamptz not null,
+  closes_at       timestamptz not null,
+  rotation_s      smallint not null default 30 check (rotation_s between 10 and 120),
+  late_after_min  smallint,                      -- a check-in after this many minutes is LATE
+  status          text not null default 'OPEN',  -- OPEN|CLOSED
+  check (closes_at > opens_at),
+  check ((subject_kind = 'STUDENT') = (attendance_session_id is not null)),
+  foreign key (campus_id, school_id) references campuses (id, school_id)
+);
+-- The code shown is HMAC(server key, qr_session_id | floor(time / rotation_s)); no secret per session is stored.
+
+create table attendance_checkins (               -- every attempt, accepted or not (append-only)
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  subject_type    text not null,                 -- STUDENT|STAFF
+  student_id      uuid references student_profiles,
+  staff_id        uuid references school_staff,
+  attendance_session_id uuid references attendance_sessions,
+  method          text not null,                 -- QR_ROTATING|QR_STATIC
+  scanner_user_id uuid references users,         -- the teacher or manager who scanned a static QR; the student's own user for a rotating one
+  credential_id   uuid references attendance_credentials,
+  qr_session_id   uuid references attendance_qr_sessions,
+  result          text not null,                 -- ACCEPTED|REJECTED_EXPIRED|REJECTED_NOT_ENROLLED|REJECTED_DUPLICATE|REJECTED_REVOKED|REJECTED_WINDOW|REJECTED_CONFLICT
+  checked_in_at   timestamptz not null default now(), -- server time
+  client_ts       timestamptz,
+  client_op_id    uuid,
+  check (num_nonnulls(student_id, staff_id) = 1),
+  unique (school_id, client_op_id)
+);
+
+create table staff_attendance_records (          -- teachers and other staff, one row per day
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  campus_id       uuid,
+  staff_id        uuid not null references school_staff,
+  attendance_date date not null,                 -- the school-local date (SchoolTime)
+  status          text not null,                 -- PRESENT|ABSENT|LATE|HALF_DAY|EXCUSED
+  check_in_at     timestamptz,
+  check_out_at    timestamptz,
+  minutes_late    smallint,
+  method          text not null default 'MANUAL',-- MANUAL|QR_ROTATING|QR_STATIC
+  checkin_id      uuid references attendance_checkins,
+  recorded_by     uuid not null references users,
+  note            text,                          -- at most 200 characters
+  foreign key (campus_id, school_id) references campuses (id, school_id),
+  unique (staff_id, attendance_date)
+  -- + std
+);
+
+create table staff_attendance_corrections (      -- append-only
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  record_id       uuid not null references staff_attendance_records,
+  old_status      text not null,
+  new_status      text not null,
+  reason          text not null,
+  corrected_by    uuid not null references users,
+  corrected_at    timestamptz not null default now()
+);
+```
+
+*Changes to existing tables:* `attendance_records.source` gains `QR_ROTATING|QR_STATIC` and `attendance_records.checkin_id uuid references attendance_checkins` (`source` stays a CHECKed text); `school_staff` gains nothing (no HR data, D14).
+
+*Rules:*
+- **A scan is evidence, not authority.** `RollService.markFromCheckin` applies the same rules as a hand mark: school-local date, the lock window, class membership on the date, the conflict rule (a check-in never overwrites a **different** stored mark: it is REJECTED_CONFLICT and the teacher decides), and it **only ever creates PRESENT or LATE** (a scan cannot mark someone ABSENT). A check-in outside the roll's window is REJECTED_WINDOW. **Manual marking is always available**, also when QR is on.
+- **Rotating QR (student scans the teacher's code):** the teacher opens a session; the app shows a code that changes every `rotation_s` seconds. The student's app (an authenticated student session, never anonymous) sends the code; the server accepts the **current and the previous** window only, requires the student to be on the roll's class for that date, accepts **one check-in per student per session** (REJECTED_DUPLICATE), and rate-limits per student and per class. The teacher sees the live count and each accepted student and can remove one. **Residual risk (documented, accepted): a student can photograph the code and send it to a friend who is not in the room.** The mitigations are the short window, the teacher's live list, and the fact that the roll stays the teacher's to correct; the school chooses the method per class.
+- **Static student QR (the teacher scans the student's card):** credentials are **separate from login codes** (a login code is a password; this is an identifier), 128 random bits, never carrying a name, id or date of birth, stored as an HMAC; revocable and reissued on loss (`SUSPECTED_COPY` revokes and tells the school administrator); a revoked or expired credential is REJECTED_REVOKED and **logged with the scanner**. The scan answers the scanning teacher with the student's **first name and avatar only** (so a wrong card is noticed), never other data. A static QR can be photographed and reused: an attendance reviewer sees repeated scans of one credential from two scanners within a minute as an alert.
+- **Staff attendance:** read by the staff member, `school.staff_attendance.read` and `school.staff_attendance.manage` (administrators, deputies; a teacher never reads a colleague's record); a manager's correction needs a `reason` and writes `staff_attendance_corrections`. Staff check in by scanning the **rotating code a manager shows for the campus and day** (`subject_kind = STAFF`) or by a manager scanning their **static card**. There is **no leave, payroll or HR data** (D14): `EXCUSED` is a status a manager sets, nothing more. Staff records do not enter the points, badges or class totals and never appear in student reports.
+- **Reports** (all through `report_jobs`, CSV rules of M7a: UTF-8 BOM, formulas neutralized, audited, rate-limited): daily class summary (exists), **per-period** summary (by `slot` and `subject_id`), staff daily and monthly summary, late-arrival and absence-pattern reports for staff with `school.attendance.read`. Every export of staff attendance is audited.
+- **Settings** (per school, all default off except MANUAL): `attendance.methods.enabled` (a set of `MANUAL|QR_ROTATING|QR_STATIC`), `attendance.qr.rotation_seconds`, `attendance.staff.enabled`, `attendance.staff.late_after_minutes`.
+- **Not supported (D38):** NFC, RFID, GPS or any location check-in, kiosks and gate readers. No location is requested or stored anywhere in attendance.
+- **Notifications:** a guardian-facing `ATTENDANCE_MARKED` follows the existing rule (absent and late only; the text never says how the mark was made). Nothing about a scan goes to push.
+
+### 4.35 Student numbers, ID cards & transferred status (P2)
+
+*Added 26 November 2026 (D21); transfer reduced to a status the same day (D39). Spec §134.6.* The student number is a human identifier (printed, spoken, filed). It is **never** a credential and never appears in a URL: every endpoint addresses a student by UUID.
+
+```sql
+create table student_number_formats (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  campus_id       uuid,
+  prefix          text not null default '',      -- e.g. 'AAS'
+  include_year    boolean not null default true, -- two-digit admission year
+  seq_width       smallint not null default 5 check (seq_width between 3 and 9),
+  check_digit     boolean not null default true, -- Luhn-style, catches typos
+  reset_policy    text not null default 'NEVER', -- NEVER|YEARLY
+  is_active       boolean not null default true,
+  foreign key (campus_id, school_id) references campuses (id, school_id)
+  -- + std
+);
+create unique index ux_student_number_format_active on student_number_formats (school_id, coalesce(campus_id, '00000000-0000-0000-0000-000000000000'::uuid)) where is_active;
+
+create table student_number_counters (           -- one row locked per allocation
+  school_id       uuid not null references schools,
+  scope_key       text not null,                 -- 'ALL' or the year, e.g. '2026'
+  next_value      bigint not null default 1,
+  primary key (school_id, scope_key)
+);
+
+create table id_card_templates (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  subject_type    text not null default 'STUDENT', -- STUDENT|STAFF
+  name            text not null,
+  layout          jsonb not null,                -- size, fields, logo, colours (design tokens), i18n labels
+  shows_photo     boolean not null default true,
+  shows_qr        boolean not null default true,
+  validity_months smallint not null default 12,
+  is_active       boolean not null default true
+  -- + std
+);
+
+create table id_cards (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  subject_type    text not null default 'STUDENT',
+  student_id      uuid references student_profiles,
+  staff_id        uuid references school_staff,
+  template_id     uuid not null references id_card_templates,
+  card_no         text not null,
+  photo_media_id  uuid references media,         -- purpose ID_PHOTO
+  credential_id   uuid references attendance_credentials, -- the QR printed on the card (§4.34)
+  status          text not null default 'ACTIVE',-- ACTIVE|REPLACED|REVOKED|EXPIRED
+  issued_by       uuid not null references users,
+  issued_at       timestamptz not null default now(),
+  valid_until     date,
+  printed_at      timestamptz,
+  revoked_at      timestamptz,
+  revoked_reason  text,
+  check (num_nonnulls(student_id, staff_id) = 1),
+  unique (school_id, card_no)
+);
+create unique index ux_id_card_active on id_cards (student_id) where student_id is not null and status = 'ACTIVE';
+```
+
+*Changes to existing tables:* `school_students.student_number` is generated by `StudentNumbers.allocate(schoolId, campusId, admissionOn)` inside the admission transaction (the existing unique index is the final guard); an administrator may still enter a number by hand (imports keep theirs).
+
+*Rules:*
+- **Numbers:** allocation locks the counter row (`select ... for update`), formats `PREFIX/YY/00042` plus an optional check digit, never reuses a number (not even after withdrawal), and is audited. Bulk generation for existing students without a number is a dry run, then a confirm, in a fixed order (admission date, then name key) so reruns are stable.
+- **ID cards:** a card shows the student's name, photo (media purpose `ID_PHOTO`; school-record use, and the media-publication consent rule applies only if the photo is shown outside the card), class, validity and the **QR credential of §4.34 (a random token, never the student number)**. Printing runs through `report_jobs` (`ID_CARDS`, PDF sheets) and the file is a short-retention private media row. Reissuing revokes the old card and its credential in one transaction. Guardians and the student see **their own** card; staff cards are visible to the staff member and `school.idcards.manage`.
+- **Student transfer is a status, nothing more (D39).** There is no request, approval, consent, records package or hand-over, and no `student_transfers`, `transfer_packages` or `prior_school_records` table. A school administrator with `school.students.manage` marks a student **TRANSFERRED** with the date they left (`school_students.status = 'TRANSFERRED'`, `left_on`, `left_reason = 'TRANSFERRED_SCHOOL'`); the destination is **not recorded**. In one transaction: the student's class memberships end, login codes, attendance credentials and ID cards are revoked, and the audit records who did it. Guardians and teachers then see "Transferred" on the child (guardians keep seeing the child's own published results and receipts of the period they were enrolled, under the school's retention policy; a teacher sees the student only in the class history the school allows, §12). The global student identity and the guardian links are untouched (R-01, D13), so a receiving school can add the same child without a duplicate profile. A transfer can be **undone by a school administrator** (audited): the student returns to ACTIVE and class memberships are added again by hand. If the family needs the records, the school issues a **transcript** (§4.32); the receiving school keeps it as a document, not as data in the platform. Unpaid fees never block the status change, and a transcript is not withheld unless the school opts in (§4.32).
+
+### 4.36 School fees: schedules, online payment, verified transfers, cash & receipts (P3)
+
+*Added 26 November 2026 (D16, D30); simplified the same day (D37): the double-entry ledger is dropped and external transfers are verified through a verification API.* This extends `fee_items`, `invoices`, `invoice_lines` (§4.28) and the payment core (§4.26). School fees stay separate from platform charges (§60). A school defines **what is charged and how often** (fee structures and a billing schedule), guardians **pay in the app** through a payment provider or **claim a payment made elsewhere**, which the platform **verifies through a verification service** (a transaction-reference lookup), and the bursar can record **cash**. Every confirmed payment is allocated to invoices and gets an immutable receipt. There are no books beyond that: the reports are collection, arrears, cash book and receipts register (D15 revised).
+
+```sql
+create table fee_structures (                    -- what a grade (and campus) is charged
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  name            text not null,
+  academic_year_id uuid not null references academic_years,
+  grade_level_id  uuid,
+  campus_id       uuid,
+  currency_code   char(3) not null references currencies,
+  status          text not null default 'DRAFT', -- DRAFT|ACTIVE|ARCHIVED
+  foreign key (campus_id, school_id) references campuses (id, school_id),
+  unique (id, school_id)
+  -- + std
+);
+
+create table fee_structure_items (
+  id              uuid primary key default uuidv7(),
+  structure_id    uuid not null,
+  school_id       uuid not null,
+  fee_item_id     uuid not null references fee_items,
+  billing_cycle   text not null,                 -- ONCE|MONTHLY|TERMLY|YEARLY
+  is_optional     boolean not null default false,-- transport, meals: assigned per student
+  foreign key (structure_id, school_id) references fee_structures (id, school_id) on delete cascade,
+  unique (structure_id, fee_item_id)
+);
+
+create table payment_plans (                     -- instalments within one invoice
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  name            text not null,
+  installments    jsonb not null,                -- [{share_bps, due_offset_days}] shares add up to 10000
+  is_active       boolean not null default true,
+  unique (id, school_id)
+  -- + std
+);
+
+create table student_fee_assignments (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  student_id      uuid not null references student_profiles,
+  academic_year_id uuid not null references academic_years,
+  fee_structure_id uuid not null,
+  payment_plan_id uuid,
+  status          text not null default 'ACTIVE',-- ACTIVE|ENDED
+  effective_on    date not null,
+  assigned_by     uuid not null references users,
+  foreign key (fee_structure_id, school_id) references fee_structures (id, school_id),
+  foreign key (payment_plan_id, school_id) references payment_plans (id, school_id)
+  -- + std
+);
+create unique index ux_fee_assignment_active on student_fee_assignments (student_id, academic_year_id) where status = 'ACTIVE';
+
+create table fee_discounts (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  student_id      uuid not null references student_profiles,
+  fee_item_id     uuid references fee_items,
+  discount_type   text not null,                 -- PERCENT|FIXED
+  value_bps       int,
+  amount_minor    bigint,
+  reason_code     text not null,                 -- SIBLING|SCHOLARSHIP|STAFF_CHILD|HARDSHIP|OTHER (a code only)
+  valid_from      date not null,
+  valid_to        date,
+  approved_by     uuid not null references users,
+  status          text not null default 'ACTIVE',-- ACTIVE|ENDED
+  check ((discount_type = 'PERCENT') = (value_bps is not null)),
+  check ((discount_type = 'FIXED') = (amount_minor is not null))
+  -- + std
+);
+
+create table fee_billing_schedules (             -- the periodic payment set-up of a school
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  fee_structure_id uuid not null,
+  cycle           text not null,                 -- MONTHLY|TERMLY|YEARLY|ONCE
+  day_of_month    smallint not null default 1 check (day_of_month between 1 and 28),
+  due_after_days  smallint not null default 14,  -- due date = issue date + this
+  starts_on       date not null,
+  ends_on         date,
+  next_run_on     date,
+  status          text not null default 'DRAFT', -- DRAFT|ACTIVE|PAUSED|ENDED
+  created_by      uuid not null references users,
+  approved_by     uuid references users,         -- activation needs a different person unless single-person mode
+  approved_at     timestamptz,
+  foreign key (fee_structure_id, school_id) references fee_structures (id, school_id),
+  check (ends_on is null or ends_on >= starts_on)
+  -- + std
+);
+
+create table invoice_runs (                      -- automatic invoicing: one run, many invoices
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  schedule_id     uuid references fee_billing_schedules,
+  academic_period_id uuid references academic_periods,
+  fee_structure_id uuid not null,
+  billing_key     text not null,                 -- e.g. 'MONTH|2026-12' or 'TERM|2026|T1'
+  trigger         text not null,                 -- SCHEDULE|MANUAL
+  dry_run         boolean not null default false,
+  status          text not null default 'QUEUED',-- QUEUED|RUNNING|DONE|FAILED|CANCELLED
+  invoices_created int not null default 0,
+  invoices_skipped int not null default 0,
+  requested_by    uuid references users,         -- null for a scheduled run
+  approved_by     uuid references users,         -- a MANUAL real run needs a second person (setting)
+  started_at      timestamptz,
+  finished_at     timestamptz,
+  foreign key (fee_structure_id, school_id) references fee_structures (id, school_id)
+);
+
+create table invoice_installments (
+  id              uuid primary key default uuidv7(),
+  invoice_id      uuid not null references invoices on delete cascade,
+  school_id       uuid not null references schools,
+  installment_no  smallint not null,
+  due_date        date not null,
+  amount_minor    bigint not null,
+  paid_minor      bigint not null default 0,
+  unique (invoice_id, installment_no)
+);
+
+create table verification_providers (            -- services that look up a transaction by its reference
+  code            text primary key,              -- VERITAS (https://veritas.et), later others; credentials live in the secrets store, never here
+  name            text not null,
+  supported_methods text[] not null,             -- CBE|TELEBIRR|DASHEN|ABYSSINIA|CBE_BIRR|MPESA|OTHER
+  country_code    char(2) not null references countries,
+  is_enabled      boolean not null default true,
+  sort_order      smallint not null default 0
+);
+
+create table school_receiving_accounts (         -- the accounts that may legitimately receive this school's fees
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  method          text not null,                 -- CBE|TELEBIRR|DASHEN|ABYSSINIA|CBE_BIRR|MPESA|OTHER
+  account_name    text not null,
+  account_number_enc bytea not null,             -- application-level encrypted
+  account_last4   text not null,                 -- the only part shown
+  is_active       boolean not null default true,
+  created_by      uuid not null references users,
+  unique (id, school_id)
+  -- + std
+);
+
+create table external_payment_claims (           -- "I paid through my bank or wallet": verified by reference
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  student_id      uuid not null references student_profiles,
+  invoice_id      uuid references invoices,      -- optional: the invoice the payer says it is for
+  claimed_by      uuid not null references users,
+  method          text not null,
+  reference       text not null,                 -- as typed
+  reference_norm  text not null,                 -- normalized (case, spaces, prefixes) and checked against the method's reference format
+  secondary_identifier_enc bytea,                -- what some methods also need: an account suffix (CBE legacy, Abyssinia) or the payer's 251 phone (CBE Birr); encrypted, erased when the claim ends
+  claimed_amount_minor bigint,                   -- informational only: never trusted
+  receipt_media_id uuid references media,        -- optional screenshot, purpose PAYMENT_PROOF
+  status          text not null default 'SUBMITTED', -- SUBMITTED|VERIFYING|VERIFIED|NEEDS_REVIEW|REJECTED|DISPUTED|EXPIRED
+  provider_code   text references verification_providers,
+  attempts        smallint not null default 0,
+  last_attempt_at timestamptz,
+  provider_http_status smallint,                 -- what the service answered (a failure can arrive as HTTP 200)
+  lookup_duration_ms int,
+  verified_amount_minor bigint,
+  verified_currency char(3) references currencies,
+  verified_paid_at timestamptz,
+  verified_receiver_last4 text,
+  payer_name_masked text,                        -- as returned by the service, masked; shown to the school's reviewer
+  decision_code   text,                          -- RECEIVER_MISMATCH|AMOUNT_LOW|DATE_INVALID|NOT_FOUND|PROVIDER_ERROR|REFERENCE_USED|OTHER
+  reviewed_by     uuid references users,
+  reviewed_at     timestamptz,
+  manual_payment_id uuid,                        -- the payment this produced
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+-- One live claim per transaction on the whole platform: the same transfer can never pay twice.
+create unique index ux_claim_reference_live on external_payment_claims (method, reference_norm)
+  where status in ('SUBMITTED','VERIFYING','VERIFIED','NEEDS_REVIEW','DISPUTED');
+
+create table manual_payments (                   -- cash, cheque, deposit slip, and a verified transfer
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  student_id      uuid not null references student_profiles,
+  payer_user_id   uuid references users,
+  payer_name      text,                          -- a payer need not have an account
+  method          text not null,                 -- CASH|CHEQUE|BANK_DEPOSIT_SLIP|VERIFIED_TRANSFER
+  amount_minor    bigint not null check (amount_minor > 0),
+  currency_code   char(3) not null references currencies,
+  received_on     date not null,
+  reference       text,
+  proof_media_id  uuid references media,         -- purpose PAYMENT_PROOF
+  claim_id        uuid references external_payment_claims,
+  cash_session_id uuid,
+  status          text not null default 'PENDING', -- PENDING|VERIFIED|REJECTED|VOIDED
+  requires_second_approval boolean not null,
+  recorded_by     uuid references users,         -- null when the system recorded a verified transfer
+  verified_by     uuid references users,
+  verified_at     timestamptz,
+  rejection_code  text,
+  voided_by       uuid references users,
+  voided_at       timestamptz,
+  void_reason     text,
+  check (verified_by is null or recorded_by is null or verified_by <> recorded_by or not requires_second_approval),
+  check (voided_by is null or void_reason is not null)
+  -- + std
+);
+
+create table payment_allocations (               -- append-only: which payment paid which invoice
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  payment_id      uuid references payments,
+  manual_payment_id uuid references manual_payments,
+  invoice_id      uuid not null references invoices,
+  installment_id  uuid references invoice_installments,
+  amount_minor    bigint not null check (amount_minor <> 0), -- a reversal is a negative row
+  allocated_at    timestamptz not null default now(),
+  allocated_by    uuid references users,         -- null = automatic
+  check (num_nonnulls(payment_id, manual_payment_id) = 1)
+);
+
+create table receipt_sequences (                 -- gapless numbering per school and year
+  school_id       uuid not null references schools,
+  receipt_year    smallint not null,
+  last_no         bigint not null default 0,
+  primary key (school_id, receipt_year)
+);
+
+create table receipts (                          -- immutable
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  receipt_no      text not null,
+  student_id      uuid not null references student_profiles,
+  payment_id      uuid references payments,
+  manual_payment_id uuid references manual_payments,
+  payer_name      text,
+  amount_minor    bigint not null,
+  currency_code   char(3) not null references currencies,
+  lines           jsonb not null,                -- what it paid, as printed
+  content_sha256  text not null,
+  verification_hash text not null unique,        -- HMAC of the token in the QR; the token is never stored
+  media_id        uuid references media,         -- the PDF
+  status          text not null default 'ISSUED',-- ISSUED|VOIDED
+  issued_by       uuid references users,         -- null = issued by the system after a verified payment
+  issued_at       timestamptz not null default now(),
+  voided_at       timestamptz,
+  voided_by       uuid references users,
+  void_reason     text,
+  replaced_by     uuid references receipts,
+  check (num_nonnulls(payment_id, manual_payment_id) = 1),
+  unique (school_id, receipt_no)
+);
+
+create table cash_sessions (                     -- a cashier's day or shift
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  cashier_id      uuid not null references users,
+  opened_at       timestamptz not null default now(),
+  closed_at       timestamptz,
+  expected_minor  bigint,
+  counted_minor   bigint,
+  variance_minor  bigint generated always as (counted_minor - expected_minor) stored,
+  status          text not null default 'OPEN',  -- OPEN|CLOSED|SIGNED_OFF
+  signed_off_by   uuid references users,
+  signed_off_at   timestamptz,
+  check (signed_off_by is null or signed_off_by <> cashier_id)
+);
+-- payment_allocations, receipts and receipt_sequences have no UPDATE or DELETE path (a trigger raises; the application role has no DELETE).
+-- A receipt may change only its status and void columns, once.
+```
+
+*Changes to existing tables:*
+- `invoices.billing_key text`, `invoices.run_id uuid references invoice_runs`, unique `(school_id, student_id, billing_key)` (a rerun creates nothing twice); `invoices.status` gains `CANCELLED`.
+- `student_guardians.can_view_fees boolean not null default true` and `can_pay_fees boolean not null default true` (P3 columns).
+- `media.purpose` gains `PAYMENT_PROOF`, `ID_PHOTO`, `RECEIPT`.
+
+*Rules:*
+- **Periodic payment set-up (what you asked for).** The school builds a **fee structure** (items, with a billing cycle each), assigns it to students (bulk by grade or class, with optional items per student) and activates a **billing schedule** (monthly, termly, yearly or once; the day of the month; the days allowed to pay). Activating a schedule needs a **second person** (setting `fees.second_approval`, default on; `fees.single_person_mode` lets a one-person school skip it, audited as such). After that a daily job (`fees.schedule-run`, ShedLock, returns `Integer`) creates the period's invoices by itself with no further approval: it is idempotent through `billing_key`, chunked and resumable, notifies guardians (`INVOICE_ISSUED`: school name and due date, **never the amount or the child's name**) and emails the finance manager a count and the exceptions (students without an assignment). A manual run is also possible, with a dry run first.
+- **Pay in the app.** A guardian with `can_pay_fees` pays an invoice or instalment through a provider of the country (§4.26). A payment is SUCCEEDED only after the verified signature, the provider's status query and the amount, currency and reference match, once per event (D30); allocation, receipt and notification then follow in one transaction. An overpayment becomes a credit on the student's account, never an automatic refund.
+- **Pay elsewhere, then verify (what you asked for).** A guardian who paid through a bank or wallet submits a **claim**: method and transaction reference (and optionally a screenshot and the invoice). The platform checks it through a **verification provider** (an adapter behind a port, §4.36 provider decision). A claim becomes VERIFIED, and produces a `VERIFIED_TRANSFER` manual payment, an allocation and a receipt, **only if all of these hold**, from the provider's answer and never from what the guardian typed: the transaction **exists and succeeded**; the **receiver account matches an active `school_receiving_accounts` row of this school** (last digits and name); the **currency is the invoice's**; the **paid time is not in the future and not before the invoice was issued** (minus a configured tolerance); the **reference has not been used on the platform** (`ux_claim_reference_live`); and the **verified amount** is used (if it is less than the invoice, the invoice is part-paid; if more, the rest is a credit). Anything else, or a provider error or timeout, goes to **NEEDS_REVIEW** for a finance user: nothing is auto-confirmed on doubt, and the claim never changes an invoice until the provider answered. The guardian is told the state in plain words ("checking", "confirmed", "we need a person to check").
+  - *Residual risk (documented):* a verification service confirms that **a transfer exists**, not **who the family is**. A malicious guardian could claim someone else's transfer reference (for instance a shared screenshot) against their own child's invoice. Mitigations: the provider's **masked payer name** is shown to the school's reviewer on every claim, the finance manager receives a **daily digest of auto-verified claims**, a payer who finds their reference "already used" can **dispute** it (`DISPUTED`, handled by finance), claims are rate-limited (5 an hour per guardian, 20 a day per child), and a school may require review for every claim (`fees.claims.auto_confirm`, default on).
+  - **The verification service is Veritas (https://veritas.et), a third party and not a bank (D37).** Facts taken from its public documentation on 26 November 2026, to be re-checked in the M31c spike: it supports CBE, Telebirr, Bank of Abyssinia, Dashen, CBE Birr and M-Pesa; a lookup is `POST /verify` (or a dedicated route per method) on its hosted API with an `x-api-key` header; each method needs a **reference** and some a second identifier (a CBE legacy or Abyssinia **account suffix**, the **251 phone number** with the receipt number for CBE Birr); it is labelled **Beta** and no SLA, privacy terms, retention statement or bank affiliation was found; its response fields are **not documented** and differ per method; a failure can come back as **HTTP 200 with `success: false`**; each lookup, even a failed one, **uses a monthly credit**; plans are Free (100 lookups a month, 10 requests a minute), Pro (2,000, 60 a minute, 199 ETB a month) and Business (50,000, 300 a minute, 499 ETB a month); a lookup can be slow (its changelog implies up to about a minute); there is no idempotency guarantee. **What leaves the platform:** the method's **reference and the second identifier it needs, nothing else** (never a child's name, a student id, an invoice or the school). The adapter is the only code that knows the service; it chooses the **dedicated route from the method the guardian picked** (not auto-detection), validates the reference format per method before spending a credit, and maps each method's answer into one internal `VerifiedTransfer` (amount, currency, paid time, receiver account, payer name, status); **an unknown or missing field makes the claim NEEDS_REVIEW**. Every lookup runs **in a background job** with a 65-second timeout, one automatic retry for a network error only, a rate limiter that stays under the plan's requests-a-minute, and a circuit breaker; a claim shows "checking" meanwhile. The API key is a platform secret in the secrets store; **the platform holds one key and caps each school's lookups per month** (`fees.claims.monthly_cap`; past it, claims go straight to a person) so cost is bounded. check.et is a separate service with a similar API and can be added as a second adapter behind the same port; it is not selected. Raw responses are never logged or stored; only the normalized fields above, the HTTP status and the duration are.
+- **Cash and other manual payments.** `school.fees.record` (bursar, cashier) records cash, cheques and deposit slips; **a second person** with `school.fees.verify` verifies a cheque, a deposit slip, and cash at or above `fees.cash.approval_threshold_minor` (`requires_second_approval`, enforced by the CHECK and the service); smaller cash is VERIFIED at once but is covered by the **cash session's closing, which a different person signs off**. A payment cannot be edited: a wrong one is **voided with a reason by a second person** (a reversal row in `payment_allocations` and a replacement receipt). A cashier cannot void, approve their own entry or change another cashier's session. With `fees.single_person_mode` a one-person school may verify its own entries; every such entry is flagged in the audit and the cash book.
+- **Receipts:** issued when a payment or manual payment is VERIFIED, from the payment row (the amount is never typed twice), numbered **gapless per school and year** (`receipt_sequences`, a locked row, rolled back on failure), an **immutable snapshot** with `content_sha256`. A void is a status change with the reason and a replacement; the voided receipt stays on file and verifies as VOIDED. The PDF is served through its owning row's policy (the payer, guardians with `can_view_fees`, `school.fees.read`). **QR verification:** a 128-bit token in `https://<school-host>/verify/{token}`, looked up by HMAC, constant time, rate-limited, uniform for unknown or malformed, throttled after three failures per source per minute; the page shows **school, receipt number, date, amount, currency and status**, never a student or payer name.
+- **Visibility:** a guardian sees invoices, balances and receipts of a child only with an ACTIVE, **not custody-restricted** link and `can_view_fees`; paying and claiming need `can_pay_fees`; other guardians, teachers and students see nothing (**no arrears in class views or anywhere a classmate could see**). Staff: `school.fees.read`, `school.fees.manage` (structures, assignments, discounts, schedules, runs, receiving accounts), `school.fees.record`, `school.fees.verify` (also reviews claims), `school.fees.void`, `school.fees.report`. Receiving-account numbers are readable only by `school.fees.manage`, shown as last four everywhere else. CAMPUS_ADMIN is scoped to the campus's students.
+- **Reports** (`report_jobs`, CSV-neutralized, audited, rate-limited, never e-mailed): arrears and ageing, collection summary by day, fee type and method, cash book per session, receipts register (every number including voids), claims log, student statement. Exports contain children's names and amounts.
+- **Reminders** (`INVOICE_DUE`, `INVOICE_OVERDUE`) carry the school name and due date only, respect quiet hours, and **never shame**: no amount in push, no message to the child, never to a student's account.
+- **Not built (D14, D15, D37):** a double-entry ledger, financial periods, manual journals and trial balance; payroll; tax; provider refunds (a payment returned to a payer is a reversal recorded by finance and settled outside the platform).
+
+### 4.37 School AI assistant (DEFERRED: not scheduled)
+
+> **Deferred 26 November 2026 (D34).** This design is kept as a reference for when the owner decides to build it. **None of these tables is created, no milestone is scheduled**, and it depends on an AI platform (model gateway, prompt templates, usage metering, benchmarks and enablement records) whose tables were removed with the Tutor Copilot and Student AI Tutor (§4.29) and must be designed again at that time. Its security rules (tools that run as the signed-in user, no copy of children's records, read-only, off by default) stand.
+
+*Added 26 November 2026 (D31, deferred by D34). Spec §134.9.* An assistant that answers questions **from the school's own records and documents**: a guardian asks about their child's attendance, grades, timetable or fees; a teacher asks about their classes; an administrator asks about school information. It is distinct from the Student AI Tutor (§4.29, §130). It would need an AI platform (model routing, prompt templates, generation log, usage quotas and enablement records) that this version does not build.
+
+```sql
+create table assistant_conversations (
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  user_id         uuid not null references users,
+  audience        text not null,                 -- GUARDIAN|TEACHER|ADMIN
+  language        char(2) references languages,
+  status          text not null default 'ACTIVE',-- ACTIVE|CLOSED|DELETED
+  started_at      timestamptz not null default now(),
+  last_activity_at timestamptz not null default now(),
+  expires_at      timestamptz not null           -- default 30 days after the last activity
+);
+
+create table assistant_messages (
+  id              uuid primary key default uuidv7(),
+  conversation_id uuid not null references assistant_conversations on delete cascade,
+  school_id       uuid not null references schools,
+  role            text not null,                 -- USER|ASSISTANT
+  content_enc     bytea not null,                -- application-level encrypted (may hold a child's data)
+  generation_id   uuid,                          -- would reference the generation log of the future AI platform
+  citations       jsonb,                         -- [{type: 'TOOL'|'DOCUMENT', ref_id, label}]
+  created_at      timestamptz not null default now()
+);
+
+create table assistant_tool_calls (              -- the audit of what the assistant read, by ids only
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  user_id         uuid not null references users,
+  message_id      uuid references assistant_messages on delete set null,
+  tool_name       text not null,                 -- GET_ATTENDANCE_SUMMARY|GET_GRADES|GET_TIMETABLE|GET_FEE_BALANCE|GET_EVENTS|GET_ANNOUNCEMENTS|GET_ASSIGNMENTS|SEARCH_SCHOOL_DOCUMENTS
+  argument_ids    jsonb not null,                -- ids and enums only
+  outcome         text not null,                 -- OK|DENIED|NO_DATA|ERROR
+  record_count    int,
+  created_at      timestamptz not null default now()
+);
+
+create table assistant_knowledge_documents (     -- the school's own NON-personal documents
+  id              uuid primary key default uuidv7(),
+  school_id       uuid not null references schools,
+  title           text not null,
+  doc_type        text not null,                 -- HANDBOOK|POLICY|FEE_SCHEDULE|FAQ|CALENDAR_NOTE|OTHER
+  body            text,
+  media_id        uuid references media,
+  audience        text not null default 'GUARDIAN_AND_STAFF', -- GUARDIAN_AND_STAFF|STAFF
+  status          text not null default 'DRAFT', -- DRAFT|PUBLISHED|ARCHIVED
+  published_by    uuid references users,
+  published_at    timestamptz
+  -- + std
+);
+
+create table assistant_knowledge_chunks (        -- the ONLY thing that is indexed (pgvector + full text)
+  id              uuid primary key default uuidv7(),
+  document_id     uuid not null references assistant_knowledge_documents on delete cascade,
+  school_id       uuid not null references schools,
+  chunk_no        int not null,
+  content         text not null,
+  embedding       vector(1024),
+  tsv             tsvector generated always as (to_tsvector('simple', content)) stored,
+  unique (document_id, chunk_no)
+);
+create index ix_assistant_chunks_school on assistant_knowledge_chunks (school_id);
+
+create table assistant_feedback (
+  message_id      uuid not null references assistant_messages on delete cascade,
+  user_id         uuid not null references users,
+  rating          text not null,                 -- HELPFUL|NOT_HELPFUL|WRONG|UNSAFE
+  reason_code     text,
+  created_at      timestamptz not null default now(),
+  primary key (message_id, user_id)
+);
+```
+
+*Rules (the design principle is **no copy of the records**):*
+- **Records are read through tools, not through an index.** The model never receives a database connection or a vector index of attendance, grades, fees, messages or anything about a child. It can call a fixed set of **read-only tools** (`assistant_tool_calls.tool_name`); each tool is a thin wrapper over the existing service for that data and runs **as the signed-in user** (`CurrentUser`): `GuardianAccess` for a guardian's child (ACTIVE, not custody-restricted, with `can_view_academics` or `can_view_fees` as the tool needs), `ClassAccess` for a teacher, school permissions for an administrator. **The tool re-checks authorization with the ids it is given**; a student id produced by the model is never trusted (a guardian cannot reach a child that is not theirs by naming them). Denied calls return a fixed "I can't help with that" and are logged as DENIED.
+- **Only school documents are indexed** (`assistant_knowledge_documents`: handbook, policies, fee schedule, FAQs). A school publishes them on purpose; they contain no child data (an upload form states it, and the document is excluded from the index if it fails a simple personal-data check such as many phone numbers or student-number patterns, a flag for review). Chunks carry `school_id` and **every retrieval query filters by it**; there is no cross-tenant search path (tested with a second school's document).
+- **Never exposed through the assistant, by rule and by test:** absence-report reasons and notes and any health data, safeguarding or moderation records, message text and the messaging review data, other children's data or class rankings, rosters (a guardian never learns who else is in the class), custody-restricted links and the existence of a restricted link, login codes and credentials, exam content before release, other staff's salary or attendance, and **anything the user could not open in the app**. The assistant adds no power: **if the app would refuse the user, so does the assistant.**
+- **Read-only (D31).** In the first version the assistant has **no write tool**: it cannot send a message, change a mark, record a payment or mark attendance. It may *explain how* to do something in the app. Any later action tool needs a separate decision, an explicit confirmation step and the same authorization as the endpoint.
+- **Prompt injection:** tool results and document text are **data, never instructions** (a delimiter-and-role structure, instructions in the system prompt only); a tool result cannot add tools; user-written text that ends up in results (a teacher's comment, a document) is treated the same. A test suite of injection attempts (in a document, a comment, an announcement) must pass before enabling (M32 benchmark sets).
+- **Minimisation to the model provider (§131):** the gateway sends the **minimum** (first name or a label, no date of birth, gender, phone, e-mail, student number or address), masks identifiers (`ai_generations` keeps a reference to records, not copies), uses a provider with a **no-training, short-retention** agreement, and records provider and region. Whether child data may leave the country is a **legal decision per country** (§131) made before enabling; the assistant is **off by default**, enabled per school (`SCHOOL_ASSISTANT` enablement), and a guardian needs the `AI_PROCESSING` consent for their child before the assistant touches that child's data.
+- **Grounding and honesty:** an answer states the **source** (a tool result with its date, or a document title and version) and what it could not find; with no data it says so and never guesses. Numbers (grades, balances) are copied from the tool result by the answer template, not re-generated. A "wrong" or "unsafe" feedback flows into moderation (`content_reports`) like other AI output reports.
+- **Storage:** messages may contain child data, so they are **application-encrypted** (`content_enc`), deleted at `expires_at` (default 30 days) or on user request, excluded from backups beyond the retention policy, never in logs, analytics, notifications or audit rows. The audit holds **tool name, ids and counts**. A user can delete a conversation; an administrator cannot read other users' conversations (no admin transcript view; a safeguarding concern goes through the incident process with a reason, as for review in messaging).
+- **Limits and cost:** per-user and per-school rate limits and daily budgets (`ai_usage_quotas`), a kill switch, and answers in the user's language (am, en and others once benchmarked, §130: an unbenchmarked language is not offered).
+- **Audiences:** guardians (their own children only), teachers (their classes and own timetable; no individual guardian data), administrators (school-level aggregates and documents; a student-level question follows `school.*` permissions). **Students are not an audience** of this assistant (the Student AI Tutor covers learning; D31).
 
 ---
 
@@ -3252,12 +3733,20 @@ or exists (select 1 from role_assignments ra join classes c on c.id = :C
 | Resource | Rule |
 |---|---|
 | Student S's attendance, points, grades | S themself; ACTIVE teachers of a class S is ACTIVE in (subject teachers limited to their subject for gradebook data); ACTIVE guardians with `can_view_academics` and not `custody_restricted`; school admins. **Not tutors**, unless a `data_sharing_grants` row covers the category (§85, §103). |
-| Course content | `course_enrollments.status = 'ACTIVE'`, or the user is in `course_instructors`, or the lesson has `is_preview`. A course id on its own never grants access (§101). |
-| Library resource | Owner or admins, or any matching `resource_access_rules` row evaluated against the user's active class, grade, school and course enrollments (§84). |
+| Tutor directory | Search and profile reads: authenticated guardians and adult learners only, **never student accounts** (R4.6); only VERIFIED, LISTED tutors with a live listing subscription; no contact data ever returned. A tutor reads only the inquiries addressed to them. Platform reviewers read verification documents; nobody else (§4.27). |
+| Library resource | Owner or admins, or any matching `resource_access_rules` row evaluated against the user's active class, grade and school (§84). |
 | Messaging start | Parent→teacher only if the teacher is ACTIVE in a class where the parent's child is ACTIVE (§29). Students follow R-28 settings. `user_blocks` is checked both ways. |
-| Tutor → learner data | Only through an ACTIVE `tutoring_relationships` row, plus `data_sharing_grants` for any school-sourced category. |
-| Guardian → marketplace history | A guardian sees bookings they made or approved. School staff never see marketplace data (§103). |
+| Tutor ↔ school data | **None.** A tutor never reads grades, attendance, portfolios, class membership or school messages, and a school never reads a family's tutor inquiries (§103). There is no sharing grant. |
+| Guardian → tutor inquiries | A guardian sees only the inquiry conversations they started; no minor is ever a participant (Messaging_Rules R14). |
 | Safeguarding incidents | SAFEGUARDING_LEAD at the matching scope only. Every read is audited. |
+| Timetable, lesson plan | Published timetable: ACTIVE class members, ACTIVE teachers of the class, guardians of a child in the class (`ClassAccess.canView`); drafts: `school.timetable.manage`. Lesson plans: owner, reviewers and `school.lesson_plans.read` only, never students or guardians (§4.30, §4.31). |
+| Marklist, period result, report card, transcript | Unpublished marks: the class's subject teachers and `school.grading.*`. Published results and issued documents: the child and ACTIVE, unrestricted guardians with `can_view_academics`; rank only per `grading.rank.visibility`, only the viewer's own (§4.32). Public verification reveals document type, school, date and status only. |
+| Exam paper and answers | Before `opens_at`: creator, LEAD teacher, `school.exams.manage`. `correct_answer` never in a student or guardian DTO; released only by the sitting's `results_release` (§4.33). |
+| Staff attendance | The staff member, `school.staff_attendance.read` and `.manage`. Never a colleague or a teacher as such (§4.34). |
+| Attendance credential, ID card | The student (own card), ACTIVE unrestricted guardians (own child's card), `school.idcards.manage`; a scanning teacher sees first name and avatar only (§4.34, §4.35). |
+| Transferred status | School administrators with `school.students.manage` set and undo it; guardians and teachers only see the status (§4.35). Nothing moves between schools. |
+| Fees, receipts, claims | Guardians with `can_view_fees` / `can_pay_fees` (ACTIVE, not custody-restricted) for their child; staff by `school.fees.*`. Teachers and students never see balances. Two-person rules for cash, voids, schedules and manual runs unless the school is in single-person mode; receiving-account numbers only for `school.fees.manage` (§4.36). |
+| School AI assistant *(deferred)* | Not built. When built: the signed-in user, through tools that re-run the normal checks (§4.37). |
 
 Historical access (§12): FORMER members keep read access to content from their membership period only if the school setting `classes.former_member_history_access` allows it. Queries then add `published_at between joined_at and left_at`.
 
@@ -3267,9 +3756,9 @@ Historical access (§12): FORMER members keep read access to content from their 
 
 - **Hot paths in P1:** class feed (`posts` partial indexes), inbox (`notifications`), conversation timeline (`messages (conversation_id, created_at desc)`), "my children" (`student_guardians (guardian_id) where status='ACTIVE'`), "my classes" (`class_students (student_id)` and `class_teachers (teacher_id)`, both partial on ACTIVE).
 - **Partition by month** once volumes justify it: `audit_logs` (from day one), `messages`, `notifications`, `notification_deliveries`, `point_transactions`, `event_publication` (or purge completed rows, as EventPublicationMaintenance does). UUIDv7 keeps inserts append-friendly before that point.
-- **Search:** `pg_trgm` GIN indexes on users, tutors, courses and library titles. A separate search engine is deferred (§119).
+- **Search:** `pg_trgm` GIN indexes on users, tutors and library titles. A separate search engine is deferred (§119).
 - **Retention jobs** read `retention_policies` and skip anything under `legal_holds` or `media.legal_hold`. Expired stories become `EXPIRED` at `expires_at`, and their media is deleted according to policy.
-- **Encryption:** TLS in transit, managed storage encryption at rest, and application-level encryption for `safeguarding_incidents.description` and incident notes. Payout account details are stored as tokens only.
+- **Encryption:** TLS in transit, managed storage encryption at rest, and application-level encryption for `safeguarding_incidents.description` and incident notes. Payout account details are stored as tokens only. Also application-level encrypted: `school_receiving_accounts.account_number_enc` (§4.36). Never stored: any location of a check-in (none is collected, D38), webcam or microphone data of an exam (§4.33), QR tokens of attendance, documents and receipts (only their HMAC, §4.32, §4.34, §4.36). `payment_allocations` and issued `receipts` have no update or delete path (§4.36).
 - **Migrations:** Flyway, one migration per module per phase (`V1_01__reference.sql`, `V1_02__tenancy.sql` …). Columns marked "P2/P3 column" are added in that phase's migration, so P1 never references tables that don't exist yet.
 - **Seed data (P1):** currencies (ETB, KES, USD), languages (am, en, om, ti, so, sw), calendar systems, country ET (enabled) and KE (draft), Ethiopian admin levels 1–2, roles and permissions, notification types, setting and feature definitions, the default point-category template, the default badge set and subscription plans.
 
@@ -3282,7 +3771,39 @@ Historical access (§12): FORMER members keep read access to content from their 
 | D1 Java 25 | No schema impact |
 | D2 needs-work allowed; home points never count | `engagement.needs_work.enabled` defaults to true. HOME rule in §4.7 and the `point_transactions` CHECK |
 | D3 school-configurable messaging | `messaging.*` setting definitions (§4.11) and the safeguarding floor |
-| D4 payments core and video in P3 | Phase tags on §4.25 and §4.26 |
+| D4 payments core in P3 (video removed, D33) | Phase tag on §4.26 |
 | D5 translation storage now, provider when chosen | `content_translations` (P1). Provider configured later |
 | D6 managed accounts plus QR/text login codes | `users.account_type`, `student_login_codes` |
-| D7 school fees P5+ | §4.28 fee tables |
+| D7 school fees P5+ (moved to P3 by D37, because the marketplace finance that filled P5 is gone) | §4.28 and §4.36 fee tables |
+
+### School operations scope (26 November 2026, D14–D40)
+
+| Decision | Where it shows up in the schema |
+|---|---|
+| D14 HR and payroll out of scope | No HR tables; `school_staff` unchanged; staff attendance has no leave or pay link (§4.34) |
+| D15 financial books = collection, arrears, cash book and receipts register (no ledger; revised by D37) | `payment_allocations`, `receipts`, `cash_sessions` (§4.36) |
+| D16 fee scope: structures, schedules, invoicing, online payment, verified transfers, cash, receipts (timing revised by D37) | §4.36; `student_guardians.can_view_fees/can_pay_fees` |
+| D17 attendance methods are evidence; the roll is the one write path (manual and QR only, D38) | `attendance_checkins`, `attendance_records.source/checkin_id` (§4.34) |
+| D18 *(superseded by D38)* no location is collected | none |
+| D19 attendance credentials are not login codes (QR only, D38) | `attendance_credentials`, `attendance_qr_sessions` |
+| D20 staff attendance without leave or payroll | `staff_attendance_records`, `staff_attendance_corrections` |
+| D21 student numbers generated; ID cards with a QR | `student_number_formats/counters`, `id_cards` (§4.35) |
+| D22 *(superseded by D39)* transfer workflow | none |
+| D23 question banks, copy-on-use | `question_banks`, `bank_questions`, `quiz_questions.bank_question_id` (§4.33) |
+| D24 secure exams without camera proctoring | `exam_sittings`, `quiz_attempt_events`, `quiz_attempts.deadline_at` |
+| D25 assessment plans, marklists, amendments | `assessment_plans`, `subject_marklists`, `result_amendments` (§4.32) |
+| D26 rank visible only as the viewer's own, by setting | `period_results.class_rank`, setting `grading.rank.visibility` |
+| D27 report cards and transcripts are immutable, verifiable, not withheld over fees by default | `report_cards`, `transcripts`, `verification_hash` |
+| D28 lesson plans: format as data; staff-only | `lesson_plan_templates`, `lesson_plans` (§4.31) |
+| D29 timetable versioned, clash-free by constraint | `timetable_versions`, unique indexes of `timetable_entries` (§4.30) |
+| D30 payment verification, two-person cash (configurable), immutable receipts | `payments.verification_status`, `manual_payments`, `receipts` (§4.26, §4.36) |
+| D31 school AI assistant: tools not an index, read-only | §4.37 *(deferred by D34, not built)* |
+| D32 tutor marketplace becomes a directory with a paid listing; no bookings, reviews, commissions or payouts | §4.27 `tutor_*`, `tutor_inquiries`, `platform_invoices` |
+| D33 no online courses and no hosted or recorded video | §4.24 and §4.25 removed |
+| D34 no Student AI Tutor or Tutor Copilot; school AI assistant deferred | §4.29 removed, §4.37 deferred |
+| D35 tutors pay a listing subscription through the payment core; paying buys a listing, not rank | `subscriptions` (TUTOR), `platform_invoices`, `payments.platform_invoice_id` |
+| D36 only guardians and adult learners contact tutors; minors never do | `tutor_inquiries`, `conversations.conversation_type = TUTOR_INQUIRY`, Messaging_Rules R14 |
+| D37 fees: periodic schedules, pay in the app or verify an external payment by reference; no ledger; fees move to Phase 3 | `fee_billing_schedules`, `external_payment_claims`, `school_receiving_accounts`, `verification_providers` (§4.36) |
+| D38 attendance: manual and QR only | §4.34 (no geofences, devices or NFC) |
+| D39 transfer is a status only | `school_students.status = TRANSFERRED` (§4.35) |
+| D40 timetable: manual builder, no generator | §4.30 |

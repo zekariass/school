@@ -27,7 +27,7 @@ safety-critical part of the product.
 
 ## R1 Who may message at all
 
-1. Both people must be Active users of the **same school** and the school must be ACTIVE (not onboarding, suspended or archived).
+1. Both people must be Active users of the **same school** and the school must be ACTIVE (not onboarding, suspended or archived). The only exception is the tutor inquiry of R14.
 2. A **student** takes part only if they are an ACTIVE student of the school and `messaging.student.enabled` is on.
    If `messaging.student.min_age` is set, the server computes the age from the student's date of birth itself. The
    date of birth is never sent to a client. **(added by the implementer)** A student whose date of birth is unknown
@@ -106,7 +106,7 @@ Tests: `StartConversationTest.parentParentIsOffByDefault`, `.parentParentNeedsCh
 3. Student-student DIRECT only if `messaging.student.student_direct.enabled`, and only between students ACTIVE in the
    same class.
 4. Otherwise students talk only in CLASS and GROUP conversations their teacher created (R6).
-5. A student can never message a guardian, a non-teaching staff member, a tutor or a stranger.
+5. A student can never message a guardian, a non-teaching staff member, a tutor or a stranger (R14: a minor never contacts a tutor either; a guardian or an adult learner does, never the child).
 6. A student has **no search and no directory** of people. No endpoint lets a student list or look up users. The
    contacts endpoint refuses students. **(added by the implementer)** A student can only name someone they already
    see in their own class; any other id gets the same generic refusal.
@@ -319,6 +319,47 @@ Tests: `ReviewTest.reviewNeedsPermissionAndAReason`, `.everyReadIsAudited`, `.on
 `.permissionsAreSeeded` (`RolesAndPermissionsSeedTest` keeps code and seeds equal); every endpoint is also in
 `AuthorizationMatrixTest` ("messaging" cases).
 
+## R14 Tutor inquiries (added 26 November 2026, D32 and D36; the rule "students under 18 never message a tutor" is confirmed by the owner)
+
+Families can find tutors in the tutor directory (Database Design 4.27) and message them. This is the only conversation
+that is not inside a school, so it is the most restrictive part of messaging. **A minor never contacts a tutor.** The
+tutor directory is not a people search: it lists tutors, never students or families.
+
+1. **Type.** `TUTOR_INQUIRY`, exactly two people: one **tutor** and one **inquirer**. It has no school and no class, and
+   it never mixes with school conversations: a school administrator or reviewer cannot see it, and a tutor cannot see
+   anything of a school.
+2. **Who may start one.** Only (a) a **guardian** who is ACTIVE and has at least one ACTIVE, unrestricted link to a child,
+   and (b) an **independent adult learner**: an ACTIVE account with `adult_confirmed_at` set (a verified phone and a date of birth showing 18 or over, never a student profile or managed account, changeable only through support). **Students under 18 never message a tutor** (owner decision, 26 November 2026). A student
+   (managed or minor) **can never start, join or be added to** a tutor conversation. A tutor can **never start** a
+   conversation: they can only reply to an inquiry addressed to them.
+3. **Which tutor.** Only a tutor who is VERIFIED, LISTED and has a live listing subscription (or the 7-day grace), who is
+   accepting learners, and who has not blocked the inquirer. Anything else is the generic `messaging.not_allowed`.
+4. **What the tutor learns.** The inquirer's label ("Parent" or "Learner"), the child's **age band** and the subject. Never
+   a child's name, school, class, photo, date of birth or the other guardians, unless the guardian types them in a message.
+   No phone number or e-mail of either side is ever shown by the platform.
+5. **Limits (rate limits, per rolling window).** 5 new inquiries per user per day; one live inquiry per tutor and user; a
+   tutor may receive at most 30 new inquiries per week (they can pause new inquiries with `accepting_learners`); the first
+   message is text only, at most 1,000 characters, with no attachments and no links; later messages follow R8, with
+   text only (no images, voice or files) in this version.
+6. **Safety notices.** Both sides see, at the top of the conversation and before the first message, that lessons happen
+   outside the platform, that the platform does not run or guarantee them, and that a child's guardian should be present
+   or meet the tutor first. A message that contains what looks like a phone number, e-mail address or an off-platform
+   payment request is delivered, but both sides get a visible safety notice and the message is counted for review.
+7. **Block and report.** Either side can block (R7) and report (R11, reason category `TUTOR_CONDUCT`). A report is read
+   by **platform moderators** only (never by a school). A confirmed case can suspend the tutor's listing at once, which
+   closes all their open inquiries.
+8. **Closing.** Either side can close an inquiry; it closes by itself after 30 days without a message. A closed
+   conversation is read-only and is deleted according to the retention policy.
+9. **Review.** The audited, reason-bound review of R13 applies to tutor conversations, with **platform reviewers only**
+   (`platform.messaging.review`), because no school owns the conversation.
+10. **No notification text** contains the message, the child's name or the tutor's full name (R9.3 applies).
+
+Tests (a promise, like the rest of this document): `TutorInquiryTest.onlyGuardiansAndAdultLearnersMayStart`,
+`.aStudentCanNeverBeAMemberOfATutorConversation`, `.aTutorCanNeverStart`, `.onlyListedVerifiedSubscribedTutorsCanBeContacted`,
+`.theTutorLearnsOnlyAgeBandAndSubject`, `.rateLimitsHold`, `.firstMessageIsPlainTextOnly`, `.contactDetailsTriggerASafetyNoticeAndACount`,
+`.blockAndReportReachPlatformModeratorsOnly`, `.suspendingAListingClosesInquiries`, `.noSchoolStaffCanReadATutorConversation`,
+`.studentsHaveNoTutorDirectory`.
+
 ## Settings of this milestone
 
 Existing (DB 4.11): `messaging.parent_teacher.enabled` (true), `messaging.parent_parent.enabled` (false),
@@ -340,3 +381,4 @@ Existing (DB 4.11): `messaging.parent_teacher.enabled` (true), `messaging.parent
 8. Message retention: nothing is purged yet (deleted originals stay in history). What are the retention periods (M13/M21)?
 9. Emoji reactions are a fixed list of 12; content moderation of free emoji is avoided.
 10. Voice notes and video are not built.
+11. **Tutor inquiries (R14, new).** Is it acceptable that guardians and adult learners may message tutors, that a minor never does, and that the platform does not block phone numbers but only warns? Should a guardian also be able to add the other guardian to the conversation? (Not allowed today: two people only.) Platform reviewers, not schools, review tutor conversations: confirm.
