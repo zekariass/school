@@ -3835,6 +3835,8 @@ export interface components {
             acknowledgedAt?: string;
             /** Format: int32 */
             acknowledgedRevision?: number;
+            /** @description True when the caller acknowledged an earlier revision and a material edit has changed the text since: ask again. Every edit after publishing raises revision, so acknowledgedRevision < revision alone also fires for a silent correction; clients use this flag */
+            reacknowledgementNeeded: boolean;
             read: boolean;
             /** Format: date-time */
             readAt?: string;

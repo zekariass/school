@@ -4,6 +4,7 @@ import { Link, router } from 'expo-router';
 import { View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
+import { CommunicationChannelsCard } from '@/components/announcements/channels-card';
 import { AvatarSection } from '@/components/avatar-section';
 import { NotificationSettings } from '@/components/notification-settings';
 import { Button, Card, Screen, SegmentedControl, Text } from '@/components/ui';
@@ -71,6 +72,7 @@ export default function SettingsScreen() {
       </Section>
 
       {status === 'signedIn' && !preview ? <NotificationSettings /> : null}
+      {status === 'signedIn' && !preview ? <CommunicationChannelsCard /> : null}
 
       {status === 'signedIn' && roles.length > 1 ? (
         <Section title={t('mobile.settings.switchRole')} hint={t('mobile.settings.switchRoleHint')}>

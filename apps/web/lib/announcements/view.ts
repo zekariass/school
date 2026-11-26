@@ -103,7 +103,7 @@ export interface AckSubject {
   status: AnnouncementStatus;
   revision: number;
   authorId?: string;
-  mine?: { acknowledged?: boolean; acknowledgedRevision?: number | null };
+  mine?: { acknowledged?: boolean; acknowledgedRevision?: number | null; reacknowledgementNeeded?: boolean };
 }
 
 /**
@@ -118,9 +118,9 @@ export function ackState(a: AckSubject, viewerId?: string): AckState {
   if (!a.requiresAcknowledgement || a.status !== "PUBLISHED") return "none";
   if (viewerId && a.authorId === viewerId) return "none";
   if (!a.mine?.acknowledged) return "pending";
-  const done = a.mine.acknowledgedRevision;
-  // A missing revision is read as "the current one": the API records it with every acknowledgement.
-  return typeof done === "number" && done < a.revision ? "again" : "done";
+  // The server decides: every edit after publishing raises `revision`, so comparing revisions would also ask again
+  // after a silent correction. Only a material edit sets `reacknowledgementNeeded`.
+  return a.mine.reacknowledgementNeeded ? "again" : "done";
 }
 
 /** True when the acknowledge button is shown (first time or again). */

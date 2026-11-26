@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { AndroidImportance, IosAuthorizationStatus } from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { isUrgentAnnouncementData } from '@/lib/announcements/notifications';
 import { api } from '@/lib/api';
 import { request, unwrap } from '@/lib/api-error';
 import { getCurrentLocale } from '@/lib/i18n/locale';
@@ -20,19 +21,27 @@ export const DEFAULT_CHANNEL_ID = 'default';
  * it is set when this module is first imported.
  */
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
+  handleNotification: async (notification) => ({
     shouldShowBanner: true,
     shouldShowList: true,
-    shouldPlaySound: false,
+    // An urgent or safety announcement is the one push that makes a sound while the app is open.
+    shouldPlaySound: isUrgentAnnouncementData(notification.request.content.data),
     shouldSetBadge: false,
   }),
 });
+
+/** Android channel for urgent and safety announcements (loud, heads-up). The API sends every push on `default` today; see the M10c notes. */
+export const URGENT_CHANNEL_ID = 'urgent';
 
 export async function ensureAndroidChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(DEFAULT_CHANNEL_ID, {
     name: 'General',
     importance: AndroidImportance.DEFAULT,
+  });
+  await Notifications.setNotificationChannelAsync(URGENT_CHANNEL_ID, {
+    name: 'Urgent',
+    importance: AndroidImportance.MAX,
   });
 }
 

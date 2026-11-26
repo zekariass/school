@@ -1101,6 +1101,320 @@
         "sendRejection": "Send",
         "failed": "That did not work. Please try again."
       }
+    },
+    "announcements": {
+      "title": "Announcements",
+      "entry": "Announcements",
+      "entryAttention": "Announcements: {unread} unread, {needsAck} waiting for your confirmation",
+      "from": "From {name}",
+      "openLink": "Open link {link}",
+      "loadFailedTitle": "Could not load announcements",
+      "loadFailedBody": "Check your connection and pull down to try again.",
+      "nextPageFailed": "Could not load more announcements.",
+      "endOfList": "That is everything",
+      "schoolEntry": "My announcements",
+      "schoolEntryNamed": "My announcements: {school}",
+      "newForClass": "New announcement for this class",
+      "type": {
+        "normal": "Normal",
+        "important": "Important",
+        "urgent": "Urgent",
+        "safety": "Safety notice"
+      },
+      "typeHint": {
+        "normal": "Everyday news. Reaches phones like any other notification.",
+        "important": "Something people should not miss.",
+        "urgent": "Needs attention right away. Reaches every phone, even in quiet hours.",
+        "safety": "A safety notice. Reaches every phone, even in quiet hours."
+      },
+      "filter": {
+        "label": "Show",
+        "all": "All",
+        "unread": "Unread",
+        "unreadCount": "Unread ({count})",
+        "needsAck": "Needs confirmation",
+        "needsAckCount": "Needs confirmation ({count})"
+      },
+      "sort": {
+        "label": "Order",
+        "newest": "Newest first",
+        "unreadFirst": "Unread first"
+      },
+      "empty": {
+        "title": "No announcements yet",
+        "body": "Messages from your school will appear here.",
+        "unreadTitle": "Nothing unread",
+        "unreadBody": "You have read everything.",
+        "ackTitle": "Nothing to confirm",
+        "ackBody": "No announcement is waiting for your confirmation."
+      },
+      "status": {
+        "new": "New",
+        "needsAck": "Please confirm",
+        "confirmed": "Confirmed",
+        "draft": "Draft",
+        "scheduled": "Scheduled",
+        "withdrawn": "Withdrawn"
+      },
+      "detail": {
+        "title": "Announcement",
+        "published": "Published {when}",
+        "edited": "Edited {when}",
+        "urgentNote": "This is an urgent announcement. Please read it now.",
+        "safetyNote": "This is a safety notice. Please read it now.",
+        "withdrawnTitle": "This announcement was withdrawn",
+        "withdrawnOn": "Withdrawn {when}",
+        "withdrawnReason": "Reason: {reason}",
+        "withdrawnNote": "The message is no longer shown. Ask the school if you have questions.",
+        "notFoundTitle": "Announcement not available",
+        "notFoundBody": "It may have been removed, or you may no longer have access to it.",
+        "original": "Original text",
+        "translatedBySchool": "Translated by the school",
+        "showOriginal": "Show original",
+        "showTranslation": "Show translation"
+      },
+      "ack": {
+        "title": "Please confirm you have read this",
+        "body": "The school asks every reader to confirm.",
+        "action": "I have read this",
+        "doneTitle": "You confirmed this",
+        "doneBody": "Confirmed {when}.",
+        "renewTitle": "This was changed. Please confirm again",
+        "renewBody": "The school changed this announcement after you confirmed it. Read it again and confirm once more.",
+        "again": "Confirm again",
+        "failedTitle": "Could not confirm",
+        "failedBody": "Check your connection and try again."
+      },
+      "manage": {
+        "title": "For the sender",
+        "status": {
+          "draft": "This is a draft. Nobody has seen it.",
+          "scheduled": "Scheduled. It will be sent automatically.",
+          "published": "Published.",
+          "withdrawn": "Withdrawn."
+        },
+        "scheduledFor": "Sends {when} ({zone})",
+        "scheduleBlocked": "It was not sent at its time because you may no longer send it. Check it and send again.",
+        "recipients": "Reached {count} people",
+        "deliveryRunning": "Still being delivered.",
+        "edit": "Edit and send",
+        "editPublished": "Change the text",
+        "report": "See who has read it",
+        "unschedule": "Take back to draft",
+        "withdraw": "Withdraw",
+        "delete": "Delete draft",
+        "deleteTitle": "Delete this draft?",
+        "deleteBody": "It will be removed for good.",
+        "failedTitle": "That did not work",
+        "failedBody": "Check your connection and try again."
+      },
+      "audience": {
+        "title": "Who receives it",
+        "kindLabel": "Send to",
+        "kind": {
+          "school": "Whole school",
+          "grade_level": "Grade levels",
+          "class": "Classes"
+        },
+        "wholeSchool": "Everyone at this school in the groups chosen below.",
+        "rolesLabel": "Which people",
+        "role": {
+          "guardian": "Parents and guardians",
+          "student": "Students",
+          "staff": "Staff"
+        },
+        "roleHint": {
+          "guardian": "Reached through their children",
+          "student": "Students who can sign in",
+          "staff": "Teachers and other staff"
+        },
+        "noRoles": "Choose at least one group of people.",
+        "noGrades": "Choose at least one grade level.",
+        "noClasses": "Choose at least one class.",
+        "noTargets": "Choose who it is for.",
+        "noGradesExist": "This school has no grade levels yet.",
+        "searchClasses": "Search classes",
+        "noMatch": "No classes found.",
+        "chosenClass": "Chosen class",
+        "loadFailedTitle": "Could not load the list",
+        "loadFailedBody": "Check your connection and try again.",
+        "line": {
+          "school": "Whole school: {roles}",
+          "campus": "Campuses ({count}): {roles}",
+          "grade_level": "Grade levels ({count}): {roles}",
+          "class": "Classes ({count}): {roles}",
+          "user": "Chosen people ({count}): {roles}"
+        }
+      },
+      "compose": {
+        "title": "New announcement",
+        "editDraftTitle": "Edit announcement",
+        "typeLabel": "Kind of announcement",
+        "urgentNeedsRight": "Urgent and safety notices need special permission from your school.",
+        "titleLabel": "Title",
+        "titlePlaceholder": "A short, clear headline",
+        "bodyLabel": "Message",
+        "bodyPlaceholder": "Write your message",
+        "counter": "{used} of {max}",
+        "plainTextNote": "Plain text only. Web addresses starting with http:// or https:// become links.",
+        "languageLabel": "Language of the message",
+        "optionsTitle": "Options",
+        "ackLabel": "Ask readers to confirm",
+        "ackHint": "Each reader gets a button to confirm they have read it, and you can remind those who have not.",
+        "ackNeedsType": "Available for important, urgent and safety notices.",
+        "inAppAlways": "It always appears in the app.",
+        "pushLabel": "Send to phones",
+        "pushHint": "A notification on phones with the app.",
+        "emailLabel": "Also send an email",
+        "emailHint": "People who turned email off will not get it.",
+        "smsLabel": "Also send a text message",
+        "smsHint": "People who turned text messages off will not get it.",
+        "urgentChannels": "Urgent and safety notices reach every phone with the app, even in quiet hours or when the person muted this kind of notification.",
+        "whenLabel": "When",
+        "modeNow": "Now",
+        "modeSchedule": "Schedule",
+        "modeDraft": "Save draft",
+        "draftHint": "Saved for you only. Nobody receives it until you send it.",
+        "draftUnschedules": "This takes the scheduled announcement back to a draft.",
+        "draftSavedNote": "A draft is saved in My announcements.",
+        "blocked": {
+          "title": "Add a title.",
+          "titleLong": "The title is too long.",
+          "body": "Write a message.",
+          "bodyLong": "The message is too long.",
+          "type": "You may not send this kind of announcement.",
+          "schedule": "Pick the date and time.",
+          "audience": "Check who it is for."
+        },
+        "review": {
+          "publish": "Review and send",
+          "schedule": "Review and schedule"
+        },
+        "saveDraft": "Save draft",
+        "nobody": "Nobody would receive this announcement. Change who it is for.",
+        "offlineTitle": "No connection",
+        "offlineBody": "Announcements are sent only when you are online. Your text is still here. Try again when you are connected.",
+        "failedTitle": "Could not send",
+        "failedBody": "Please try again.",
+        "notAllowedTitle": "You cannot announce here",
+        "notAllowedBody": "Your school does not let you send announcements. Ask a school administrator.",
+        "webOnlyTitle": "Open this on the web",
+        "webOnlyBody": "This announcement is addressed to chosen people or a campus. Edit it on the school website.",
+        "discardTitle": "Discard this announcement?",
+        "discardBody": "What you wrote has not been saved.",
+        "discardBodySaved": "A draft you already saved stays in My announcements. Changes since then will be lost.",
+        "keepEditing": "Keep editing",
+        "discard": "Discard"
+      },
+      "confirm": {
+        "publishTitle": "Send announcement",
+        "scheduleTitle": "Schedule announcement",
+        "reach": "This reaches {count} people",
+        "part": {
+          "guardian": "Parents and guardians: {count}",
+          "student": "Students: {count}",
+          "staff": "Staff: {count}"
+        },
+        "when": "It will be sent {when}.",
+        "ack": "Readers will be asked to confirm they have read it.",
+        "urgent": "Urgent and safety notices ignore quiet hours and muted settings. Everyone gets a notification on every phone with the app, right away.",
+        "cannotUndo": "You can withdraw it later, but people will already have seen it.",
+        "send": "Send now",
+        "schedule": "Schedule",
+        "keepEditing": "Keep editing"
+      },
+      "edit": {
+        "title": "Change the text",
+        "intro": "Only the title and the message can change after sending. The earlier version is kept in the school records.",
+        "materialTitle": "Does this change matter to readers?",
+        "materialYes": "Yes, tell everyone",
+        "materialYesHint": "Readers get a notification that it changed.",
+        "materialYesAckHint": "Readers get a notification and are asked to confirm again.",
+        "materialNo": "No, it is a small correction",
+        "materialNoHint": "Spelling or wording only. Nobody is notified.",
+        "chooseMaterial": "Choose whether readers are told.",
+        "save": "Save changes",
+        "discardBody": "Your changes have not been saved."
+      },
+      "withdraw": {
+        "title": "Withdraw announcement",
+        "body": "Readers will see that it was withdrawn and will no longer see the message. They are told it was withdrawn.",
+        "reasonLabel": "Reason (optional)",
+        "reasonHint": "Readers can see this note.",
+        "confirm": "Withdraw",
+        "failedTitle": "Could not withdraw",
+        "failedBody": "Check your connection and try again."
+      },
+      "mine": {
+        "title": "My announcements",
+        "new": "New announcement",
+        "whoseLabel": "Whose",
+        "mineOnly": "Mine",
+        "wholeSchool": "Whole school",
+        "statusLabel": "Status",
+        "status": {
+          "all": "All",
+          "draft": "Drafts",
+          "scheduled": "Scheduled",
+          "published": "Published",
+          "withdrawn": "Withdrawn"
+        },
+        "emptyTitle": "Nothing here yet",
+        "emptyBody": "Announcements you write will be listed here."
+      },
+      "report": {
+        "title": "Who has read it",
+        "delivered": "Delivered",
+        "read": "Read",
+        "confirmed": "Confirmed",
+        "meter": "{label}: {value} of {total}, {percent} percent",
+        "meterValue": "{value} of {total}",
+        "deliveryRunning": "Still being delivered.",
+        "failed": "{count} could not be reached.",
+        "lateReaders": "{count} others opened it later.",
+        "reminders": "Reminders sent: {count}. Last: {when}",
+        "remind": "Remind those who have not confirmed",
+        "remindHint": "They get a notification. Reminders cannot be sent too often.",
+        "remindConfirmTitle": "Send a reminder?",
+        "remindConfirmBody": "Everyone who has not confirmed yet gets a notification.",
+        "remindConfirm": "Send reminder",
+        "reminded": "Reminder sent to {count} people.",
+        "remindFailedTitle": "Could not send the reminder",
+        "remindFailedBody": "Check your connection and try again.",
+        "tryAgainIn": "You can send another reminder in about {hours} hours.",
+        "filterLabel": "Show people who",
+        "filter": {
+          "unacknowledged": "Have not confirmed",
+          "unread": "Have not read",
+          "acknowledged": "Confirmed",
+          "failed": "Were not reached"
+        },
+        "none": {
+          "unacknowledged": "Everybody has confirmed.",
+          "unread": "Everybody has read it.",
+          "acknowledged": "Nobody has confirmed yet.",
+          "failed": "Everybody was reached."
+        },
+        "noneTitle": "Nobody here",
+        "via": "Through {child}",
+        "rowRead": "Read",
+        "rowUnread": "Not read",
+        "rowConfirmed": "Confirmed",
+        "failedTitle": "Could not load the report",
+        "failedBody": "Check your connection and try again."
+      },
+      "channels": {
+        "title": "Communication channels",
+        "hint": "Announcements always appear in the app. Choose whether the school may also email you or text you. Urgent announcements do not override these two.",
+        "email": "Email",
+        "sms": "Text message",
+        "smsBlocked": "This number opted out of text messages with the sender. Only they can undo that.",
+        "loadError": "Could not load your choices.",
+        "saveError": "Could not save your choice."
+      },
+      "preferences": {
+        "urgentLock": "Urgent and safety announcements always reach this phone, even if you turn this off or during quiet hours."
+      }
     }
   },
   "schoolPicker": {

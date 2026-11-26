@@ -13,6 +13,7 @@ import { Button, EmptyState, Text, TextField } from '@/components/ui';
 import { ApiRequestError, problemOf } from '@/lib/api-error';
 import { useFormatInstant } from '@/lib/calendar/use-format-instant';
 import { commentsKey } from '@/lib/feed/keys';
+import { shouldLookUpSchools } from '@/lib/feed/notification-school';
 import { authorLabel } from '@/lib/feed/post-model';
 import { updatePostEverywhere, useComments, useFeedCapabilities, usePostAnywhere, usePostQuery } from '@/lib/feed/queries';
 import { createComment, deleteComment, markPostSeen } from '@/lib/feed/requests';
@@ -31,7 +32,9 @@ export default function PostScreen() {
   const { colors, spacing } = useAppTheme();
   const { postId, schoolId: schoolParam } = useLocalSearchParams<{ postId: string; schoolId?: string }>();
   const direct = usePostQuery(schoolParam, postId);
-  const anywhere = usePostAnywhere(schoolParam ? undefined : postId);
+  // `data.schoolId` of the notification is asked first; the caller's schools are asked in turn only without it or after a miss.
+  const lookup = shouldLookUpSchools(schoolParam, direct.error);
+  const anywhere = usePostAnywhere(postId, undefined, lookup);
   const post = direct.data ?? anywhere.data?.value;
   const caps = useFeedCapabilities(post?.schoolId, post?.classId ?? null);
   const { onMenu, element } = usePostMenu();
@@ -41,8 +44,8 @@ export default function PostScreen() {
   }, [post?.schoolId, post?.id, post?.status]);
 
   if (!post) {
-    const pending = schoolParam ? direct.isPending : anywhere.isPending || anywhere.fetchStatus === 'idle';
-    const failure = schoolParam ? direct.error : anywhere.error;
+    const pending = lookup ? anywhere.isPending || anywhere.fetchStatus === 'idle' : direct.isPending;
+    const failure = lookup ? anywhere.error : direct.error;
     const missing = failure instanceof ApiRequestError && failure.status === 404;
     return (
       <View style={{ flex: 1, backgroundColor: colors.background, padding: spacing[5], justifyContent: 'center' }}>
@@ -53,7 +56,7 @@ export default function PostScreen() {
             error={failure}
             fallbackTitle={t('mobile.feed.loadFailedTitle')}
             fallbackBody={t('mobile.feed.loadFailedBody')}
-            onRetry={() => void (schoolParam ? direct.refetch() : anywhere.refetch())}
+            onRetry={() => void (lookup ? anywhere.refetch() : direct.refetch())}
           />
         ) : (
           <EmptyState icon={{ ios: 'photo.badge.exclamationmark', android: 'image_not_supported' }} title={t('mobile.feed.post.notFoundTitle')} body={t('mobile.feed.post.notFoundBody')}>
