@@ -115,6 +115,23 @@ class NotificationDeliveryTest extends NotificationTestSupport {
 	}
 
 	@Test
+	void aPushNamesTheSchoolOfTheNotificationAndANotificationWithoutOneDoesNot() {
+		UUID user = user("en", null);
+		String device = device(user);
+		UUID school = this.personas.newSchool("Push school id");
+		UUID withSchool = this.notifications.notify(NotificationRequest.to("NEW_MESSAGE", user).args("Sara")
+			.path("/messages/2").school(school).build()).getFirst();
+		UUID without = notifyOne("NEW_MESSAGE", user, "Sara");
+		await().atMost(Duration.ofSeconds(10)).until(() -> deliveries(withSchool).stream().allMatch((r) -> "SENT".equals(r.get("status")))
+				&& deliveries(without).stream().allMatch((r) -> "SENT".equals(r.get("status"))));
+		assertThat(this.pushes.sentTo(device)).anySatisfy((m) -> {
+			assertThat(m.data()).containsEntry("notificationId", withSchool.toString()).containsEntry("schoolId", school.toString());
+		}).anySatisfy((m) -> {
+			assertThat(m.data()).containsEntry("notificationId", without.toString()).doesNotContainKey("schoolId");
+		});
+	}
+
+	@Test
 	void aUserWithoutADeviceGetsTheInboxRowAndANoDeviceRecord() {
 		UUID user = user("en", null);
 		UUID id = notifyOne("NEW_MESSAGE", user, "Sara");
