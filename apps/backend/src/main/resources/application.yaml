@@ -99,6 +99,13 @@ school:
       phone: ${SCHOOL_BOOTSTRAP_ADMIN_PHONE:}
       email: ${SCHOOL_BOOTSTRAP_ADMIN_EMAIL:}
       name: ${SCHOOL_BOOTSTRAP_ADMIN_NAME:Platform administrator}
+  safeguarding:
+    encryption:
+      # AES-256 keys of the narrative and notes of safeguarding incidents (docs/ops/Runbook.md, section 6). The keys are a
+      # map: SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1=<base64 of 32 random bytes>, ..._K2, ... (key ids are lower case);
+      # the ACTIVE one encrypts new text, every listed one still decrypts. No defaults: the deployed profiles refuse to
+      # start without a valid key, the development key lives in application-local.yaml only.
+      active-key-id: ${SCHOOL_SAFEGUARDING_ENCRYPTION_ACTIVE_KEY_ID:}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:}
   storage:

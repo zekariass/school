@@ -1025,6 +1025,193 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/moderation/cases/{caseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A case: counts, reasons, the role of each reporter ('a student', 'a guardian', ...), the append-only history. Reporter ids and report details are present ONLY for safeguarding leads and platform moderators; the incident an escalation created only for safeguarding leads. 404 for anybody who may not work the case. */
+        get: operations["getModerationCase"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{caseId}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take the case or assign it to another moderator of the queue (who must not be conflicted). Audited; the assignee is notified */
+        post: operations["assignModerationCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{caseId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the reported target and its immediate context through its owner's reviewer path (a post with its comments, a comment with its post, a story). Audited (reviewer, case, target: never text) and rate limited (60 an hour). For a message the answer is a pointer to the audited messaging review (kind MESSAGING_REVIEW, reviewConversationId), never the text. Hidden and removed content stays readable here. */
+        get: operations["readModerationCaseContent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{caseId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide an open case with a reason of 10 to 500 characters: NO_ACTION, HIDE (reversible), REMOVE, WARN_USER (a generic notice), SUSPEND_USER (level SCHOOL by default; PLATFORM locks the account and needs platform.users.lock) or ESCALATE (creates a safeguarding incident; the reason becomes its encrypted narrative). Hiding and removing keep the original. The reporters get one generic 'reviewed' notice. Append-only history; audited without the reason. */
+        post: operations["decideModerationCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{caseId}/legal-hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set or lift the legal hold of a case (a safeguarding lead of its school, or platform.moderation.manage). A hold blocks the retention purge and every erasure. Audited */
+        put: operations["setModerationCaseLegalHold"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{caseId}/lift-suspension": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lift the suspension this case decided: a school suspension, or a platform lock (needs platform.users.lock). Audited */
+        post: operations["liftModerationCaseSuspension"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{caseId}/priority": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the priority (safeguarding leads only). CRITICAL on a case with a SAFETY_CONCERN report creates the safeguarding incident automatically */
+        put: operations["setModerationCasePriority"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{caseId}/refer-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hand a school case up to the platform queue (a conflict, or a matter above the school). Audited */
+        post: operations["referModerationCaseUp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{caseId}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open a resolved case again with a reason (a case escalated to safeguarding only by leads). Audited */
+        post: operations["reopenModerationCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/cases/{caseId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undo the HIDE of this case (the content is shown again); a REMOVE is not reversible (409 moderation.removal_not_reversible). Audited */
+        post: operations["restoreModerationCaseContent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/moderation/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report something you can see: a post, a comment, a story, a message, a person (shared class, school or conversation). A target you cannot see answers the same generic 404 (moderation.target_not_found) as the content itself, so a custody-restricted or revoked guardian cannot report it. 201 for a new report; 200 with the first report when you already have an open report of the same target. At most 20 reports a day, 10 for students. You get one thank-you notice now and one 'reviewed' notice when the case is resolved: never an outcome, names or content. Details (up to 1,000 characters) are plain text and are never copied into events, logs, audit rows or notifications. */
+        post: operations["createModerationReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications": {
         parameters: {
             query?: never;
@@ -1180,6 +1367,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/moderation/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The platform moderation queue (platform.moderation.manage): cases about platform-scope targets, about school administrators, moderators and safeguarding leads, and cases a school moderator handed up. */
+        get: operations["listPlatformModerationCases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/organizations": {
         parameters: {
             query?: never;
@@ -1281,6 +1485,40 @@ export interface paths {
         post?: never;
         /** Revoke a role assignment (it stays listed as REVOKED) */
         delete: operations["revokeRoleAssignment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/safeguarding/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Incidents across schools for platform safeguarding leads (optionally one school). Metadata only. Everybody else, platform administrators included, gets 404. */
+        get: operations["listPlatformSafeguardingIncidents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/safeguarding/incidents/{incidentId}/legal-hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set or lift the legal hold of an incident as a platform moderator or administrator, who cannot read incidents: the answer carries the id and the flag only. Audited. */
+        put: operations["setPlatformSafeguardingIncidentLegalHold"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1513,6 +1751,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/users/{userId}/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lock an account platform-wide (platform.users.lock: platform moderators and administrators; a school moderator never). Every session is revoked through the token service, so sockets and push devices close at once; nothing is deleted. Reason of 10 to 500 characters, audited. Reversible with unlock. */
+        post: operations["lockUserAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/users/{userId}/unlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unlock a locked account (platform.users.lock). The person signs in again. Reason of 10 to 500 characters, audited */
+        post: operations["unlockUserAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/policies/{policyType}": {
         parameters: {
             query?: never;
@@ -1590,6 +1862,159 @@ export interface paths {
         };
         /** Enabled languages */
         get: operations["listLanguages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safeguarding/incidents/{incidentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Metadata of one incident (no text). Leads only, 404 for everybody else. Audited */
+        get: operations["getSafeguardingIncident"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safeguarding/incidents/{incidentId}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign the incident to a safeguarding lead of the school (or a platform lead); anybody else is refused */
+        post: operations["assignSafeguardingIncident"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safeguarding/incidents/{incidentId}/guardian-informed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A human records that the child's guardians were told (guardian_informed_at). The system never tells guardians; whether and when they must be told is a legal question. Audited. */
+        post: operations["recordSafeguardingGuardianInformed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safeguarding/incidents/{incidentId}/legal-hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set or lift the legal hold of an incident (leads). A hold blocks the retention purge and every erasure. Audited */
+        put: operations["setSafeguardingIncidentLegalHold"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safeguarding/incidents/{incidentId}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a note (encrypted), optionally with an attachment uploaded under the SAFEGUARDING media purpose. Append-only */
+        post: operations["addSafeguardingNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safeguarding/incidents/{incidentId}/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open an incident: the decrypted narrative and every note. A reason from the pick-list is required (TRIAGE, INVESTIGATION, FOLLOW_UP, REFERRAL, OVERSIGHT, LEGAL_REQUEST); every open is audited (who, when, which incident, reason, number of notes: never text) and rate limited (60 an hour). A lead who is involved in the incident, or the guardian of its student, gets 404. */
+        post: operations["openSafeguardingIncident"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safeguarding/incidents/{incidentId}/referral": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A human records a referral to an authority (referred_at and the encrypted referred_to text). Audited */
+        post: operations["recordSafeguardingReferral"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safeguarding/incidents/{incidentId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move the incident along: OPEN, INVESTIGATING, ACTION_TAKEN or REFERRED, CLOSED. Closing needs a closing note, re-opening a closed incident a reason (10 or more characters); each change is an append-only row. */
+        post: operations["changeSafeguardingIncidentStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safety/emergency-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The country's safety text for the reporting screens ('if a child is in danger contact ...'), in your language. reviewed false means the wording is a placeholder the owner has not approved; the Ethiopian default is exactly that. */
+        get: operations["getEmergencyInfo"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3258,6 +3683,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/moderation/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The school's moderation queue (school.moderation.manage): open cases, HIGH and CRITICAL first, then newest, keyset paged. status is OPEN (default: open and assigned), ASSIGNED, RESOLVED, ESCALATED or ALL; priority and targetType filter. References and enums only: never content, reporter identities or details. A case about a school administrator, moderator or safeguarding lead is not here: it is in the platform queue. */
+        get: operations["listSchoolModerationCases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/my-posts": {
         parameters: {
             query?: never;
@@ -3787,6 +4229,92 @@ export interface paths {
         /** Record that the caller saw the post (once per viewer). Only a count is ever returned (seenCount), to the author and the class's staff; names are never exposed */
         post: operations["markPostSeen"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/safeguarding/capability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the school has a safeguarding lead and which settings need one (school.settings.manage): switching on student messaging (messaging.student.*) or student contributions is refused with 409 safeguarding.lead_required until a lead is designated. */
+        get: operations["getSafeguardingCapability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/safeguarding/concerns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Raise a concern (an ACTIVE staff member or teacher of the school; anybody else gets 404). Answers the incident id only: the narrative is encrypted at once and only safeguarding leads can read it. HIGH and CRITICAL concerns alert the school's safeguarding leads (the platform leads when it has none) with a generic text. Nobody else is ever notified automatically. */
+        post: operations["raiseSafeguardingConcern"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/safeguarding/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Incidents of the school (metadata only: ids, category, severity, status, dates; never any text, and there is no search over narratives), newest first, keyset paged. Safeguarding leads of the school and platform leads only: everybody else gets 404 as if nothing existed. Audited (count). */
+        get: operations["listSafeguardingIncidents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/safeguarding/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The school's safeguarding leads (school.staff.manage) */
+        get: operations["listSafeguardingLeads"];
+        put?: never;
+        /** Designate an ACTIVE staff member (the principal may be one) as safeguarding lead (school.staff.manage). Grants the SAFEGUARDING_LEAD role at the school; audited. Repeating it changes nothing. */
+        post: operations["designateSafeguardingLead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/safeguarding/leads/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a lead (school.staff.manage). The last lead cannot be removed while the school has student messaging or contributions on (409 safeguarding.last_lead_required) */
+        delete: operations["removeSafeguardingLead"];
         options?: never;
         head?: never;
         patch?: never;
@@ -6001,6 +6529,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageModerationCaseSummary: {
+            items: components["schemas"]["ModerationCaseSummary"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageNotificationView: {
             items: components["schemas"]["NotificationView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -6028,6 +6561,11 @@ export interface components {
         };
         CursorPageRoleAssignmentResponse: {
             items: components["schemas"]["RoleAssignmentResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageSafeguardingIncidentSummary: {
+            items: components["schemas"]["SafeguardingIncidentSummary"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -6668,7 +7206,7 @@ export interface components {
             /** Format: int32 */
             pageCount?: number;
             /** @enum {string} */
-            purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING";
+            purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING" | "SAFEGUARDING";
             /** Format: int64 */
             sizeBytes?: number;
             /** @enum {string} */
@@ -6769,6 +7307,150 @@ export interface components {
             serverTime: string;
             service: string;
             supportedLocales: string[];
+        };
+        /** @description One row of the append-only history of a case */
+        ModerationActionView: {
+            action?: string;
+            /** Format: uuid */
+            actorId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: uuid */
+            id?: string;
+            level?: string;
+            notes?: string;
+        };
+        /** @description The assignee; omit to take the case yourself */
+        ModerationAssignRequest: {
+            /** Format: uuid */
+            assigneeId?: string;
+        };
+        ModerationCaseDetail: {
+            actions?: components["schemas"]["ModerationActionView"][];
+            /**
+             * Format: uuid
+             * @description Only for safeguarding leads: the incident an escalation created
+             */
+            incidentId?: string;
+            reporterIdentityVisible?: boolean;
+            reports?: components["schemas"]["ModerationReportEntry"][];
+            /** Format: uuid */
+            subjectUserId?: string;
+            summary?: components["schemas"]["ModerationCaseSummary"];
+        };
+        /** @description A case in a queue: references and enums only, never content, reporter identities or details */
+        ModerationCaseSummary: {
+            /** Format: uuid */
+            assignedTo?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            decision?: string;
+            /** Format: uuid */
+            id?: string;
+            legalHold?: boolean;
+            priority?: string;
+            queue?: string;
+            reasons?: {
+                [key: string]: number;
+            };
+            /** Format: int32 */
+            reportCount?: number;
+            /** Format: int32 */
+            reporterCount?: number;
+            /** Format: date-time */
+            resolvedAt?: string;
+            /** Format: uuid */
+            schoolId?: string;
+            status?: string;
+            subjectRole?: string;
+            /** Format: uuid */
+            targetId?: string;
+            targetType?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        /** @description A decision with its reason (10 to 500 characters, never pasted content). level is for SUSPEND_USER: SCHOOL (default, reversible, ends the person's activity in the school) or PLATFORM (a lock of the whole account, platform moderators and administrators only). category and severity are for ESCALATE (defaults CONDUCT and HIGH); the reason then becomes the encrypted narrative of the incident. */
+        ModerationDecisionRequest: {
+            category?: string;
+            /** @enum {string} */
+            decision: "NO_ACTION" | "HIDE" | "REMOVE" | "WARN_USER" | "SUSPEND_USER" | "ESCALATE";
+            /** @enum {string} */
+            level?: "SCHOOL" | "PLATFORM";
+            reason: string;
+            severity?: string;
+        };
+        ModerationHoldRequest: {
+            held: boolean;
+        };
+        ModerationHoldView: {
+            /** Format: uuid */
+            id?: string;
+            legalHold?: boolean;
+        };
+        /** @description A reason of 10 to 500 characters */
+        ModerationLockRequest: {
+            reason: string;
+        };
+        ModerationLockView: {
+            locked?: boolean;
+            /** Format: uuid */
+            userId?: string;
+        };
+        /** @description Safeguarding leads only. CRITICAL on a SAFETY_CONCERN case creates the safeguarding incident automatically */
+        ModerationPriorityRequest: {
+            /** @enum {string} */
+            priority: "LOW" | "NORMAL" | "HIGH" | "CRITICAL";
+        };
+        /** @description A reason of 10 to 500 characters */
+        ModerationReasonRequest: {
+            reason: string;
+        };
+        /** @description One report of a case. reporterRole ('a student', 'a guardian', ...) and the reason are shown to every moderator; reporterId and details are present ONLY for safeguarding leads and platform moderators (null for everybody else). */
+        ModerationReportEntry: {
+            /** Format: date-time */
+            createdAt?: string;
+            details?: string;
+            reasonCode?: string;
+            /** Format: uuid */
+            reporterId?: string;
+            reporterRole?: string;
+        };
+        /** @description Only that the report was received: nothing about the case, the decision or other reporters */
+        ModerationReportReceipt: {
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: uuid */
+            id?: string;
+        };
+        /** @description Report something you can see. Details are optional plain text (up to 1,000 characters) and are never copied into events, logs, audit rows or notifications. */
+        ModerationReportRequest: {
+            details?: string;
+            /** @enum {string} */
+            reasonCode: "SPAM" | "HARASSMENT" | "INAPPROPRIATE" | "SAFETY_CONCERN" | "COPYRIGHT" | "PRIVACY" | "INACCURATE" | "OTHER";
+            /** Format: uuid */
+            targetId: string;
+            /** @enum {string} */
+            targetType: "POST" | "POST_COMMENT" | "STORY" | "MESSAGE" | "USER" | "PORTFOLIO_ITEM" | "TUTOR_PROFILE" | "COURSE" | "TUTOR_REVIEW" | "LIBRARY_RESOURCE" | "MEDIA" | "AI_OUTPUT";
+        };
+        ModerationReviewContent: {
+            items?: components["schemas"]["ModerationReviewItem"][];
+            kind?: string;
+            /** Format: uuid */
+            reviewConversationId?: string;
+        };
+        ModerationReviewItem: {
+            /** Format: uuid */
+            authorId?: string;
+            authorRole?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            highlighted?: boolean;
+            /** Format: uuid */
+            id?: string;
+            mediaIds?: string[];
+            status?: string;
+            text?: string;
+            type?: string;
         };
         MoveStudentRequest: {
             /** Format: uuid */
@@ -7177,7 +7859,7 @@ export interface components {
                 [key: string]: number;
             };
             /** @enum {string} */
-            purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING";
+            purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING" | "SAFEGUARDING";
         };
         PushDeviceResponse: {
             appVersion?: string;
@@ -7459,6 +8141,140 @@ export interface components {
             unchanged?: number;
             /** Format: int32 */
             valid: number;
+        };
+        /** @description The assignee must be a safeguarding lead of the school (or a platform lead) */
+        SafeguardingAssignRequest: {
+            /** Format: uuid */
+            assigneeId: string;
+        };
+        /** @description What UIs need to show the requirement of decision 3: a school needs at least one safeguarding lead before it can switch on student messaging or student contributions (the settings change is refused with safeguarding.lead_required until then). */
+        SafeguardingCapabilityView: {
+            guardedSettings?: string[];
+            hasLead?: boolean;
+            /** Format: int32 */
+            leadCount?: number;
+            leadRequiredForStudentFeatures?: boolean;
+            studentContributionsEnabled?: boolean;
+            studentFeaturesOnWithoutLead?: boolean;
+            studentMessagingEnabled?: boolean;
+        };
+        /** @description Raise a concern (an ACTIVE staff member or teacher of the school). The narrative is encrypted at once and can be read only by safeguarding leads. Students and guardians raise concerns through a report, never here. */
+        SafeguardingConcernRequest: {
+            /** @enum {string} */
+            category: "CONDUCT" | "ONLINE_SAFETY" | "WELLBEING" | "TUTOR_CONDUCT" | "DATA_BREACH" | "OTHER";
+            /** Format: uuid */
+            concernedStudentId?: string;
+            involvedUserIds?: string[];
+            narrative: string;
+            /** @enum {string} */
+            severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+        };
+        /** @description A human recorded that the child's guardians were told (the system never tells them). {@code at} defaults to now; it cannot be in the future. */
+        SafeguardingGuardianInformedRequest: {
+            /** Format: date-time */
+            at?: string;
+            note?: string;
+        };
+        /** @description Only the id: whoever raises a concern cannot read it back */
+        SafeguardingIncidentCreated: {
+            /** Format: uuid */
+            id?: string;
+        };
+        /** @description The decrypted incident: only ever returned by the audited open call */
+        SafeguardingIncidentDetail: {
+            involvedUserIds?: string[];
+            narrative?: string;
+            notes?: components["schemas"]["SafeguardingNoteView"][];
+            referredTo?: string;
+            summary?: components["schemas"]["SafeguardingIncidentSummary"];
+        };
+        SafeguardingIncidentOpenRequest: {
+            /** @enum {string} */
+            reason: "TRIAGE" | "INVESTIGATION" | "FOLLOW_UP" | "REFERRAL" | "OVERSIGHT" | "LEGAL_REQUEST";
+        };
+        /** @description Metadata only: never any text */
+        SafeguardingIncidentSummary: {
+            /** Format: uuid */
+            assignedTo?: string;
+            category?: string;
+            /** Format: date-time */
+            closedAt?: string;
+            /** Format: uuid */
+            concernedStudentId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            guardianInformedAt?: string;
+            /** Format: uuid */
+            id?: string;
+            legalHold?: boolean;
+            /** Format: date-time */
+            referredAt?: string;
+            /** Format: uuid */
+            schoolId?: string;
+            severity?: string;
+            /** Format: uuid */
+            sourceCaseId?: string;
+            status?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        /** @description An ACTIVE staff member (teacher, principal, other staff) of the school */
+        SafeguardingLeadRequest: {
+            /** Format: uuid */
+            userId: string;
+        };
+        SafeguardingLeadView: {
+            displayName?: string;
+            /** Format: date-time */
+            since?: string;
+            /** Format: uuid */
+            userId?: string;
+        };
+        SafeguardingLegalHoldRequest: {
+            held: boolean;
+        };
+        SafeguardingLegalHoldView: {
+            /** Format: uuid */
+            id?: string;
+            legalHold?: boolean;
+        };
+        SafeguardingNoteRequest: {
+            /** Format: uuid */
+            attachmentMediaId?: string;
+            note: string;
+        };
+        SafeguardingNoteView: {
+            /** Format: uuid */
+            attachmentMediaId?: string;
+            /** Format: uuid */
+            authorId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: uuid */
+            id?: string;
+            kind?: string;
+            note?: string;
+            statusFrom?: string;
+            statusTo?: string;
+        };
+        /** @description A human recorded a referral to an authority (encrypted free text) */
+        SafeguardingReferralRequest: {
+            /** Format: date-time */
+            at?: string;
+            note?: string;
+            referredTo: string;
+        };
+        /** @description Move the incident along (OPEN, INVESTIGATING, ACTION_TAKEN, REFERRED, CLOSED). Closing needs a closing note and re-opening a closed incident needs a reason (both at least 10 characters); other changes may carry a note. */
+        SafeguardingStatusRequest: {
+            note?: string;
+            status: string;
+        };
+        /** @description The per-country text the reporting screens show ('if a child is in danger contact ...'). reviewed false means the wording is a placeholder the owner has not approved yet. */
+        SafetyEmergencyInfo: {
+            country?: string;
+            reviewed?: boolean;
+            text?: string;
         };
         SaveMappingRequest: {
             /** @description Field key to zero-based column index */
@@ -7897,7 +8713,7 @@ export interface components {
              * @description FULL only
              * @enum {string}
              */
-            status?: "PENDING" | "ACTIVE" | "TRANSFERRED" | "GRADUATED" | "WITHDRAWN";
+            status?: "PENDING" | "ACTIVE" | "SUSPENDED" | "TRANSFERRED" | "GRADUATED" | "WITHDRAWN";
             /** @description FULL only */
             studentNumber?: string;
             /** @description FULL only */
@@ -8310,7 +9126,7 @@ export interface components {
             filename: string;
             mimeType: string;
             /** @enum {string} */
-            purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING";
+            purpose: "AVATAR" | "POST" | "STORY" | "MESSAGE" | "PORTFOLIO" | "SUBMISSION" | "ASSIGNMENT" | "LIBRARY" | "COURSE" | "RECORDING" | "TRANSCRIPT" | "VERIFICATION_DOC" | "IMPORT_FILE" | "REPORT" | "BRANDING" | "SAFEGUARDING";
             /** @description Lower-case hex SHA-256 of the file; verified during processing */
             sha256?: string;
             /**
@@ -10861,6 +11677,381 @@ export interface operations {
             };
         };
     };
+    getModerationCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCaseDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    assignModerationCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ModerationAssignRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCaseDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    readModerationCaseContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationReviewContent"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    decideModerationCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationDecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCaseDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    setModerationCaseLegalHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationHoldRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationHoldView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    liftModerationCaseSuspension: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCaseDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    setModerationCasePriority: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationPriorityRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCaseDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    referModerationCaseUp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCaseDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reopenModerationCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCaseDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    restoreModerationCaseContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationCaseDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createModerationReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationReportRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationReportReceipt"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listNotifications: {
         parameters: {
             query?: {
@@ -11207,6 +12398,41 @@ export interface operations {
             };
         };
     };
+    listPlatformModerationCases: {
+        parameters: {
+            query?: {
+                status?: string;
+                priority?: string;
+                targetType?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageModerationCaseSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listOrganizations: {
         parameters: {
             query?: {
@@ -11525,6 +12751,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoleAssignmentResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listPlatformSafeguardingIncidents: {
+        parameters: {
+            query?: {
+                schoolId?: string;
+                status?: string;
+                severity?: string;
+                category?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageSafeguardingIncidentSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    setPlatformSafeguardingIncidentLegalHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingLegalHoldRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingLegalHoldView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -12173,6 +13470,76 @@ export interface operations {
             };
         };
     };
+    lockUserAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationLockRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationLockView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unlockUserAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationLockRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationLockView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getPolicy: {
         parameters: {
             query?: {
@@ -12320,6 +13687,313 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LanguageResponse"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getSafeguardingIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingIncidentSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    assignSafeguardingIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingAssignRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingIncidentSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    recordSafeguardingGuardianInformed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingGuardianInformedRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingIncidentSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    setSafeguardingIncidentLegalHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingLegalHoldRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingLegalHoldView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    addSafeguardingNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingNoteView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    openSafeguardingIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingIncidentOpenRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingIncidentDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    recordSafeguardingReferral: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingReferralRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingIncidentSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    changeSafeguardingIncidentStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingIncidentSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getEmergencyInfo: {
+        parameters: {
+            query: {
+                country: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafetyEmergencyInfo"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -16543,6 +18217,43 @@ export interface operations {
             };
         };
     };
+    listSchoolModerationCases: {
+        parameters: {
+            query?: {
+                status?: string;
+                priority?: string;
+                targetType?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageModerationCaseSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listMyPosts: {
         parameters: {
             query?: {
@@ -17848,6 +19559,205 @@ export interface operations {
             };
         };
     };
+    getSafeguardingCapability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingCapabilityView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    raiseSafeguardingConcern: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingConcernRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingIncidentCreated"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listSafeguardingIncidents: {
+        parameters: {
+            query?: {
+                status?: string;
+                severity?: string;
+                category?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageSafeguardingIncidentSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listSafeguardingLeads: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingLeadView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    designateSafeguardingLead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafeguardingLeadRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafeguardingLeadView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    removeSafeguardingLead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listStaff: {
         parameters: {
             query?: {
@@ -18185,7 +20095,7 @@ export interface operations {
                 classId?: string;
                 gradeLevelId?: string;
                 campusId?: string;
-                status?: "PENDING" | "ACTIVE" | "TRANSFERRED" | "GRADUATED" | "WITHDRAWN";
+                status?: "PENDING" | "ACTIVE" | "SUSPENDED" | "TRANSFERRED" | "GRADUATED" | "WITHDRAWN";
                 q?: string;
                 cursor?: string;
                 limit?: number;

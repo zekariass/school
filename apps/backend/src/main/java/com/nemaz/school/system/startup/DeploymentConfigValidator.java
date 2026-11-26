@@ -5,8 +5,12 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,6 +21,7 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 
+import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
@@ -62,6 +67,12 @@ public final class DeploymentConfigValidator {
 	private static final List<String> PLACEHOLDER_MARKERS = List.of("change-me", "changeme", "not-a-secret",
 			"replace-me", "replaceme", "placeholder", "your-secret", "example", "xxxxxxxx", "local-development",
 			"0123456789abcdef");
+
+	/** The development and test encryption keys of safeguarding incidents (they are in the repository): never deployed. */
+	private static final Set<String> KNOWN_SAFEGUARDING_KEYS = Set.of("ZpMvTuBbu45fW1DPsfAjLbkM70qGZACjbSFvt31V1WE=",
+			"3XW2ygDFVBin17tAEfBguxoWYqoElaHNMzBdJ/X10Lc=");
+
+	private static final Pattern SAFEGUARDING_KEY_ID = Pattern.compile("^[A-Za-z0-9_-]{1,32}$");
 
 	private static final Set<String> WEAK_DB_PASSWORDS = Set.of("school", "postgres", "password", "changeme",
 			"admin", "root", "secret", "123456", "12345678", "qwerty");
@@ -119,6 +130,7 @@ public final class DeploymentConfigValidator {
 				cors();
 				jwt();
 				pepper();
+				safeguardingKeys();
 				providers();
 				invitations();
 				storage();
@@ -266,6 +278,75 @@ public final class DeploymentConfigValidator {
 		else if (pepper.chars().distinct().count() < 8) {
 			problem("SCHOOL_AUTH_OTP_PEPPER", "has too little variety to be random; generate a random one");
 		}
+	}
+
+	/**
+	 * The AES-256 keys of safeguarding incidents (docs/Safeguarding_Rules.md S4.4): at least one valid key, the active one among
+	 * them, none of the keys that ship in the repository. Values are never echoed.
+	 */
+	private void safeguardingKeys() {
+		String active = text("school.safeguarding.encryption.active-key-id");
+		Map<String, String> keys = safeguardingKeyMap();
+		if (keys.isEmpty()) {
+			problem("SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1", "is not set (base64 of 32 random bytes: "
+					+ "openssl rand -base64 32; incidents of children cannot be stored without a key)");
+		}
+		if (active == null) {
+			problem("SCHOOL_SAFEGUARDING_ENCRYPTION_ACTIVE_KEY_ID", "is not set (the id of the key new text is encrypted with, "
+					+ "e.g. k1)");
+		}
+		else if (!keys.isEmpty() && !keys.containsKey(active)) {
+			problem("SCHOOL_SAFEGUARDING_ENCRYPTION_ACTIVE_KEY_ID", "names a key that is not configured");
+		}
+		for (Map.Entry<String, String> entry : keys.entrySet()) {
+			String id = entry.getKey();
+			if (!SAFEGUARDING_KEY_ID.matcher(id).matches()) {
+				problem("SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS", "has a key id that is not valid (letters, digits, _ and -)");
+				continue;
+			}
+			String name = "SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_" + id.toUpperCase(Locale.ROOT);
+			byte[] raw;
+			try {
+				raw = Base64.getDecoder().decode(entry.getValue());
+			}
+			catch (IllegalArgumentException ex) {
+				problem(name, "is not valid base64");
+				continue;
+			}
+			if (raw.length != 32) {
+				problem(name, "must be 32 bytes (AES-256): openssl rand -base64 32");
+			}
+			else if (KNOWN_SAFEGUARDING_KEYS.contains(entry.getValue())) {
+				problem(name, "is a development or test key that ships in the repository; generate a random one");
+			}
+			else {
+				Set<Byte> distinct = new HashSet<>();
+				for (byte b : raw) {
+					distinct.add(b);
+				}
+				if (distinct.size() < 8) {
+					problem(name, "has too little variety to be random; generate a random one");
+				}
+			}
+		}
+	}
+
+	private Map<String, String> safeguardingKeyMap() {
+		Map<String, String> keys = new LinkedHashMap<>();
+		try {
+			Map<String, String> bound = Binder.get(this.env)
+				.bind("school.safeguarding.encryption.keys", Bindable.mapOf(String.class, String.class))
+				.orElse(Map.of());
+			bound.forEach((id, value) -> {
+				if (value != null && !value.isBlank() && !value.contains("${")) {
+					keys.put(id, value.trim());
+				}
+			});
+		}
+		catch (RuntimeException ex) {
+			// an unreadable map counts as no keys
+		}
+		return keys;
 	}
 
 	private void providers() {

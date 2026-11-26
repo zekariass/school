@@ -2608,6 +2608,7 @@
       "status": {
         "ACTIVE": "Active",
         "PENDING": "Pending",
+        "SUSPENDED": "Suspended",
         "TRANSFERRED": "Transferred",
         "GRADUATED": "Graduated",
         "WITHDRAWN": "Withdrawn"

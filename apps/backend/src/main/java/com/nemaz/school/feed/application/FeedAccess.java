@@ -150,6 +150,14 @@ class FeedAccess {
 		return this.access.can(user, Permissions.SCHOOL_FEED_MANAGE, AccessScope.school(schoolId));
 	}
 
+	/**
+	 * A moderator of the school (school.moderation.manage): may read the media of content that a moderation case holds, since
+	 * the case-bound reader returns its media ids (the lead who hides a photo must still be able to look at it).
+	 */
+	boolean moderationReader(CurrentUser user, UUID schoolId) {
+		return this.access.can(user, Permissions.SCHOOL_MODERATION_MANAGE, AccessScope.school(schoolId));
+	}
+
 	/** May the user post to the class (see the class comment). */
 	boolean canPostToClass(CurrentUser user, ClassRef ref) {
 		java.util.Optional<TeacherRole> role = teacherRole(user, ref.id());

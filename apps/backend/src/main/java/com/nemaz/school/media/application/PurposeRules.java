@@ -68,6 +68,7 @@ final class PurposeRules {
 		RULES.put(MediaPurpose.VERIFICATION_DOC, new Rule(Set.of(ContextType.USER), imagesAndPdf));
 		RULES.put(MediaPurpose.IMPORT_FILE, new Rule(school, mimeLimits(IMPORT_FILE_MAX, MimeCatalog.CSV,
 				MimeCatalog.TEXT_PLAIN, MimeCatalog.MS_EXCEL, MimeCatalog.XLSX)));
+		RULES.put(MediaPurpose.SAFEGUARDING, new Rule(school, imagesAndPdf));
 		RULES.put(MediaPurpose.REPORT, new Rule(school, mimeLimits(PDF_MAX, MimeCatalog.PDF)));
 	}
 

@@ -8,6 +8,12 @@ school:
       allow-ephemeral-key: true
     otp:
       pepper: test-pepper-not-a-secret-0123456789abcdef
+  safeguarding:
+    encryption:
+      # Test-only keys (two, so the tests can rotate): never used outside the test profile.
+      active-key-id: t1
+      keys:
+        t1: 3XW2ygDFVBin17tAEfBguxoWYqoElaHNMzBdJ/X10Lc=
   sms:
     provider: console
   guardians:

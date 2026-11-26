@@ -31,7 +31,12 @@ insert into permissions (code, module, description) values
   ('school.announcements.urgent',   'communications', 'Send URGENT and SAFETY announcements (they bypass quiet hours and cannot be muted)'),
   ('school.messaging.moderate',     'messaging',     'Moderate the school''s group conversations: create school and staff groups, approve student groups, add and remove members, lock, archive and hide messages'),
   ('school.messaging.review',       'messaging',     'Review admin-visible and reported conversations through the audited read endpoint (mandatory reason), list student blocks of adults'),
-  ('school.calendar.manage',        'calendar',      'Create, change, cancel and delete school-wide, campus and grade events and any class event of the school')
+  ('school.calendar.manage',        'calendar',      'Create, change, cancel and delete school-wide, campus and grade events and any class event of the school'),
+  ('school.moderation.manage',       'moderation',    'Work the school''s moderation queue: assign, decide (no action, hide, remove, warn, suspend at school level, escalate) and read reported content through the audited case path. Reporter identities are not included'),
+  ('school.safeguarding.read',       'safeguarding',  'Read safeguarding incidents of the school and the identity of reporters of cases (SAFEGUARDING_LEAD roles only, never administrators)'),
+  ('school.safeguarding.manage',     'safeguarding',  'Work safeguarding incidents: notes, status, assignment, referral, guardian-informed record, legal hold, priority of cases (SAFEGUARDING_LEAD roles only)'),
+  ('platform.moderation.manage',     'moderation',    'Work the platform moderation queue (cases about school administrators and platform-scope targets, escalations) and set a legal hold on cases'),
+  ('platform.users.lock',            'identity',      'Lock and unlock an account platform-wide (all sessions end at once)')
 on conflict (code) do update
   set module = excluded.module,
       description = excluded.description;
@@ -45,7 +50,8 @@ insert into roles (code, name_i18n, scope_level, is_system, description) values
   ('SCHOOL_STAFF',       '{"en": "School staff", "am": "የትምህርት ቤት ሠራተኛ"}',                    'SCHOOL',       true, 'Non-teaching staff with permissions granted per role (R-34)'),
   ('PLATFORM_MODERATOR', '{"en": "Platform moderator", "am": "የመድረክ ይዘት ተቆጣጣሪ"}',              'PLATFORM',     true, 'Reviews reported content (M13)'),
   ('SUPPORT_AGENT',      '{"en": "Support agent", "am": "የድጋፍ ሠራተኛ"}',                          'PLATFORM',     true, 'Helps schools and families (read-only for now)'),
-  ('SAFEGUARDING_LEAD',  '{"en": "Safeguarding lead", "am": "የሕፃናት ደህንነት ኃላፊ"}',                'SCHOOL',       true, 'Handles safeguarding incidents of one school (M13)')
+  ('SAFEGUARDING_LEAD',  '{"en": "Safeguarding lead", "am": "የሕፃናት ደህንነት ኃላፊ"}',                'SCHOOL',       true, 'Handles safeguarding incidents of one school (M13)'),
+  ('PLATFORM_SAFEGUARDING_LEAD', '{"en": "Platform safeguarding lead", "am": "የመድረክ የሕፃናት ደህንነት ኃላፊ"}', 'PLATFORM', true, 'Handles safeguarding incidents of every school and of platform-scope targets (M13); granted deliberately, never to administrators by default')
 on conflict (code) do update
   set name_i18n = excluded.name_i18n,
       scope_level = excluded.scope_level,
@@ -54,7 +60,8 @@ on conflict (code) do update
 
 create temporary table declared_role_permissions (role_code text, permission_code text) on commit drop;
 insert into declared_role_permissions (role_code, permission_code) values
-  -- Platform administrators hold every permission.
+  -- Platform administrators hold every permission EXCEPT the two safeguarding ones: only safeguarding leads read incidents
+  -- (docs/Safeguarding_Rules.md S4.2, decision 2).
   ('PLATFORM_ADMIN', 'platform.organizations.manage'),
   ('PLATFORM_ADMIN', 'platform.schools.manage'),
   ('PLATFORM_ADMIN', 'platform.subscriptions.manage'),
@@ -82,6 +89,9 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('PLATFORM_ADMIN', 'school.messaging.moderate'),
   ('PLATFORM_ADMIN', 'school.messaging.review'),
   ('PLATFORM_ADMIN', 'school.calendar.manage'),
+  ('PLATFORM_ADMIN', 'school.moderation.manage'),
+  ('PLATFORM_ADMIN', 'platform.moderation.manage'),
+  ('PLATFORM_ADMIN', 'platform.users.lock'),
   -- Country: organizations, schools and settings within the country; no plans or feature flags.
   ('COUNTRY_ADMIN', 'platform.organizations.manage'),
   ('COUNTRY_ADMIN', 'platform.schools.manage'),
@@ -107,6 +117,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('COUNTRY_ADMIN', 'school.messaging.moderate'),
   ('COUNTRY_ADMIN', 'school.messaging.review'),
   ('COUNTRY_ADMIN', 'school.calendar.manage'),
+  ('COUNTRY_ADMIN', 'school.moderation.manage'),
   -- Organization: its schools (create, status, campuses, school settings) and their admins.
   ('ORGANIZATION_ADMIN', 'platform.schools.manage'),
   ('ORGANIZATION_ADMIN', 'platform.roles.manage'),
@@ -130,6 +141,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('ORGANIZATION_ADMIN', 'school.messaging.moderate'),
   ('ORGANIZATION_ADMIN', 'school.messaging.review'),
   ('ORGANIZATION_ADMIN', 'school.calendar.manage'),
+  ('ORGANIZATION_ADMIN', 'school.moderation.manage'),
   -- School: its own school, campuses and school-level settings.
   ('SCHOOL_ADMIN', 'school.read'),
   ('SCHOOL_ADMIN', 'school.manage'),
@@ -151,6 +163,7 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('SCHOOL_ADMIN', 'school.messaging.moderate'),
   ('SCHOOL_ADMIN', 'school.messaging.review'),
   ('SCHOOL_ADMIN', 'school.calendar.manage'),
+  ('SCHOOL_ADMIN', 'school.moderation.manage'),
   -- The four school-operations permissions (M3a) are held by every administrator who may grant SCHOOL_ADMIN
   -- (platform, country, organization): granting needs every permission of the role (no escalation), so withholding
   -- them would only move the data access to a school administrator they appoint.
@@ -162,7 +175,20 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('SCHOOL_STAFF', 'school.read'),
   ('SUPPORT_AGENT', 'school.read'),
   ('SAFEGUARDING_LEAD', 'school.read'),
-  ('SAFEGUARDING_LEAD', 'school.messaging.review');
+  ('SAFEGUARDING_LEAD', 'school.messaging.review'),
+  ('SAFEGUARDING_LEAD', 'school.moderation.manage'),
+  ('SAFEGUARDING_LEAD', 'school.safeguarding.read'),
+  ('SAFEGUARDING_LEAD', 'school.safeguarding.manage'),
+  -- Platform moderators work the platform queue and may lock accounts; no school data, no incidents.
+  ('PLATFORM_MODERATOR', 'platform.moderation.manage'),
+  ('PLATFORM_MODERATOR', 'platform.users.lock'),
+  -- Platform safeguarding leads: every school's incidents (granted by hand, never to administrators).
+  ('PLATFORM_SAFEGUARDING_LEAD', 'school.read'),
+  ('PLATFORM_SAFEGUARDING_LEAD', 'school.messaging.review'),
+  ('PLATFORM_SAFEGUARDING_LEAD', 'school.moderation.manage'),
+  ('PLATFORM_SAFEGUARDING_LEAD', 'platform.moderation.manage'),
+  ('PLATFORM_SAFEGUARDING_LEAD', 'school.safeguarding.read'),
+  ('PLATFORM_SAFEGUARDING_LEAD', 'school.safeguarding.manage');
 
 insert into role_permissions (role_code, permission_code)
 select role_code, permission_code from declared_role_permissions

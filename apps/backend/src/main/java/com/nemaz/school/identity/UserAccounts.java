@@ -31,6 +31,16 @@ public interface UserAccounts {
 	/** Signs the account out everywhere (reason USER_INACTIVE), e.g. after a student's last enrollment ended. */
 	void signOutEverywhere(UUID userId);
 
+	/**
+	 * Platform lock (M13, docs/Safeguarding_Rules.md S2.4): the ACTIVE account becomes LOCKED, every session ends through the
+	 * token service (access tokens deny-listed, {@code SessionsRevoked} closes sockets and push devices) and nothing is deleted.
+	 * Returns false when the account was not ACTIVE (nothing changed). The caller checks authority and audits.
+	 */
+	boolean lock(UUID userId);
+
+	/** Reverses {@link #lock}: a LOCKED account becomes ACTIVE (it signs in again). False when it was not LOCKED. */
+	boolean unlock(UUID userId);
+
 	record ProvisionRequest(String phone, String email, String country, String givenName, String familyName,
 			String displayName, String preferredLanguageCode) {
 	}

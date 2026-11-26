@@ -204,6 +204,13 @@ public class InteractionService {
 		if (comment.status() == CommentStatus.DELETED) {
 			throw ApiException.notFound("feed.comment_not_found");
 		}
+		if (!hidden && this.jdbc.sql("select moderation_hidden_at is not null from post_comments where id = :id")
+			.param("id", commentId)
+			.query(Boolean.class)
+			.single()) {
+			// hidden by a moderation case: only the case can restore it
+			throw ApiException.conflict("moderation.content_held");
+		}
 		this.jdbc.sql("update post_comments set status = :status, moderated_by = :m where id = :id")
 			.param("status", hidden ? "HIDDEN" : "VISIBLE")
 			.param("m", user.userId())
@@ -332,7 +339,7 @@ public class InteractionService {
 			.target("post", postId)
 			.school(schoolId)
 			.metadata("reason", reason.name()));
-		this.events.publishEvent(new ContentReported("POST", postId, schoolId, user.userId(), reason.name()));
+		this.events.publishEvent(new ContentReported(Ids.newId(), "POST", postId, schoolId, user.userId(), reason.name()));
 	}
 
 }

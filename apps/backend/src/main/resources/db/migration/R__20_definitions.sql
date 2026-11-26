@@ -15,6 +15,7 @@ insert into feature_definitions (key, description, default_enabled) values
   ('messaging',       'Direct, group and class conversations', true),
   ('announcements',   'School communications centre', true),
   ('calendar',        'School and class calendar', true),
+  ('moderation',      'Reports, moderation cases and safeguarding incidents (never paywalled: every plan entitles it)', true),
   ('portfolio',       'Student portfolios', true),
   ('library',         'Digital library (P2)', false),
   ('assignments',     'Assignments, assessment and grading (P2)', false),
@@ -219,6 +220,38 @@ from (values
   ('students.password_login.enabled', 'students',
    '{"type": "boolean"}', 'false',
    'Managed students may sign in with a username and password (older students); otherwise only login codes work')
+) as d(key, module, value_schema, default_value, description)
+on conflict (key) do update
+  set module = excluded.module,
+      value_schema = excluded.value_schema,
+      default_value = excluded.default_value,
+      allowed_scopes = excluded.allowed_scopes,
+      description = excluded.description;
+
+-- Safeguarding and moderation (M13a, docs/Safeguarding_Rules.md). Settable at platform and country level only, NOT per
+-- school or organization: a school cannot loosen its own safeguarding (the lead requirement in particular).
+-- Retention periods are PLACEHOLDERS pending counsel (decision 4).
+insert into setting_definitions (key, module, value_schema, default_value, allowed_scopes, description)
+select d.key, d.module, d.value_schema::jsonb, d.default_value::jsonb, array['PLATFORM', 'COUNTRY'], d.description
+from (values
+  ('safeguarding.report.daily_limit', 'safeguarding',
+   '{"type": "integer", "minimum": 1, "maximum": 500}', '20',
+   'Reports one person can file a day'),
+  ('safeguarding.report.student_daily_limit', 'safeguarding',
+   '{"type": "integer", "minimum": 1, "maximum": 500}', '10',
+   'Reports one student can file a day'),
+  ('safeguarding.case.priority_threshold', 'safeguarding',
+   '{"type": "integer", "minimum": 2, "maximum": 50}', '3',
+   'Distinct reporters of one target after which its case becomes HIGH priority'),
+  ('safeguarding.retention.case_years', 'safeguarding',
+   '{"type": "integer", "minimum": 1, "maximum": 50}', '2',
+   'Years a resolved moderation case, its reports and history are kept (PLACEHOLDER pending counsel)'),
+  ('safeguarding.retention.incident_years', 'safeguarding',
+   '{"type": "integer", "minimum": 1, "maximum": 50}', '7',
+   'Years a closed safeguarding incident is kept (PLACEHOLDER pending counsel)'),
+  ('safeguarding.require_lead_for_student_messaging', 'safeguarding',
+   '{"type": "boolean"}', 'true',
+   'A school needs at least one safeguarding lead before it can switch on student messaging or student contributions')
 ) as d(key, module, value_schema, default_value, description)
 on conflict (key) do update
   set module = excluded.module,

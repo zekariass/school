@@ -24,6 +24,10 @@ class DeploymentConfigValidatorTest {
 
 	private static final String JWKS = newJwkSet(true);
 
+	/** A valid AES-256 key (32 bytes of variety) that is not one of the keys of the repository. */
+	private static final String SAFEGUARDING_KEY = java.util.Base64.getEncoder()
+		.encodeToString("Q7x!mP2#vL9$kR4&tW6*zN8^bH3@cF5%".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
 	/** A configuration that passes in both deployed profiles. */
 	private static MockEnvironment valid(String profile) {
 		MockEnvironment env = new MockEnvironment();
@@ -35,6 +39,8 @@ class DeploymentConfigValidatorTest {
 		env.setProperty("school.cors.allowed-origins", "https://app.example.org,https://admin.example.org");
 		env.setProperty("school.auth.jwt.keys", JWKS);
 		env.setProperty("school.auth.otp.pepper", SECRET_PEPPER);
+		env.setProperty("school.safeguarding.encryption.active-key-id", "k1");
+		env.setProperty("school.safeguarding.encryption.keys.k1", SAFEGUARDING_KEY);
 		env.setProperty("school.sms.provider", "console");
 		env.setProperty("school.sms.allow-console", "true");
 		env.setProperty("school.push.provider", "expo");
@@ -104,6 +110,8 @@ class DeploymentConfigValidatorTest {
 			.anyMatch((p) -> p.startsWith("CORS_ALLOWED_ORIGINS"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_AUTH_JWT_KEYS"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_AUTH_OTP_PEPPER"))
+			.anyMatch((p) -> p.startsWith("SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1"))
+			.anyMatch((p) -> p.startsWith("SCHOOL_SAFEGUARDING_ENCRYPTION_ACTIVE_KEY_ID"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_SMS_PROVIDER"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_PUSH_PROVIDER"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_GUARDIANS_INVITE_BASE_URL"))
@@ -403,6 +411,46 @@ class DeploymentConfigValidatorTest {
 			.doesNotContain("school-dev-secret")
 			.doesNotContain("garbage-private-material")
 			.doesNotContain("password=school");
+	}
+
+	// ------------------------------------------------ safeguarding encryption keys
+
+	@Test
+	void aSafeguardingEncryptionKeyIsRequiredInDeployedProfiles() {
+		for (String profile : new String[] { "staging", "prod" }) {
+			assertSingleProblem(problems(profile, (env) -> env.setProperty("school.safeguarding.encryption.keys.k1", "")),
+					"SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1 is not set");
+			assertSingleProblem(problems(profile, (env) -> env.setProperty("school.safeguarding.encryption.active-key-id", "")),
+					"SCHOOL_SAFEGUARDING_ENCRYPTION_ACTIVE_KEY_ID is not set");
+			assertSingleProblem(problems(profile, (env) -> env.setProperty("school.safeguarding.encryption.active-key-id", "k9")),
+					"SCHOOL_SAFEGUARDING_ENCRYPTION_ACTIVE_KEY_ID names a key that is not configured");
+		}
+	}
+
+	@Test
+	void theKeysThatShipInTheRepositoryAreRefusedAndKeyValuesAreNeverPrinted() {
+		String devKey = "ZpMvTuBbu45fW1DPsfAjLbkM70qGZACjbSFvt31V1WE="; // application-local.yaml
+		String testKey = "3XW2ygDFVBin17tAEfBguxoWYqoElaHNMzBdJ/X10Lc="; // application-test.yaml
+		for (String key : new String[] { devKey, testKey }) {
+			List<String> problems = problems("prod", (env) -> env.setProperty("school.safeguarding.encryption.keys.k1", key));
+			assertSingleProblem(problems, "SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1 is a development or test key");
+			assertThat(problems.getFirst()).doesNotContain(key);
+		}
+		// malformed, wrong size, no variety, a bad id; a second valid key is fine (rotation)
+		assertSingleProblem(problems("staging", (env) -> env.setProperty("school.safeguarding.encryption.keys.k1", "not base64!")),
+				"SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1 is not valid base64");
+		assertSingleProblem(problems("staging", (env) -> env.setProperty("school.safeguarding.encryption.keys.k1",
+				java.util.Base64.getEncoder().encodeToString(new byte[16]))), "SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1 must be 32 bytes");
+		assertSingleProblem(problems("staging", (env) -> env.setProperty("school.safeguarding.encryption.keys.k1",
+				java.util.Base64.getEncoder().encodeToString(new byte[32]))), "SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1 has too little variety");
+		assertThat(problems("prod", (env) -> env.setProperty("school.safeguarding.encryption.keys.k2",
+				java.util.Base64.getEncoder().encodeToString("L6y#nB1$xC7&vM3*qZ9^wK5@eR2%tH8!".getBytes())))).isEmpty();
+		// an unset slot (SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K2 passed through as empty) is ignored
+		assertThat(problems("prod", (env) -> env.setProperty("school.safeguarding.encryption.keys.k2", ""))).isEmpty();
+		// development profiles are not checked
+		MockEnvironment local = new MockEnvironment();
+		local.setActiveProfiles("local");
+		assertThat(problems(local)).isEmpty();
 	}
 
 	@Test

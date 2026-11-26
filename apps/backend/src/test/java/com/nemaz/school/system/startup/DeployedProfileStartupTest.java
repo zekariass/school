@@ -100,7 +100,8 @@ class DeployedProfileStartupTest {
 				assertThat(ex.getMessage()).contains("DB_URL", "DB_USERNAME", "DB_PASSWORD", "REDIS_URL",
 						"CORS_ALLOWED_ORIGINS", "SCHOOL_AUTH_JWT_KEYS", "SCHOOL_AUTH_OTP_PEPPER",
 						"SCHOOL_SMS_PROVIDER", "SCHOOL_PUSH_PROVIDER", "SCHOOL_GUARDIANS_INVITE_BASE_URL",
-						"SCHOOL_STORAGE_ENDPOINT", "SCHOOL_STORAGE_BUCKET");
+						"SCHOOL_STORAGE_ENDPOINT", "SCHOOL_STORAGE_BUCKET", "SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1",
+						"SCHOOL_SAFEGUARDING_ENCRYPTION_ACTIVE_KEY_ID");
 				FailureAnalysis analysis = new DeploymentConfigFailureAnalyzer().analyze(ex);
 				assertThat(analysis.getDescription()).startsWith("Invalid configuration for profile(s) [staging]");
 				assertThat(analysis.getAction()).contains("never printed");
@@ -242,6 +243,8 @@ class DeployedProfileStartupTest {
 					"--spring.data.redis.url=" + redisUrl,
 					"--school.cors.allowed-origins=https://app.example.org",
 					"--school.auth.jwt.keys=" + jwkSet(), "--school.auth.otp.pepper=Zm9vYmFyYmF6cXV4MTIzNDU2Nzg5MGFiY2RlZg",
+					"--school.safeguarding.encryption.active-key-id=k1",
+					"--school.safeguarding.encryption.keys.k1=UTd4IW1QMiN2TDkka1I0JnRXNip6Tjhe" + "YkgzQGNGNSU=",
 					"--school.sms.provider=console", "--school.sms.allow-console=true", "--school.push.provider=expo",
 					"--school.guardians.invite-base-url=https://app.example.org",
 					"--school.storage.endpoint=https://acct.r2.cloudflarestorage.com",

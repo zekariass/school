@@ -92,7 +92,7 @@ public class FeedMaintenance {
 		record Old(UUID id, UUID mediaId) {
 		}
 		List<Old> old = this.jdbc.sql("""
-				select id, media_id from stories where status = 'EXPIRED' and expires_at <= :cutoff
+				select id, media_id from stories where status = 'EXPIRED' and expires_at <= :cutoff and moderation_case_id is null
 				order by expires_at, id limit :n""")
 			.param("cutoff", Timestamp.from(now.minus(EXPIRED_RETENTION)))
 			.param("n", PURGE_BATCH)

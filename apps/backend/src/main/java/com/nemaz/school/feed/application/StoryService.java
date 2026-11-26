@@ -194,7 +194,9 @@ public class StoryService {
 			.param("now", Timestamp.from(this.clock.instant()))
 			.param("id", storyId)
 			.update();
-		if (row.mediaId() != null) {
+		boolean held = this.jdbc.sql("select moderation_case_id is not null from stories where id = :id").param("id", storyId).query(Boolean.class).single();
+		if (row.mediaId() != null && !held) {
+			// content under a moderation case keeps its photo (evidence hold)
 			this.media.discard(List.of(row.mediaId()));
 		}
 		this.audit.record(AuditEntry.of("feed.story.delete", AuditOutcome.SUCCESS)

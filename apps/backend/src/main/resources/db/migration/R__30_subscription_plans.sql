@@ -26,16 +26,16 @@ on conflict (plan_id, country_code) do nothing;
 insert into plan_entitlements (plan_id, feature_key, enabled, limit_value)
 select p.id, f.key, f.key = any (m.features), l.limit_value
 from (values
-  ('SCHOOL_FREE', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar',
+  ('SCHOOL_FREE', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar', 'moderation',
                         'max_students', 'storage_bytes']),
-  ('SCHOOL_BASIC', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar',
+  ('SCHOOL_BASIC', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar', 'moderation',
                          'portfolio', 'library', 'assignments', 'max_students', 'storage_bytes']),
-  ('SCHOOL_STANDARD', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar',
+  ('SCHOOL_STANDARD', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar', 'moderation',
                             'portfolio', 'library', 'assignments', 'courses', 'max_students', 'storage_bytes']),
-  ('SCHOOL_PREMIUM', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar',
+  ('SCHOOL_PREMIUM', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar', 'moderation',
                            'portfolio', 'library', 'assignments', 'courses', 'marketplace', 'tutoring',
                            'payments', 'ai_copilot', 'max_students', 'storage_bytes']),
-  ('ENTERPRISE', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar',
+  ('ENTERPRISE', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar', 'moderation',
                        'portfolio', 'library', 'assignments', 'courses', 'marketplace', 'tutoring',
                        'payments', 'ai_copilot', 'ai_student_tutor', 'max_students', 'storage_bytes'])
 ) as m(plan_code, features)
