@@ -32,13 +32,17 @@ class RolesAndPermissionsSeedTest {
 				(rs) -> { levels.put(rs.getString(1), rs.getString(2)); });
 		assertThat(levels).containsAllEntriesOf(Map.of("PLATFORM_ADMIN", "PLATFORM", "COUNTRY_ADMIN", "COUNTRY",
 				"ORGANIZATION_ADMIN", "ORGANIZATION", "SCHOOL_ADMIN", "SCHOOL", "CAMPUS_ADMIN", "CAMPUS", "SCHOOL_STAFF",
-				"SCHOOL", "PLATFORM_MODERATOR", "PLATFORM", "SUPPORT_AGENT", "PLATFORM", "SAFEGUARDING_LEAD", "SCHOOL"));
-		assertThat(levels).hasSize(9);
+				"SCHOOL", "PLATFORM_MODERATOR", "PLATFORM", "SUPPORT_AGENT", "PLATFORM", "SAFEGUARDING_LEAD", "SCHOOL",
+				"PLATFORM_SAFEGUARDING_LEAD", "PLATFORM"));
+		assertThat(levels).hasSize(10);
 	}
 
 	@Test
-	void platformAdministratorsHoldEveryPermissionAndNoOtherRoleHoldsPlatformOnlyOnes() {
-		assertThat(permissionsOf("PLATFORM_ADMIN")).containsExactlyInAnyOrderElementsOf(Permissions.ALL);
+	void platformAdministratorsHoldEveryPermissionExceptSafeguardingAndNoOtherRoleHoldsPlatformOnlyOnes() {
+		// docs/Safeguarding_Rules.md S4.2: only safeguarding leads read incidents, platform administrators included
+		assertThat(permissionsOf("PLATFORM_ADMIN")).containsExactlyInAnyOrderElementsOf(Permissions.ALL.stream()
+			.filter((p) -> !p.equals(Permissions.SCHOOL_SAFEGUARDING_READ) && !p.equals(Permissions.SCHOOL_SAFEGUARDING_MANAGE))
+			.toList());
 		for (String role : List.of("COUNTRY_ADMIN", "ORGANIZATION_ADMIN", "SCHOOL_ADMIN", "CAMPUS_ADMIN")) {
 			assertThat(permissionsOf(role)).as(role)
 				.doesNotContain(Permissions.PLATFORM_FEATURES_MANAGE, Permissions.PLATFORM_SUBSCRIPTIONS_MANAGE,
@@ -51,11 +55,23 @@ class RolesAndPermissionsSeedTest {
 				Permissions.SCHOOL_POINTS_MANAGE, Permissions.SCHOOL_POINTS_READ, Permissions.SCHOOL_ATTENDANCE_MANAGE,
 				Permissions.SCHOOL_ATTENDANCE_READ, Permissions.SCHOOL_FEED_MANAGE, Permissions.SCHOOL_ANNOUNCEMENTS_MANAGE,
 			Permissions.SCHOOL_ANNOUNCEMENTS_URGENT, Permissions.SCHOOL_MESSAGING_MODERATE, Permissions.SCHOOL_MESSAGING_REVIEW, Permissions.SCHOOL_CALENDAR_MANAGE,
-				Permissions.SCHOOL_PORTFOLIOS_REVIEW);
+			Permissions.SCHOOL_MODERATION_MANAGE, Permissions.SCHOOL_PORTFOLIOS_REVIEW);
 		// A campus administrator reads the school and manages the classes of its own campus (M3a).
 		assertThat(permissionsOf("CAMPUS_ADMIN")).containsExactlyInAnyOrder(Permissions.SCHOOL_READ,
 				Permissions.CLASS_MANAGE);
 		assertThat(permissionsOf("SCHOOL_STAFF")).containsExactly(Permissions.SCHOOL_READ);
+	}
+
+	@Test
+	void theSafeguardingPermissionsBelongToTheLeadRolesOnly() {
+		for (String permission : List.of(Permissions.SCHOOL_SAFEGUARDING_READ, Permissions.SCHOOL_SAFEGUARDING_MANAGE)) {
+			assertThat(this.jdbc.queryForList("select role_code from role_permissions where permission_code = ?", String.class,
+					permission))
+				.containsExactlyInAnyOrder("SAFEGUARDING_LEAD", "PLATFORM_SAFEGUARDING_LEAD");
+		}
+		assertThat(permissionsOf("PLATFORM_MODERATOR")).containsExactlyInAnyOrder(Permissions.PLATFORM_MODERATION_MANAGE,
+				Permissions.PLATFORM_USERS_LOCK);
+		assertThat(permissionsOf("SUPPORT_AGENT")).containsExactly(Permissions.SCHOOL_READ);
 	}
 
 	@Test

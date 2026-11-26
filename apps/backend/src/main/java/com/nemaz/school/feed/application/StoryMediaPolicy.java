@@ -81,6 +81,10 @@ class StoryMediaPolicy implements MediaPurposePolicy {
 		if (this.access.moderates(user, story.scope(), story.schoolId(), story.classId())) {
 			return true;
 		}
+		if (this.access.moderationReader(user, story.schoolId())
+				&& this.jdbc.sql("select moderation_case_id is not null from stories where id = :id").param("id", story.id()).query(Boolean.class).single()) {
+			return true; // content held by a moderation case stays readable by the school's moderators and leads
+		}
 		return this.visibility.canSeeStory(user, story.id()) && !this.consent.storyWithheld(story.id());
 	}
 

@@ -2608,6 +2608,7 @@
       "status": {
         "ACTIVE": "ንቁ",
         "PENDING": "በመጠባበቅ ላይ",
+        "SUSPENDED": "የታገደ",
         "TRANSFERRED": "የተዛወረ",
         "GRADUATED": "የተመረቀ",
         "WITHDRAWN": "የወጣ"

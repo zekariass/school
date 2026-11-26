@@ -40,6 +40,12 @@ public class SecurityTestConfiguration {
 		return new RecordingSmsAdapter();
 	}
 
+	/** A target type of a later milestone, registered through the moderation SPIs only (see its Javadoc). */
+	@Bean
+	FakeModerationTarget fakeModerationTarget() {
+		return new FakeModerationTarget();
+	}
+
 	@Bean
 	@Primary
 	RecordingMessages recordingMessages() {

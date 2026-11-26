@@ -46,6 +46,12 @@ insert into notification_types (code, category, default_channels, can_be_urgent,
   ('EVENT_INVITATION',        'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An invitation to a parent meeting, or a new event when the school asks for it', true, false),
   ('EVENT_UPDATED',           'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An event was moved to another time or place', true, false),
   ('EVENT_CANCELLED',         'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An event or one of its occurrences was cancelled', true, false),
+  -- M13 (docs/Safeguarding_Rules.md): the texts are GENERIC on purpose: no content, no names, no outcome, no case id.
+  ('REPORT_ACKNOWLEDGED',     'SAFETY',    '{IN_APP}',      false, true,  'Thank you for your report (to the reporter, once per report)', false, false),
+  ('REPORT_REVIEWED',         'SAFETY',    '{IN_APP}',      false, true,  'Your report was reviewed (to the reporter; never the outcome)', false, false),
+  ('CASE_ASSIGNED',           'SAFETY',    '{IN_APP,PUSH}', false, false, 'A moderation case was assigned to the user', false, false),
+  ('SAFEGUARDING_ALERT',      'SAFETY',    '{IN_APP,PUSH}', false, false, 'A matter needs a safeguarding lead (to the school''s leads, or the platform leads when it has none)', false, false),
+  ('ACCOUNT_WARNING',         'SAFETY',    '{IN_APP}',      false, false, 'Something on the account did not follow the rules (to the warned person; never quotes content)', false, false),
   ('PORTFOLIO_SUBMITTED',     'LEARNING',  '{IN_APP,PUSH}', false, true,  'A portfolio item waits for review (to the class''s reviewing teachers; generic text, never the title or the child)', false, false),
   ('PORTFOLIO_NEW_ITEM',      'LEARNING',  '{IN_APP,PUSH}', false, true,  'A guardian-visible portfolio item of the child was approved (to the guardians, once per item; generic text)', false, false),
   ('PORTFOLIO_COMMENT',       'LEARNING',  '{IN_APP}',      false, true,  'Somebody commented on the student''s portfolio item (to the student; never the comment)', false, false)

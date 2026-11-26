@@ -112,6 +112,28 @@ public final class Permissions {
 	public static final String SCHOOL_CALENDAR_MANAGE = "school.calendar.manage";
 
 	/**
+	 * The school's moderation queue (M13): assign, decide and read reported content through the audited case path. Held by
+	 * school, organization, country and platform administrators and by safeguarding leads. Does not include the identity of
+	 * reporters (only leads and platform moderators see it) and never any safeguarding incident.
+	 */
+	public static final String SCHOOL_MODERATION_MANAGE = "school.moderation.manage";
+
+	/**
+	 * Read safeguarding incidents (and the identity of the reporters of cases). Held by the SAFEGUARDING_LEAD roles ONLY, never
+	 * by administrators, platform administrators included (docs/Safeguarding_Rules.md S4.2).
+	 */
+	public static final String SCHOOL_SAFEGUARDING_READ = "school.safeguarding.read";
+
+	/** Work safeguarding incidents (notes, status, assignment, referral, legal hold). SAFEGUARDING_LEAD roles only. */
+	public static final String SCHOOL_SAFEGUARDING_MANAGE = "school.safeguarding.manage";
+
+	/** The platform moderation queue (cases about school administrators, platform-scope targets, escalations). */
+	public static final String PLATFORM_MODERATION_MANAGE = "platform.moderation.manage";
+
+	/** Lock and unlock an account platform-wide (every session ends). */
+	public static final String PLATFORM_USERS_LOCK = "platform.users.lock";
+
+	/**
 	 * Administrator oversight of student portfolios (M12a): review, comment on, archive and delete items of the school. Class
 	 * teachers review the items of their own classes through their class membership, without it.
 	 */
@@ -124,6 +146,8 @@ public final class Permissions {
 			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE, SCHOOL_IMPORT_MANAGE, SCHOOL_GUARDIANS_MANAGE, SCHOOL_POLICIES_MANAGE,
 			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ, SCHOOL_FEED_MANAGE,
 			SCHOOL_ANNOUNCEMENTS_MANAGE, SCHOOL_ANNOUNCEMENTS_URGENT, SCHOOL_MESSAGING_MODERATE, SCHOOL_MESSAGING_REVIEW, SCHOOL_CALENDAR_MANAGE,
+			SCHOOL_MODERATION_MANAGE, SCHOOL_SAFEGUARDING_READ, SCHOOL_SAFEGUARDING_MANAGE, PLATFORM_MODERATION_MANAGE,
+			PLATFORM_USERS_LOCK,
 			SCHOOL_PORTFOLIOS_REVIEW);
 
 	private Permissions() {

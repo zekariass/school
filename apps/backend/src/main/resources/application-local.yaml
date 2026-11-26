@@ -37,6 +37,12 @@ school:
     secret-key: school-dev-secret
     create-bucket: true
     cors-origins: http://localhost:3100
+  safeguarding:
+    encryption:
+      # DEVELOPMENT KEY, not a secret: it is in the repository, so a deployed profile refuses it (DeploymentConfigValidator).
+      active-key-id: dev
+      keys:
+        dev: ZpMvTuBbu45fW1DPsfAjLbkM70qGZACjbSFvt31V1WE=
   sms:
     provider: console             # one-time codes are printed in the backend log
   guardians:

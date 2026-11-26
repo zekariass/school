@@ -1,7 +1,8 @@
 # Safeguarding and moderation rules (M13): draft for the owner
 
 *Status: **OWNER-CONFIRMED on 26 November 2026**: the owner accepted every recommended answer to the open questions (see
-"Decisions" below). Nothing here is implemented yet. Legal points (child-protection reporting duties, retention periods,
+"Decisions" below). **S1 to S6 and S8 are implemented by M13a (backend, 26 November 2026); the choices the implementer had to
+make are at the end ("Added by the implementer")**; S7 (platform administration) is the later half of M13. Legal points (child-protection reporting duties, retention periods,
 breach notification under Proclamation 1321/2024) **still need counsel**: the numbers below are placeholders until counsel
 confirms them, and are settings, not code.*
 
@@ -225,3 +226,106 @@ in the database, a different nonce per record, key rotation reads old and new, s
 audited with no text, no text anywhere it must not be (a canary test over audit rows, events, notifications, logs, the case
 and incident list endpoints), nobody auto-notified, the platform lock revokes sessions, the support view (read-only,
 reason required, audited, no content), and every endpoint in `AuthorizationMatrixTest`.
+
+
+## Added by the implementer (M13a, 26 November 2026)
+
+The rule book was silent or ambiguous in the places below; **the most restrictive behaviour was chosen** and each choice has a
+test. Please confirm or relax each one.
+
+### Who sees what
+
+1. **Reporter identity (S1.7, decision 1) is defined exactly:** the identity (`reporterId`) **and the free-text details** of a
+   report are shown only to holders of `school.safeguarding.read` at the case's school (the two lead roles) and to holders of the role
+   `PLATFORM_MODERATOR`. School moderators, school and platform **administrators** see the reporter's role and the reason only. The
+   details are treated like the identity because a child's text ("I am Abel in 5B...") identifies the child. Test:
+   `CaseWorkflowTest.reporterIdentityIsVisibleOnlyToLeadsAndPlatformModerators`.
+2. **A new role `PLATFORM_SAFEGUARDING_LEAD`** (platform scope) is the "platform safeguarding lead" of S4: the existing
+   `SAFEGUARDING_LEAD` is a school-scope role and a role is granted at exactly its scope. It is granted by hand (it cannot be granted
+   through the platform-roles API: a granter must hold every permission of the role, and nobody who is not a lead does).
+3. **Platform administrators no longer hold "every permission"**: they hold every permission **except**
+   `school.safeguarding.read` and `school.safeguarding.manage` (decision 2). `RolesAndPermissionsSeedTest` enforces it.
+4. **"School moderator"** = holder of `school.moderation.manage`: school, organization, country and platform administrators **and the
+   safeguarding leads** (both roles), so that a lead can work the cases that alert them. **"Platform moderator"** = holder of
+   `platform.moderation.manage` (`PLATFORM_MODERATOR`, platform administrators, platform leads). A platform moderator works the
+   platform queue only; the school queue is not theirs (a school case reaches them only when a school moderator hands it up).
+5. **"Administrator or moderator" for the routing rule (S2.3, decision 7)** is: an ACTIVE role with `school.manage`,
+   `school.moderation.manage` or `school.safeguarding.read` covering the school (school, organization, country, platform), or ACTIVE
+   staff of type ADMINISTRATOR. A case about **a safeguarding lead** therefore also skips the school queue (a lead must not be judged by
+   the school's own moderators and leads).
+6. **Conflicts (S2.5)** also cover **a case the moderator reported** (404). The subject, the guardian of the subject (PENDING or ACTIVE
+   link) and, for incidents, an involved person, the concerned student and the guardian of the concerned student all get 404.
+7. **Moderators never learn that an incident exists**: after an ESCALATE the case shows only `status: ESCALATED`; the link to the
+   incident (`incidentId`) is returned only to holders of `school.safeguarding.read`.
+8. **Who can report a person (S5.1):** the same ACTIVE class (students and teachers), or ACTIVE staff reporting staff or students of
+   their school, or a guardian (ACTIVE, not custody-restricted link) reporting **staff** of their child's school (not other children).
+   Shared conversations count too (messaging). Knowing a person's id is not enough.
+
+### Reports and cases
+
+9. **Event-path reports carry no text** (the feed and messaging events carry ids and a code only), so their `details` are empty; the
+   student daily limit (10) applies to the new endpoint only, the feed's and messaging's own limit (20 a day) applies to their endpoints.
+10. **The reason of a decision lives only in `moderation_actions.notes`.** The audit row of a decision carries the decision code and
+    the level, never the reason. The reason of **ESCALATE becomes the encrypted narrative of the incident and is not kept in the case
+    history** (the history row has no notes).
+11. **Evidence hold.** When a case opens on a post, comment, story or message, the owner marks it (`moderation_case_id`): a delete by
+    its author keeps the files, the story expiry job keeps the photo, and the school's moderators and leads can still read its media
+    (`PostMediaPolicy`, `StoryMediaPolicy`). **A HIDE or REMOVE additionally sets `moderation_hidden_at`**: the owner's own un-hide
+    then answers 409 `moderation.content_held`, and only the case can restore it. REMOVE cannot be restored by the case at all.
+    **Not frozen (open question):** an author can still edit the text of a reported feed post (the feed keeps no edit history, unlike
+    messaging).
+12. **Reversal.** HIDE is undone by `POST .../restore` by a moderator of the case's queue; a school case that needs a more senior
+    moderator is first handed up (`refer-up`) to the platform queue. The platform lock is undone by `lift-suspension` by a holder of
+    `platform.users.lock`.
+13. **School-level suspension (S2.4) is implemented in the modules that own memberships** (`SchoolSuspension` SPI): staff become
+    SUSPENDED, students become SUSPENDED (a new `school_students` status), their ACTIVE class rows become FORMER, and a guardian's ACTIVE
+    links to children of the school become custody-restricted (a restriction that was there before is never touched or lifted). The ids
+    changed are recorded so a lift restores exactly them. A suspended student is signed out of every session. Nothing is deleted.
+14. **Platform lock** = account status LOCKED + every session family revoked (`USER_INACTIVE`) through the token service; also
+    available directly as `POST /platform/users/{id}/lock|unlock` (`platform.users.lock`, reason 10 to 500 characters, in the audit row).
+15. **A report is closed and its reporter told ("reviewed") at every decision, ESCALATE included.** The notice never says which.
+16. **Alerts** (HIGH): never to the subject or to a reporter of the case; once per case (`lead_alerted_at`).
+
+### Incidents
+
+17. **The reason to open an incident is a pick-list** (TRIAGE, INVESTIGATION, FOLLOW_UP, REFERRAL, OVERSIGHT, LEGAL_REQUEST), not free
+    text: audit rows are listable by platform administrators and a free text would put a child's story there (answers the open
+    question 6 of `Messaging_Rules.md` for this module).
+18. **`referred_to` is encrypted** like the narrative (it names an authority or a person). Lists show the metadata of S4.4 and the
+    concerned student's id, never text.
+19. **Who may raise a concern:** an ACTIVE staff member (teacher or other staff) of the school, or a lead; anybody else gets 404.
+    A school administrator without a staff row cannot (a deliberate, restrictive reading of "ACTIVE staff member or teacher").
+20. **Re-opening goes to INVESTIGATING**, never back to OPEN. Closing from any status needs the closing note (a false alarm can be
+    closed at once).
+21. **Designating a lead** is `POST /schools/{id}/safeguarding/leads` by a holder of `school.staff.manage` (the school administrator);
+    the lead must be an ACTIVE staff member; the grant evicts the grant cache so the new lead reads at once. **The last lead cannot be
+    removed while the school has student messaging or contributions on** (409 `safeguarding.last_lead_required`).
+22. **Attachments** are possible on incidents of a school only (a platform incident has no school to upload into), readable only by
+    leads, each read audited.
+23. **Automatic incident from a CRITICAL SAFETY_CONCERN:** raised when a lead sets the case to CRITICAL (once per case); its narrative
+    is a fixed generic sentence (no content), category OTHER.
+24. **Legal hold of an incident by a platform moderator or administrator** goes through a separate endpoint that answers the id and
+    the flag only (they cannot read incidents).
+
+### Settings and enforcement
+
+25. **The safeguarding settings are platform- and country-level only** (not school or organization): a school cannot loosen its own
+    safeguarding. `safeguarding.require_lead_for_student_messaging` can therefore be switched off only by the platform.
+26. **Enforcement covers** `messaging.student.enabled`, `.teacher_direct.enabled`, `.student_direct.enabled`, `.media_enabled`,
+    `.group_create` = STUDENTS_WITH_APPROVAL and `feed.student_contributions.enabled`, when the **effective value goes from off to on**
+    (also by clearing an override that hid a higher "on"). Switching on **above the school** (organization, country, platform) is
+    refused (`safeguarding.lead_required_scope`) because it would apply to schools that may have no lead.
+    **OPEN QUESTION (child safety): `messaging.student.enabled` is ON by default**, so a school that never touched it has student
+    class messaging without a lead; the rule only blocks the switch-on. Making the default OFF is a one-line seed change plus test
+    updates, recommended before any pilot. The capability endpoint reports `studentFeaturesOnWithoutLead` so the screens can warn.
+
+### Retention and platform data
+
+27. **The purge removes only RESOLVED/ESCALATED cases and CLOSED incidents past the period, not under hold,** and a case with a
+    suspension still in force is kept. The reported content (posts, messages, media) is **not** purged by moderation: hidden and
+    removed content stays with its owner for the period by the evidence hold, and a later retention job of the owning modules must
+    release it (not built).
+28. **`GET /safety/emergency-info` needs sign-in** (every user of the apps is signed in); it serves the text in the caller's language,
+    English as the fallback. The Ethiopian text is a placeholder, flagged `reviewed: false` in the table, the API and the seed.
+29. **Rate limits** (all fixed windows): reports 20/day (students 10), case-bound reads 60/hour, incident opens 60/hour, incident lists
+    120/hour, concerns 30/day. Each answers 429 with its own stable code.

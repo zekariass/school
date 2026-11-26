@@ -122,8 +122,12 @@ class FeedMedia {
 				added = true;
 			}
 		}
-		// Nothing references a removed file any more: delete it (its objects go with it).
-		removed.forEach(this.media::discard);
+		// Nothing references a removed file any more: delete it (its objects go with it), unless a moderation case holds the
+		// post as evidence (the photo then disappears from the post but the file is kept).
+		boolean held = this.jdbc.sql("select moderation_case_id is not null from posts where id = :p").param("p", postId).query(Boolean.class).single();
+		if (!held) {
+			removed.forEach(this.media::discard);
+		}
 		return added || !removed.isEmpty();
 	}
 

@@ -21,6 +21,9 @@ public final class RoleCodes {
 
 	public static final String SAFEGUARDING_LEAD = "SAFEGUARDING_LEAD";
 
+	/** A safeguarding lead with platform scope: reads the incidents of every school (granted by hand). */
+	public static final String PLATFORM_SAFEGUARDING_LEAD = "PLATFORM_SAFEGUARDING_LEAD";
+
 	private RoleCodes() {
 	}
 

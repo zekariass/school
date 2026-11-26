@@ -8,7 +8,9 @@ package com.nemaz.school.media;
 public enum MediaPurpose {
 
 	AVATAR, POST, STORY, MESSAGE, PORTFOLIO, SUBMISSION, ASSIGNMENT, LIBRARY, COURSE, RECORDING, TRANSCRIPT,
-	VERIFICATION_DOC, IMPORT_FILE, REPORT, BRANDING;
+	VERIFICATION_DOC, IMPORT_FILE, REPORT, BRANDING,
+	/** Attachments of safeguarding incident notes (M13): readable only by safeguarding leads. */
+	SAFEGUARDING;
 
 	/** The path segment in object keys: {@code VERIFICATION_DOC} becomes {@code verification-doc}. */
 	public String keySegment() {

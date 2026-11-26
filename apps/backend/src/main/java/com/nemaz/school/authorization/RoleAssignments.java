@@ -30,6 +30,13 @@ public interface RoleAssignments {
 	void grantAsSystem(UUID userId, String roleCode, AccessScope scope);
 
 	/**
+	 * Ends the user's ACTIVE assignment of {@code roleCode} at exactly {@code scope} (designating and removing a safeguarding
+	 * lead is a school decision, not a platform-roles one): no permission check, the caller made its own; audited here.
+	 * Returns false when there was none. Joins the caller's transaction.
+	 */
+	boolean revokeAsSystem(UUID userId, String roleCode, AccessScope scope);
+
+	/**
 	 * Grants a role on behalf of an administrator who manages the people of the scope (staff provisioning) rather
 	 * than roles in general: no {@code platform.roles.manage} is needed, but there is no escalation either, since the
 	 * actor must hold every permission of the role at a scope covering it (otherwise 403

@@ -90,6 +90,10 @@ class PostMediaPolicy implements MediaPurposePolicy {
 		if (this.access.moderates(user, post)) {
 			return true;
 		}
+		if (this.access.moderationReader(user, post.schoolId())
+				&& this.jdbc.sql("select moderation_case_id is not null from posts where id = :id").param("id", post.id()).query(Boolean.class).single()) {
+			return true; // content held by a moderation case stays readable by the school's moderators and leads
+		}
 		return post.published() && this.visibility.canSeePost(user, post.id()) && !this.consent.postWithheld(post.id());
 	}
 
