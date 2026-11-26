@@ -2,36 +2,47 @@
 -- A new type needs its texts in messages.properties and messages_am.properties
 -- (notification.<code in lower case>.title and .body; NotificationTypesSeedTest checks them).
 -- Message arguments of each type are documented next to its texts in messages.properties.
--- Channels: IN_APP is the inbox row itself; PUSH is the mobile/web push. EMAIL and SMS are not delivered yet.
+-- Channels: IN_APP is the inbox row itself; PUSH is the mobile/web push. Email and SMS of announcements are recorded on
+-- announcement_recipients by the communications module, not through these types.
 
-insert into notification_types (code, category, default_channels, can_be_urgent, user_can_disable, description) values
-  ('ATTENDANCE_MARKED',       'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student was marked absent or late'),
-  ('NEW_MESSAGE',             'MESSAGING', '{IN_APP,PUSH}', false, true,  'A new direct or group message'),
-  ('POINT_AWARDED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student received points'),
-  ('NEW_POST',                'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A new class post'),
-  ('NEW_STORY',               'CLASSROOM', '{IN_APP}',      false, true,  'A new class story'),
-  ('POST_APPROVED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A post awaiting approval was approved'),
-  ('ANNOUNCEMENT_PUBLISHED',  'SCHOOL',    '{IN_APP,PUSH}', true,  true,  'A school announcement was published'),
-  ('ACK_REQUESTED',           'SCHOOL',    '{IN_APP,PUSH}', true,  true,  'An acknowledgement is requested'),
-  ('PORTFOLIO_REVIEWED',      'LEARNING',  '{IN_APP,PUSH}', false, true,  'A portfolio item was reviewed'),
-  ('IMPORT_COMPLETED',        'SCHOOL',    '{IN_APP}',      false, true,  'A bulk import finished'),
-  ('CONSENT_REQUESTED',       'SAFETY',    '{IN_APP,PUSH}', true,  false, 'A guardian consent is requested'),
-  ('GUARDIAN_LINK_APPROVED',  'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian link request was approved'),
-  ('UPCOMING_EVENT',          'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An event starts soon'),
-  ('ROLE_GRANTED',            'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'An administrative role was given to the user'),
-  ('STAFF_ADDED',             'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'The user was added to a school as staff'),
-  ('TEST_NOTIFICATION',       'ACCOUNT',   '{IN_APP,PUSH}', true,  true,  'Sent by the "send me a test" button of the platform console'),
-  ('GUARDIAN_LINK_REQUESTED', 'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian asked to be linked to a student (to the school''s verifiers)'),
-  ('GUARDIAN_LINK_REJECTED',  'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian link request was not approved'),
-  ('BADGE_AWARDED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student earned a badge'),
-  ('ABSENCE_REPORTED',        'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A guardian reported an absence of a student (to the student''s teachers)'),
-  ('POST_REJECTED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A contribution was not approved (to the contributor)'),
-  ('CONTRIBUTION_PENDING',    'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A family or student contribution waits for approval (to the class''s lead teachers)'),
-  ('POST_PUBLISH_BLOCKED',    'CLASSROOM', '{IN_APP,PUSH}', false, false, 'A scheduled post was not published because a tagged student lacks media consent (to the author)'),
-  ('POST_MEDIA_WITHHELD',     'SAFETY',    '{IN_APP,PUSH}', false, false, 'The photos of a published post are hidden because media consent was withdrawn (to the author)')
+-- defer_in_quiet_hours: a push inside the recipient's quiet hours waits for their end instead of being dropped (M10a).
+-- urgent_overrides_preferences: an URGENT notification of the type is pushed even when the recipient switched the type's
+-- push off (the floor of urgent and safety announcements; in-app is always on). Quiet hours are bypassed by URGENT either way.
+insert into notification_types (code, category, default_channels, can_be_urgent, user_can_disable, description,
+                                defer_in_quiet_hours, urgent_overrides_preferences) values
+  ('ATTENDANCE_MARKED',       'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student was marked absent or late', false, false),
+  ('NEW_MESSAGE',             'MESSAGING', '{IN_APP,PUSH}', false, true,  'A new direct or group message', false, false),
+  ('POINT_AWARDED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student received points', false, false),
+  ('NEW_POST',                'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A new class post', false, false),
+  ('NEW_STORY',               'CLASSROOM', '{IN_APP}',      false, true,  'A new class story', false, false),
+  ('POST_APPROVED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A post awaiting approval was approved', false, false),
+  ('ANNOUNCEMENT_PUBLISHED',  'SCHOOL',    '{IN_APP,PUSH}', true,  true,  'A school announcement was published', true, true),
+  ('ACK_REQUESTED',           'SCHOOL',    '{IN_APP,PUSH}', true,  true,  'An acknowledgement is requested', true, true),
+  ('PORTFOLIO_REVIEWED',      'LEARNING',  '{IN_APP,PUSH}', false, true,  'A portfolio item was reviewed', false, false),
+  ('IMPORT_COMPLETED',        'SCHOOL',    '{IN_APP}',      false, true,  'A bulk import finished', false, false),
+  ('CONSENT_REQUESTED',       'SAFETY',    '{IN_APP,PUSH}', true,  false, 'A guardian consent is requested', false, false),
+  ('GUARDIAN_LINK_APPROVED',  'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian link request was approved', false, false),
+  ('UPCOMING_EVENT',          'SCHOOL',    '{IN_APP,PUSH}', false, true,  'An event starts soon', false, false),
+  ('ROLE_GRANTED',            'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'An administrative role was given to the user', false, false),
+  ('STAFF_ADDED',             'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'The user was added to a school as staff', false, false),
+  ('TEST_NOTIFICATION',       'ACCOUNT',   '{IN_APP,PUSH}', true,  true,  'Sent by the "send me a test" button of the platform console', false, false),
+  ('GUARDIAN_LINK_REQUESTED', 'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian asked to be linked to a student (to the school''s verifiers)', false, false),
+  ('GUARDIAN_LINK_REJECTED',  'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian link request was not approved', false, false),
+  ('BADGE_AWARDED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student earned a badge', false, false),
+  ('ABSENCE_REPORTED',        'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A guardian reported an absence of a student (to the student''s teachers)', false, false),
+  ('POST_REJECTED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A contribution was not approved (to the contributor)', false, false),
+  ('CONTRIBUTION_PENDING',    'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A family or student contribution waits for approval (to the class''s lead teachers)', false, false),
+  ('POST_PUBLISH_BLOCKED',    'CLASSROOM', '{IN_APP,PUSH}', false, false, 'A scheduled post was not published because a tagged student lacks media consent (to the author)', false, false),
+  ('POST_MEDIA_WITHHELD',     'SAFETY',    '{IN_APP,PUSH}', false, false, 'The photos of a published post are hidden because media consent was withdrawn (to the author)', false, false),
+  ('ANNOUNCEMENT_UPDATED',    'SCHOOL',    '{IN_APP,PUSH}', true,  true,  'An announcement was changed in a way that matters', true, true),
+  ('ANNOUNCEMENT_REMINDER',   'SCHOOL',    '{IN_APP,PUSH}', true,  true,  'Reminder to acknowledge an announcement', true, true),
+  ('ANNOUNCEMENT_WITHDRAWN',  'SCHOOL',    '{IN_APP}',      false, true,  'An announcement was withdrawn by its sender', false, false),
+  ('ANNOUNCEMENT_PUBLISH_BLOCKED', 'SCHOOL', '{IN_APP,PUSH}', false, false, 'A scheduled announcement was not published because its author may no longer send it (to the author)', false, false)
 on conflict (code) do update
   set category = excluded.category,
       default_channels = excluded.default_channels,
       can_be_urgent = excluded.can_be_urgent,
       user_can_disable = excluded.user_can_disable,
-      description = excluded.description;
+      description = excluded.description,
+      defer_in_quiet_hours = excluded.defer_in_quiet_hours,
+      urgent_overrides_preferences = excluded.urgent_overrides_preferences;

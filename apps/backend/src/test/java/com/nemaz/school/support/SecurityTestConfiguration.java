@@ -34,6 +34,12 @@ public class SecurityTestConfiguration {
 		return new RecordingTranslationProvider();
 	}
 
+	/** A Kenyan SMS adapter: proves that the registry picks the adapter of the number's country. */
+	@Bean
+	RecordingSmsAdapter recordingSmsAdapter() {
+		return new RecordingSmsAdapter();
+	}
+
 	@Bean
 	@Primary
 	RecordingMessages recordingMessages() {

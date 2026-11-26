@@ -36,7 +36,10 @@ import org.springframework.stereotype.Component;
  * <li>No active device: SUPPRESSED (NO_DEVICE).</li>
  * <li>Each device: inside the user's quiet hours (their timezone, default Africa/Addis_Ababa) the
  * push is SUPPRESSED (QUIET_HOURS), unless the notification is URGENT and its type may be urgent;
- * otherwise QUEUED, then sent.</li>
+ * for types that {@code defer_in_quiet_hours} (announcements) it is instead QUEUED with {@code not_before} =
+ * the end of the quiet hours, and {@link DeliveryRetryJob} sends it then; otherwise QUEUED, then sent.</li>
+ * <li>The floor: an URGENT notification of a type with {@code urgent_overrides_preferences} is pushed even when the
+ * user switched the type's push off.</li>
  * </ol>
  * Each row is unique per notification and device, so handling the same event twice adds nothing.
  */
@@ -89,8 +92,10 @@ class PushFanout {
 			Map<UUID, Boolean> choices = choiceCache.computeIfAbsent(row.typeCode(),
 					(code) -> this.preferences.channelChoices(code, NotificationType.PUSH, userIds));
 			boolean byDefault = type.defaultEnabled(NotificationType.PUSH);
+			boolean bypass = row.urgent() && type.canBeUrgent();
 			boolean wanted = type.userCanDisable() ? choices.getOrDefault(row.userId(), byDefault) : byDefault;
-			if (!wanted) {
+			// the floor: an URGENT notification of such a type is pushed whatever the user chose (in-app is always on)
+			if (!wanted && !(bypass && type.urgentOverridesPreferences() && byDefault)) {
 				if (byDefault) {
 					this.deliveries.insertSuppressed(row.id(), null, null, "PREFERENCE", now);
 				}
@@ -101,20 +106,25 @@ class PushFanout {
 				this.deliveries.insertSuppressed(row.id(), null, null, "NO_DEVICE", now);
 				continue;
 			}
-			boolean bypass = row.urgent() && type.canBeUrgent();
 			QuietHours hours = quiet.get(row.userId());
-			boolean inQuietHours = !bypass && hours != null
-					&& QuietHoursPolicy.isQuiet(now, zone(userPrefs.get(row.userId())), hours.start(), hours.end());
+			Instant heldUntil = (bypass || hours == null) ? null
+					: QuietHoursPolicy
+						.endOfQuietHours(now, zone(userPrefs.get(row.userId())), hours.start(), hours.end())
+						.orElse(null);
 			for (PushDevice device : userDevices) {
-				if (inQuietHours) {
-					this.deliveries.insertSuppressed(row.id(), device.id(), device.provider(), "QUIET_HOURS", now);
+				if (heldUntil == null) {
+					this.deliveries.insertQueued(row.id(), device.id(), device.provider(), now);
+				}
+				else if (type.deferInQuietHours()) {
+					// the in-app item is already there; the push waits for the end of the quiet hours
+					this.deliveries.insertQueued(row.id(), device.id(), device.provider(), now, heldUntil);
 				}
 				else {
-					this.deliveries.insertQueued(row.id(), device.id(), device.provider(), now);
+					this.deliveries.insertSuppressed(row.id(), device.id(), device.provider(), "QUIET_HOURS", now);
 				}
 			}
 		}
-		this.dispatcher.dispatch(this.deliveries.queuedFor(rows.stream().map(NotificationRow::id).toList()));
+		this.dispatcher.dispatch(this.deliveries.queuedFor(rows.stream().map(NotificationRow::id).toList(), now));
 	}
 
 	static ZoneId zone(UserPreferences preferences) {

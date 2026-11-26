@@ -55,4 +55,18 @@ class QuietHoursPolicyTest {
 		assertThat(QuietHoursPolicy.isQuiet(addis(23, 0), ADDIS, TEN_PM, TEN_PM)).isFalse();
 	}
 
+	@Test
+	void theEndOfTheQuietWindowIsTheNextTimeTheClockShowsIt() {
+		// before midnight: the end is tomorrow morning
+		assertThat(QuietHoursPolicy.endOfQuietHours(addis(23, 30), ADDIS, TEN_PM, SIX_AM)).contains(addis(6, 0).plusSeconds(24 * 3600));
+		// after midnight: the end is this morning
+		assertThat(QuietHoursPolicy.endOfQuietHours(addis(2, 0), ADDIS, TEN_PM, SIX_AM)).contains(addis(6, 0));
+		// a window inside one day
+		assertThat(QuietHoursPolicy.endOfQuietHours(addis(13, 15), ADDIS, LocalTime.of(13, 0), LocalTime.of(14, 30)))
+			.contains(addis(14, 30));
+		// not quiet: nothing to wait for
+		assertThat(QuietHoursPolicy.endOfQuietHours(addis(12, 0), ADDIS, TEN_PM, SIX_AM)).isEmpty();
+		assertThat(QuietHoursPolicy.endOfQuietHours(addis(12, 0), ADDIS, null, null)).isEmpty();
+	}
+
 }

@@ -25,4 +25,20 @@ public final class QuietHoursPolicy {
 		return !local.isBefore(start) || local.isBefore(end);
 	}
 
+	/**
+	 * When the quiet window that {@code now} is in ends (the next time the zone's clock shows {@code end}); empty when
+	 * {@code now} is not quiet. Used to hold a push back instead of dropping it.
+	 */
+	public static java.util.Optional<Instant> endOfQuietHours(Instant now, ZoneId zone, LocalTime start, LocalTime end) {
+		if (!isQuiet(now, zone, start, end)) {
+			return java.util.Optional.empty();
+		}
+		java.time.ZonedDateTime local = now.atZone(zone);
+		java.time.ZonedDateTime candidate = local.with(end);
+		if (!candidate.isAfter(local)) {
+			candidate = local.toLocalDate().plusDays(1).atTime(end).atZone(zone);
+		}
+		return java.util.Optional.of(candidate.toInstant());
+	}
+
 }

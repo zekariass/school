@@ -28,6 +28,11 @@ class SmtpEmailSender implements EmailSender {
 	}
 
 	@Override
+	public boolean configured() {
+		return this.mail.getIfAvailable() != null;
+	}
+
+	@Override
 	public void send(String to, String subject, String text) {
 		JavaMailSender sender = this.mail.getIfAvailable();
 		if (sender == null) {

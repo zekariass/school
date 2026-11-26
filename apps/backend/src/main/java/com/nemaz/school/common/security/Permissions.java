@@ -83,12 +83,22 @@ public final class Permissions {
 	 */
 	public static final String SCHOOL_FEED_MANAGE = "school.feed.manage";
 
+	/**
+	 * Announcements (M10): compose, publish, edit and withdraw announcements to the whole school, a campus, a grade, any
+	 * class or chosen people; read any announcement's delivery report and send reminders.
+	 */
+	public static final String SCHOOL_ANNOUNCEMENTS_MANAGE = "school.announcements.manage";
+
+	/** URGENT and SAFETY announcements: they bypass quiet hours and cannot be muted (M10). */
+	public static final String SCHOOL_ANNOUNCEMENTS_URGENT = "school.announcements.urgent";
+
 	/** Every permission code, in seed order. */
 	public static final List<String> ALL = List.of(PLATFORM_ORGANIZATIONS_MANAGE, PLATFORM_SCHOOLS_MANAGE,
 			PLATFORM_SUBSCRIPTIONS_MANAGE, PLATFORM_FEATURES_MANAGE, PLATFORM_SETTINGS_MANAGE, PLATFORM_ROLES_MANAGE,
 			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ, SCHOOL_ACADEMIC_MANAGE, SCHOOL_STAFF_MANAGE,
 			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE, SCHOOL_IMPORT_MANAGE, SCHOOL_GUARDIANS_MANAGE, SCHOOL_POLICIES_MANAGE,
-			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ, SCHOOL_FEED_MANAGE);
+			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ, SCHOOL_FEED_MANAGE,
+			SCHOOL_ANNOUNCEMENTS_MANAGE, SCHOOL_ANNOUNCEMENTS_URGENT);
 
 	private Permissions() {
 	}

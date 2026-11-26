@@ -39,4 +39,19 @@ public final class PhoneNumbers {
 		}
 	}
 
+	/** The ISO region of an E.164 number, empty when unknown or not a valid number. */
+	public static Optional<String> regionOf(String phoneE164) {
+		if (phoneE164 == null || phoneE164.isBlank() || phoneE164.length() > 32) {
+			return Optional.empty();
+		}
+		try {
+			PhoneNumber number = UTIL.parse(phoneE164.trim(), null);
+			String region = UTIL.getRegionCodeForNumber(number);
+			return (region == null || "ZZ".equals(region)) ? Optional.empty() : Optional.of(region);
+		}
+		catch (NumberParseException ex) {
+			return Optional.empty();
+		}
+	}
+
 }
