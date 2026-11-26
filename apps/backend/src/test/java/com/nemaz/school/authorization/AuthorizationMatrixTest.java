@@ -88,6 +88,10 @@ class AuthorizationMatrixTest {
 
 	@AfterEach
 	void removeConfigurationWrittenByTheMatrix() {
+		if (this.portfolioPlanAdded) {
+			this.jdbc.update("delete from subscriptions where school_id = ?", this.personas.fixture().schoolA());
+			this.portfolioPlanAdded = false;
+		}
 		this.jdbc.update("delete from settings");
 		this.jdbc.update("delete from feature_overrides");
 		this.caches.getCache("school-configuration").clear();
@@ -664,6 +668,7 @@ class AuthorizationMatrixTest {
 		cases.addAll(announcementCases());
 		cases.addAll(messagingCases());
 		cases.addAll(calendarCases());
+		cases.addAll(portfolioCases());
 		return cases;
 	}
 
@@ -1339,6 +1344,158 @@ class AuthorizationMatrixTest {
 					userOf(GUARDIAN_A1));
 		}
 		return id;
+	}
+
+	// ---- student portfolios (M12a) ------------------------------------------------------------------------------
+
+	/** Portfolios are part of SCHOOL_BASIC and up: school A gets that plan for the portfolio cases (removed after the run). */
+	private boolean portfolioPlanAdded;
+
+	private void ensurePortfolioPlan(Fixture f) {
+		boolean has = this.jdbc.queryForObject("select exists (select 1 from subscriptions where school_id = ? and status = 'ACTIVE')", Boolean.class,
+				f.schoolA());
+		if (!has) {
+			this.jdbc.update("insert into subscriptions (plan_id, subscriber_type, school_id, status) "
+					+ "select id, 'SCHOOL', ?, 'ACTIVE' from subscription_plans where code = 'SCHOOL_BASIC'", f.schoolA());
+			this.portfolioPlanAdded = true;
+			this.caches.getCache("school-configuration").clear();
+		}
+	}
+
+	/** A fresh item of student A1 in class 8A (subject Mathematics, which the subject teacher reviews). */
+	private UUID pfItem(Fixture f, String status, String visibility) {
+		ensurePortfolioPlan(f);
+		UUID student = userOf(STUDENT_A1);
+		UUID portfolio = this.jdbc.query("select id from portfolios where student_id = ? and school_id = ?", (rs, i) -> rs.getObject(1, UUID.class),
+				student, f.schoolA()).stream().findFirst().orElse(null);
+		if (portfolio == null) {
+			portfolio = Ids.newId();
+			this.jdbc.update("insert into portfolios (id, student_id, school_id) values (?, ?, ?)", portfolio, student, f.schoolA());
+		}
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into portfolio_items (id, portfolio_id, school_id, student_id, class_id, subject_id, created_by, item_type, title,
+				  text_content, work_date, status, visibility, submitted_at, archived_at)
+				values (?, ?, ?, ?, ?, ?, ?, 'TEXT', 'Matrix item', 'text', current_date, ?, ?, case when ? = 'DRAFT' then null else now() end,
+				  case when ? = 'ARCHIVED' then now() end)""", id, portfolio, f.schoolA(), student, f.class8A(), f.subjectA(), student, status,
+				visibility, status, status);
+		return id;
+	}
+
+	private UUID pfComment(UUID item, Name author, String role) {
+		UUID id = Ids.newId();
+		this.jdbc.update("insert into portfolio_comments (id, item_id, school_id, author_id, author_role, body) "
+				+ "select ?, i.id, i.school_id, ?, ?, 'matrix comment' from portfolio_items i where i.id = ?", id, userOf(author), role, item);
+		return id;
+	}
+
+	List<Case> portfolioCases() {
+		List<Case> cases = new ArrayList<>();
+		String items = SCHOOLS;
+		Name[] sees = concat(READERS_OF_SCHOOL_A, SCHOOL_A_MEMBERS, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 });
+		// reviewers of an item of class 8A (subject Mathematics): its lead, the Maths subject teacher, and the administrators who
+		// hold school.portfolios.review over school A; the campus administrator does not (class 8A has no campus)
+		Name[] reviewers = concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A });
+		Name[] student = { STUDENT_A1 };
+		Name[] writer = concat(reviewers, student);
+		Name[] students = { STUDENT_A1, STUDENT_A2, STUDENT_FORMER_A };
+
+		// --- writing: students about their own work, teachers by quick capture
+		cases.add(school("POST create portfolio item (students of the school only)", HttpMethod.POST, (f) -> {
+			ensurePortfolioPlan(f);
+			return items + f.schoolA() + "/portfolio/items";
+		}, (f) -> Map.of("itemType", "TEXT", "title", "Matrix", "textContent", "x"), 201, students, minus(sees, students)));
+		cases.add(school("POST quick-capture a portfolio item (the class's teachers)", HttpMethod.POST, (f) -> {
+			ensurePortfolioPlan(f);
+			return items + f.schoolA() + "/classes/" + f.class8A() + "/portfolio/quick-capture";
+		}, (f) -> Map.of("studentId", userOf(STUDENT_A1), "itemType", "TEXT", "title", "Matrix", "textContent", "x"), 201,
+				new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A },
+				new Name[] { PLATFORM_ADMIN, COUNTRY_ADMIN_ET, ORG_ADMIN, SCHOOL_ADMIN_A, STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(new Case("POST upload for a portfolio (students and teachers of the school)", HttpMethod.POST, (f) -> {
+			ensurePortfolioPlan(f);
+			return "/api/v1/media/uploads";
+		}, (f) -> Map.of("purpose", "PORTFOLIO", "filename", "work.jpg", "mimeType", "image/jpeg", "sizeBytes", 1000, "context",
+				Map.of("type", "SCHOOL", "id", f.schoolA())), allow(201, STUDENT_A1, STUDENT_A2, STUDENT_FORMER_A, TEACHER_LEAD_A, TEACHER_SUBJECT_A,
+						TEACHER_OTHER_A)));
+		cases.add(school("PATCH a draft (its student only; a draft is invisible to everybody else)", HttpMethod.PATCH,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "DRAFT", "GUARDIANS"), (f) -> Map.of("title", "Edited"), 200, student));
+		cases.add(school("POST submit a draft", HttpMethod.POST,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "DRAFT", "GUARDIANS") + "/submit", null, 200, student));
+		cases.add(school("DELETE a submitted item (its student or a reviewer)", HttpMethod.DELETE,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "SUBMITTED", "GUARDIANS"), null, 204, writer));
+
+		// --- the review workflow
+		cases.add(school("POST review a submitted item (reviewers)", HttpMethod.POST,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "SUBMITTED", "GUARDIANS") + "/review",
+				(f) -> Map.of("decision", "APPROVE"), 200, reviewers, student));
+		cases.add(school("POST archive an approved item (its student or a reviewer)", HttpMethod.POST,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "APPROVED", "GUARDIANS") + "/archive", (f) -> Map.of(), 200, writer,
+				new Name[] { GUARDIAN_A1 }));
+		cases.add(school("POST unarchive (reviewers)", HttpMethod.POST,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "ARCHIVED", "GUARDIANS") + "/unarchive", (f) -> Map.of(), 200, reviewers,
+				student));
+		cases.add(school("PUT feature an approved item (reviewers)", HttpMethod.PUT,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "APPROVED", "GUARDIANS") + "/featured", null, 200, reviewers,
+				new Name[] { STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("DELETE the featured mark (reviewers)", HttpMethod.DELETE,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "APPROVED", "GUARDIANS") + "/featured", null, 200, reviewers,
+				new Name[] { STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("POST share to the class story (deferred: reviewers are told it is not eligible, nobody else is)", HttpMethod.POST,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "APPROVED", "GUARDIANS") + "/share-to-story", null, 409, reviewers,
+				new Name[] { STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("GET the history of an item (the student and reviewers)", HttpMethod.GET,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "SUBMITTED", "GUARDIANS") + "/history", null, 200, writer));
+
+		// --- reading: a submitted item is for its student and its reviewers; an approved one reaches the guardian
+		cases.add(school("GET a submitted item (the student and reviewers)", HttpMethod.GET,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "SUBMITTED", "CLASS"), null, 200, writer));
+		cases.add(school("GET an approved guardian-level item (adds the guardian)", HttpMethod.GET,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "APPROVED", "GUARDIANS"), null, 200,
+				concat(writer, new Name[] { GUARDIAN_A1 })));
+		cases.add(school("GET an archived item (the student and reviewers)", HttpMethod.GET,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "ARCHIVED", "SCHOOL"), null, 200, writer));
+		cases.add(school("GET the portfolio of a student", HttpMethod.GET, (f) -> {
+			ensurePortfolioPlan(f);
+			return items + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/portfolio";
+		}, null, 200, concat(writer, new Name[] { GUARDIAN_A1 })));
+		cases.add(school("GET my portfolio items", HttpMethod.GET, (f) -> {
+			ensurePortfolioPlan(f);
+			return items + f.schoolA() + "/portfolio/mine";
+		}, null, 200, sees));
+		cases.add(school("GET the portfolio capabilities", HttpMethod.GET, (f) -> {
+			ensurePortfolioPlan(f);
+			return items + f.schoolA() + "/portfolio/capabilities";
+		}, null, 200, sees));
+		cases.add(school("GET the review queue of a class (reviewers; members who see the class get 403)", HttpMethod.GET, (f) -> {
+			ensurePortfolioPlan(f);
+			return items + f.schoolA() + "/classes/" + f.class8A() + "/portfolio/review-queue";
+		}, null, 200, reviewers, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("GET the class gallery", HttpMethod.GET, (f) -> {
+			ensurePortfolioPlan(f);
+			return items + f.schoolA() + "/classes/" + f.class8A() + "/portfolio/gallery";
+		}, null, 200, concat(reviewers, new Name[] { STUDENT_A1, GUARDIAN_A1 })));
+		cases.add(school("GET the school gallery (members of the school, not guardians)", HttpMethod.GET, (f) -> {
+			ensurePortfolioPlan(f);
+			return items + f.schoolA() + "/portfolio/gallery";
+		}, null, 200, concat(SCHOOL_A_MANAGERS, SCHOOL_A_MEMBERS), new Name[] { CAMPUS_ADMIN_A, GUARDIAN_A1, GUARDIAN_OF_A2 }));
+		cases.add(new Case("GET my children's portfolio", HttpMethod.GET, (f) -> "/api/v1/me/portfolio", null, allow(200, EVERY_ACTIVE_PERSONA)));
+
+		// --- comments: the student, their own guardian and the reviewers; everybody else who sees the item is refused or finds nothing
+		cases.add(school("GET comments of an approved item", HttpMethod.GET,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "APPROVED", "GUARDIANS") + "/comments", null, 200,
+				concat(writer, new Name[] { GUARDIAN_A1 })));
+		cases.add(school("POST a comment", HttpMethod.POST,
+				(f) -> items + f.schoolA() + "/portfolio/items/" + pfItem(f, "APPROVED", "GUARDIANS") + "/comments",
+				(f) -> Map.of("body", "Well done"), 201, concat(writer, new Name[] { GUARDIAN_A1 })));
+		cases.add(school("POST hide a comment (reviewers)", HttpMethod.POST, (f) -> {
+			UUID item = pfItem(f, "APPROVED", "GUARDIANS");
+			return items + f.schoolA() + "/portfolio/items/" + item + "/comments/" + pfComment(item, GUARDIAN_A1, "GUARDIAN") + "/hide";
+		}, (f) -> Map.of("reason", "off topic"), 200, reviewers, new Name[] { STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("DELETE a comment (its author only)", HttpMethod.DELETE, (f) -> {
+			UUID item = pfItem(f, "APPROVED", "GUARDIANS");
+			return items + f.schoolA() + "/portfolio/items/" + item + "/comments/" + pfComment(item, GUARDIAN_A1, "GUARDIAN");
+		}, null, 204, new Name[] { GUARDIAN_A1 }, concat(reviewers, student)));
+		return cases;
 	}
 
 	List<Case> calendarCases() {
