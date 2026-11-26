@@ -26,6 +26,14 @@ public interface MediaPurposePolicy {
 		return media.ownerId().equals(user.userId()) || canCreate(user, media.context());
 	}
 
+	/**
+	 * The school that owns the context, recorded on the media row ({@code media.school_id}). The default knows only
+	 * SCHOOL contexts; a policy whose contexts belong to a school through another object (a class) overrides it.
+	 */
+	default java.util.UUID schoolOf(MediaContext context) {
+		return (context.type() == ContextType.SCHOOL) ? context.id() : null;
+	}
+
 	/** Whether each signed-URL read is written to the audit log (sensitive purposes). */
 	default boolean auditReads() {
 		return false;

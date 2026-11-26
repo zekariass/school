@@ -24,7 +24,11 @@ insert into notification_types (code, category, default_channels, can_be_urgent,
   ('GUARDIAN_LINK_REQUESTED', 'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian asked to be linked to a student (to the school''s verifiers)'),
   ('GUARDIAN_LINK_REJECTED',  'ACCOUNT',   '{IN_APP,PUSH}', false, true,  'A guardian link request was not approved'),
   ('BADGE_AWARDED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A student earned a badge'),
-  ('ABSENCE_REPORTED',        'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A guardian reported an absence of a student (to the student''s teachers)')
+  ('ABSENCE_REPORTED',        'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A guardian reported an absence of a student (to the student''s teachers)'),
+  ('POST_REJECTED',           'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A contribution was not approved (to the contributor)'),
+  ('CONTRIBUTION_PENDING',    'CLASSROOM', '{IN_APP,PUSH}', false, true,  'A family or student contribution waits for approval (to the class''s lead teachers)'),
+  ('POST_PUBLISH_BLOCKED',    'CLASSROOM', '{IN_APP,PUSH}', false, false, 'A scheduled post was not published because a tagged student lacks media consent (to the author)'),
+  ('POST_MEDIA_WITHHELD',     'SAFETY',    '{IN_APP,PUSH}', false, false, 'The photos of a published post are hidden because media consent was withdrawn (to the author)')
 on conflict (code) do update
   set category = excluded.category,
       default_channels = excluded.default_channels,

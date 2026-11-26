@@ -48,7 +48,7 @@ class BrandingMediaPolicy implements MediaPurposePolicy {
 					&& this.schools.existsById(context.id());
 			case ORGANIZATION -> this.access.can(user, Permissions.PLATFORM_ORGANIZATIONS_MANAGE,
 					AccessScope.organization(context.id())) && this.organizations.existsById(context.id());
-			case USER -> false;
+			case USER, CLASS -> false;
 		};
 	}
 

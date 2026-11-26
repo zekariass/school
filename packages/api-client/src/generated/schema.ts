@@ -262,6 +262,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The home feed of a guardian (or student): posts of the classes their children are ACTIVE in and school-wide posts of those children's schools, newest first, across schools. studentId narrows it to one child (404 student.not_found when it is not the caller's child). Children behind a revoked, pending or custody-restricted link, or without can_view_academics, contribute nothing; photos withheld for consent are left out */
+        get: operations["getMyFeed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/guardian-links": {
         parameters: {
             query?: never;
@@ -361,6 +378,23 @@ export interface paths {
         post?: never;
         /** Stop pushes to one of my devices (idempotent) */
         delete: operations["deletePushDevice"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/stories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active stories of the classes and schools of the caller's children (or of the caller, a student), newest first; studentId narrows it to one child */
+        get: operations["listMyStories"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1429,6 +1463,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/classes/{classId}/contributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A guardian (about a child ACTIVE in the class; link with can_view_academics and can_message_staff) or a student of the class contributes text and photos. Needs feed.parent_contributions.enabled or feed.student_contributions.enabled (403 feed.contributions_disabled). Waits for approval (PENDING_APPROVAL) unless the school switched approval off for guardians (then a photo must tag the contributor's own child and passes the consent gate); student contributions are always approved first. A guardian tags only their own children, a student nobody */
+        post: operations["createContribution"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The published posts of a class, pinned first then newest first. Teachers and managers of the class, its ACTIVE students and guardians of ACTIVE students (not custody-restricted, with can_view_academics); 404 class.not_found for everybody else, 403 feed.feature_disabled when the school switched the feed off */
+        get: operations["getClassFeed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/classes/{classId}/group-sets": {
         parameters: {
             query?: never;
@@ -1618,6 +1686,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/classes/{classId}/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a class post (draft, publish now or schedule). ACTIVE teachers of the class (assistants while feed.assistants_can_post) and class managers. Media uploaded as POST media of the class; tagged students must be ACTIVE in the class. With media: every tagged student needs MEDIA_PUBLICATION consent (else 422 feed.media_consent_missing); with no tags confirmNoUnconsentedStudents must be true (else 422 feed.media_confirmation_required) */
+        post: operations["createClassPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/classes/{classId}/restore": {
         parameters: {
             query?: never;
@@ -1629,6 +1714,24 @@ export interface paths {
         put?: never;
         /** Make an archived class active again */
         post: operations["restoreClass"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/stories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The active (not expired) stories of a class, newest first, to those who may see the class feed */
+        get: operations["listClassStories"];
+        put?: never;
+        /** Publish a class story (teachers of the class and class managers): a STORY photo uploaded for the class and/or a caption. Same consent gate as posts */
+        post: operations["createClassStory"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1717,6 +1820,91 @@ export interface paths {
         post?: never;
         /** Remove a teacher row (lead or class.manage; any non-lead teacher may remove herself); the last lead cannot be removed (409 class.last_lead) */
         delete: operations["removeClassTeacher"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/contributions/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The approval queue, oldest first: contributions waiting in the classes the caller moderates (LEAD teacher, class managers, school feed managers). With classId only that class; 403 for everybody else who sees the school */
+        get: operations["listPendingContributions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/contributions/{postId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve and publish a pending contribution (moderators). Runs the consent gate: 422 feed.media_consent_missing, or 422 feed.media_confirmation_required when no student is tagged (confirmNoUnconsentedStudents is the approver's statement). studentIds, when given, replaces the tags. Audited; the contributor is notified. 409 feed.not_pending when already decided */
+        post: operations["approveContribution"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/contributions/{postId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a pending contribution with a reason the contributor sees (moderators). The photos are deleted. Audited; the contributor is notified */
+        post: operations["rejectContribution"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The published school-wide posts, pinned first then newest first. ACTIVE students, staff and guardians of ACTIVE students of the school, and school feed managers; 404 school.not_found for everybody else */
+        get: operations["getSchoolFeed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/feed/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the caller may do in the feed of the school, or of one class when classId is given (for menus and buttons; the API stays the authority) */
+        get: operations["getFeedCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2102,6 +2290,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/my-posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's own posts and contributions in the school in every status (drafts, scheduled, pending approval, rejected, published, archived), newest first */
+        get: operations["listMyPosts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/point-categories": {
         parameters: {
             query?: never;
@@ -2308,6 +2513,317 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a school-wide post (school.feed.manage). Media uploaded as POST media of the school; tagged students must be ACTIVE in the school. Same consent gate as class posts */
+        post: operations["createSchoolPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One post. Published posts to those who may see them; any status to its author and the moderators (LEAD teacher, class managers, school feed managers). 404 for everybody else */
+        get: operations["getPost"];
+        put?: never;
+        post?: never;
+        /** Delete a post (soft delete; its photos are deleted). The author, or a moderator (audited as moderation) */
+        delete: operations["deletePost"];
+        options?: never;
+        head?: never;
+        /** Edit your own post (null fields stay; media and studentIds replace the whole list; an empty body clears the text). Sets editedAt. Editing the photos or tags of a published post runs the consent gate again; a contribution can be edited only while pending */
+        patch: operations["updatePost"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take a published post down (ARCHIVED); the author or a moderator. It can be published again */
+        post: operations["archivePost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Comments of a post, oldest first. VISIBLE ones to everybody who sees the post; HIDDEN ones also to their author and the moderators. Authors are named only as the privacy rules allow (guardians and students otherwise appear by role label) */
+        get: operations["listPostComments"];
+        put?: never;
+        /** Comment on a published post as yourself. Needs comments switched on for the post (403 feed.comments_disabled) and your relation to allow it: teachers and managers; guardians (link with can_view_academics and can_message_staff) while feed.comments.guardians_can_comment; students while feed.comments.students_can_comment (403 feed.comment_not_allowed) */
+        post: operations["createPostComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a comment: its author, or a moderator (audited) */
+        delete: operations["deletePostComment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments/{commentId}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A moderator hides a comment (it stays visible to its author and moderators with status HIDDEN; audited) */
+        post: operations["hidePostComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments/{commentId}/translation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** See translation of a visible comment (same rules as translatePost) */
+        post: operations["translatePostComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments/{commentId}/unhide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A moderator shows a hidden comment again (audited) */
+        post: operations["unhidePostComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A moderator hides a published post (audited); the optional reason is shown to its author as rejectionReason */
+        post: operations["hidePost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Pin a published post (its teacher author or a moderator). At most feed.pin_limit (default 3) pinned posts per class or for the school feed: 409 feed.pin_limit_reached */
+        put: operations["pinPost"];
+        post?: never;
+        /** Unpin a post (idempotent) */
+        delete: operations["unpinPost"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a draft, scheduled or archived post now (author or moderator). Consent gate: 422 feed.media_consent_missing / feed.media_confirmation_required */
+        post: operations["publishPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/reaction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set your one reaction to a published post you can see (replaces the previous one; repeating it changes nothing) */
+        put: operations["reactToPost"];
+        post?: never;
+        /** Remove your reaction (idempotent) */
+        delete: operations["removePostReaction"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report a post you can see. A stub for the moderation queue of M13: it is audited and published as a ContentReported event; at most 20 reports a day */
+        post: operations["reportPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule a draft (or change the time of a scheduled post), at most 90 days ahead; the consent gate runs now and again when the scheduler publishes (a blocked post returns to DRAFT with publishErrorCode and its author is notified) */
+        post: operations["schedulePost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/translation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** See translation of a published post (decision D5): the cached machine translation, or one made through the provider adapter. 403 feed.translation_disabled unless the school switched feed.translation.enabled on (off by default), 503 feed.translation_unavailable without a provider. Only the post text leaves the platform, with tagged students' names masked. Always machineTranslated: true */
+        post: operations["translatePost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/unhide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A moderator shows a hidden post again (consent gate runs) */
+        post: operations["unhidePost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/unschedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel the schedule: the post becomes a draft again (author) */
+        post: operations["unschedulePost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/posts/{postId}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record that the caller saw the post (once per viewer). Only a count is ever returned (seenCount), to the author and the class's staff; names are never exposed */
+        post: operations["markPostSeen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/staff": {
         parameters: {
             query?: never;
@@ -2355,6 +2871,59 @@ export interface paths {
         put?: never;
         /** Mark the staff member FORMER (ended today) and end their class teaching; administrative roles are not touched */
         post: operations["deactivateStaff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/stories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The active school stories, newest first, to the members and guardians of the school */
+        get: operations["listSchoolStories"];
+        put?: never;
+        /** Publish a school story (school.feed.manage). Same consent gate as posts */
+        post: operations["createSchoolStory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/stories/{storyId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One story: while active to those who may see it; to its author and moderators until it is deleted */
+        get: operations["getStory"];
+        put?: never;
+        post?: never;
+        /** Delete a story and its photo (the author, or a moderator; audited) */
+        delete: operations["deleteStory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/stories/{storyId}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record that the caller saw the story (once per viewer; only the count is ever shown, to the author and staff) */
+        post: operations["markStoryViewed"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3386,6 +3955,27 @@ export interface components {
             /** Format: int32 */
             teacherCount: number;
         };
+        CommentCreateRequest: {
+            body: string;
+            bodyLanguageCode?: string;
+        };
+        /** @description A comment. HIDDEN comments are shown (with their status) to the comment's author and moderators only */
+        CommentView: {
+            author: components["schemas"]["FeedAuthor"];
+            body: string;
+            bodyLanguageCode?: string;
+            canDelete?: boolean;
+            canHide?: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            mine?: boolean;
+            /** Format: uuid */
+            postId: string;
+            /** @enum {string} */
+            status: "VISIBLE" | "HIDDEN" | "DELETED";
+        };
         CommitRequest: {
             /** @description Apply the valid rows and leave the invalid ones out */
             skipInvalidRows?: boolean;
@@ -3458,7 +4048,20 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            type: "USER" | "SCHOOL" | "ORGANIZATION";
+            type: "USER" | "SCHOOL" | "ORGANIZATION" | "CLASS";
+        };
+        ContributionApproveRequest: {
+            confirmNoUnconsentedStudents?: boolean;
+            studentIds?: string[];
+        };
+        ContributionCreateRequest: {
+            body?: string;
+            bodyLanguageCode?: string;
+            media?: components["schemas"]["FeedMediaRef"][];
+            studentIds?: string[];
+        };
+        ContributionRejectRequest: {
+            reason: string;
         };
         CountryCalendarResponse: {
             code: string;
@@ -3710,6 +4313,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPageCommentView: {
+            items: components["schemas"]["CommentView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPageDashboardClass: {
             items: components["schemas"]["DashboardClass"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -3737,6 +4345,11 @@ export interface components {
         };
         CursorPageOrganizationResponse: {
             items: components["schemas"]["OrganizationResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPagePostView: {
+            items: components["schemas"]["PostView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -3908,6 +4521,58 @@ export interface components {
              * @description The plan's numeric limit; absent = unlimited
              */
             limit?: number;
+        };
+        /** @description Who wrote it. displayName (and userId, avatar) are present only when the viewer may know the person: staff names are visible to everybody who sees the post; a guardian or student is named only to the author themself, to the class's teachers and moderators, to the student's own guardians and, for students, to classmates. Everybody else gets the role label only */
+        FeedAuthor: {
+            avatar?: components["schemas"]["MediaSummary"];
+            displayName?: string;
+            /** @enum {string} */
+            role: "TEACHER" | "SCHOOL_ADMIN" | "GUARDIAN" | "STUDENT";
+            /** Format: uuid */
+            userId?: string;
+        };
+        /** @description What the signed-in user may do in the feed of a school or class, for the clients' menus and buttons (the API stays the authority) */
+        FeedCapabilities: {
+            canComment?: boolean;
+            canContribute?: boolean;
+            canModerate?: boolean;
+            canPost?: boolean;
+            canPostSchoolWide?: boolean;
+            commentsDefaultEnabled?: boolean;
+            contributionMediaKinds: ("IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "OTHER")[];
+            contributionNeedsApproval?: boolean;
+            /** @description Children of the caller (or the caller) who may be tagged in a contribution of this class */
+            contributionStudentIds: string[];
+            /** Format: int32 */
+            pinLimit?: number;
+            translationEnabled?: boolean;
+        };
+        FeedMediaItem: {
+            caption?: string;
+            /** Format: int32 */
+            height?: number;
+            /** @enum {string} */
+            kind: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "OTHER";
+            /** Format: uuid */
+            mediaId: string;
+            /** Format: int32 */
+            sortOrder?: number;
+            variants: ("THUMB" | "SMALL" | "MEDIUM" | "LARGE" | "HLS_MASTER" | "POSTER" | "PDF_PREVIEW")[];
+            /** Format: int32 */
+            width?: number;
+        };
+        /** @description A READY, unattached upload of purpose POST made for the same class or school */
+        FeedMediaRef: {
+            caption?: string;
+            /** Format: uuid */
+            mediaId: string;
+        };
+        /** @description A tagged student, BASIC data only (name and avatar) */
+        FeedStudentTag: {
+            avatar?: components["schemas"]["MediaSummary"];
+            displayName: string;
+            /** Format: uuid */
+            studentId: string;
         };
         FieldView: {
             key: string;
@@ -4515,6 +5180,106 @@ export interface components {
             versionId: string;
             versionLabel: string;
         };
+        PostConfirmRequest: {
+            confirmNoUnconsentedStudents?: boolean;
+        };
+        /** @description A post. mode defaults to PUBLISH; DRAFT keeps it private to you; SCHEDULE needs scheduledFor */
+        PostCreateRequest: {
+            body?: string;
+            bodyLanguageCode?: string;
+            commentsEnabled?: boolean;
+            /** @description Required for photos when no student is tagged: you confirm that no student without media-publication consent appears in them. Audited */
+            confirmNoUnconsentedStudents?: boolean;
+            media?: components["schemas"]["FeedMediaRef"][];
+            /** @enum {string} */
+            mode?: "DRAFT" | "PUBLISH" | "SCHEDULE";
+            /** @enum {string} */
+            postType?: "POST" | "ACTIVITY" | "ACHIEVEMENT";
+            /** Format: date-time */
+            scheduledFor?: string;
+            studentIds?: string[];
+        };
+        PostHideRequest: {
+            reason?: string;
+        };
+        PostReactionRequest: {
+            /** @enum {string} */
+            reaction: "LIKE" | "HEART" | "CLAP" | "STAR";
+        };
+        PostReportRequest: {
+            /** @enum {string} */
+            reason: "INAPPROPRIATE" | "PRIVACY" | "SPAM" | "OTHER";
+        };
+        PostRights: {
+            canComment?: boolean;
+            canDelete?: boolean;
+            canEdit?: boolean;
+            canModerate?: boolean;
+            canPin?: boolean;
+            canPublish?: boolean;
+        };
+        PostScheduleRequest: {
+            confirmNoUnconsentedStudents?: boolean;
+            /** Format: date-time */
+            scheduledFor: string;
+        };
+        PostUpdateRequest: {
+            body?: string;
+            bodyLanguageCode?: string;
+            commentsEnabled?: boolean;
+            confirmNoUnconsentedStudents?: boolean;
+            media?: components["schemas"]["FeedMediaRef"][];
+            /** @enum {string} */
+            postType?: "POST" | "ACTIVITY" | "ACHIEVEMENT";
+            studentIds?: string[];
+        };
+        /** @description A post. Statuses other than PUBLISHED are visible to the author and the moderators only. mediaWithheld is true when photos exist but are not shown to this viewer because a tagged student's media consent is not granted (the author and moderators still see them, with mediaWithheld true as a warning). tags lists only the tagged students this viewer may know */
+        PostView: {
+            author: components["schemas"]["FeedAuthor"];
+            body?: string;
+            bodyLanguageCode?: string;
+            /** Format: uuid */
+            classId?: string;
+            /** Format: int32 */
+            commentCount?: number;
+            commentsEnabled?: boolean;
+            contribution?: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            editedAt?: string;
+            /** Format: uuid */
+            id: string;
+            media: components["schemas"]["FeedMediaItem"][];
+            mediaWithheld?: boolean;
+            /** @enum {string} */
+            myReaction?: "LIKE" | "HEART" | "CLAP" | "STAR";
+            pinned?: boolean;
+            /** @enum {string} */
+            postType: "POST" | "ACTIVITY" | "ACHIEVEMENT";
+            publishErrorCode?: string;
+            /** Format: date-time */
+            publishedAt?: string;
+            reactionCounts: {
+                [key: string]: number;
+            };
+            rejectionReason?: string;
+            rights: components["schemas"]["PostRights"];
+            /** Format: date-time */
+            scheduledFor?: string;
+            /** Format: uuid */
+            schoolId: string;
+            /** @enum {string} */
+            scope: "CLASS" | "SCHOOL";
+            /**
+             * Format: int32
+             * @description How many people saw the post (never names); only for the author, the class's teachers and moderators
+             */
+            seenCount?: number;
+            /** @enum {string} */
+            status: "DRAFT" | "PENDING_APPROVAL" | "SCHEDULED" | "PUBLISHED" | "REJECTED" | "HIDDEN" | "ARCHIVED";
+            tags: components["schemas"]["FeedStudentTag"][];
+        };
         PreferenceChange: {
             channel: string;
             enabled: boolean;
@@ -4575,7 +5340,7 @@ export interface components {
             total: number;
         };
         PurposePolicy: {
-            contextTypes: ("USER" | "SCHOOL" | "ORGANIZATION")[];
+            contextTypes: ("USER" | "SCHOOL" | "ORGANIZATION" | "CLASS")[];
             /** @description Allowed MIME types with their maximum size in bytes */
             maxBytesByMimeType: {
                 [key: string]: number;
@@ -4610,6 +5375,13 @@ export interface components {
             scope: components["schemas"]["ScopeRef"];
             /** @description Any JSON value valid for the setting */
             value: components["schemas"]["JsonNode"];
+        };
+        ReactionSummary: {
+            counts: {
+                [key: string]: number;
+            };
+            /** @enum {string} */
+            mine?: "LIKE" | "HEART" | "CLAP" | "STAR";
         };
         RecordedConsent: {
             /** @enum {string} */
@@ -5008,6 +5780,41 @@ export interface components {
              */
             userId: string;
         };
+        StoryCreateRequest: {
+            caption?: string;
+            captionLanguageCode?: string;
+            confirmNoUnconsentedStudents?: boolean;
+            /** Format: uuid */
+            mediaId?: string;
+            studentIds?: string[];
+        };
+        /** @description A story, visible until expiresAt (24 hours after publishing) */
+        StoryView: {
+            author: components["schemas"]["FeedAuthor"];
+            canDelete?: boolean;
+            caption?: string;
+            captionLanguageCode?: string;
+            /** Format: uuid */
+            classId?: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uuid */
+            id: string;
+            media?: components["schemas"]["FeedMediaItem"];
+            mediaWithheld?: boolean;
+            /** Format: date-time */
+            publishedAt: string;
+            /** Format: uuid */
+            schoolId: string;
+            /** @enum {string} */
+            scope: "CLASS" | "SCHOOL";
+            /** Format: int32 */
+            seenCount?: number;
+            /** @enum {string} */
+            status: "PUBLISHED" | "HIDDEN" | "EXPIRED" | "DELETED";
+            tags: components["schemas"]["FeedStudentTag"][];
+            viewedByMe?: boolean;
+        };
         StudentBadgeView: {
             /** Format: date-time */
             awardedAt: string;
@@ -5390,6 +6197,15 @@ export interface components {
             studentId: string;
             /** @enum {string} */
             type: "AWARD" | "REVERSAL" | "CORRECTION";
+        };
+        /** @description A cached or fresh machine translation. Always labelled: machineTranslated is true */
+        TranslationView: {
+            cached?: boolean;
+            machineTranslated?: boolean;
+            provider?: string;
+            sourceLanguage?: string;
+            targetLanguage: string;
+            text: string;
         };
         TypeView: {
             canBeUrgent: boolean;
@@ -6188,6 +7004,39 @@ export interface operations {
             };
         };
     };
+    getMyFeed: {
+        parameters: {
+            query?: {
+                studentId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     redeemGuardianInvitation: {
         parameters: {
             query?: never;
@@ -6426,6 +7275,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMyStories: {
+        parameters: {
+            query?: {
+                studentId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryView"][];
+                };
             };
             /** @description Error (RFC 9457 problem details) */
             default: {
@@ -9323,6 +10203,77 @@ export interface operations {
             };
         };
     };
+    createContribution: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContributionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getClassFeed: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     createClassGroupSet: {
         parameters: {
             query?: never;
@@ -9771,6 +10722,42 @@ export interface operations {
             };
         };
     };
+    createClassPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     restoreClass: {
         parameters: {
             query?: never;
@@ -9790,6 +10777,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClassView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listClassStories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createClassStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoryCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -10026,6 +11081,181 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listPendingContributions: {
+        parameters: {
+            query?: {
+                classId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    approveContribution: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ContributionApproveRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    rejectContribution: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContributionRejectRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getSchoolFeed: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getFeedCapabilities: {
+        parameters: {
+            query?: {
+                /** @description A class of the school */
+                classId?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedCapabilities"];
+                };
             };
             /** @description Error (RFC 9457 problem details) */
             default: {
@@ -10987,6 +12217,42 @@ export interface operations {
             };
         };
     };
+    listMyPosts: {
+        parameters: {
+            query?: {
+                status?: "DRAFT" | "PENDING_APPROVAL" | "SCHEDULED" | "PUBLISHED" | "REJECTED" | "HIDDEN" | "ARCHIVED";
+                classId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listPointCategories: {
         parameters: {
             query?: {
@@ -11482,6 +12748,780 @@ export interface operations {
             };
         };
     };
+    createSchoolPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deletePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updatePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    archivePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listPostComments: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageCommentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createPostComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deletePostComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    hidePostComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    translatePostComment: {
+        parameters: {
+            query?: {
+                language?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranslationView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unhidePostComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    hidePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PostHideRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    pinPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unpinPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    publishPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PostConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reactToPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostReactionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReactionSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    removePostReaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReactionSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reportPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    schedulePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostScheduleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    translatePost: {
+        parameters: {
+            query?: {
+                language?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranslationView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unhidePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PostConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unschedulePost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    markPostSeen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listStaff: {
         parameters: {
             query?: {
@@ -11643,6 +13683,164 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["StaffView"];
                 };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listSchoolStories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createSchoolStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoryCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                storyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                storyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    markStoryViewed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                storyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Error (RFC 9457 problem details) */
             default: {

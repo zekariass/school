@@ -52,8 +52,10 @@ final class PurposeRules {
 		Map<String, Long> imagesAndVideo = merge(images, mimeLimits(VIDEO_MAX, MimeCatalog.MP4, MimeCatalog.MOV, MimeCatalog.WEBM));
 		Map<String, Long> imagesAndPdf = merge(images, mimeLimits(PDF_MAX, MimeCatalog.PDF));
 		Map<String, Long> everything = merge(imagesAndVideo, mimeLimits(PDF_MAX, MimeCatalog.PDF));
-		RULES.put(MediaPurpose.POST, new Rule(school, everything));
-		RULES.put(MediaPurpose.STORY, new Rule(school, imagesAndVideo));
+		// Posts and stories: images only until video processing exists (Phase 3, M24); the rule is where video returns.
+		Set<ContextType> schoolOrClass = Set.of(ContextType.SCHOOL, ContextType.CLASS);
+		RULES.put(MediaPurpose.POST, new Rule(schoolOrClass, images));
+		RULES.put(MediaPurpose.STORY, new Rule(schoolOrClass, images));
 		RULES.put(MediaPurpose.MESSAGE, new Rule(school, everything));
 		RULES.put(MediaPurpose.PORTFOLIO, new Rule(school, everything));
 		RULES.put(MediaPurpose.SUBMISSION, new Rule(school, everything));

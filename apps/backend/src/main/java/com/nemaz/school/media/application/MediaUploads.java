@@ -11,7 +11,6 @@ import com.nemaz.school.audit.AuditOutcome;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.common.id.Ids;
 import com.nemaz.school.common.security.CurrentUser;
-import com.nemaz.school.media.ContextType;
 import com.nemaz.school.media.MediaContext;
 import com.nemaz.school.media.MediaKind;
 import com.nemaz.school.media.MediaPurpose;
@@ -120,7 +119,7 @@ public class MediaUploads {
 				throw ApiException.badRequest("media.checksum_invalid");
 			}
 		}
-		UUID schoolId = (context.type() == ContextType.SCHOOL) ? context.id() : null;
+		UUID schoolId = policy.schoolOf(context);
 		MediaKind kind = MimeCatalog.kind(mimeType);
 		Media row = this.media.saveAndFlush(Media.pending(user.userId(), r.purpose(), context, schoolId,
 				this.storageProperties.bucket(), "pending/" + Ids.newId(), sanitizeFilename(r.filename()), mimeType, kind,

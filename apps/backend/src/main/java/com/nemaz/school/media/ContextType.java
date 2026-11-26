@@ -3,7 +3,7 @@ package com.nemaz.school.media;
 /** The kind of object a piece of media belongs to; more arrive with classes, posts and so on. */
 public enum ContextType {
 
-	USER, SCHOOL, ORGANIZATION;
+	USER, SCHOOL, ORGANIZATION, CLASS;
 
 	/** First segment of object keys. */
 	public String keySegment() {
@@ -11,6 +11,7 @@ public enum ContextType {
 			case USER -> "users";
 			case SCHOOL -> "schools";
 			case ORGANIZATION -> "organizations";
+			case CLASS -> "classes";
 		};
 	}
 

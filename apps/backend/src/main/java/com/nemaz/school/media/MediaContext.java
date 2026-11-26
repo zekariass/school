@@ -19,6 +19,10 @@ public record MediaContext(ContextType type, UUID id) {
 		return new MediaContext(ContextType.SCHOOL, id);
 	}
 
+	public static MediaContext schoolClass(UUID id) {
+		return new MediaContext(ContextType.CLASS, id);
+	}
+
 	public static MediaContext organization(UUID id) {
 		return new MediaContext(ContextType.ORGANIZATION, id);
 	}

@@ -656,6 +656,59 @@
         "tags" : [ "consent" ]
       }
     },
+    "/api/v1/me/feed" : {
+      "get" : {
+        "operationId" : "getMyFeed",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "studentId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The home feed of a guardian (or student): posts of the classes their children are ACTIVE in and school-wide posts of those children's schools, newest first, across schools. studentId narrows it to one child (404 student.not_found when it is not the caller's child). Children behind a revoked, pending or custody-restricted link, or without can_view_academics, contribute nothing; photos withheld for consent are left out",
+        "tags" : [ "feed" ]
+      }
+    },
     "/api/v1/me/guardian-links" : {
       "post" : {
         "operationId" : "redeemGuardianInvitation",
@@ -927,6 +980,47 @@
         },
         "summary" : "Stop pushes to one of my devices (idempotent)",
         "tags" : [ "notifications" ]
+      }
+    },
+    "/api/v1/me/stories" : {
+      "get" : {
+        "operationId" : "listMyStories",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "studentId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/StoryView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Active stories of the classes and schools of the caller's children (or of the caller, a student), newest first; studentId narrows it to one child",
+        "tags" : [ "feed" ]
       }
     },
     "/api/v1/media/policies" : {
@@ -5156,6 +5250,123 @@
         "tags" : [ "consent" ]
       }
     },
+    "/api/v1/schools/{schoolId}/classes/{classId}/contributions" : {
+      "post" : {
+        "operationId" : "createContribution",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ContributionCreateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A guardian (about a child ACTIVE in the class; link with can_view_academics and can_message_staff) or a student of the class contributes text and photos. Needs feed.parent_contributions.enabled or feed.student_contributions.enabled (403 feed.contributions_disabled). Waits for approval (PENDING_APPROVAL) unless the school switched approval off for guardians (then a photo must tag the contributor's own child and passes the consent gate); student contributions are always approved first. A guardian tags only their own children, a student nobody",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/feed" : {
+      "get" : {
+        "operationId" : "getClassFeed",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The published posts of a class, pinned first then newest first. Teachers and managers of the class, its ACTIVE students and guardians of ACTIVE students (not custody-restricted, with can_view_academics); 404 class.not_found for everybody else, 403 feed.feature_disabled when the school switched the feed off",
+        "tags" : [ "feed" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/classes/{classId}/group-sets" : {
       "post" : {
         "operationId" : "createClassGroupSet",
@@ -5858,6 +6069,62 @@
         "tags" : [ "points" ]
       }
     },
+    "/api/v1/schools/{schoolId}/classes/{classId}/posts" : {
+      "post" : {
+        "operationId" : "createClassPost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PostCreateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Create a class post (draft, publish now or schedule). ACTIVE teachers of the class (assistants while feed.assistants_can_post) and class managers. Media uploaded as POST media of the class; tagged students must be ACTIVE in the class. With media: every tagged student needs MEDIA_PUBLICATION consent (else 422 feed.media_consent_missing); with no tags confirmNoUnconsentedStudents must be true (else 422 feed.media_confirmation_required)",
+        "tags" : [ "feed" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/classes/{classId}/restore" : {
       "post" : {
         "operationId" : "restoreClass",
@@ -5902,6 +6169,109 @@
         },
         "summary" : "Make an archived class active again",
         "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/stories" : {
+      "get" : {
+        "operationId" : "listClassStories",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/StoryView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The active (not expired) stories of a class, newest first, to those who may see the class feed",
+        "tags" : [ "feed" ]
+      },
+      "post" : {
+        "operationId" : "createClassStory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StoryCreateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StoryView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Publish a class story (teachers of the class and class managers): a STORY photo uploaded for the class and/or a caption. Same consent gate as posts",
+        "tags" : [ "feed" ]
       }
     },
     "/api/v1/schools/{schoolId}/classes/{classId}/students" : {
@@ -6273,6 +6643,278 @@
         },
         "summary" : "Remove a teacher row (lead or class.manage; any non-lead teacher may remove herself); the last lead cannot be removed (409 class.last_lead)",
         "tags" : [ "classes" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/contributions/pending" : {
+      "get" : {
+        "operationId" : "listPendingContributions",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The approval queue, oldest first: contributions waiting in the classes the caller moderates (LEAD teacher, class managers, school feed managers). With classId only that class; 403 for everybody else who sees the school",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/contributions/{postId}/approve" : {
+      "post" : {
+        "operationId" : "approveContribution",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ContributionApproveRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Approve and publish a pending contribution (moderators). Runs the consent gate: 422 feed.media_consent_missing, or 422 feed.media_confirmation_required when no student is tagged (confirmNoUnconsentedStudents is the approver's statement). studentIds, when given, replaces the tags. Audited; the contributor is notified. 409 feed.not_pending when already decided",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/contributions/{postId}/reject" : {
+      "post" : {
+        "operationId" : "rejectContribution",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ContributionRejectRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Reject a pending contribution with a reason the contributor sees (moderators). The photos are deleted. Audited; the contributor is notified",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/feed" : {
+      "get" : {
+        "operationId" : "getSchoolFeed",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The published school-wide posts, pinned first then newest first. ACTIVE students, staff and guardians of ACTIVE students of the school, and school feed managers; 404 school.not_found for everybody else",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/feed/capabilities" : {
+      "get" : {
+        "operationId" : "getFeedCapabilities",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "A class of the school",
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FeedCapabilities"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "What the caller may do in the feed of the school, or of one class when classId is given (for menus and buttons; the API stays the authority)",
+        "tags" : [ "feed" ]
       }
     },
     "/api/v1/schools/{schoolId}/grade-levels" : {
@@ -7712,6 +8354,75 @@
         "tags" : [ "imports" ]
       }
     },
+    "/api/v1/schools/{schoolId}/my-posts" : {
+      "get" : {
+        "operationId" : "listMyPosts",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "PENDING_APPROVAL", "SCHEDULED", "PUBLISHED", "REJECTED", "HIDDEN", "ARCHIVED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The caller's own posts and contributions in the school in every status (drafts, scheduled, pending approval, rejected, published, archived), newest first",
+        "tags" : [ "feed" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/point-categories" : {
       "get" : {
         "operationId" : "listPointCategories",
@@ -8509,6 +9220,1166 @@
         "tags" : [ "policies" ]
       }
     },
+    "/api/v1/schools/{schoolId}/posts" : {
+      "post" : {
+        "operationId" : "createSchoolPost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PostCreateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Create a school-wide post (school.feed.manage). Media uploaded as POST media of the school; tagged students must be ACTIVE in the school. Same consent gate as class posts",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}" : {
+      "delete" : {
+        "operationId" : "deletePost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a post (soft delete; its photos are deleted). The author, or a moderator (audited as moderation)",
+        "tags" : [ "feed" ]
+      },
+      "get" : {
+        "operationId" : "getPost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One post. Published posts to those who may see them; any status to its author and the moderators (LEAD teacher, class managers, school feed managers). 404 for everybody else",
+        "tags" : [ "feed" ]
+      },
+      "patch" : {
+        "operationId" : "updatePost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PostUpdateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Edit your own post (null fields stay; media and studentIds replace the whole list; an empty body clears the text). Sets editedAt. Editing the photos or tags of a published post runs the consent gate again; a contribution can be edited only while pending",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/archive" : {
+      "post" : {
+        "operationId" : "archivePost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Take a published post down (ARCHIVED); the author or a moderator. It can be published again",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments" : {
+      "get" : {
+        "operationId" : "listPostComments",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageCommentView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Comments of a post, oldest first. VISIBLE ones to everybody who sees the post; HIDDEN ones also to their author and the moderators. Authors are named only as the privacy rules allow (guardians and students otherwise appear by role label)",
+        "tags" : [ "feed" ]
+      },
+      "post" : {
+        "operationId" : "createPostComment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CommentCreateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CommentView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Comment on a published post as yourself. Needs comments switched on for the post (403 feed.comments_disabled) and your relation to allow it: teachers and managers; guardians (link with can_view_academics and can_message_staff) while feed.comments.guardians_can_comment; students while feed.comments.students_can_comment (403 feed.comment_not_allowed)",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments/{commentId}" : {
+      "delete" : {
+        "operationId" : "deletePostComment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "commentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a comment: its author, or a moderator (audited)",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments/{commentId}/hide" : {
+      "post" : {
+        "operationId" : "hidePostComment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "commentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CommentView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A moderator hides a comment (it stays visible to its author and moderators with status HIDDEN; audited)",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments/{commentId}/translation" : {
+      "post" : {
+        "operationId" : "translatePostComment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "commentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "language",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TranslationView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "See translation of a visible comment (same rules as translatePost)",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/comments/{commentId}/unhide" : {
+      "post" : {
+        "operationId" : "unhidePostComment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "commentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CommentView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A moderator shows a hidden comment again (audited)",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/hide" : {
+      "post" : {
+        "operationId" : "hidePost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PostHideRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A moderator hides a published post (audited); the optional reason is shown to its author as rejectionReason",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/pin" : {
+      "delete" : {
+        "operationId" : "unpinPost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Unpin a post (idempotent)",
+        "tags" : [ "feed" ]
+      },
+      "put" : {
+        "operationId" : "pinPost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Pin a published post (its teacher author or a moderator). At most feed.pin_limit (default 3) pinned posts per class or for the school feed: 409 feed.pin_limit_reached",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/publish" : {
+      "post" : {
+        "operationId" : "publishPost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PostConfirmRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Publish a draft, scheduled or archived post now (author or moderator). Consent gate: 422 feed.media_consent_missing / feed.media_confirmation_required",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/reaction" : {
+      "delete" : {
+        "operationId" : "removePostReaction",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReactionSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Remove your reaction (idempotent)",
+        "tags" : [ "feed" ]
+      },
+      "put" : {
+        "operationId" : "reactToPost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PostReactionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReactionSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Set your one reaction to a published post you can see (replaces the previous one; repeating it changes nothing)",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/report" : {
+      "post" : {
+        "operationId" : "reportPost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PostReportRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Accepted"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Report a post you can see. A stub for the moderation queue of M13: it is audited and published as a ContentReported event; at most 20 reports a day",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/schedule" : {
+      "post" : {
+        "operationId" : "schedulePost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PostScheduleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Schedule a draft (or change the time of a scheduled post), at most 90 days ahead; the consent gate runs now and again when the scheduler publishes (a blocked post returns to DRAFT with publishErrorCode and its author is notified)",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/translation" : {
+      "post" : {
+        "operationId" : "translatePost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "language",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TranslationView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "See translation of a published post (decision D5): the cached machine translation, or one made through the provider adapter. 403 feed.translation_disabled unless the school switched feed.translation.enabled on (off by default), 503 feed.translation_unavailable without a provider. Only the post text leaves the platform, with tagged students' names masked. Always machineTranslated: true",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/unhide" : {
+      "post" : {
+        "operationId" : "unhidePost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PostConfirmRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A moderator shows a hidden post again (consent gate runs)",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/unschedule" : {
+      "post" : {
+        "operationId" : "unschedulePost",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PostView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Cancel the schedule: the post becomes a draft again (author)",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/posts/{postId}/view" : {
+      "post" : {
+        "operationId" : "markPostSeen",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "postId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Record that the caller saw the post (once per viewer). Only a count is ever returned (seenCount), to the author and the class's staff; names are never exposed",
+        "tags" : [ "feed" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/staff" : {
       "get" : {
         "operationId" : "listStaff",
@@ -8783,6 +10654,215 @@
         },
         "summary" : "Mark the staff member FORMER (ended today) and end their class teaching; administrative roles are not touched",
         "tags" : [ "staff" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/stories" : {
+      "get" : {
+        "operationId" : "listSchoolStories",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/StoryView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The active school stories, newest first, to the members and guardians of the school",
+        "tags" : [ "feed" ]
+      },
+      "post" : {
+        "operationId" : "createSchoolStory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StoryCreateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StoryView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Publish a school story (school.feed.manage). Same consent gate as posts",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/stories/{storyId}" : {
+      "delete" : {
+        "operationId" : "deleteStory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "storyId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delete a story and its photo (the author, or a moderator; audited)",
+        "tags" : [ "feed" ]
+      },
+      "get" : {
+        "operationId" : "getStory",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "storyId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StoryView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One story: while active to those who may see it; to its author and moderators until it is deleted",
+        "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/stories/{storyId}/view" : {
+      "post" : {
+        "operationId" : "markStoryViewed",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "storyId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Record that the caller saw the story (once per viewer; only the count is ever shown, to the author and staff)",
+        "tags" : [ "feed" ]
       }
     },
     "/api/v1/schools/{schoolId}/students" : {
@@ -11843,6 +13923,63 @@
         },
         "required" : [ "academicYearId", "academicYearName", "classType", "id", "name", "schoolId", "status", "studentCount", "subjectIds", "teacherCount" ]
       },
+      "CommentCreateRequest" : {
+        "type" : "object",
+        "properties" : {
+          "body" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          },
+          "bodyLanguageCode" : {
+            "type" : "string",
+            "maxLength" : 8,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "body" ]
+      },
+      "CommentView" : {
+        "type" : "object",
+        "description" : "A comment. HIDDEN comments are shown (with their status) to the comment's author and moderators only",
+        "properties" : {
+          "author" : {
+            "$ref" : "#/components/schemas/FeedAuthor"
+          },
+          "body" : {
+            "type" : "string"
+          },
+          "bodyLanguageCode" : {
+            "type" : "string"
+          },
+          "canDelete" : {
+            "type" : "boolean"
+          },
+          "canHide" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "mine" : {
+            "type" : "boolean"
+          },
+          "postId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "VISIBLE", "HIDDEN", "DELETED" ]
+          }
+        },
+        "required" : [ "author", "body", "createdAt", "id", "postId", "status" ]
+      },
       "CommitRequest" : {
         "type" : "object",
         "properties" : {
@@ -11987,10 +14124,70 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "USER", "SCHOOL", "ORGANIZATION" ]
+            "enum" : [ "USER", "SCHOOL", "ORGANIZATION", "CLASS" ]
           }
         },
         "required" : [ "id", "type" ]
+      },
+      "ContributionApproveRequest" : {
+        "type" : "object",
+        "properties" : {
+          "confirmNoUnconsentedStudents" : {
+            "type" : "boolean"
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        }
+      },
+      "ContributionCreateRequest" : {
+        "type" : "object",
+        "properties" : {
+          "body" : {
+            "type" : "string",
+            "maxLength" : 5000,
+            "minLength" : 0
+          },
+          "bodyLanguageCode" : {
+            "type" : "string",
+            "maxLength" : 8,
+            "minLength" : 0
+          },
+          "media" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FeedMediaRef"
+            },
+            "maxItems" : 10,
+            "minItems" : 0
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 10,
+            "minItems" : 0
+          }
+        }
+      },
+      "ContributionRejectRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "reason" ]
       },
       "CountryCalendarResponse" : {
         "type" : "object",
@@ -12786,6 +14983,22 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageCommentView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CommentView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageDashboardClass" : {
         "type" : "object",
         "properties" : {
@@ -12873,6 +15086,22 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/OrganizationResponse"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPagePostView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PostView"
             }
           },
           "nextCursor" : {
@@ -13299,6 +15528,146 @@
           }
         },
         "required" : [ "enabled", "entitled", "flagEnabled", "flagSource", "key" ]
+      },
+      "FeedAuthor" : {
+        "type" : "object",
+        "description" : "Who wrote it. displayName (and userId, avatar) are present only when the viewer may know the person: staff names are visible to everybody who sees the post; a guardian or student is named only to the author themself, to the class's teachers and moderators, to the student's own guardians and, for students, to classmates. Everybody else gets the role label only",
+        "properties" : {
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "role" : {
+            "type" : "string",
+            "enum" : [ "TEACHER", "SCHOOL_ADMIN", "GUARDIAN", "STUDENT" ]
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "role" ]
+      },
+      "FeedCapabilities" : {
+        "type" : "object",
+        "description" : "What the signed-in user may do in the feed of a school or class, for the clients' menus and buttons (the API stays the authority)",
+        "properties" : {
+          "canComment" : {
+            "type" : "boolean"
+          },
+          "canContribute" : {
+            "type" : "boolean"
+          },
+          "canModerate" : {
+            "type" : "boolean"
+          },
+          "canPost" : {
+            "type" : "boolean"
+          },
+          "canPostSchoolWide" : {
+            "type" : "boolean"
+          },
+          "commentsDefaultEnabled" : {
+            "type" : "boolean"
+          },
+          "contributionMediaKinds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "OTHER" ]
+            }
+          },
+          "contributionNeedsApproval" : {
+            "type" : "boolean"
+          },
+          "contributionStudentIds" : {
+            "type" : "array",
+            "description" : "Children of the caller (or the caller) who may be tagged in a contribution of this class",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "pinLimit" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "translationEnabled" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "contributionMediaKinds", "contributionStudentIds" ]
+      },
+      "FeedMediaItem" : {
+        "type" : "object",
+        "properties" : {
+          "caption" : {
+            "type" : "string"
+          },
+          "height" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "OTHER" ]
+          },
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "variants" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "THUMB", "SMALL", "MEDIUM", "LARGE", "HLS_MASTER", "POSTER", "PDF_PREVIEW" ]
+            }
+          },
+          "width" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "kind", "mediaId", "variants" ]
+      },
+      "FeedMediaRef" : {
+        "type" : "object",
+        "description" : "A READY, unattached upload of purpose POST made for the same class or school",
+        "properties" : {
+          "caption" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "mediaId" ]
+      },
+      "FeedStudentTag" : {
+        "type" : "object",
+        "description" : "A tagged student, BASIC data only (name and avatar)",
+        "properties" : {
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "displayName", "studentId" ]
       },
       "FieldView" : {
         "type" : "object",
@@ -14825,6 +17194,283 @@
         },
         "required" : [ "content", "documentId", "effectiveFrom", "languageCode", "policyType", "publishedAt", "requiresReconsent", "title", "versionId", "versionLabel" ]
       },
+      "PostConfirmRequest" : {
+        "type" : "object",
+        "properties" : {
+          "confirmNoUnconsentedStudents" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "PostCreateRequest" : {
+        "type" : "object",
+        "description" : "A post. mode defaults to PUBLISH; DRAFT keeps it private to you; SCHEDULE needs scheduledFor",
+        "properties" : {
+          "body" : {
+            "type" : "string",
+            "maxLength" : 5000,
+            "minLength" : 0
+          },
+          "bodyLanguageCode" : {
+            "type" : "string",
+            "maxLength" : 8,
+            "minLength" : 0
+          },
+          "commentsEnabled" : {
+            "type" : "boolean"
+          },
+          "confirmNoUnconsentedStudents" : {
+            "type" : "boolean",
+            "description" : "Required for photos when no student is tagged: you confirm that no student without media-publication consent appears in them. Audited"
+          },
+          "media" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FeedMediaRef"
+            },
+            "maxItems" : 10,
+            "minItems" : 0
+          },
+          "mode" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "PUBLISH", "SCHEDULE" ]
+          },
+          "postType" : {
+            "type" : "string",
+            "enum" : [ "POST", "ACTIVITY", "ACHIEVEMENT" ]
+          },
+          "scheduledFor" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        }
+      },
+      "PostHideRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          }
+        }
+      },
+      "PostReactionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reaction" : {
+            "type" : "string",
+            "enum" : [ "LIKE", "HEART", "CLAP", "STAR" ]
+          }
+        },
+        "required" : [ "reaction" ]
+      },
+      "PostReportRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "enum" : [ "INAPPROPRIATE", "PRIVACY", "SPAM", "OTHER" ]
+          }
+        },
+        "required" : [ "reason" ]
+      },
+      "PostRights" : {
+        "type" : "object",
+        "properties" : {
+          "canComment" : {
+            "type" : "boolean"
+          },
+          "canDelete" : {
+            "type" : "boolean"
+          },
+          "canEdit" : {
+            "type" : "boolean"
+          },
+          "canModerate" : {
+            "type" : "boolean"
+          },
+          "canPin" : {
+            "type" : "boolean"
+          },
+          "canPublish" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "PostScheduleRequest" : {
+        "type" : "object",
+        "properties" : {
+          "confirmNoUnconsentedStudents" : {
+            "type" : "boolean"
+          },
+          "scheduledFor" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "scheduledFor" ]
+      },
+      "PostUpdateRequest" : {
+        "type" : "object",
+        "properties" : {
+          "body" : {
+            "type" : "string",
+            "maxLength" : 5000,
+            "minLength" : 0
+          },
+          "bodyLanguageCode" : {
+            "type" : "string",
+            "maxLength" : 8,
+            "minLength" : 0
+          },
+          "commentsEnabled" : {
+            "type" : "boolean"
+          },
+          "confirmNoUnconsentedStudents" : {
+            "type" : "boolean"
+          },
+          "media" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FeedMediaRef"
+            },
+            "maxItems" : 10,
+            "minItems" : 0
+          },
+          "postType" : {
+            "type" : "string",
+            "enum" : [ "POST", "ACTIVITY", "ACHIEVEMENT" ]
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        }
+      },
+      "PostView" : {
+        "type" : "object",
+        "description" : "A post. Statuses other than PUBLISHED are visible to the author and the moderators only. mediaWithheld is true when photos exist but are not shown to this viewer because a tagged student's media consent is not granted (the author and moderators still see them, with mediaWithheld true as a warning). tags lists only the tagged students this viewer may know",
+        "properties" : {
+          "author" : {
+            "$ref" : "#/components/schemas/FeedAuthor"
+          },
+          "body" : {
+            "type" : "string"
+          },
+          "bodyLanguageCode" : {
+            "type" : "string"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "commentCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "commentsEnabled" : {
+            "type" : "boolean"
+          },
+          "contribution" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "editedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "media" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FeedMediaItem"
+            }
+          },
+          "mediaWithheld" : {
+            "type" : "boolean"
+          },
+          "myReaction" : {
+            "type" : "string",
+            "enum" : [ "LIKE", "HEART", "CLAP", "STAR" ]
+          },
+          "pinned" : {
+            "type" : "boolean"
+          },
+          "postType" : {
+            "type" : "string",
+            "enum" : [ "POST", "ACTIVITY", "ACHIEVEMENT" ]
+          },
+          "publishErrorCode" : {
+            "type" : "string"
+          },
+          "publishedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "reactionCounts" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int32"
+            }
+          },
+          "rejectionReason" : {
+            "type" : "string"
+          },
+          "rights" : {
+            "$ref" : "#/components/schemas/PostRights"
+          },
+          "scheduledFor" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "scope" : {
+            "type" : "string",
+            "enum" : [ "CLASS", "SCHOOL" ]
+          },
+          "seenCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "How many people saw the post (never names); only for the author, the class's teachers and moderators"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "PENDING_APPROVAL", "SCHEDULED", "PUBLISHED", "REJECTED", "HIDDEN", "ARCHIVED" ]
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FeedStudentTag"
+            }
+          }
+        },
+        "required" : [ "author", "createdAt", "id", "media", "postType", "reactionCounts", "rights", "schoolId", "scope", "status", "tags" ]
+      },
       "PreferenceChange" : {
         "type" : "object",
         "properties" : {
@@ -14991,7 +17637,7 @@
             "type" : "array",
             "items" : {
               "type" : "string",
-              "enum" : [ "USER", "SCHOOL", "ORGANIZATION" ]
+              "enum" : [ "USER", "SCHOOL", "ORGANIZATION", "CLASS" ]
             }
           },
           "maxBytesByMimeType" : {
@@ -15082,6 +17728,23 @@
           }
         },
         "required" : [ "key", "scope", "value" ]
+      },
+      "ReactionSummary" : {
+        "type" : "object",
+        "properties" : {
+          "counts" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int32"
+            }
+          },
+          "mine" : {
+            "type" : "string",
+            "enum" : [ "LIKE", "HEART", "CLAP", "STAR" ]
+          }
+        },
+        "required" : [ "counts" ]
       },
       "RecordedConsent" : {
         "type" : "object",
@@ -16019,6 +18682,103 @@
         },
         "required" : [ "displayName", "id", "staffType", "status", "userId" ]
       },
+      "StoryCreateRequest" : {
+        "type" : "object",
+        "properties" : {
+          "caption" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "captionLanguageCode" : {
+            "type" : "string",
+            "maxLength" : 8,
+            "minLength" : 0
+          },
+          "confirmNoUnconsentedStudents" : {
+            "type" : "boolean"
+          },
+          "mediaId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          }
+        }
+      },
+      "StoryView" : {
+        "type" : "object",
+        "description" : "A story, visible until expiresAt (24 hours after publishing)",
+        "properties" : {
+          "author" : {
+            "$ref" : "#/components/schemas/FeedAuthor"
+          },
+          "canDelete" : {
+            "type" : "boolean"
+          },
+          "caption" : {
+            "type" : "string"
+          },
+          "captionLanguageCode" : {
+            "type" : "string"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "media" : {
+            "$ref" : "#/components/schemas/FeedMediaItem"
+          },
+          "mediaWithheld" : {
+            "type" : "boolean"
+          },
+          "publishedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "scope" : {
+            "type" : "string",
+            "enum" : [ "CLASS", "SCHOOL" ]
+          },
+          "seenCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PUBLISHED", "HIDDEN", "EXPIRED", "DELETED" ]
+          },
+          "tags" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FeedStudentTag"
+            }
+          },
+          "viewedByMe" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "author", "expiresAt", "id", "publishedAt", "schoolId", "scope", "status", "tags" ]
+      },
       "StudentBadgeView" : {
         "type" : "object",
         "properties" : {
@@ -16820,6 +19580,31 @@
           }
         },
         "required" : [ "categoryId", "context", "createdAt", "id", "polarity", "studentId", "type" ]
+      },
+      "TranslationView" : {
+        "type" : "object",
+        "description" : "A cached or fresh machine translation. Always labelled: machineTranslated is true",
+        "properties" : {
+          "cached" : {
+            "type" : "boolean"
+          },
+          "machineTranslated" : {
+            "type" : "boolean"
+          },
+          "provider" : {
+            "type" : "string"
+          },
+          "sourceLanguage" : {
+            "type" : "string"
+          },
+          "targetLanguage" : {
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "targetLanguage", "text" ]
       },
       "TypeView" : {
         "type" : "object",
