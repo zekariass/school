@@ -1,10 +1,12 @@
 import { NativeTabs } from 'expo-router/native-tabs';
 import { useTranslations } from 'use-intl';
 
+import { useMessagesBadge } from '@/components/messaging/use-messages-badge';
 import { useTabBarProps } from '@/components/tab-bar';
 
 export default function StudentTabs() {
   const t = useTranslations();
+  const badge = useMessagesBadge();
   return (
     <NativeTabs {...useTabBarProps()}>
       <NativeTabs.Trigger name="home">
@@ -19,9 +21,16 @@ export default function StudentTabs() {
         <NativeTabs.Trigger.Label>{t('mobile.points.tab')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'trophy', selected: 'trophy.fill' }} md="emoji_events" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="portfolio">
-        <NativeTabs.Trigger.Label>{t('nav.portfolio')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf={{ default: 'photo.on.rectangle', selected: 'photo.on.rectangle.angled' }} md="photo_library" />
+      {/* Five tabs at most (the Android bar allows no more): the portfolio is still a placeholder, so its tab makes room for the
+          messages. The route stays, hidden, until the portfolio is built. */}
+      <NativeTabs.Trigger name="portfolio" hidden />
+      <NativeTabs.Trigger name="messages">
+        <NativeTabs.Trigger.Label>{t('nav.messages')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'bubble.left.and.bubble.right', selected: 'bubble.left.and.bubble.right.fill' }}
+          md="forum"
+        />
+        <NativeTabs.Trigger.Badge hidden={!badge}>{badge}</NativeTabs.Trigger.Badge>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <NativeTabs.Trigger.Label>{t('nav.profile')}</NativeTabs.Trigger.Label>

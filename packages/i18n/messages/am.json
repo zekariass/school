@@ -1415,6 +1415,309 @@
       "preferences": {
         "urgentLock": "አስቸኳይና የደህንነት ማስታወቂያዎች ይህን ቢያጠፉም ሆነ በጸጥታ ሰዓት ሁልጊዜ ወደዚህ ስልክ ይደርሳሉ።"
       }
+    },
+    "messaging": {
+      "a11y": {
+        "newMessage": "አዲስ መልዕክት ከ{name}"
+      },
+      "block": {
+        "action": "ይህን ሰው አግድ",
+        "title": "ይህን ሰው ልታግዱ ነው?",
+        "body": "በቡድኖች ውስጥ መልዕክቶቹን አያዩም፤ እሱም በቀጥታ ሊጽፍልዎ አይችልም። እንዳገዱት አይነገረውም። በ«ያገዷቸው ሰዎች» ስር መመለስ ይችላሉ።",
+        "bodyStudent": "በቡድኖች ውስጥ መልዕክቶቹን አያዩም፤ እሱም በቀጥታ ሊጽፍልዎ አይችልም። አይነገረውም። ተማሪዎች ያገዷቸውን የትምህርት ቤቱ የደህንነት ቡድን ማየት ይችላል። በ«ያገዷቸው ሰዎች» ስር መመለስ ይችላሉ።",
+        "confirm": "አግድ",
+        "doneTitle": "ታግዷል",
+        "doneBody": "ከዚህ በኋላ መልዕክቶቹን አያዩም።"
+      },
+      "blocked": {
+        "title": "ያገዷቸው ሰዎች",
+        "intro": "በንግግር ውስጥ ያገዷቸው ሰዎች። አይነገራቸውም። እገዳውን ማንሳት ንግግሩ እንደገና እንዲሠራ ያደርገዋል።",
+        "emptyTitle": "ያገዱት ሰው የለም",
+        "emptyBody": "ከአንድ መልዕክት ላይ ሰው ካገዱ እዚህ ይታያል።",
+        "loadFailedTitle": "ያገዷቸውን ሰዎች መጫን አልተቻለም",
+        "loadFailedBody": "ግንኙነትዎን ይፈትሹና እንደገና ለመሞከር ወደ ታች ይጎትቱ።",
+        "remove": "እገዳውን አንሳ",
+        "removeTitle": "ይህን እገዳ ሊያነሡ ነው?",
+        "removeBody": "መልዕክቶቹን እንደገና ያያሉ፤ ትምህርት ቤቱ ከፈቀደ እሱም ሊጽፍልዎ ይችላል።"
+      },
+      "composer": {
+        "placeholder": "መልዕክት ይጻፉ",
+        "send": "ላክ",
+        "schedule": "በኋላ ላክ",
+        "addPhoto": "ፎቶ ጨምር",
+        "camera": "ፎቶ አንሳ",
+        "library": "ፎቶ ምረጥ",
+        "photoPrivacy": "ፎቶዎች ከመላካቸው በፊት በስልክዎ ላይ ይቀነሳሉ፤ የቦታ መረጃም ይወገዳል። የሚያዩት በዚህ ንግግር ውስጥ ያሉ ሰዎች ብቻ ናቸው።",
+        "removePhoto": "ፎቶውን አስወግድ",
+        "photoFailed": "ፎቶው አልተጫነም",
+        "photoRetry": "አልተጫነም። እንደገና ለመሞከር ይንኩ።",
+        "tooManyPhotos": "አንድ መልዕክት እስከ {max} ፎቶዎች ሊኖሩት ይችላል።",
+        "replyingTo": "ለ{name} እየመለሱ ነው",
+        "cancelReply": "መልስን ሰርዝ",
+        "count": "{count} ከ{max} ፊደላት"
+      },
+      "conversation": {
+        "title": "ንግግር",
+        "notFoundTitle": "ይህ ንግግር አይገኝም",
+        "notFoundBody": "ተዘግቶ ሊሆን ይችላል፤ ወይም ከዚህ በኋላ መዳረሻ የለዎትም።",
+        "loadFailedTitle": "ንግግሩን መጫን አልተቻለም",
+        "loadFailedBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።",
+        "olderFailed": "ቀደምት መልዕክቶችን መጫን አልተቻለም። እንደገና ለመሞከር ይንኩ።",
+        "empty": "እስካሁን መልዕክት የለም።",
+        "emptyWrite": "እስካሁን መልዕክት የለም። ሰላምታ ያቅርቡ!",
+        "observerBanner": "የአንድ ልጅ ከአዋቂ ጋር የሚያደርገው ንግግር። ልጁ ደህንነቱ እንዲጠበቅ ማንበብ ይችላሉ፤ መጻፍም ሆነ ምላሽ መስጠት አይችሉም።",
+        "readOnlyObserver": "ይህን ንግግር እየተከታተሉ ነው። ማንበብ ይችላሉ፤ መጻፍ አይችሉም።",
+        "closedBanner": "ይህ ንግግር ተዘግቷል። ማንበብ ይችላሉ፤ መጻፍ አይችሉም።",
+        "pendingBanner": "ይህ ቡድን የመምህር ፈቃድ እየጠበቀ ነው።",
+        "pendingShort": "ፈቃድ እየጠበቀ ነው",
+        "restrictedBanner": "በዚህ ንግግር ውስጥ መጻፍ የሚችሉት መምህራን ብቻ ናቸው።",
+        "guardiansCanSee": "ወላጅዎ ወይም አሳዳጊዎ ይህን ንግግር ማየት ይችላሉ።",
+        "teacherStudentTitle": "ከተማሪ ጋር የሚደረግ ንግግር",
+        "teacherStudentBody": "የተማሪው ወላጆች ሊያነቡት ይችላሉ፤ ካስፈለገም የትምህርት ቤቱ የደህንነት ቡድንም ሊያነበው ይችላል። መልዕክቶች ስለ ትምህርት ቤት ብቻ ይሁኑ።",
+        "afterHours": "ተልኳል። መምህሩ ከሥራ ሰዓት ውጭ ነው፤ ማሳወቂያ ሳይደርሰው በኋላ ያየዋል።"
+      },
+      "edit": {
+        "title": "መልዕክቱን አስተካክል",
+        "label": "መልዕክት"
+      },
+      "errors": {
+        "generic": "የሆነ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።"
+      },
+      "groupKind": {
+        "classStudents": "የክፍል ውይይት",
+        "classParents": "የክፍል ወላጆች",
+        "staff": "የሠራተኞች ቡድን",
+        "studentGroup": "የተማሪዎች ቡድን",
+        "schoolStaff": "የትምህርት ቤት ሠራተኞች",
+        "group": "ቡድን"
+      },
+      "groupKindHint": {
+        "classStudents": "የአንድ ክፍል ተማሪዎችና መምህራኑ። አባላቱ የክፍሉን ዝርዝር ይከተላሉ።",
+        "classParents": "የአንድ ክፍል ወላጆችና መምህራኑ። አባላቱ የክፍሉን ዝርዝር ይከተላሉ።",
+        "staff": "የሥራ ባልደረቦች ቡድን። ይህ ዓይነት በድር ላይ ይፈጠራል።",
+        "studentGroup": "ከአንድ ክፍል የተውጣጡ ጥቂት ተማሪዎች ቡድን፤ እርስዎ መምህሩ ይሆናሉ። ቢያንስ 2 ተማሪዎች ያስፈልጋሉ።",
+        "schoolStaff": "ለትምህርት ቤት ሠራተኞች የማስታወቂያ ዓይነት ቡድን። ይህ ዓይነት በድር ላይ ይፈጠራል።"
+      },
+      "groupStatus": {
+        "active": "ክፍት",
+        "pending": "ፈቃድ እየጠበቀ ነው",
+        "locked": "ተቆልፏል",
+        "archived": "ተቀምጧል",
+        "rejected": "ተቀባይነት አላገኘም"
+      },
+      "groups": {
+        "title": "ቡድኖች",
+        "filter": "አሳይ",
+        "all": "ሁሉም ቡድኖች",
+        "waiting": "ፈቃድ የሚጠብቁ",
+        "members": "አባላት፦ {count}",
+        "approve": "ፍቀድ",
+        "reject": "ውድቅ አድርግ",
+        "proposedByMe": "ይህን ቡድን ያቀረቡት እርስዎ ነዎት። መምህር ይወስናል።",
+        "emptyTitle": "እዚህ ምንም ቡድን የለም",
+        "emptyBody": "የፈጠሯቸው፣ የሚያስተባብሯቸው ወይም ሊፈቅዱ የሚገቡ ቡድኖች እዚህ ይታያሉ።",
+        "loadFailedTitle": "ቡድኖችን መጫን አልተቻለም",
+        "loadFailedBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።"
+      },
+      "inbox": {
+        "new": "አዲስ መልዕክት",
+        "more": "ተጨማሪ",
+        "childFilter": "መልዕክቶችን በልጅ አሳይ",
+        "allChildren": "ሁሉም ልጆች",
+        "aboutChild": "ስለ {child}",
+        "notAboutChild": "ሌሎች ንግግሮች",
+        "observing": "እየተከታተሉ ነው",
+        "observingTitle": "የ{child} ንግግር",
+        "observingTitleNoChild": "የሚከታተሉት ንግግር",
+        "muted": "ድምፅ ተዘግቷል",
+        "unread": "{count} ያልተነበቡ",
+        "previewNone": "እስካሁን መልዕክት የለም",
+        "previewPhoto": "ፎቶ",
+        "previewRemoved": "መልዕክቱ ተወግዷል",
+        "emptyTitle": "እስካሁን መልዕክት የለም",
+        "emptyGuardianBody": "ከልጅዎ መምህራን አንዱን በማነጋገር ይጀምሩ። ስለ ልጅዎ የሚደረጉ ንግግሮች እዚህ ይታያሉ።",
+        "emptyTeacherBody": "ከተማሪ ቤተሰብ ጋር ንግግር ይጀምሩ፤ ወይም የክፍል ቡድን ይፍጠሩ። ንግግሮችዎ እዚህ ይታያሉ።",
+        "emptyStudentTitle": "እስካሁን መልዕክት የለም",
+        "emptyStudentBody": "የክፍል ውይይትዎን የሚጀምረው መምህርዎ ነው። ሲጀምር እዚህ ማንበብና መመለስ ይችላሉ።",
+        "loadFailedTitle": "መልዕክቶችዎን መጫን አልተቻለም",
+        "loadFailedBody": "ግንኙነትዎን ይፈትሹና እንደገና ለመሞከር ወደ ታች ይጎትቱ።",
+        "nextPageFailed": "ተጨማሪ ንግግሮችን መጫን አልተቻለም።"
+      },
+      "label": {
+        "you": "እርስዎ",
+        "guardianOf": "የ{child} {relation}",
+        "yourRelation": "የእርስዎ {relation}",
+        "parent": "ወላጅ",
+        "yourGuardian": "አሳዳጊዎ",
+        "member": "አባል"
+      },
+      "message": {
+        "system": "ከትምህርት ቤቱ የመጣ መረጃ",
+        "deleted": "ይህ መልዕክት ተሰርዟል",
+        "hidden": "አስተባባሪ ይህን መልዕክት ደብቆታል",
+        "edited": "ተስተካክሏል",
+        "seen": "ታይቷል",
+        "photos": "ፎቶዎች፦ {count}",
+        "photoLabel": "ፎቶ {n} ከ{total}",
+        "reactionLabel": "ምላሽ {emoji}፣ {count}",
+        "replyTo": "ለ{name} የተሰጠ መልስ",
+        "replyEarlier": "ቀደም ያለ መልዕክት",
+        "replyEarlierAuthor": "ቀደም ያለ መልዕክት",
+        "optionsHint": "የዚህን መልዕክት አማራጮች ይከፍታል",
+        "optionsTitle": "የመልዕክት አማራጮች",
+        "react": "ምላሽ ስጥ",
+        "reply": "መልስ",
+        "editLeft": "አስተካክል (የቀረው {minutes} ደቂቃ)",
+        "deleteTitle": "ይህ መልዕክት ይሰረዝ?",
+        "deleteBody": "መልዕክቱ እንደተሰረዘ በሚያሳይ ማስታወሻ ይተካል።"
+      },
+      "moderation": {
+        "hide": "መልዕክቱን ደብቅ",
+        "hideTitle": "ይህን መልዕክት ደብቅ",
+        "hideBody": "አባላት የሚያዩት አስተባባሪ እንደደበቀው እንጂ ምን እንደነበር አይደለም። ምክንያቱ ለትምህርት ቤቱ ይቀመጣል።",
+        "unhide": "መልዕክቱን እንደገና አሳይ",
+        "reasonLabel": "ምክንያት"
+      },
+      "mute": {
+        "action": "ማሳወቂያዎችን ድምጽ አጥፋ",
+        "unmute": "ድምፁን መልስ",
+        "hint": "መልዕክቶቹ አሁንም ይደርሱዎታል። ማሳወቂያ ብቻ ይቆማል።",
+        "hour": "ለ1 ሰዓት",
+        "eightHours": "ለ8 ሰዓት",
+        "week": "ለ1 ሳምንት",
+        "until": "እስከ {when} ድረስ ድምፅ ተዘግቷል"
+      },
+      "newGroup": {
+        "title": "አዲስ ቡድን",
+        "kind": "የቡድኑ ዓይነት",
+        "notAllowed": "በዚህ ትምህርት ቤት ከስልክዎ ላይ ቡድን መፍጠር አይችሉም።",
+        "titleLabel": "የቡድኑ ስም",
+        "titleOptional": "የቡድኑ ስም (አማራጭ)",
+        "pickStudents": "ተማሪዎቹን ይምረጡ",
+        "studentsNeeded": "የተመረጡ፦ {chosen}። ቢያንስ {min} ተማሪዎች ያስፈልጋሉ።",
+        "studentGroupNotice": "የዚህ ቡድን መምህር እርስዎ ይሆናሉ። ከተማሪዎች ጋር የሚደረጉ ንግግሮች የትምህርት ቤቱን የደህንነት ደንቦች ይከተላሉ።",
+        "create": "ቡድን ፍጠር"
+      },
+      "pending": {
+        "sending": "በመላክ ላይ…",
+        "retrying": "አልተላከም፤ እንደገና ለመሞከር ይንኩ። መተግበሪያው ክፍት እስከሆነ ድረስ በራሱ እንደገና ይሞክራል።",
+        "failed": "አልተላከም፤ እንደገና ለመሞከር ይንኩ።",
+        "retry": "እንደገና ሞክር",
+        "retryA11y": "አልተላከም። እንደገና ለመላክ ሞክር",
+        "discard": "አጥፋ",
+        "discardA11y": "ያልተላከውን መልዕክት አጥፋ"
+      },
+      "people": {
+        "title": "ሰዎች",
+        "open": "በዚህ ንግግር ውስጥ ያሉ ሰዎች",
+        "members": "በዚህ ንግግር ውስጥ",
+        "observers": "ይህን ንግግር ማንበብ የሚችሉ ወላጆች፦ {count}",
+        "yourSettings": "ለእርስዎ",
+        "remove": "አስወግድ",
+        "removeTitle": "ከንግግሩ አስወግድ",
+        "removeBody": "ምክንያቱን ለትምህርት ቤቱ ይንገሩ። ምክንያቱ በመዝገብ ውስጥ ይቀመጣል።",
+        "leave": "ከንግግሩ ውጣ",
+        "leaveTitle": "ከዚህ ንግግር ሊወጡ ነው?",
+        "leaveBody": "ከዚህ በኋላ መልዕክቶቹ አይደርሱዎትም።",
+        "manage": "ይህን ቡድን አስተዳድር",
+        "manageHint": "የክፍል ንግግሮች የክፍሉን ዝርዝር ይከተላሉ፤ ተማሪዎችና ወላጆች በራሳቸው ይጨመራሉ ወይም ይወጣሉ።",
+        "moderatorsOnly": "መምህራን ብቻ ይጻፉ",
+        "allowEveryone": "ሁሉም ይጻፍ",
+        "lock": "ንግግሩን ቆልፍ",
+        "archive": "ንግግሩን አስቀምጥ",
+        "reopen": "ንግግሩን እንደገና ክፈት",
+        "role": {
+          "owner": "ባለቤት",
+          "moderator": "አስተባባሪ",
+          "member": "አባል",
+          "observer": "ተከታታይ"
+        },
+        "actingAs": {
+          "teacher": "መምህር",
+          "guardian": "ወላጅ",
+          "student": "ተማሪ",
+          "staff": "ሠራተኛ"
+        }
+      },
+      "relationship": {
+        "mother": "እናት",
+        "father": "አባት",
+        "grandparent": "አያት",
+        "sibling": "ወንድም ወይም እህት",
+        "auntUncle": "አክስት ወይም አጎት",
+        "legalGuardian": "ሕጋዊ አሳዳጊ",
+        "other": "የቤተሰብ አባል"
+      },
+      "report": {
+        "action": "ሪፖርት አድርግ",
+        "title": "ይህን መልዕክት ሪፖርት ያድርጉ",
+        "body": "ምን እንደተሳሳተ ይንገሩን። ሪፖርቶችን ልጆችን የሚጠብቁ የትምህርት ቤቱ ሰዎች ብቻ ያያሉ።",
+        "noteLabel": "ማወቅ ያለብን ሌላ ነገር (አማራጭ)",
+        "send": "ሪፖርት ላክ",
+        "thanksTitle": "አመሰግናለሁ",
+        "thanksBody": "ሪፖርትዎ ለትምህርት ቤቱ ተልኳል።",
+        "reason": {
+          "inappropriate": "ተገቢ አይደለም",
+          "bullying": "ማስፈራራት ወይም ክፋት",
+          "privacy": "የግል መረጃ ያጋራል",
+          "safety": "አንድ ሰው አደጋ ላይ ሊሆን ይችላል",
+          "spam": "ያልተፈለገ መልዕክት",
+          "other": "ሌላ ነገር"
+        }
+      },
+      "scheduled": {
+        "title": "በቀጠሮ የተያዙ መልዕክቶች",
+        "intro": "ለመላክ የሚጠብቁ መልዕክቶች። ሰዓቱ በትምህርት ቤቱ የሰዓት ሰቅ ነው። ሰዓቱ ሲደርስ ትምህርት ቤቱ መጻፍ እንደሚችሉ እንደገና ያረጋግጣል።",
+        "emptyTitle": "በቀጠሮ የተያዘ የለም",
+        "emptyBody": "መልዕክት በቀጠሮ ለመያዝ ከ«ላክ» ቀጥሎ ያለውን የሰዓት አዝራር ይጠቀሙ።",
+        "loadFailedTitle": "በቀጠሮ የተያዙ መልዕክቶችን መጫን አልተቻለም",
+        "loadFailedBody": "ግንኙነትዎን ይፈትሹና እንደገና ለመሞከር ወደ ታች ይጎትቱ።",
+        "willSend": "የሚላከው {when} ነው",
+        "open": "ንግግሩን ክፈት",
+        "cancelAction": "መላኩን ሰርዝ",
+        "cancelTitle": "ይህ በቀጠሮ የተያዘ መልዕክት ይሰረዝ?",
+        "cancelBody": "አይላክም።",
+        "cancelConfirm": "መላኩን ሰርዝ",
+        "pickTitle": "በኋላ ላክ",
+        "pickBody": "መልዕክቱ መቼ እንደሚላክ ይምረጡ። ሰዓቱ በትምህርት ቤቱ የሰዓት ሰቅ እንጂ በስልክዎ አይደለም።",
+        "confirm": "መልዕክቱን በቀጠሮ ያዝ",
+        "done": "ለ{when} ተይዟል።",
+        "failed": "መልዕክቱን በቀጠሮ መያዝ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
+      },
+      "start": {
+        "title": "አዲስ መልዕክት",
+        "guardianIntro": "ከልጅዎ መምህራን አንዱን ይምረጡ። ንግግሩ ስለ ልጅዎ ነው።",
+        "teacherIntro": "ክፍልና ተማሪ ይምረጡ፤ ከዚያ ማንን መጻፍ እንደሚፈልጉ።",
+        "pickChild": "ስለ የትኛው ልጅ ነው?",
+        "pickSchool": "ትምህርት ቤት",
+        "pickClass": "ክፍል",
+        "pickStudent": "ተማሪ ይምረጡ",
+        "changeStudent": "ሌላ ተማሪ ምረጥ",
+        "whoAbout": "ስለ {child}",
+        "teachersOf": "የ{child} መምህራን",
+        "guardiansOf": "ለ{child} ወላጅ ይጻፉ",
+        "studentThread": "ለተማሪው ይጻፉ",
+        "messageStudent": "ለ{child} መልዕክት ላክ",
+        "existing": "ንግግሩ አለ",
+        "noTeachers": "ስለዚህ ልጅ አሁን መጻፍ የሚችሉት መምህር የለም።",
+        "noGuardians": "ስለዚህ ተማሪ አሁን መጻፍ የሚችሉት ወላጅ የለም።",
+        "notAvailable": "አሁን እዚህ አዲስ መልዕክት መጀመር አይችሉም።",
+        "refused": "ይህን ሰው መጻፍ አይችሉም።",
+        "noChildTitle": "ገና የተገናኘ ልጅ የለም",
+        "noChildBody": "ትምህርት ቤት የአንድ ልጅ ወላጅ ወይም አሳዳጊ መሆንዎን ሲያረጋግጥ እዚህ መምህራኑን መጻፍ ይችላሉ።",
+        "noClassTitle": "እስካሁን ክፍል የለም",
+        "noClassBody": "ክፍል ሲያስተምሩ ንግግር መጀመር ይችላሉ።",
+        "studentTitle": "መልዕክቶች የሚጀምሩት ከመምህርዎ ነው",
+        "studentBody": "የክፍል ውይይትዎን የሚጀምረው መምህርዎ ነው። ባሉበት ንግግሮች ውስጥ መመለስ ይችላሉ።",
+        "loadFailedTitle": "መጫን አልተቻለም",
+        "loadFailedBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።"
+      },
+      "unsent": {
+        "title": "ገና ያልተላኩ መልዕክቶች",
+        "body": "አንዳንድ መልዕክቶች አልተላኩም። መተግበሪያው ክፍት እስከሆነ ድረስ መሞከራቸውን ይቀጥላሉ። መተግበሪያውን ከዘጉ ይጠፋሉ።",
+        "stay": "ቆይ",
+        "leave": "ለማንኛውም ውጣ"
+      }
     }
   },
   "schoolPicker": {

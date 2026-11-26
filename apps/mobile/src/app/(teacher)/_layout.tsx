@@ -1,10 +1,12 @@
 import { NativeTabs } from 'expo-router/native-tabs';
 import { useTranslations } from 'use-intl';
 
+import { useMessagesBadge } from '@/components/messaging/use-messages-badge';
 import { useTabBarProps } from '@/components/tab-bar';
 
 export default function TeacherTabs() {
   const t = useTranslations();
+  const badge = useMessagesBadge();
   return (
     <NativeTabs {...useTabBarProps()}>
       <NativeTabs.Trigger name="classes">
@@ -17,6 +19,7 @@ export default function TeacherTabs() {
           sf={{ default: 'bubble.left.and.bubble.right', selected: 'bubble.left.and.bubble.right.fill' }}
           md="forum"
         />
+        <NativeTabs.Trigger.Badge hidden={!badge}>{badge}</NativeTabs.Trigger.Badge>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="calendar">
         <NativeTabs.Trigger.Label>{t('nav.calendar')}</NativeTabs.Trigger.Label>

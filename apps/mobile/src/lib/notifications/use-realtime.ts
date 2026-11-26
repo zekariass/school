@@ -6,6 +6,9 @@ import { AppState } from 'react-native';
 import { ANNOUNCEMENTS_ROOT } from '@/lib/announcements/keys';
 import { isAnnouncementNotification } from '@/lib/announcements/notifications';
 import { API_BASE_URL } from '@/lib/http';
+import { parseDoorbell } from '@/lib/messaging/doorbell';
+import { liveStatus } from '@/lib/messaging/live-status';
+import { catchUpAfterReconnect, handleDoorbell } from '@/lib/messaging/runtime';
 import { getValidAccessToken, refreshTokens } from '@/lib/auth/session-auth';
 
 import { reduceEvent, type InboxData } from './cache';
@@ -15,6 +18,8 @@ import { INBOX_PREFIX, inboxKey, unreadCountKey } from './keys';
 import { realtimeUrl } from './realtime-url';
 
 const QUEUE = '/user/queue/notifications';
+/** The messaging doorbell: ids only (`message.created` / `message.updated`); content is always fetched through the API. */
+const MESSAGES_QUEUE = '/user/queue/messages';
 const HEARTBEAT_MS = 10_000;
 /** Application close code of the gateway: the session was revoked or the account deactivated. */
 const SESSION_ENDED_CLOSE = 4401;
@@ -60,6 +65,7 @@ export function useRealtime(enabled: boolean): void {
       timer = null;
       const old = client;
       client = null;
+      liveStatus.set(false);
       if (old) {
         old.onWebSocketClose = () => undefined;
         old.onStompError = () => undefined;
@@ -96,6 +102,13 @@ export function useRealtime(enabled: boolean): void {
           onConnect: () => {
             attempt = 0;
             next.subscribe(QUEUE, (message) => apply(message.body));
+            next.subscribe(MESSAGES_QUEUE, (message) => {
+              const bell = parseDoorbell(message.body);
+              if (bell) void handleDoorbell(queryClient, bell);
+            });
+            liveStatus.set(true);
+            // messages that arrived while the socket was down
+            catchUpAfterReconnect(queryClient);
             // anything that happened while we were away
             void queryClient.invalidateQueries({ queryKey: INBOX_PREFIX });
             void queryClient.invalidateQueries({ queryKey: unreadCountKey });
@@ -109,6 +122,7 @@ export function useRealtime(enabled: boolean): void {
           onWebSocketClose: (event: { code?: number }) => {
             if (client !== next) return;
             client = null;
+            liveStatus.set(false);
             scheduleReconnect(event?.code === SESSION_ENDED_CLOSE);
           },
           onWebSocketError: () => {

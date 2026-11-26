@@ -8,6 +8,8 @@ import { isUrgentAnnouncementData } from '@/lib/announcements/notifications';
 import { api } from '@/lib/api';
 import { request, unwrap } from '@/lib/api-error';
 import { getCurrentLocale } from '@/lib/i18n/locale';
+import { openConversation } from '@/lib/messaging/live-status';
+import { isForOpenConversation } from '@/lib/messaging/notifications';
 
 import { readStoredDevice, storeDevice } from './device';
 import { decideRegistration, type PermissionState } from './push-registration';
@@ -21,13 +23,18 @@ export const DEFAULT_CHANNEL_ID = 'default';
  * it is set when this module is first imported.
  */
 Notifications.setNotificationHandler({
-  handleNotification: async (notification) => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    // An urgent or safety announcement is the one push that makes a sound while the app is open.
-    shouldPlaySound: isUrgentAnnouncementData(notification.request.content.data),
-    shouldSetBadge: false,
-  }),
+  handleNotification: async (notification) => {
+    // A message push has no text (only "New message"); and while that very conversation is on screen the person is reading it:
+    // no banner (the API marks its notifications read when it is opened).
+    const reading = isForOpenConversation(notification.request.content.data, openConversation.get());
+    return {
+      shouldShowBanner: !reading,
+      shouldShowList: !reading,
+      // An urgent or safety announcement is the one push that makes a sound while the app is open.
+      shouldPlaySound: isUrgentAnnouncementData(notification.request.content.data),
+      shouldSetBadge: false,
+    };
+  },
 });
 
 /** Android channel for urgent and safety announcements (loud, heads-up). The API sends every push on `default` today; see the M10c notes. */

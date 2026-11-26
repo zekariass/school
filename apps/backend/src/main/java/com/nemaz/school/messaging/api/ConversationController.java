@@ -84,11 +84,11 @@ public class ConversationController {
 
 	@GetMapping("/api/v1/me/messaging/unread-count")
 	@Operation(operationId = "getMessagingUnreadCount", summary = "Unread messages over all conversations the caller may use now")
-	public UnreadCount unread() {
-		return new UnreadCount(this.queries.unreadTotal(CurrentUser.require()));
+	public MessagingUnreadCount unread() {
+		return new MessagingUnreadCount(this.queries.unreadTotal(CurrentUser.require()));
 	}
 
-	public record UnreadCount(@NotNull int unread) {
+	public record MessagingUnreadCount(@NotNull int unread) {
 	}
 
 	@GetMapping("/api/v1/me/scheduled-messages")

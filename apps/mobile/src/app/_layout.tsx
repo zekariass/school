@@ -127,6 +127,8 @@ function RootNavigator() {
           <Stack.Screen name="feed" />
           {/* The communications centre (M10): the announcements inbox, one announcement, the composer, my announcements, the report. */}
           <Stack.Screen name="announcements" />
+          {/* Messaging (M9): one conversation, its people, starting a conversation or a group, scheduled messages, blocked people. */}
+          <Stack.Screen name="messages" />
           <Stack.Screen name="notifications" options={{ ...header, title: t('mobile.notifications.title') }} />
           {/* Guardians decide on consent requests. */}
           <Stack.Screen name="consent" options={{ ...header, title: t('consent.title') }} />
