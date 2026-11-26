@@ -2,6 +2,7 @@
 
 import {
   BookOpenIcon,
+  CalendarDaysIcon,
   CalendarRangeIcon,
   ClipboardCheckIcon,
   FileUpIcon,
@@ -43,6 +44,7 @@ const ICONS: Record<NavId, LucideIcon> = {
   announcements: MegaphoneIcon,
   messages: MessageCircleIcon,
   messageReview: ShieldCheckIcon,
+  calendar: CalendarDaysIcon,
   policies: FileTextIcon,
 };
 

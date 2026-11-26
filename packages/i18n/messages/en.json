@@ -5402,6 +5402,172 @@
           }
         }
       }
+    },
+    "calendar": {
+      "workspaceTitle": "Calendar",
+      "workspaceSubtitle": "Events, holidays and academic dates of this school, and your own events.",
+      "saveFailed": "The event could not be saved. Your changes are still here.",
+      "where": {
+        "label": "Where",
+        "personal": "Only me (personal event)"
+      },
+      "scopes": {
+        "PERSONAL": "Personal",
+        "SCHOOL": "The whole school",
+        "CAMPUS": "A campus",
+        "GRADE_LEVEL": "A grade",
+        "CLASS": "A class",
+        "PARENT_MEETING": "Parent meeting"
+      },
+      "types": {
+        "SCHOOL_EVENT": "School event",
+        "CLASS_EVENT": "Class event",
+        "EXAM": "Exam",
+        "PARENT_MEETING": "Parent meeting",
+        "OTHER": "Other"
+      },
+      "fields": {
+        "scope": "Applies to",
+        "type": "Type",
+        "title": "Title",
+        "location": "Location (optional)",
+        "description": "Description (optional)",
+        "allDay": "All day",
+        "startDate": "First day",
+        "endDate": "Last day",
+        "endDateHint": "The last day is included.",
+        "start": "Starts",
+        "end": "Ends",
+        "inZone": "Times are in {zone}.",
+        "timeZone": "Time zone",
+        "timeZoneHint": "The times above are read in this time zone, and everybody sees the event in it.",
+        "timeZoneAllDayHint": "The days are days in this time zone.",
+        "schoolZone": "school",
+        "yourZone": "your time zone",
+        "rsvp": "Ask people to answer (yes, no or maybe)",
+        "rsvpHint": "Everyone who can see the event can answer. You see the totals, never who said what.",
+        "rsvpRecurring": "Repeating events do not ask for answers.",
+        "campus": "Campus",
+        "grade": "Grade",
+        "class": "Class",
+        "choose": "Choose…",
+        "loadFailed": "The choices could not be loaded.",
+        "meetingClass": "Class",
+        "meetingStudent": "Student the meeting is about"
+      },
+      "form": {
+        "createTitle": "New event",
+        "createHelp": "Choose who it is for and when it takes place.",
+        "editTitle": "Edit event",
+        "rescheduleTitle": "Reschedule meeting",
+        "editHelp": "Change what you need; only the changes are saved.",
+        "capsFailed": "What you may create could not be checked.",
+        "noAccess": "You cannot create events in this school.",
+        "audienceFixed": "For: {scope}. Who an event is for cannot be changed.",
+        "meetingWho": "The guardians of this student who may see academic information are invited, and each one can answer. You will see how many were invited.",
+        "meetingPrivacy": "Their notifications say only that a parent meeting is planned, with your name and the time. They never show the student's name, the title or the place.",
+        "meetingTitleHint": "The title is shown only to you and the invited guardians.",
+        "warnClears": "Changing the schedule of a repeating event clears its cancelled and moved events: they will be as the series says again.",
+        "warnResets": "Changing the time asks everyone to answer again.",
+        "warnResetsMeeting": "Changing the time tells the guardians and asks them to answer again.",
+        "editNotice": "People who can see this event are told when its time or place changes, as the school's settings say.",
+        "fixProblems": "Please fix the marked fields.",
+        "save": "Save changes",
+        "create": "Create event",
+        "createMeeting": "Invite guardians",
+        "created": "The event was created.",
+        "saved": "The event was saved.",
+        "meetingCreated": "Meeting created. Guardians invited: {count}."
+      },
+      "occurrence": {
+        "title": "Change this event only",
+        "help": "Only this one event of the series changes.",
+        "notice": "It can move at most 7 days from its place in the series and stays timed or all-day. People who see it are told when its time or place changes.",
+        "save": "Save this event",
+        "saved": "The event was changed."
+      },
+      "recurrence": {
+        "title": "Repeat",
+        "frequency": "How often",
+        "frequencies": {
+          "NONE": "Does not repeat",
+          "DAILY": "Daily",
+          "WEEKLY": "Weekly",
+          "MONTHLY": "Monthly"
+        },
+        "every": {
+          "days": "Every how many days",
+          "weeks": "Every how many weeks",
+          "months": "Every how many months"
+        },
+        "weekdays": "On these days",
+        "startDayHint": "The day the event starts on is always included.",
+        "startDayLocked": "The day the event starts on",
+        "monthlyOn": "On day {day} of the month",
+        "monthlyShortMonths": "Months that have no day {day} are skipped.",
+        "ends": "Ends",
+        "end": {
+          "never": "Never",
+          "until": "On a day",
+          "count": "After a number of events"
+        },
+        "untilDate": "Last day",
+        "countLabel": "Number of events",
+        "preview": "Repeats",
+        "previewIncomplete": "Complete the fields above to see the repeat.",
+        "limits": "Limits: an interval up to {interval}, up to {count} events, and an end within {years} years of the start.",
+        "locked": "This event repeats in a way this form cannot show. Its repeat rule stays as it is."
+      },
+      "problems": {
+        "titleRequired": "Give the event a title.",
+        "titleTooLong": "The title is too long (at most {max} characters).",
+        "descriptionTooLong": "The description is too long (at most {max} characters).",
+        "locationTooLong": "The location is too long (at most {max} characters).",
+        "campusRequired": "Choose a campus.",
+        "gradeRequired": "Choose a grade.",
+        "classRequired": "Choose a class.",
+        "studentRequired": "Choose the student the meeting is about.",
+        "timeZoneInvalid": "Choose a time zone from the list.",
+        "startInvalid": "Give a valid start. A time that does not exist in this time zone is not valid.",
+        "endInvalid": "Give a valid end.",
+        "endBeforeStart": "The end cannot be before the start.",
+        "tooLong": "An event can last less than a year.",
+        "meetingInPast": "A parent meeting must be in the future.",
+        "rsvpRecurring": "Repeating events cannot ask for answers.",
+        "intervalRange": "Enter a number from 1 to {max}.",
+        "untilRequired": "Choose the last day.",
+        "untilBeforeStart": "The last day cannot be before the first day.",
+        "untilTooFar": "The last day must be within {years} years of the start.",
+        "countRange": "Enter a number from 1 to {max}.",
+        "shiftTooLarge": "This event can move at most 7 days from its place in the series."
+      },
+      "settings": {
+        "module": "Calendar",
+        "teachersCanCreateClassEvents": {
+          "title": "Teachers can add events for their classes",
+          "description": "Lead and co-teachers may add events for their own classes. School calendar managers and class managers always may."
+        },
+        "notifyNewEvents": {
+          "title": "Tell people about new events",
+          "description": "Tell the guardians and staff when a school, campus, grade or class event is created. Off by default: events appear in the calendar without a notification. Parent meeting invitations are always sent."
+        },
+        "notifyChanges": {
+          "title": "Tell people about cancellations and changes",
+          "description": "Tell the guardians and staff when an event is cancelled or moved (its time or place changes). Parent meetings always tell their participants."
+        },
+        "reminderEventMinutes": {
+          "title": "Reminder before events (minutes)",
+          "description": "How long before an event starts the reminder goes out, in minutes. 0 turns reminders off; the default is one day. Also used for personal events."
+        },
+        "reminderParentMeetingMinutes": {
+          "title": "Reminder before parent meetings (minutes)",
+          "description": "How long before a parent meeting starts its participants are reminded, in minutes. 0 turns reminders off; the default is one hour."
+        },
+        "reminderAudience": {
+          "title": "Who is reminded of events",
+          "description": "Only the people who answered yes or maybe (PARTICIPANTS), or everybody who can see the event (EVERYONE: guardians and staff)."
+        }
+      }
     }
   },
   "family": {
@@ -5633,6 +5799,186 @@
     },
     "messaging": {
       "unreadTab": "Messages, {count} unread"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "School events, holidays and important dates, and your own plans.",
+      "toolbar": "Calendar controls",
+      "today": "Today",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week",
+      "viewLabel": "View",
+      "views": {
+        "month": "Month",
+        "week": "Week",
+        "agenda": "Agenda"
+      },
+      "systemLabel": "Calendar type",
+      "systems": {
+        "gregorian": "Gregorian",
+        "ethiopian": "Ethiopian"
+      },
+      "newEvent": "New event",
+      "showLabel": "Show",
+      "filters": {
+        "events": "Events",
+        "holidays": "Holidays",
+        "academic": "Academic dates",
+        "personal": "Personal"
+      },
+      "schoolFilter": "School",
+      "allSchools": "All schools",
+      "childFilter": "Child",
+      "allChildren": "All children",
+      "loadFailed": "The calendar could not be loaded.",
+      "truncated": "This period has more items than can be shown. Use the week view or the filters to see everything.",
+      "noSources": "Choose at least one kind of item to show.",
+      "gridLabel": "Calendar, {title}",
+      "noItems": "Nothing planned",
+      "itemCount": "Items: {count}",
+      "more": "+{count} more",
+      "emptyRange": "Nothing planned in this period.",
+      "add": "Add",
+      "addOn": "Add an event on {date}",
+      "legend": "Key",
+      "sources": {
+        "EVENT": "Event",
+        "PERSONAL_EVENT": "Personal",
+        "HOLIDAY": "Holiday",
+        "ACADEMIC_PERIOD": "Academic date",
+        "OTHER": "Calendar item"
+      },
+      "kinds": {
+        "SCHOOL_EVENT": "School event",
+        "CLASS_EVENT": "Class event",
+        "EXAM": "Exam",
+        "PARENT_MEETING": "Parent meeting",
+        "OTHER": "Event",
+        "NATIONAL": "National holiday",
+        "RELIGIOUS": "Religious holiday",
+        "REGIONAL": "Regional holiday",
+        "SCHOOL_BREAK": "School break",
+        "YEAR_START": "School year starts",
+        "YEAR_END": "School year ends",
+        "PERIOD_START": "Term starts",
+        "PERIOD_END": "Term ends"
+      },
+      "scopes": {
+        "PERSONAL": "Personal",
+        "SCHOOL": "Whole school",
+        "CAMPUS": "Campus",
+        "GRADE_LEVEL": "Grade",
+        "CLASS": "Class",
+        "INVITEES": "Parent meeting"
+      },
+      "cancelled": "Cancelled",
+      "modified": "Changed",
+      "repeats": "Repeats",
+      "allDay": "All day",
+      "startsAt": "Starts {time}",
+      "endsAt": "Ends {time}",
+      "dayOf": "Day {n} of {total}",
+      "dateRange": "{from} to {to}",
+      "zoneNote": "Shown in the event's time zone, {zone}. In your time zone ({yourZone}): {yours}.",
+      "backToCalendar": "Back to the calendar",
+      "rule": {
+        "dailyOne": "Every day",
+        "dailyMany": "Every {interval} days",
+        "weeklyOne": "Every week on {days}",
+        "weeklyMany": "Every {interval} weeks on {days}",
+        "monthlyOne": "Every month on day {day}",
+        "monthlyMany": "Every {interval} months on day {day}",
+        "until": "until {date}",
+        "countOne": "once",
+        "countMany": "{count} times"
+      },
+      "detail": {
+        "dialogTitle": "Event",
+        "dialogDescription": "Details of the event.",
+        "pageTitle": "Event",
+        "loadFailed": "The event could not be loaded.",
+        "actionFailed": "That could not be done. Please try again.",
+        "when": "When",
+        "timeZone": "Time zone",
+        "where": "Where",
+        "repeats": "Repeats",
+        "repeatsCustom": "Repeats on a custom schedule",
+        "organiser": "Organised by",
+        "cancelled": "This event was cancelled.",
+        "cancelledReason": "This event was cancelled: {reason}",
+        "occurrenceCancelled": "This one event of the series was cancelled.",
+        "occurrenceCancelledReason": "This one event of the series was cancelled: {reason}",
+        "meetingOrganiserNote": "Only you and the invited guardians can see this meeting. Each guardian sees their own answer; you see everyone's.",
+        "meetingGuardianNote": "This is a private parent meeting: only the teacher and the invited guardians can see it.",
+        "edit": "Edit",
+        "reschedule": "Reschedule",
+        "restore": "Bring this event back",
+        "restored": "The event is back in the calendar.",
+        "cancel": "Cancel event",
+        "cancelEllipsis": "Cancel…",
+        "delete": "Delete"
+      },
+      "rsvp": {
+        "title": "Answers",
+        "question": "Will you come?",
+        "recurring": "Repeating events do not ask for answers.",
+        "yourAnswer": "Your answer: {answer}",
+        "pending": "You have not answered yet.",
+        "closed": "Answers are closed.",
+        "closedWithAnswer": "Answers are closed. Your answer: {answer}",
+        "failed": "Your answer could not be saved.",
+        "totals": "Answers so far",
+        "count": {
+          "yes": "{count} yes",
+          "maybe": "{count} maybe",
+          "no": "{count} no",
+          "pending": "{count} not answered"
+        },
+        "participants": "Who answered what",
+        "noParticipants": "No guardians were invited.",
+        "answers": {
+          "YES": "Yes",
+          "NO": "No",
+          "MAYBE": "Maybe",
+          "PENDING": "Not answered"
+        }
+      },
+      "choice": {
+        "editTitle": "Change which events?",
+        "cancelTitle": "Cancel which events?",
+        "description": "This event repeats.",
+        "occurrence": "Only this event",
+        "series": "All events",
+        "occurrenceEditHelp": "Change just this one day. The other events stay as they are.",
+        "seriesEditHelp": "Change the whole series. Changing the schedule clears the cancelled and moved events and asks everyone to answer again.",
+        "occurrenceCancelHelp": "Cancel just this one. The other events stay.",
+        "seriesCancelHelp": "Cancel every event of the series."
+      },
+      "cancelDialog": {
+        "title": "Cancel this event?",
+        "titleOccurrence": "Cancel this event only?",
+        "titleSeries": "Cancel all events of the series?",
+        "help": "It stays in the calendar, marked as cancelled.",
+        "helpOccurrence": "It stays in the calendar, marked as cancelled. The other events of the series are not affected.",
+        "helpSeries": "Every event of the series stays in the calendar, marked as cancelled.",
+        "notice": "The people who can see this event are told that it was cancelled.",
+        "meetingNotice": "The invited guardians are told. Their notification says only that a parent meeting was cancelled: it never names the child or shows the title.",
+        "reason": "Reason (optional)",
+        "confirm": "Cancel event",
+        "confirmOccurrence": "Cancel this event",
+        "confirmSeries": "Cancel all events",
+        "done": "The event was cancelled.",
+        "doneOccurrence": "This event was cancelled."
+      },
+      "deleteDialog": {
+        "title": "Delete this event?",
+        "help": "A cancelled event is removed from the calendar for good.",
+        "helpPersonal": "This personal event is removed from your calendar for good.",
+        "confirm": "Delete",
+        "done": "The event was deleted."
+      }
     }
   },
   "invite": {

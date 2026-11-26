@@ -12,10 +12,11 @@ const TABS = [
   { href: "/family", key: "family" },
   { href: "/announcements", key: "announcements" },
   { href: "/messages", key: "messages" },
+  { href: "/calendar", key: "calendar" },
   { href: "/family/consent", key: "consent" },
 ] as const;
 
-/** Four tabs: my children, announcements and messages (each with the number still unread) and consent. */
+/** Five tabs: my children, announcements and messages (each with the number still unread), the calendar and consent. */
 export function FamilyNav() {
   const t = useTranslations();
   const pathname = usePathname();
@@ -39,7 +40,7 @@ export function FamilyNav() {
                   active ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 )}
               >
-                {tab.key === "family" ? t("nav.family") : tab.key === "announcements" ? t("nav.announcements") : tab.key === "messages" ? t("nav.messaging") : t("consent.title")}
+                {tab.key === "family" ? t("nav.family") : tab.key === "announcements" ? t("nav.announcements") : tab.key === "messages" ? t("nav.messaging") : tab.key === "calendar" ? t("nav.calendar") : t("consent.title")}
                 {tab.key === "announcements" && unread > 0 ? (
                   <span className="grid min-w-5 place-items-center rounded-full bg-destructive px-1.5 text-xs leading-5 font-bold text-white" data-testid="family-announcements-badge">
                     {badgeText(unread)}

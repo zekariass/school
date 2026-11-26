@@ -5402,6 +5402,172 @@
           }
         }
       }
+    },
+    "calendar": {
+      "workspaceTitle": "የቀን መቁጠሪያ",
+      "workspaceSubtitle": "የዚህ ትምህርት ቤት ዝግጅቶች፣ በዓላትና የትምህርት ቀናት፣ እንዲሁም የራስዎ ዝግጅቶች።",
+      "saveFailed": "ዝግጅቱን ማስቀመጥ አልተቻለም። ያስገቡት ሁሉ እዚሁ አለ።",
+      "where": {
+        "label": "የት",
+        "personal": "ለእኔ ብቻ (የግል ዝግጅት)"
+      },
+      "scopes": {
+        "PERSONAL": "የግል",
+        "SCHOOL": "መላው ትምህርት ቤት",
+        "CAMPUS": "አንድ ግቢ",
+        "GRADE_LEVEL": "አንድ የክፍል ደረጃ",
+        "CLASS": "አንድ ክፍል",
+        "PARENT_MEETING": "የወላጆች ስብሰባ"
+      },
+      "types": {
+        "SCHOOL_EVENT": "የትምህርት ቤት ዝግጅት",
+        "CLASS_EVENT": "የክፍል ዝግጅት",
+        "EXAM": "ፈተና",
+        "PARENT_MEETING": "የወላጆች ስብሰባ",
+        "OTHER": "ሌላ"
+      },
+      "fields": {
+        "scope": "የሚመለከተው",
+        "type": "አይነት",
+        "title": "ርዕስ",
+        "location": "ቦታ (አማራጭ)",
+        "description": "መግለጫ (አማራጭ)",
+        "allDay": "ቀኑን ሙሉ",
+        "startDate": "የመጀመሪያ ቀን",
+        "endDate": "የመጨረሻ ቀን",
+        "endDateHint": "የመጨረሻው ቀን ይካተታል።",
+        "start": "ይጀምራል",
+        "end": "ያበቃል",
+        "inZone": "ሰዓቶቹ በ{zone} ናቸው።",
+        "timeZone": "የሰዓት ሰቅ",
+        "timeZoneHint": "ከላይ ያሉት ሰዓቶች በዚህ የሰዓት ሰቅ ይነበባሉ፤ ሁሉም ሰው ዝግጅቱን በዚሁ ሰቅ ያየዋል።",
+        "timeZoneAllDayHint": "ቀናቱ በዚህ የሰዓት ሰቅ ውስጥ ያሉ ቀናት ናቸው።",
+        "schoolZone": "ትምህርት ቤት",
+        "yourZone": "የእርስዎ የሰዓት ሰቅ",
+        "rsvp": "ሰዎች እንዲመልሱ ጠይቅ (አዎ፣ አይ ወይም ምናልባት)",
+        "rsvpHint": "ዝግጅቱን ማየት የሚችል ሁሉ መመለስ ይችላል። ድምርን ያያሉ እንጂ ማን ምን እንደ መለሰ አያዩም።",
+        "rsvpRecurring": "ተደጋጋሚ ዝግጅቶች መልስ አይጠይቁም።",
+        "campus": "ግቢ",
+        "grade": "የክፍል ደረጃ",
+        "class": "ክፍል",
+        "choose": "ይምረጡ…",
+        "loadFailed": "ምርጫዎቹን መጫን አልተቻለም።",
+        "meetingClass": "ክፍል",
+        "meetingStudent": "ስብሰባው የሚመለከተው ተማሪ"
+      },
+      "form": {
+        "createTitle": "አዲስ ዝግጅት",
+        "createHelp": "ለማን እንደሆነና መቼ እንደሚካሄድ ይምረጡ።",
+        "editTitle": "ዝግጅቱን አርትዕ",
+        "rescheduleTitle": "የስብሰባውን ሰዓት ቀይር",
+        "editHelp": "የሚፈልጉትን ይቀይሩ፤ የሚቀመጡት ለውጦች ብቻ ናቸው።",
+        "capsFailed": "ምን መፍጠር እንደሚችሉ ማረጋገጥ አልተቻለም።",
+        "noAccess": "በዚህ ትምህርት ቤት ዝግጅት መፍጠር አይችሉም።",
+        "audienceFixed": "ለ፦ {scope}። ዝግጅቱ ለማን እንደሆነ መቀየር አይቻልም።",
+        "meetingWho": "የዚህ ተማሪ የትምህርት መረጃ ማየት የሚችሉ አሳዳጊዎች ይጋበዛሉ፤ እያንዳንዳቸውም መመለስ ይችላሉ። ስንቶች እንደ ተጋበዙ ያያሉ።",
+        "meetingPrivacy": "ማሳወቂያዎቻቸው የወላጆች ስብሰባ መታቀዱን፣ ከስምዎና ከሰዓቱ ጋር ብቻ ይናገራሉ። የተማሪውን ስም፣ ርዕሱን ወይም ቦታውን በፍጹም አያሳዩም።",
+        "meetingTitleHint": "ርዕሱ የሚታየው ለእርስዎና ለተጋበዙ አሳዳጊዎች ብቻ ነው።",
+        "warnClears": "የተደጋጋሚ ዝግጅትን መርሐ ግብር መቀየር የተሰረዙትንና የተዛወሩትን ዝግጅቶች ያጠፋል፤ እንደገና ተደጋጋሚው ዝግጅት እንደሚለው ይሆናሉ።",
+        "warnResets": "ሰዓቱን መቀየር ሁሉም እንደገና እንዲመልሱ ይጠይቃል።",
+        "warnResetsMeeting": "ሰዓቱን መቀየር አሳዳጊዎቹን ያሳውቃል፤ እንደገና እንዲመልሱም ይጠይቃል።",
+        "editNotice": "ይህን ዝግጅት ማየት የሚችሉ ሰዎች ሰዓቱ ወይም ቦታው ሲቀየር ይነገራቸዋል፤ ይህ በትምህርት ቤቱ ቅንብሮች መሠረት ነው።",
+        "fixProblems": "እባክዎ ምልክት የተደረገባቸውን መስኮች ያስተካክሉ።",
+        "save": "ለውጦችን አስቀምጥ",
+        "create": "ዝግጅት ፍጠር",
+        "createMeeting": "አሳዳጊዎችን ጋብዝ",
+        "created": "ዝግጅቱ ተፈጥሯል።",
+        "saved": "ዝግጅቱ ተቀምጧል።",
+        "meetingCreated": "ስብሰባው ተፈጥሯል። የተጋበዙ አሳዳጊዎች፦ {count}።"
+      },
+      "occurrence": {
+        "title": "ይህን ዝግጅት ብቻ ቀይር",
+        "help": "ከተደጋጋሚው ዝግጅት ይህ አንዱ ብቻ ይቀየራል።",
+        "notice": "ከተደጋጋሚው ውስጥ ካለበት ቦታ ቢበዛ 7 ቀን ሊዘዋወር ይችላል፤ የሰዓት ወይም የቀን-ሙሉ ዓይነቱ ይቆያል። ሰዓቱ ወይም ቦታው ሲቀየር የሚያዩት ሰዎች ይነገራቸዋል።",
+        "save": "ይህን ዝግጅት አስቀምጥ",
+        "saved": "ዝግጅቱ ተቀይሯል።"
+      },
+      "recurrence": {
+        "title": "መደጋገም",
+        "frequency": "ድግግሞሽ",
+        "frequencies": {
+          "NONE": "አይደገምም",
+          "DAILY": "በየቀኑ",
+          "WEEKLY": "በየሳምንቱ",
+          "MONTHLY": "በየወሩ"
+        },
+        "every": {
+          "days": "በየስንት ቀን",
+          "weeks": "በየስንት ሳምንት",
+          "months": "በየስንት ወር"
+        },
+        "weekdays": "በእነዚህ ቀናት",
+        "startDayHint": "ዝግጅቱ የሚጀምርበት ቀን ሁልጊዜ ይካተታል።",
+        "startDayLocked": "ዝግጅቱ የሚጀምርበት ቀን",
+        "monthlyOn": "በወሩ {day}ኛ ቀን",
+        "monthlyShortMonths": "{day}ኛ ቀን የሌላቸው ወራት ይዘለላሉ።",
+        "ends": "የሚያበቃው",
+        "end": {
+          "never": "በፍጹም",
+          "until": "በአንድ ቀን",
+          "count": "ከተወሰኑ ዝግጅቶች በኋላ"
+        },
+        "untilDate": "የመጨረሻ ቀን",
+        "countLabel": "የዝግጅቶች ብዛት",
+        "preview": "ይደገማል",
+        "previewIncomplete": "መደጋገሙን ለማየት ከላይ ያሉትን መስኮች ይሙሉ።",
+        "limits": "ገደቦች፦ የጊዜ ልዩነት እስከ {interval}፣ እስከ {count} ዝግጅቶች፣ እና ከመጀመሪያው በ{years} ዓመታት ውስጥ የሚያበቃ።",
+        "locked": "ይህ ዝግጅት ይህ ቅጽ ሊያሳየው በማይችል መንገድ ይደገማል። የመደጋገሚያ ደንቡ እንዳለ ይቆያል።"
+      },
+      "problems": {
+        "titleRequired": "ለዝግጅቱ ርዕስ ይስጡ።",
+        "titleTooLong": "ርዕሱ በጣም ረጅም ነው (ቢበዛ {max} ቁምፊዎች)።",
+        "descriptionTooLong": "መግለጫው በጣም ረጅም ነው (ቢበዛ {max} ቁምፊዎች)።",
+        "locationTooLong": "ቦታው በጣም ረጅም ነው (ቢበዛ {max} ቁምፊዎች)።",
+        "campusRequired": "ግቢ ይምረጡ።",
+        "gradeRequired": "የክፍል ደረጃ ይምረጡ።",
+        "classRequired": "ክፍል ይምረጡ።",
+        "studentRequired": "ስብሰባው የሚመለከተውን ተማሪ ይምረጡ።",
+        "timeZoneInvalid": "ከዝርዝሩ ውስጥ የሰዓት ሰቅ ይምረጡ።",
+        "startInvalid": "ትክክለኛ መጀመሪያ ያስገቡ። በዚህ የሰዓት ሰቅ የሌለ ሰዓት ትክክል አይደለም።",
+        "endInvalid": "ትክክለኛ መጨረሻ ያስገቡ።",
+        "endBeforeStart": "መጨረሻው ከመጀመሪያው በፊት ሊሆን አይችልም።",
+        "tooLong": "አንድ ዝግጅት ከአንድ ዓመት ያነሰ ጊዜ ሊቆይ ይችላል።",
+        "meetingInPast": "የወላጆች ስብሰባ ወደፊት መሆን አለበት።",
+        "rsvpRecurring": "ተደጋጋሚ ዝግጅቶች መልስ መጠየቅ አይችሉም።",
+        "intervalRange": "ከ1 እስከ {max} ያለ ቁጥር ያስገቡ።",
+        "untilRequired": "የመጨረሻውን ቀን ይምረጡ።",
+        "untilBeforeStart": "የመጨረሻው ቀን ከመጀመሪያው ቀን በፊት ሊሆን አይችልም።",
+        "untilTooFar": "የመጨረሻው ቀን ከመጀመሪያው በ{years} ዓመታት ውስጥ መሆን አለበት።",
+        "countRange": "ከ1 እስከ {max} ያለ ቁጥር ያስገቡ።",
+        "shiftTooLarge": "ይህ ዝግጅት ከተደጋጋሚው ውስጥ ካለበት ቦታ ቢበዛ 7 ቀን ሊዘዋወር ይችላል።"
+      },
+      "settings": {
+        "module": "የቀን መቁጠሪያ",
+        "teachersCanCreateClassEvents": {
+          "title": "መምህራን ለክፍሎቻቸው ዝግጅት መጨመር ይችላሉ",
+          "description": "ዋና እና ረዳት መምህራን ለራሳቸው ክፍሎች ዝግጅት መጨመር ይችላሉ። የትምህርት ቤት የቀን መቁጠሪያ አስተዳዳሪዎችና የክፍል አስተዳዳሪዎች ሁልጊዜ ይችላሉ።"
+        },
+        "notifyNewEvents": {
+          "title": "ስለ አዳዲስ ዝግጅቶች ሰዎችን አሳውቅ",
+          "description": "የትምህርት ቤት፣ የግቢ፣ የክፍል ደረጃ ወይም የክፍል ዝግጅት ሲፈጠር አሳዳጊዎችንና ሠራተኞችን አሳውቅ። በነባሪ ጠፍቷል፦ ዝግጅቶች ያለ ማሳወቂያ በቀን መቁጠሪያው ይታያሉ። የወላጆች ስብሰባ ግብዣዎች ሁልጊዜ ይላካሉ።"
+        },
+        "notifyChanges": {
+          "title": "ስለ መሰረዝና ለውጦች ሰዎችን አሳውቅ",
+          "description": "ዝግጅት ሲሰረዝ ወይም ሲዛወር (ሰዓቱ ወይም ቦታው ሲቀየር) አሳዳጊዎችንና ሠራተኞችን አሳውቅ። የወላጆች ስብሰባዎች ተሳታፊዎቻቸውን ሁልጊዜ ያሳውቃሉ።"
+        },
+        "reminderEventMinutes": {
+          "title": "ከዝግጅቶች በፊት የሚላክ ማስታወሻ (ደቂቃ)",
+          "description": "ዝግጅት ከመጀመሩ ምን ያህል ደቂቃ በፊት ማስታወሻው እንደሚላክ። 0 ማስታወሻዎችን ያጠፋል፤ ነባሪው አንድ ቀን ነው። ለግል ዝግጅቶችም ያገለግላል።"
+        },
+        "reminderParentMeetingMinutes": {
+          "title": "ከወላጆች ስብሰባ በፊት የሚላክ ማስታወሻ (ደቂቃ)",
+          "description": "የወላጆች ስብሰባ ከመጀመሩ ምን ያህል ደቂቃ በፊት ተሳታፊዎቹ እንደሚታወሱ። 0 ማስታወሻዎችን ያጠፋል፤ ነባሪው አንድ ሰዓት ነው።"
+        },
+        "reminderAudience": {
+          "title": "ስለ ዝግጅቶች የሚታወሱ ሰዎች",
+          "description": "አዎ ወይም ምናልባት ብለው የመለሱ ሰዎች ብቻ (PARTICIPANTS)፣ ወይም ዝግጅቱን ማየት የሚችሉ ሁሉ (EVERYONE፦ አሳዳጊዎችና ሠራተኞች)።"
+        }
+      }
     }
   },
   "family": {
@@ -5633,6 +5799,186 @@
     },
     "messaging": {
       "unreadTab": "መልዕክቶች፣ {count} ያልተነበቡ"
+    },
+    "calendar": {
+      "title": "የቀን መቁጠሪያ",
+      "subtitle": "የትምህርት ቤት ዝግጅቶች፣ በዓላትና አስፈላጊ ቀናት፣ እንዲሁም የራስዎ እቅዶች።",
+      "toolbar": "የቀን መቁጠሪያ መቆጣጠሪያዎች",
+      "today": "ዛሬ",
+      "previousMonth": "ያለፈው ወር",
+      "nextMonth": "ቀጣዩ ወር",
+      "previousWeek": "ያለፈው ሳምንት",
+      "nextWeek": "ቀጣዩ ሳምንት",
+      "viewLabel": "እይታ",
+      "views": {
+        "month": "ወር",
+        "week": "ሳምንት",
+        "agenda": "ዝርዝር"
+      },
+      "systemLabel": "የቀን አቆጣጠር አይነት",
+      "systems": {
+        "gregorian": "ግሪጎሪያን",
+        "ethiopian": "ኢትዮጵያዊ"
+      },
+      "newEvent": "አዲስ ዝግጅት",
+      "showLabel": "አሳይ",
+      "filters": {
+        "events": "ዝግጅቶች",
+        "holidays": "በዓላት",
+        "academic": "የትምህርት ቀናት",
+        "personal": "የግል"
+      },
+      "schoolFilter": "ትምህርት ቤት",
+      "allSchools": "ሁሉም ትምህርት ቤቶች",
+      "childFilter": "ልጅ",
+      "allChildren": "ሁሉም ልጆች",
+      "loadFailed": "የቀን መቁጠሪያውን መጫን አልተቻለም።",
+      "truncated": "በዚህ ጊዜ ውስጥ ከሚታየው በላይ ብዙ ነገሮች አሉ። ሁሉንም ለማየት የሳምንት እይታውን ወይም ማጣሪያዎቹን ይጠቀሙ።",
+      "noSources": "ቢያንስ አንድ አይነት ነገር ይምረጡ።",
+      "gridLabel": "የቀን መቁጠሪያ፣ {title}",
+      "noItems": "ምንም የታቀደ ነገር የለም",
+      "itemCount": "ነገሮች፦ {count}",
+      "more": "+{count} ተጨማሪ",
+      "emptyRange": "በዚህ ጊዜ ውስጥ ምንም የታቀደ ነገር የለም።",
+      "add": "ጨምር",
+      "addOn": "በ{date} ዝግጅት ጨምር",
+      "legend": "ማብራሪያ",
+      "sources": {
+        "EVENT": "ዝግጅት",
+        "PERSONAL_EVENT": "የግል",
+        "HOLIDAY": "በዓል",
+        "ACADEMIC_PERIOD": "የትምህርት ቀን",
+        "OTHER": "የቀን መቁጠሪያ ንጥል"
+      },
+      "kinds": {
+        "SCHOOL_EVENT": "የትምህርት ቤት ዝግጅት",
+        "CLASS_EVENT": "የክፍል ዝግጅት",
+        "EXAM": "ፈተና",
+        "PARENT_MEETING": "የወላጆች ስብሰባ",
+        "OTHER": "ዝግጅት",
+        "NATIONAL": "ብሔራዊ በዓል",
+        "RELIGIOUS": "ሃይማኖታዊ በዓል",
+        "REGIONAL": "የክልል በዓል",
+        "SCHOOL_BREAK": "የትምህርት ዕረፍት",
+        "YEAR_START": "የትምህርት ዓመት ይጀምራል",
+        "YEAR_END": "የትምህርት ዓመት ያበቃል",
+        "PERIOD_START": "የትምህርት ወቅት ይጀምራል",
+        "PERIOD_END": "የትምህርት ወቅት ያበቃል"
+      },
+      "scopes": {
+        "PERSONAL": "የግል",
+        "SCHOOL": "መላው ትምህርት ቤት",
+        "CAMPUS": "ግቢ",
+        "GRADE_LEVEL": "የክፍል ደረጃ",
+        "CLASS": "ክፍል",
+        "INVITEES": "የወላጆች ስብሰባ"
+      },
+      "cancelled": "ተሰርዟል",
+      "modified": "ተቀይሯል",
+      "repeats": "ይደገማል",
+      "allDay": "ቀኑን ሙሉ",
+      "startsAt": "ይጀምራል {time}",
+      "endsAt": "ያበቃል {time}",
+      "dayOf": "ቀን {n} ከ{total}",
+      "dateRange": "{from} እስከ {to}",
+      "zoneNote": "በዝግጅቱ የሰዓት ሰቅ ({zone}) ታይቷል። በእርስዎ የሰዓት ሰቅ ({yourZone})፦ {yours}።",
+      "backToCalendar": "ወደ የቀን መቁጠሪያው ተመለስ",
+      "rule": {
+        "dailyOne": "በየቀኑ",
+        "dailyMany": "በየ{interval} ቀኑ",
+        "weeklyOne": "በየሳምንቱ በ{days}",
+        "weeklyMany": "በየ{interval} ሳምንቱ በ{days}",
+        "monthlyOne": "በየወሩ በ{day}ኛ ቀን",
+        "monthlyMany": "በየ{interval} ወሩ በ{day}ኛ ቀን",
+        "until": "እስከ {date}",
+        "countOne": "አንድ ጊዜ",
+        "countMany": "{count} ጊዜ"
+      },
+      "detail": {
+        "dialogTitle": "ዝግጅት",
+        "dialogDescription": "የዝግጅቱ ዝርዝር።",
+        "pageTitle": "ዝግጅት",
+        "loadFailed": "ዝግጅቱን መጫን አልተቻለም።",
+        "actionFailed": "ይህን ማድረግ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+        "when": "መቼ",
+        "timeZone": "የሰዓት ሰቅ",
+        "where": "የት",
+        "repeats": "መደጋገም",
+        "repeatsCustom": "በራሱ መርሐ ግብር ይደገማል",
+        "organiser": "ያዘጋጀው",
+        "cancelled": "ይህ ዝግጅት ተሰርዟል።",
+        "cancelledReason": "ይህ ዝግጅት ተሰርዟል፦ {reason}",
+        "occurrenceCancelled": "ከተደጋጋሚው ዝግጅት ይህ አንድ ቀን ተሰርዟል።",
+        "occurrenceCancelledReason": "ከተደጋጋሚው ዝግጅት ይህ አንድ ቀን ተሰርዟል፦ {reason}",
+        "meetingOrganiserNote": "ይህን ስብሰባ እርስዎና የተጋበዙ አሳዳጊዎች ብቻ ማየት ይችላሉ። እያንዳንዱ አሳዳጊ የራሱን መልስ ያያል፤ እርስዎ የሁሉንም ያያሉ።",
+        "meetingGuardianNote": "ይህ የግል የወላጆች ስብሰባ ነው፤ መምህሩና የተጋበዙ አሳዳጊዎች ብቻ ማየት ይችላሉ።",
+        "edit": "አርትዕ",
+        "reschedule": "ሰዓቱን ቀይር",
+        "restore": "ይህን ዝግጅት መልስ",
+        "restored": "ዝግጅቱ ወደ የቀን መቁጠሪያው ተመልሷል።",
+        "cancel": "ዝግጅቱን ሰርዝ",
+        "cancelEllipsis": "ሰርዝ…",
+        "delete": "አጥፋ"
+      },
+      "rsvp": {
+        "title": "መልሶች",
+        "question": "ይመጣሉ?",
+        "recurring": "ተደጋጋሚ ዝግጅቶች መልስ አይጠይቁም።",
+        "yourAnswer": "የእርስዎ መልስ፦ {answer}",
+        "pending": "እስካሁን አልመለሱም።",
+        "closed": "መልስ መስጠት ተዘግቷል።",
+        "closedWithAnswer": "መልስ መስጠት ተዘግቷል። የእርስዎ መልስ፦ {answer}",
+        "failed": "መልስዎን ማስቀመጥ አልተቻለም።",
+        "totals": "እስካሁን የተሰጡ መልሶች",
+        "count": {
+          "yes": "{count} አዎ",
+          "maybe": "{count} ምናልባት",
+          "no": "{count} አይ",
+          "pending": "{count} ያልመለሱ"
+        },
+        "participants": "ማን ምን መለሰ",
+        "noParticipants": "ምንም አሳዳጊ አልተጋበዘም።",
+        "answers": {
+          "YES": "አዎ",
+          "NO": "አይ",
+          "MAYBE": "ምናልባት",
+          "PENDING": "አልመለሰም"
+        }
+      },
+      "choice": {
+        "editTitle": "የትኞቹን ዝግጅቶች መቀየር ይፈልጋሉ?",
+        "cancelTitle": "የትኞቹን ዝግጅቶች መሰረዝ ይፈልጋሉ?",
+        "description": "ይህ ዝግጅት ይደገማል።",
+        "occurrence": "ይህን ዝግጅት ብቻ",
+        "series": "ሁሉንም ዝግጅቶች",
+        "occurrenceEditHelp": "ይህን አንድ ቀን ብቻ ይቀይሩ። ሌሎቹ ዝግጅቶች እንዳሉ ይቆያሉ።",
+        "seriesEditHelp": "ሙሉውን ተደጋጋሚ ዝግጅት ይቀይሩ። መርሐ ግብሩን መቀየር የተሰረዙትንና የተዛወሩትን ዝግጅቶች ያጠፋል፤ ሁሉም እንደገና እንዲመልሱ ይጠየቃል።",
+        "occurrenceCancelHelp": "ይህን አንድ ብቻ ይሰርዙ። ሌሎቹ ይቆያሉ።",
+        "seriesCancelHelp": "የተደጋጋሚውን ዝግጅት ሁሉንም ይሰርዙ።"
+      },
+      "cancelDialog": {
+        "title": "ይህን ዝግጅት ይሰርዙ?",
+        "titleOccurrence": "ይህን ዝግጅት ብቻ ይሰርዙ?",
+        "titleSeries": "የተደጋጋሚውን ዝግጅት ሁሉንም ይሰርዙ?",
+        "help": "በቀን መቁጠሪያው ውስጥ እንደ ተሰረዘ ምልክት ተደርጎበት ይቆያል።",
+        "helpOccurrence": "በቀን መቁጠሪያው ውስጥ እንደ ተሰረዘ ምልክት ተደርጎበት ይቆያል። የተደጋጋሚው ዝግጅት ሌሎች ቀናት አይነኩም።",
+        "helpSeries": "የተደጋጋሚው ዝግጅት ሁሉም ቀናት እንደ ተሰረዙ ምልክት ተደርጎባቸው በቀን መቁጠሪያው ውስጥ ይቆያሉ።",
+        "notice": "ይህን ዝግጅት ማየት የሚችሉ ሰዎች እንደ ተሰረዘ ይነገራቸዋል።",
+        "meetingNotice": "የተጋበዙ አሳዳጊዎች ይነገራቸዋል። ማሳወቂያቸው የወላጆች ስብሰባ እንደ ተሰረዘ ብቻ ይናገራል፤ ልጁን በስም አይጠቅስም፣ ርዕሱንም አያሳይም።",
+        "reason": "ምክንያት (አማራጭ)",
+        "confirm": "ዝግጅቱን ሰርዝ",
+        "confirmOccurrence": "ይህን ዝግጅት ሰርዝ",
+        "confirmSeries": "ሁሉንም ሰርዝ",
+        "done": "ዝግጅቱ ተሰርዟል።",
+        "doneOccurrence": "ይህ ዝግጅት ተሰርዟል።"
+      },
+      "deleteDialog": {
+        "title": "ይህን ዝግጅት ያጥፉ?",
+        "help": "የተሰረዘ ዝግጅት ከቀን መቁጠሪያው ለዘላለም ይወገዳል።",
+        "helpPersonal": "ይህ የግል ዝግጅት ከቀን መቁጠሪያዎ ለዘላለም ይወገዳል።",
+        "confirm": "አጥፋ",
+        "done": "ዝግጅቱ ጠፍቷል።"
+      }
     }
   },
   "invite": {

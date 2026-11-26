@@ -12,6 +12,8 @@ import { unwrap } from "@/lib/api-error";
 import { isAboutOpenConversation } from "@/lib/messaging/deep-link";
 import { ALL_MESSAGING_KEYS, doorbellKeys, parseDoorbell } from "@/lib/messaging/doorbell";
 import { setSocketUp } from "@/lib/messaging/socket-status";
+import { isCalendarNotification } from "@/lib/calendar/notifications";
+import { ck } from "@/lib/calendar/queries";
 import { reconnectDelay } from "@/lib/notifications/backoff";
 import { notificationKeys } from "@/lib/notifications/keys";
 import { applyRealtimeEvent } from "@/lib/notifications/realtime-cache";
@@ -99,6 +101,8 @@ export function useRealtime() {
                 toastCreated(event.notification);
                 // A new announcement changes the header badge and the inbox.
                 if (isAnnouncementNotification(event.notification.data)) void queryClient.invalidateQueries({ queryKey: ank.all });
+                // A new, moved or cancelled event changes the calendar and the event that may be open.
+                if (isCalendarNotification(event.notification.data)) void queryClient.invalidateQueries({ queryKey: ck.all });
               }
             });
             next.subscribe(MESSAGE_QUEUE, (frame) => {
