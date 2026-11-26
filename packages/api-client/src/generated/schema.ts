@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's calendar for a window [from, to) (instants, at most 366 days): native events they may see (school-wide for members and guardians, campus, grade and class events by the class and school visibility rules, parent meetings only for their organiser and the invited guardians whose link still holds, their own personal events), the holidays of their schools and the start and end of their academic years and periods, each item tagged with its source. schoolId narrows to one school (404 school.not_found, 403 calendar.feature_disabled); studentId narrows a guardian's view to one child (404 calendar.student_not_found); sources is a comma list of EVENT, PERSONAL_EVENT, HOLIDAY, ACADEMIC_PERIOD (default all, PERSONAL_EVENT only when no school or child is named). Recurring events are expanded for the window only. Ordered by start then id, keyset paged (limit up to 500, 200 by default); truncated says the window held more than the server returns. Times are instants plus the item's time zone; all-day items also carry inclusive calendar dates */
+        get: operations["getCalendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/conversations/{conversationId}": {
         parameters: {
             query?: never;
@@ -385,6 +402,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One event the caller may see, with its rule and exceptions, the caller's own answer, what they may do, and (organisers and managers) the answers: a parent meeting's organiser sees each invited guardian's answer, nobody else does. 404 event.not_found when not visible (including a revoked or custody-restricted guardian's parent meeting) */
+        get: operations["getEvent"];
+        put?: never;
+        post?: never;
+        /** Deletes (soft) a cancelled event, or a personal one at any time. 409 event.cancel_first for a scheduled school or class event */
+        delete: operations["deleteEvent"];
+        options?: never;
+        head?: never;
+        /** Changes an event (creator or manager): text, place, time (startAt and endAt together, or both dates), zone, rule (moves the whole series and clears its exceptions), RSVP on or off. Moving the time or place tells the audience (always for parent meetings; other events when calendar.notify.changes) and asks answers again. 403 event.access_denied, 409 event.cancelled */
+        patch: operations["updateEvent"];
+        trace?: never;
+    };
+    "/api/v1/events/{eventId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancels the whole event (every occurrence of a series): it stays in the calendar as CANCELLED, the audience is told, held-back pushes of the event are dropped. Idempotent */
+        post: operations["cancelEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/{eventId}/occurrences/{occurrenceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes the exception of one occurrence: it is as the series says again. Idempotent */
+        delete: operations["restoreEventOccurrence"];
+        options?: never;
+        head?: never;
+        /** Changes one occurrence of a recurring event (title, text, place, time: at most 7 days from its place in the series, in the same kind, timed or all-day). Brings back a cancelled occurrence. Time or place changes tell the audience */
+        patch: operations["updateEventOccurrence"];
+        trace?: never;
+    };
+    "/api/v1/events/{eventId}/occurrences/{occurrenceId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancels one occurrence of a recurring event (an exception, EXDATE): it stays visible as CANCELLED and the audience is told. occurrenceId is the one items of the calendar carry. Idempotent. 409 event.not_recurring, 404 event.occurrence_not_found */
+        post: operations["cancelEventOccurrence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/{eventId}/rsvp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Answers YES, NO or MAYBE (changeable until the event starts; the same answer again changes nothing). 409 event.rsvp_disabled, 409 event.rsvp_closed after the start or a cancellation; 404 when the caller is not an invited guardian of a parent meeting */
+        put: operations["answerEvent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invitations/accept": {
         parameters: {
             query?: never;
@@ -622,6 +727,23 @@ export interface paths {
         get: operations["listMyConversations"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Creates a personal event: visible only to the caller, in their own time zone unless timeZone is given; no RSVP, not tied to a school (any signed-in user) */
+        post: operations["createPersonalEvent"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2545,6 +2667,40 @@ export interface paths {
         put?: never;
         /** Reject a pending contribution with a reason the contributor sees (moderators). The photos are deleted. Audited; the contributor is notified */
         post: operations["rejectContribution"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Creates an event in a school's calendar: scope SCHOOL, CAMPUS (campusId) or GRADE_LEVEL (gradeLevelId) needs school.calendar.manage; scope CLASS (classId) a calendar manager, a class manager or an ACTIVE lead or co-teacher of the class (setting calendar.teachers_can_create_class_events); eventType PARENT_MEETING with regardingStudentId (no scope) an ACTIVE lead, co or subject teacher of one of the student's classes: the student's ACTIVE, unrestricted guardians with academics access are invited and notified, RSVP is on. Timed (startAt, endAt, timeZone) or all-day (allDay, startDate, endDate). Optional RFC 5545 subset recurrenceRule. Plain text. 400 event.* validation codes, 403 event.create_denied / event.meeting_not_allowed, 404 school.not_found / class.not_found / event.student_not_found, 409 class.archived, 422 event.no_participants */
+        post: operations["createEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/events/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the caller may create in the school's calendar (school-wide events, events for given classes, parent meetings), for menus. 404 for callers who cannot see the school, 403 calendar.feature_disabled */
+        get: operations["getCalendarCapabilities"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4879,6 +5035,276 @@ export interface components {
             /** Format: uuid */
             id: string;
             person?: components["schemas"]["ParticipantView"];
+        };
+        CalendarCancelRequest: {
+            reason?: string;
+        };
+        /** @description What the caller may create in a school (for menus; the API stays the authority) */
+        CalendarCapabilities: {
+            calendarEnabled?: boolean;
+            canCreateAnyClassEvent?: boolean;
+            canCreateParentMeetings?: boolean;
+            canCreateSchoolEvents?: boolean;
+            canManage?: boolean;
+            /** @description Classes the caller may create class events for (every class of the school for managers: omitted then) */
+            classes?: components["schemas"]["CalendarClassRef"][];
+            timeZone?: string;
+        };
+        CalendarClassRef: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+        };
+        /** @description What the caller may do with this event (the API stays the authority) */
+        CalendarEventCapabilities: {
+            canCancel?: boolean;
+            canDelete?: boolean;
+            canEdit?: boolean;
+        };
+        /** @description A new event. Timed events: startAt, endAt (instants, end not before start) and timeZone (IANA; default the school's). All-day events: allDay=true with startDate and endDate (calendar dates in timeZone, endDate inclusive and not before startDate); no instants. scope SCHOOL needs nothing more, CAMPUS needs campusId, GRADE_LEVEL gradeLevelId, CLASS classId; PARENT_MEETING needs regardingStudentId and no scope (the guardians of that child are invited). recurrenceRule is an RFC 5545 subset: FREQ=DAILY|WEEKLY|MONTHLY, INTERVAL, BYDAY (weekly), BYMONTHDAY (monthly), UNTIL or COUNT; not on parent meetings and not with rsvpEnabled. Text is plain text. */
+        CalendarEventRequest: {
+            allDay?: boolean;
+            /** Format: uuid */
+            campusId?: string;
+            /** Format: uuid */
+            classId?: string;
+            description?: string;
+            /** Format: date-time */
+            endAt?: string;
+            /** Format: date */
+            endDate?: string;
+            /** @enum {string} */
+            eventType?: "SCHOOL_EVENT" | "CLASS_EVENT" | "EXAM" | "PARENT_MEETING" | "OTHER";
+            /** Format: uuid */
+            gradeLevelId?: string;
+            location?: string;
+            recurrenceRule?: string;
+            /** Format: uuid */
+            regardingStudentId?: string;
+            rsvpEnabled?: boolean;
+            /** @enum {string} */
+            scope?: "SCHOOL" | "CAMPUS" | "GRADE_LEVEL" | "CLASS" | "PERSONAL" | "INVITEES";
+            /** Format: date-time */
+            startAt?: string;
+            /** Format: date */
+            startDate?: string;
+            timeZone?: string;
+            title?: string;
+        };
+        /** @description Changes an event; absent fields stay. Changing the time takes both startAt and endAt (or both dates, with allDay), and for a recurring event moves the whole series (its exceptions are cleared). Empty description, location or recurrenceRule removes it. The scope, type and student cannot change. Moving the time or place tells the audience (always for parent meetings, and for other events when the school's settings ask for it); an RSVP is asked again when the time moves. */
+        CalendarEventUpdateRequest: {
+            allDay?: boolean;
+            description?: string;
+            /** Format: date-time */
+            endAt?: string;
+            /** Format: date */
+            endDate?: string;
+            location?: string;
+            recurrenceRule?: string;
+            rsvpEnabled?: boolean;
+            /** Format: date-time */
+            startAt?: string;
+            /** Format: date */
+            startDate?: string;
+            timeZone?: string;
+            title?: string;
+        };
+        CalendarEventView: {
+            allDay?: boolean;
+            /** Format: uuid */
+            campusId?: string;
+            cancellationReason?: string;
+            /** Format: date-time */
+            cancelledAt?: string;
+            capabilities?: components["schemas"]["CalendarEventCapabilities"];
+            /** Format: uuid */
+            classId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: uuid */
+            createdBy?: string;
+            createdByName?: string;
+            description?: string;
+            /**
+             * Format: date-time
+             * @description Timed events: the end; all-day events: the start of the day after the last one
+             */
+            endAt?: string;
+            /** Format: date */
+            endDate?: string;
+            /** @enum {string} */
+            eventType: "SCHOOL_EVENT" | "CLASS_EVENT" | "EXAM" | "PARENT_MEETING" | "OTHER";
+            /** Format: uuid */
+            gradeLevelId?: string;
+            /** Format: uuid */
+            id: string;
+            location?: string;
+            overrides?: components["schemas"]["CalendarOccurrenceOverrideView"][];
+            /**
+             * Format: date-time
+             * @description When a finite series ends (the end of its last occurrence)
+             */
+            recurrenceEndsAt?: string;
+            /** @description The RFC 5545 subset rule, canonical form */
+            recurrenceRule?: string;
+            recurring?: boolean;
+            /** Format: uuid */
+            regardingStudentId?: string;
+            rsvp?: components["schemas"]["CalendarRsvpView"];
+            rsvpEnabled?: boolean;
+            /** Format: uuid */
+            schoolId?: string;
+            /** @enum {string} */
+            scope: "SCHOOL" | "CAMPUS" | "GRADE_LEVEL" | "CLASS" | "PERSONAL" | "INVITEES";
+            /**
+             * Format: date-time
+             * @description Timed events: the start; all-day events: the start of the first day
+             */
+            startAt?: string;
+            /** Format: date */
+            startDate?: string;
+            /** @enum {string} */
+            status: "SCHEDULED" | "CANCELLED";
+            timeZone: string;
+            title: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        CalendarItem: {
+            allDay: boolean;
+            /** Format: uuid */
+            campusId?: string;
+            /** Format: uuid */
+            classId?: string;
+            description?: string;
+            /** Format: date-time */
+            endAt: string;
+            /**
+             * Format: date
+             * @description All-day items: last day (inclusive), in timeZone
+             */
+            endDate?: string;
+            /** Format: uuid */
+            eventId?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            /** @description Stable id of this entry: the event id, 'eventId@occurrenceId' for an occurrence of a recurring event, 'HOLIDAY:id', 'PERIOD:id:START' ... */
+            id: string;
+            /** @description Source-specific kind: the event type (SCHOOL_EVENT, CLASS_EVENT, EXAM, PARENT_MEETING, OTHER), the holiday type, or YEAR_START, YEAR_END, PERIOD_START, PERIOD_END */
+            kind: string;
+            location?: string;
+            modified?: boolean;
+            /** @description The caller's own answer (YES, NO, MAYBE or PENDING) on events that ask for one */
+            myRsvp?: string;
+            /** @description Opaque occurrence id of a recurring event (the path part of the occurrence endpoints); absent for one-off events */
+            occurrenceId?: string;
+            recurring?: boolean;
+            /**
+             * Format: uuid
+             * @description Parent meetings: the child it is about (only the participants see the event at all)
+             */
+            regardingStudentId?: string;
+            rsvpEnabled?: boolean;
+            /** Format: uuid */
+            schoolId?: string;
+            scope?: string;
+            /** @description EVENT, PERSONAL_EVENT, HOLIDAY, ACADEMIC_PERIOD (later sources add theirs) */
+            source: string;
+            /** Format: date-time */
+            startAt: string;
+            /**
+             * Format: date
+             * @description All-day items: first day (inclusive), in timeZone
+             */
+            startDate?: string;
+            /** @description SCHEDULED or CANCELLED (cancelled items stay visible) */
+            status: string;
+            timeZone: string;
+            title: string;
+            /** @description Holidays: the name in every language; title is the one for the caller's language */
+            titleI18n?: {
+                [key: string]: string;
+            };
+        };
+        /** @description An exception of a recurring event: a cancelled or changed occurrence */
+        CalendarOccurrenceOverrideView: {
+            description?: string;
+            /** Format: date-time */
+            endAt?: string;
+            /** Format: date */
+            endDate?: string;
+            location?: string;
+            occurrenceId?: string;
+            /** Format: date-time */
+            occurrenceStart?: string;
+            reason?: string;
+            /** Format: date-time */
+            startAt?: string;
+            /** Format: date */
+            startDate?: string;
+            /** @description CANCELLED or MODIFIED */
+            status?: string;
+            title?: string;
+        };
+        /** @description Changes one occurrence of a recurring event (an exception); absent fields keep the series' values. The new time may move at most 7 days from the occurrence's own time and keeps its kind (timed or all-day). */
+        CalendarOccurrenceUpdateRequest: {
+            description?: string;
+            /** Format: date-time */
+            endAt?: string;
+            /** Format: date */
+            endDate?: string;
+            location?: string;
+            /** Format: date-time */
+            startAt?: string;
+            /** Format: date */
+            startDate?: string;
+            title?: string;
+        };
+        /** @description The calendar of a window, ordered by start then id, keyset paged */
+        CalendarPage: {
+            /** Format: date-time */
+            from: string;
+            items: components["schemas"]["CalendarItem"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+            /** Format: date-time */
+            to: string;
+            /** @description True when the window held more items than the server returns for one window (narrow the window) */
+            truncated?: boolean;
+        };
+        CalendarRsvpCounts: {
+            /** Format: int32 */
+            maybe?: number;
+            /** Format: int32 */
+            no?: number;
+            /** Format: int32 */
+            pending?: number;
+            /** Format: int32 */
+            yes?: number;
+        };
+        /** @description A guardian invited to a parent meeting and their answer (the organiser only) */
+        CalendarRsvpParticipant: {
+            displayName?: string;
+            /** Format: date-time */
+            respondedAt?: string;
+            status?: string;
+            /** Format: uuid */
+            userId?: string;
+        };
+        CalendarRsvpRequest: {
+            /** @enum {string} */
+            status: "YES" | "NO" | "MAYBE";
+        };
+        CalendarRsvpView: {
+            /** @description Whether the caller can still answer now (event not started, not cancelled) */
+            canAnswer?: boolean;
+            /** @description Totals of the answers: the organiser and managers only */
+            counts?: components["schemas"]["CalendarRsvpCounts"];
+            enabled?: boolean;
+            /** @description The caller's own answer: YES, NO, MAYBE or PENDING (absent when the caller has not been asked) */
+            mine?: string;
+            /** @description Who answered what: the organiser of a parent meeting only; nobody else ever sees it */
+            participants?: components["schemas"]["CalendarRsvpParticipant"][];
         };
         CampusResponse: {
             code?: string;
@@ -8178,6 +8604,43 @@ export interface operations {
             };
         };
     };
+    getCalendar: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                schoolId?: string;
+                studentId?: string;
+                sources?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarPage"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getConversation: {
         parameters: {
             query?: never;
@@ -8903,6 +9366,275 @@ export interface operations {
             };
         };
     };
+    getEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarEventUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    cancelEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CalendarCancelRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    restoreEventOccurrence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                occurrenceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateEventOccurrence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                occurrenceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarOccurrenceUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    cancelEventOccurrence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                occurrenceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CalendarCancelRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    answerEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarRsvpRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     acceptInvitation: {
         parameters: {
             query?: never;
@@ -9486,6 +10218,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CursorPageConversationSummaryView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createPersonalEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarEventRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -14370,6 +15135,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PostView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarEventRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getCalendarCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarCapabilities"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

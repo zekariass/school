@@ -268,6 +268,90 @@
         "tags" : [ "auth" ]
       }
     },
+    "/api/v1/calendar" : {
+      "get" : {
+        "operationId" : "getCalendar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "schoolId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "studentId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "sources",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarPage"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The caller's calendar for a window [from, to) (instants, at most 366 days): native events they may see (school-wide for members and guardians, campus, grade and class events by the class and school visibility rules, parent meetings only for their organiser and the invited guardians whose link still holds, their own personal events), the holidays of their schools and the start and end of their academic years and periods, each item tagged with its source. schoolId narrows to one school (404 school.not_found, 403 calendar.feature_disabled); studentId narrows a guardian's view to one child (404 calendar.student_not_found); sources is a comma list of EVENT, PERSONAL_EVENT, HOLIDAY, ACADEMIC_PERIOD (default all, PERSONAL_EVENT only when no school or child is named). Recurring events are expanded for the window only. Ordered by start then id, keyset paged (limit up to 500, 200 by default); truncated says the window held more than the server returns. Times are instants plus the item's time zone; all-day items also carry inclusive calendar dates",
+        "tags" : [ "calendar" ]
+      }
+    },
     "/api/v1/conversations/{conversationId}" : {
       "get" : {
         "operationId" : "getConversation",
@@ -1249,6 +1333,366 @@
         "tags" : [ "messaging" ]
       }
     },
+    "/api/v1/events/{eventId}" : {
+      "delete" : {
+        "operationId" : "deleteEvent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eventId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Deletes (soft) a cancelled event, or a personal one at any time. 409 event.cancel_first for a scheduled school or class event",
+        "tags" : [ "calendar" ]
+      },
+      "get" : {
+        "operationId" : "getEvent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eventId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One event the caller may see, with its rule and exceptions, the caller's own answer, what they may do, and (organisers and managers) the answers: a parent meeting's organiser sees each invited guardian's answer, nobody else does. 404 event.not_found when not visible (including a revoked or custody-restricted guardian's parent meeting)",
+        "tags" : [ "calendar" ]
+      },
+      "patch" : {
+        "operationId" : "updateEvent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eventId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CalendarEventUpdateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Changes an event (creator or manager): text, place, time (startAt and endAt together, or both dates), zone, rule (moves the whole series and clears its exceptions), RSVP on or off. Moving the time or place tells the audience (always for parent meetings; other events when calendar.notify.changes) and asks answers again. 403 event.access_denied, 409 event.cancelled",
+        "tags" : [ "calendar" ]
+      }
+    },
+    "/api/v1/events/{eventId}/cancel" : {
+      "post" : {
+        "operationId" : "cancelEvent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eventId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CalendarCancelRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Cancels the whole event (every occurrence of a series): it stays in the calendar as CANCELLED, the audience is told, held-back pushes of the event are dropped. Idempotent",
+        "tags" : [ "calendar" ]
+      }
+    },
+    "/api/v1/events/{eventId}/occurrences/{occurrenceId}" : {
+      "delete" : {
+        "operationId" : "restoreEventOccurrence",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eventId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "occurrenceId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Removes the exception of one occurrence: it is as the series says again. Idempotent",
+        "tags" : [ "calendar" ]
+      },
+      "patch" : {
+        "operationId" : "updateEventOccurrence",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eventId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "occurrenceId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CalendarOccurrenceUpdateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Changes one occurrence of a recurring event (title, text, place, time: at most 7 days from its place in the series, in the same kind, timed or all-day). Brings back a cancelled occurrence. Time or place changes tell the audience",
+        "tags" : [ "calendar" ]
+      }
+    },
+    "/api/v1/events/{eventId}/occurrences/{occurrenceId}/cancel" : {
+      "post" : {
+        "operationId" : "cancelEventOccurrence",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eventId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "occurrenceId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CalendarCancelRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Cancels one occurrence of a recurring event (an exception, EXDATE): it stays visible as CANCELLED and the audience is told. occurrenceId is the one items of the calendar carry. Idempotent. 409 event.not_recurring, 404 event.occurrence_not_found",
+        "tags" : [ "calendar" ]
+      }
+    },
+    "/api/v1/events/{eventId}/rsvp" : {
+      "put" : {
+        "operationId" : "answerEvent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "eventId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CalendarRsvpRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Answers YES, NO or MAYBE (changeable until the event starts; the same answer again changes nothing). 409 event.rsvp_disabled, 409 event.rsvp_closed after the start or a cancellation; 404 when the caller is not an invited guardian of a parent meeting",
+        "tags" : [ "calendar" ]
+      }
+    },
     "/api/v1/invitations/accept" : {
       "post" : {
         "operationId" : "acceptInvitation",
@@ -1960,6 +2404,45 @@
         },
         "summary" : "The caller's inbox: conversations they belong to or observe and may use right now, newest activity first, keyset paged, with unread counts (up to 100) and the last message preview (no body for deleted or hidden messages). Filter by schoolId or by studentId (the child a guardian acts for or a thread is about) to group by child",
         "tags" : [ "messaging" ]
+      }
+    },
+    "/api/v1/me/events" : {
+      "post" : {
+        "operationId" : "createPersonalEvent",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CalendarEventRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Creates a personal event: visible only to the caller, in their own time zone unless timeZone is given; no RSVP, not tied to a school (any signed-in user)",
+        "tags" : [ "calendar" ]
       }
     },
     "/api/v1/me/feed" : {
@@ -9131,6 +9614,92 @@
         },
         "summary" : "Reject a pending contribution with a reason the contributor sees (moderators). The photos are deleted. Audited; the contributor is notified",
         "tags" : [ "feed" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/events" : {
+      "post" : {
+        "operationId" : "createEvent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CalendarEventRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Creates an event in a school's calendar: scope SCHOOL, CAMPUS (campusId) or GRADE_LEVEL (gradeLevelId) needs school.calendar.manage; scope CLASS (classId) a calendar manager, a class manager or an ACTIVE lead or co-teacher of the class (setting calendar.teachers_can_create_class_events); eventType PARENT_MEETING with regardingStudentId (no scope) an ACTIVE lead, co or subject teacher of one of the student's classes: the student's ACTIVE, unrestricted guardians with academics access are invited and notified, RSVP is on. Timed (startAt, endAt, timeZone) or all-day (allDay, startDate, endDate). Optional RFC 5545 subset recurrenceRule. Plain text. 400 event.* validation codes, 403 event.create_denied / event.meeting_not_allowed, 404 school.not_found / class.not_found / event.student_not_found, 409 class.archived, 422 event.no_participants",
+        "tags" : [ "calendar" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/events/capabilities" : {
+      "get" : {
+        "operationId" : "getCalendarCapabilities",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarCapabilities"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "What the caller may create in the school's calendar (school-wide events, events for given classes, parent meetings), for menus. 404 for callers who cannot see the school, 403 calendar.feature_disabled",
+        "tags" : [ "calendar" ]
       }
     },
     "/api/v1/schools/{schoolId}/feed" : {
@@ -16980,6 +17549,624 @@
           }
         },
         "required" : [ "createdAt", "id" ]
+      },
+      "CalendarCancelRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          }
+        }
+      },
+      "CalendarCapabilities" : {
+        "type" : "object",
+        "description" : "What the caller may create in a school (for menus; the API stays the authority)",
+        "properties" : {
+          "calendarEnabled" : {
+            "type" : "boolean"
+          },
+          "canCreateAnyClassEvent" : {
+            "type" : "boolean"
+          },
+          "canCreateParentMeetings" : {
+            "type" : "boolean"
+          },
+          "canCreateSchoolEvents" : {
+            "type" : "boolean"
+          },
+          "canManage" : {
+            "type" : "boolean"
+          },
+          "classes" : {
+            "type" : "array",
+            "description" : "Classes the caller may create class events for (every class of the school for managers: omitted then)",
+            "items" : {
+              "$ref" : "#/components/schemas/CalendarClassRef"
+            }
+          },
+          "timeZone" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CalendarClassRef" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CalendarEventCapabilities" : {
+        "type" : "object",
+        "description" : "What the caller may do with this event (the API stays the authority)",
+        "properties" : {
+          "canCancel" : {
+            "type" : "boolean"
+          },
+          "canDelete" : {
+            "type" : "boolean"
+          },
+          "canEdit" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "CalendarEventRequest" : {
+        "type" : "object",
+        "description" : "A new event. Timed events: startAt, endAt (instants, end not before start) and timeZone (IANA; default the school's). All-day events: allDay=true with startDate and endDate (calendar dates in timeZone, endDate inclusive and not before startDate); no instants. scope SCHOOL needs nothing more, CAMPUS needs campusId, GRADE_LEVEL gradeLevelId, CLASS classId; PARENT_MEETING needs regardingStudentId and no scope (the guardians of that child are invited). recurrenceRule is an RFC 5545 subset: FREQ=DAILY|WEEKLY|MONTHLY, INTERVAL, BYDAY (weekly), BYMONTHDAY (monthly), UNTIL or COUNT; not on parent meetings and not with rsvpEnabled. Text is plain text.",
+        "properties" : {
+          "allDay" : {
+            "type" : "boolean"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "description" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "endAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "endDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "eventType" : {
+            "type" : "string",
+            "enum" : [ "SCHOOL_EVENT", "CLASS_EVENT", "EXAM", "PARENT_MEETING", "OTHER" ]
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "location" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "recurrenceRule" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "regardingStudentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "rsvpEnabled" : {
+            "type" : "boolean"
+          },
+          "scope" : {
+            "type" : "string",
+            "enum" : [ "SCHOOL", "CAMPUS", "GRADE_LEVEL", "CLASS", "PERSONAL", "INVITEES" ]
+          },
+          "startAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "timeZone" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          }
+        }
+      },
+      "CalendarEventUpdateRequest" : {
+        "type" : "object",
+        "description" : "Changes an event; absent fields stay. Changing the time takes both startAt and endAt (or both dates, with allDay), and for a recurring event moves the whole series (its exceptions are cleared). Empty description, location or recurrenceRule removes it. The scope, type and student cannot change. Moving the time or place tells the audience (always for parent meetings, and for other events when the school's settings ask for it); an RSVP is asked again when the time moves.",
+        "properties" : {
+          "allDay" : {
+            "type" : "boolean"
+          },
+          "description" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "endAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "endDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "location" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "recurrenceRule" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "rsvpEnabled" : {
+            "type" : "boolean"
+          },
+          "startAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "timeZone" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          }
+        }
+      },
+      "CalendarEventView" : {
+        "type" : "object",
+        "properties" : {
+          "allDay" : {
+            "type" : "boolean"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "cancellationReason" : {
+            "type" : "string"
+          },
+          "cancelledAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "capabilities" : {
+            "$ref" : "#/components/schemas/CalendarEventCapabilities"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "createdBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdByName" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "endAt" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "Timed events: the end; all-day events: the start of the day after the last one"
+          },
+          "endDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "eventType" : {
+            "type" : "string",
+            "enum" : [ "SCHOOL_EVENT", "CLASS_EVENT", "EXAM", "PARENT_MEETING", "OTHER" ]
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "overrides" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CalendarOccurrenceOverrideView"
+            }
+          },
+          "recurrenceEndsAt" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "When a finite series ends (the end of its last occurrence)"
+          },
+          "recurrenceRule" : {
+            "type" : "string",
+            "description" : "The RFC 5545 subset rule, canonical form"
+          },
+          "recurring" : {
+            "type" : "boolean"
+          },
+          "regardingStudentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "rsvp" : {
+            "$ref" : "#/components/schemas/CalendarRsvpView"
+          },
+          "rsvpEnabled" : {
+            "type" : "boolean"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "scope" : {
+            "type" : "string",
+            "enum" : [ "SCHOOL", "CAMPUS", "GRADE_LEVEL", "CLASS", "PERSONAL", "INVITEES" ]
+          },
+          "startAt" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "Timed events: the start; all-day events: the start of the first day"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "SCHEDULED", "CANCELLED" ]
+          },
+          "timeZone" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "eventType", "id", "scope", "status", "timeZone", "title" ]
+      },
+      "CalendarItem" : {
+        "type" : "object",
+        "properties" : {
+          "allDay" : {
+            "type" : "boolean"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "endAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "endDate" : {
+            "type" : "string",
+            "format" : "date",
+            "description" : "All-day items: last day (inclusive), in timeZone"
+          },
+          "eventId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "description" : "Stable id of this entry: the event id, 'eventId@occurrenceId' for an occurrence of a recurring event, 'HOLIDAY:id', 'PERIOD:id:START' ..."
+          },
+          "kind" : {
+            "type" : "string",
+            "description" : "Source-specific kind: the event type (SCHOOL_EVENT, CLASS_EVENT, EXAM, PARENT_MEETING, OTHER), the holiday type, or YEAR_START, YEAR_END, PERIOD_START, PERIOD_END"
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "modified" : {
+            "type" : "boolean"
+          },
+          "myRsvp" : {
+            "type" : "string",
+            "description" : "The caller's own answer (YES, NO, MAYBE or PENDING) on events that ask for one"
+          },
+          "occurrenceId" : {
+            "type" : "string",
+            "description" : "Opaque occurrence id of a recurring event (the path part of the occurrence endpoints); absent for one-off events"
+          },
+          "recurring" : {
+            "type" : "boolean"
+          },
+          "regardingStudentId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Parent meetings: the child it is about (only the participants see the event at all)"
+          },
+          "rsvpEnabled" : {
+            "type" : "boolean"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "scope" : {
+            "type" : "string"
+          },
+          "source" : {
+            "type" : "string",
+            "description" : "EVENT, PERSONAL_EVENT, HOLIDAY, ACADEMIC_PERIOD (later sources add theirs)"
+          },
+          "startAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date",
+            "description" : "All-day items: first day (inclusive), in timeZone"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "SCHEDULED or CANCELLED (cancelled items stay visible)"
+          },
+          "timeZone" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "titleI18n" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Holidays: the name in every language; title is the one for the caller's language"
+          }
+        },
+        "required" : [ "allDay", "endAt", "id", "kind", "source", "startAt", "status", "timeZone", "title" ]
+      },
+      "CalendarOccurrenceOverrideView" : {
+        "type" : "object",
+        "description" : "An exception of a recurring event: a cancelled or changed occurrence",
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          },
+          "endAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "endDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "occurrenceId" : {
+            "type" : "string"
+          },
+          "occurrenceStart" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "reason" : {
+            "type" : "string"
+          },
+          "startAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "CANCELLED or MODIFIED"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CalendarOccurrenceUpdateRequest" : {
+        "type" : "object",
+        "description" : "Changes one occurrence of a recurring event (an exception); absent fields keep the series' values. The new time may move at most 7 days from the occurrence's own time and keeps its kind (timed or all-day).",
+        "properties" : {
+          "description" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "endAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "endDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "location" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "startAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          }
+        }
+      },
+      "CalendarPage" : {
+        "type" : "object",
+        "description" : "The calendar of a window, ordered by start then id, keyset paged",
+        "properties" : {
+          "from" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CalendarItem"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          },
+          "to" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "truncated" : {
+            "type" : "boolean",
+            "description" : "True when the window held more items than the server returns for one window (narrow the window)"
+          }
+        },
+        "required" : [ "from", "items", "to" ]
+      },
+      "CalendarRsvpCounts" : {
+        "type" : "object",
+        "properties" : {
+          "maybe" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "no" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pending" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "yes" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "CalendarRsvpParticipant" : {
+        "type" : "object",
+        "description" : "A guardian invited to a parent meeting and their answer (the organiser only)",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "respondedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
+      "CalendarRsvpRequest" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "YES", "NO", "MAYBE" ]
+          }
+        },
+        "required" : [ "status" ]
+      },
+      "CalendarRsvpView" : {
+        "type" : "object",
+        "properties" : {
+          "canAnswer" : {
+            "type" : "boolean",
+            "description" : "Whether the caller can still answer now (event not started, not cancelled)"
+          },
+          "counts" : {
+            "$ref" : "#/components/schemas/CalendarRsvpCounts",
+            "description" : "Totals of the answers: the organiser and managers only"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "mine" : {
+            "type" : "string",
+            "description" : "The caller's own answer: YES, NO, MAYBE or PENDING (absent when the caller has not been asked)"
+          },
+          "participants" : {
+            "type" : "array",
+            "description" : "Who answered what: the organiser of a parent meeting only; nobody else ever sees it",
+            "items" : {
+              "$ref" : "#/components/schemas/CalendarRsvpParticipant"
+            }
+          }
+        }
       },
       "CampusResponse" : {
         "type" : "object",
