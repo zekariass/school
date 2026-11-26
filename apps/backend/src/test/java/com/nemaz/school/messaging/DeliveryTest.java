@@ -171,7 +171,7 @@ class DeliveryTest extends MessagingTestSupport {
 		await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> assertThat(this.pushes.sentTo(studentToken)).isNotEmpty());
 		var rows = this.jdbc.queryForList("""
 				select n.title, n.body, n.data::text as data, n.type_code from notifications n
-				where n.type_code in ('NEW_MESSAGE', 'NEW_MESSAGE_QUIET', 'MESSAGE_OBSERVER_ADDED')""");
+				where n.school_id = ? and n.type_code in ('NEW_MESSAGE', 'NEW_MESSAGE_QUIET', 'MESSAGE_OBSERVER_ADDED')""", m.schoolId());
 		assertThat(rows).isNotEmpty();
 		for (var row : rows) {
 			String all = row.toString();

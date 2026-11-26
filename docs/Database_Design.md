@@ -1267,8 +1267,22 @@ Who may start a conversation with whom is decided in the service layer from rela
 | `messaging.student.group_create` | TEACHER_ONLY | Who can create student groups: TEACHER_ONLY or STUDENTS_WITH_APPROVAL |
 | `messaging.group_create.roles` | `[TEACHER, SCHOOL_ADMIN]` | Who can create groups (§31) |
 | `messaging.teacher_hours` | null | Optional office hours. Messages outside them are delivered silently |
+| `messaging.edit_window_minutes` | 15 | Minutes after sending in which the author may edit a message (0 switches editing off; earlier versions are kept). Added in M9a |
+| `messaging.student.media_enabled` | false | Students may send images in conversations. Added in M9a |
+| `messaging.translation.enabled` | false | Messages may be machine translated on request, never in direct conversations between an adult and a student. Added in M9a |
 
 **Safeguarding floor (not configurable, §131):** any direct conversation between an adult and a student adds that student's ACTIVE guardians as `OBSERVER` members. If that isn't possible, the conversation is visible to school admins. Every such conversation is written to `audit_logs`.
+
+**As built in M9a (migration `V10_01__messaging`; the rule book is `docs/Messaging_Rules.md`).** Deviations from the DDL above:
+
+- `conversations`: `school_id` is `NOT NULL` (COURSE and TUTORING conversations and their columns arrive with P3/P4); `avatar_media_id` is not built. New columns: `direct_kind` (`GUARDIAN_TEACHER`, `GUARDIAN_GUARDIAN`, `TEACHER_STUDENT`, `STUDENT_STUDENT`), `direct_key` (the unique thread key: one thread per guardian, teacher and child; unique per school), `group_kind` (`CLASS_STUDENTS`, `CLASS_PARENTS`, `STAFF`, `STUDENT_GROUP`, `SCHOOL_STAFF`; one live `CLASS_*` conversation per class), `safeguarded` (the adult-student floor applies), `admin_visible` (no eligible observer; the review endpoint reads it; the effective value is computed live), `approved_by/approved_at` and `activity_at` (inbox order). `status` adds `PENDING_APPROVAL` and `REJECTED`. `conversation_type` stays `DIRECT|GROUP|CLASS|SCHOOL`.
+- `conversation_members`: `school_id` (composite FK), `left_reason` (`REMOVED`, `LEFT`, `ROSTER`, `LINK_CHANGED`), `added_by`, `last_read_seq` (the watermark as a number). `acting_as` is `NOT NULL`. A membership row never grants access: every read and write re-checks the live eligibility (`messaging.infrastructure.Eligibility`).
+- `messages`: `seq` (global increasing number given when the message is sent; ordering, keyset paging and the read watermark use it, because UUIDv7 ids are only ordered to the millisecond; a scheduled message gets it when released), `sent_at`, `sender_member_id` (the capacity it was sent in), `system_code`, `hidden_at/hidden_by/hide_reason`, `blocked_code`, `notified_at` (the delivery listener's claim). `status` adds `CANCELLED` and `BLOCKED`. The body of a deleted message is moved to `message_edits` and nulled.
+- New tables: `message_edits` (earlier versions of an edit, the original of a deletion; readable only through the audited review endpoint) and `message_reports` (one row per reporter and message; ids and a reason code, plus the reporter's optional note, which is never copied anywhere else).
+- `user_blocks`: a surrogate `id`, `school_id` (where it was made), `blocker_is_student` (students' blocks of adults are listed for reviewers), `via_conversation_id`. Blocks are created through a conversation member, never by user id.
+- `media.context_type` gains `CONVERSATION`; purpose `MESSAGE` accepts images only (the media module re-encodes them and never signs an original).
+- Notification types added: `NEW_MESSAGE_QUIET` (in-app only, for messages that reach a teacher outside office hours), `MESSAGE_OBSERVER_ADDED`, `MESSAGE_REPORTED`, `GROUP_APPROVAL_REQUESTED`, `MESSAGE_SCHEDULE_BLOCKED`; `NEW_MESSAGE` now defers in quiet hours and its text no longer carries a name.
+- Permissions `school.messaging.moderate` and `school.messaging.review` (school, organization, country and platform administrators; `SAFEGUARDING_LEAD` holds `review`).
 
 ### 4.12 School communications (P1)
 

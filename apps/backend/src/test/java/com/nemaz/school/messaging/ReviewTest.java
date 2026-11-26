@@ -114,8 +114,8 @@ class ReviewTest extends MessagingTestSupport {
 	void deletedAndEditedOriginalsAreOnlyInTheReview() throws Exception {
 		Msg m = school("rev-history");
 		UUID thread = adminVisibleThread(m);
-		UUID edited = send(m.lead(), thread, "CANARY-ORIGINAL first draft");
-		call(HttpMethod.PATCH, conv(thread) + "/messages/" + edited, m.lead(), body("body", "second draft"), 200);
+		UUID edited = send(m.student3(), thread, "CANARY-ORIGINAL first draft");
+		call(HttpMethod.PATCH, conv(thread) + "/messages/" + edited, m.student3(), body("body", "second draft"), 200);
 		UUID deleted = send(m.student3(), thread, "CANARY-DELETED what I really said");
 		call(HttpMethod.DELETE, conv(thread) + "/messages/" + deleted, m.student3(), null, 204);
 		UUID hidden = send(m.student3(), thread, "CANARY-HIDDEN please hide this");

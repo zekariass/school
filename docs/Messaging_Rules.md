@@ -42,7 +42,7 @@ safety-critical part of the product.
 6. **(added by the implementer)** ASSISTANT teachers are not messaging participants; only LEAD, CO_TEACHER and
    SUBJECT_TEACHER are.
 7. **(added by the implementer)** The whole feature is behind the `messaging` feature flag: when the school has it
-   off, every messaging endpoint answers 403 `messaging.feature_disabled`.
+   off, every messaging endpoint answers 403 `messaging.feature_disabled`. The audited review (R13) is not behind the flag: a school cannot switch off its safeguarding.
 8. **(added by the implementer)** Refusals are deliberately vague. The person being refused only learns
    "not allowed" (403 `messaging.not_allowed`) for starting or sending, never whether the reason was a block, a
    restricted link, a school setting or an unknown person. A conversation the caller cannot access is 404
@@ -53,7 +53,10 @@ Tests: `MessagingAccessTest.restrictedGuardianLosesAccessImmediately`, `.revoked
 `.removedTeacherLosesAccess`, `.suspendedSchoolBlocksEverything`, `.deactivatedAccountLosesAccess`,
 `.staleMembershipRowNeverGrantsAccess`, `.studentMessagingSwitchedOffBlocksStudents`,
 `.studentMinimumAgeIsComputedFromTheDateOfBirth`, `.featureFlagOffAnswers403`, `.deadDirectConversationIsUnusableForBothSides`,
-`.assistantTeacherIsNotAParticipant`, `.refusalsDoNotRevealTheReason`; `MessagingPolicyMatrixTest.everyCombinationFollowsTheRules`.
+`.assistantTeacherIsNotAParticipant`, `.refusalsDoNotRevealTheReason`; `MessagingPolicyMatrixTest.everyCombinationFollowsTheRules`
+(15 sender roles x 15 recipient roles x 11 settings combinations) and `.everyLinkAndMembershipStateEndsAccess` (15 changes of
+the world, checked before any event runs). A restricted guardian looks like a stranger to the school (404 `school.not_found`),
+so the restriction is not revealed **(added by the implementer)**.
 
 ## R2 Parent and teacher (DIRECT)
 
@@ -142,7 +145,8 @@ h. **(added by the implementer)** Review reads cover only conversations that are
 Tests: `SafeguardingFloorTest.everySettingsCombinationKeepsTheFloor`, `.observersAreAddedAndNotified`,
 `.studentIsToldGuardiansCanSee`, `.noGuardianMakesTheConversationAdminVisible`, `.teacherWhoIsTheOnlyGuardianCannotObserveHerself`,
 `.restrictedGuardianStopsObservingImmediately`, `.lastObserverLostMakesItAdminVisible`, `.guardianActivatedLaterBecomesObserver`,
-`.creationIsAuditedWithoutText`, `.adminsAreNeverAddedAsMembers`, `.observersAreReadOnly`, `.observersNeverCreateReceipts`.
+`.creationIsAuditedWithoutText`, `.adminsAreNeverAddedAsMembers`, `.observersAreReadOnly`; `ReadStateTest.observerReadsNeverCreateReceipts`;
+`RosterSyncTest.guardianLinkEventsMaintainTheObservers`.
 
 ## R6 Groups
 
@@ -164,11 +168,19 @@ Tests: `SafeguardingFloorTest.everySettingsCombinationKeepsTheFloor`, `.observer
    reading it.
 6. Students never see guardians' contact details or full names. Students and guardians are never in the same
    group in M9a (class conversation: students + teachers; parent group: guardians + teachers). Guardians appear as role labels.
+7. **(added by the implementer)** A conversation with students needs **at least two** students who are ACTIVE in its class:
+   with one it would be a private adult-student conversation without the safeguarding floor. Creating a student group with
+   fewer is refused (400 `messaging.group_too_small`), removing the second-to-last student too, and a class conversation of a
+   class with one student cannot be used until a second one joins.
+8. **(added by the implementer)** Any ACTIVE teacher of the school (assistants included) may create a staff group when
+   `TEACHER` is in `messaging.group_create.roles`; the class conversation and parent group need a LEAD or CO_TEACHER of the
+   class or a class manager.
 
 Tests: `GroupConversationTest.classConversationIsCreatedByLeadAndFollowsTheRoster`, `.parentGroupHasGuardiansAndTeachersOnly`,
 `.creationRolesComeFromTheSetting`, `.studentsCannotCreateGroupsByDefault`, `.studentGroupNeedsApproval`,
 `.moderatorsManageMembersAndSettings`, `.nonMembersCannotReadAGroup`, `.removalNeedsAReasonAndIsAudited`,
-`.removedMemberIsNotAddedBackByTheRoster`, `.schoolConversationIsModeratorOnly`, `.mixedGroupsShowGuardiansAsLabelsOnly`;
+`.removedMemberIsNotAddedBackByTheRoster`, `.schoolConversationIsModeratorOnly`, `.mixedGroupsShowGuardiansAsLabelsOnly`,
+`.groupsWithStudentsNeedAtLeastTwoStudents`;
 `RosterSyncTest.studentJoiningAndLeavingTheClassUpdatesTheConversations`, `.guardianLinkChangesUpdateTheParentGroup`,
 `.redeliveredEventsChangeNothing`.
 
@@ -206,6 +218,9 @@ Tests: `BlockTest.blockedUserCannotStartOrContinueDirect`, `.refusalIsTheSameGen
 7. **Edit** within `messaging.edit_window_minutes` (default 15, new setting; 0 switches editing off), author only,
    text only. Every earlier version is kept in history. **Delete** leaves a tombstone for members; the original text
    moves to history and is readable only by reviewers through the audited endpoint (R5b/R13).
+   **(added by the implementer)** In an adult-student DIRECT conversation (the safeguarded ones, R5) the **adult's** messages can be
+   neither edited nor deleted (409 `messaging.record_kept`): what the student's guardians saw and what a reviewer may read can never
+   be rewritten afterwards. A scheduled message can still be withdrawn; students keep their rights over their own messages.
 8. **Reply-to** another message of the same conversation (the reply carries the id only, no quoted text **(added by
    the implementer)**). **Hidden** messages (moderator) show a tombstone.
 9. Closed conversations (LOCKED, ARCHIVED) accept no messages; with `posting_policy = MODERATORS_ONLY` only owners and
@@ -213,11 +228,13 @@ Tests: `BlockTest.blockedUserCannotStartOrContinueDirect`, `.refusalIsTheSameGen
 
 Tests: `SendMessageTest.repeatedClientMessageIdReturnsTheOriginal`, `.concurrentRepeatsStoreOneMessage`,
 `.controlAndBidiCharactersAreStripped`, `.emptyAndTooLongTextIsRefused`, `.voiceNotesAreNotBuilt`, `.rateLimitsAreStricterForStudents`,
-`.reactionsAreOnePerUserPerEmoji`, `.editKeepsHistoryAndRespectsTheWindow`, `.deleteLeavesATombstoneAndKeepsTheOriginalInHistory`,
+`.reactionsAreOnePerUserPerEmoji`, `.editKeepsHistoryAndRespectsTheWindow`, `.deleteLeavesATombstoneAndKeepsTheOriginalInHistory`, `.adultsCannotEditOrDeleteInSafeguardedConversations`,
 `.replyToMustBeInTheSameConversation`, `.hiddenMessagesShowATombstone`, `.lockedAndModeratorsOnlyConversationsRefuse`;
 `ScheduledMessageTest.dueMessagesAreSentOnceAndRecheckThePolicy`, `.adultsOnly`, `.blockedScheduleNotifiesTheSender`,
 `.scheduledMessageIsInvisibleUntilSent`, `.jobIsIdempotent`; `MessageMediaTest.imageReadableByMembersAndObserversOnly`,
-`.deletedHiddenOrRevokedMessageImageIsNotReadable`, `.neverIssuesAnOriginalSignedUrl`, `.studentsCannotUploadByDefault`.
+`.deletedHiddenOrRevokedMessageImageIsNotReadable`, `.neverIssuesAnOriginalSignedUrl`, `.studentsCannotUploadByDefault`,
+`.reviewersReadTheImagesOfAnAdminVisibleConversationAndItIsAudited`. Once an image is attached, even its sender reads it only
+while they may use the conversation **(added by the implementer)**.
 
 ## R9 Delivery
 
@@ -231,10 +248,12 @@ Tests: `SendMessageTest.repeatedClientMessageIdReturnsTheOriginal`, `.concurrent
    until it is read). Observers are notified like members.
 3. **Notification text never contains the message body, the child's name or the sender's full name.** It says "New
    message" and, at most, a generic role. `data.path` is a relative app path.
-4. Listeners are idempotent (redelivery notifies once).
+4. Listeners are idempotent (redelivery notifies once). **(added by the implementer)** Deliveries of one conversation run one
+   after the other, and opening a conversation marks its message notifications read, so the next message can ring again.
 
 Tests: `DeliveryTest.membersGetARealtimeDoorbellWithIdsOnly`, `.pushRespectsQuietHoursMuteAndReading`, `.notificationsNeverContainTheTextOrNames`,
-`.redeliveryNotifiesOnce`, `.silentDeliveryHasNoPush`, `.noDoorbellForPeopleWhoLostAccess`.
+`.redeliveryNotifiesOnce`, `.silentDeliveryHasNoPush`, `.noDoorbellForPeopleWhoLostAccess`, `.insideTeacherHoursPushes`,
+`.quietHoursHoldBackThePushButNotTheMessage`.
 
 ## R10 Read state
 
@@ -258,7 +277,7 @@ Tests: `ReadStateTest.watermarkIsIdempotentAndNeverMovesBack`, `.seenReceiptsOnl
    setting `messaging.translation.enabled`, default off. Never for DIRECT adult-student conversations; names, e-mails and phone numbers are masked first.
 
 Tests: `ModerationAndReportTest.anyMemberCanReportAndOnlyIdsLeaveTheModule`, `.moderatorsHideWithAReason`, `.nobodyEditsOthersMessages`,
-`.removalAuditsTheReason`, `.reportsAreRateLimited`; `NoTextLeakTest.messageTextIsNeverInAuditEventsNotificationsOrLogs`;
+`.removalAuditsTheReason`, `.reportsAreRateLimited`; `NoTextLeakTest.messageTextIsNeverInAuditEventsNotificationsOrLogs`, `.requestObjectsAreRedactedInLogs`;
 `TranslationTest.offByDefaultAndNeverForAdultStudentDirect`, `.masksNamesBeforeTheProvider`.
 
 ## R12 Reads

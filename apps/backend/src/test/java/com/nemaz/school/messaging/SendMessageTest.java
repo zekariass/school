@@ -218,6 +218,30 @@ class SendMessageTest extends MessagingTestSupport {
 	}
 
 	@Test
+	void adultsCannotEditOrDeleteInSafeguardedConversations() throws Exception {
+		Msg m = school("send-record");
+		UUID thread = teacherStudentThread(m);
+		UUID fromTeacher = send(m.lead(), thread, "CANARY-KEPT as sent");
+		String path = conv(thread) + "/messages/" + fromTeacher;
+		assertThat(code(call(HttpMethod.PATCH, path, m.lead(), body("body", "rewritten"), 409))).isEqualTo("messaging.record_kept");
+		assertThat(code(call(HttpMethod.DELETE, path, m.lead(), null, 409))).isEqualTo("messaging.record_kept");
+		assertThat(get(path, m.lead()).get("canEdit").asBoolean()).isFalse();
+		assertThat(get(path, m.lead()).get("canDelete").asBoolean()).isFalse();
+		assertThat(get(path, m.student1()).get("body").asString()).isEqualTo("CANARY-KEPT as sent");
+		// the student may still edit and delete their own words, and the teacher may withdraw a scheduled message
+		UUID fromStudent = send(m.student1(), thread, "mine");
+		call(HttpMethod.PATCH, conv(thread) + "/messages/" + fromStudent, m.student1(), body("body", "mine, edited"), 200);
+		call(HttpMethod.DELETE, conv(thread) + "/messages/" + fromStudent, m.student1(), null, 204);
+		JsonNode scheduled = post(conv(thread) + "/messages", m.lead(), body("clientMessageId", UUID.randomUUID(), "body", "later", "sendAt",
+				this.clock.instant().plus(Duration.ofHours(1))), 201);
+		call(HttpMethod.DELETE, conv(thread) + "/messages/" + scheduled.get("message").get("id").asString(), m.lead(), null, 204);
+		// in other conversations adults keep their rights
+		UUID parentThread = parentTeacherThread(m);
+		UUID own = send(m.lead(), parentThread, "can change");
+		call(HttpMethod.PATCH, conv(parentThread) + "/messages/" + own, m.lead(), body("body", "changed"), 200);
+	}
+
+	@Test
 	void replyToMustBeInTheSameConversation() throws Exception {
 		Msg m = school("send-reply");
 		UUID thread = parentTeacherThread(m);

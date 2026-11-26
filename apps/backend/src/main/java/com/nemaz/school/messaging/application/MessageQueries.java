@@ -405,10 +405,11 @@ public class MessageQueries {
 		for (MessageRow r : rows) {
 			boolean mine = r.senderId().equals(user.userId());
 			boolean live = "SENT".equals(r.status()) || "EDITED".equals(r.status());
-			boolean canEdit = mine && live && "TEXT".equals(r.type()) && access.conversation().active() && window > 0
+			boolean kept = access.conversation().safeguarded() && access.member().actingAs() != ActingAs.STUDENT;
+			boolean canEdit = mine && live && !kept && "TEXT".equals(r.type()) && access.conversation().active() && window > 0
 					&& r.sentAt() != null && !now.isAfter(r.sentAt().plus(Duration.ofMinutes(window)))
 					&& !access.member().observer();
-			boolean canDelete = mine && (live || "SCHEDULED".equals(r.status())) && !access.member().observer();
+			boolean canDelete = mine && ((live && !kept) || "SCHEDULED".equals(r.status())) && !access.member().observer();
 			boolean tombstone = "DELETED".equals(r.status()) || "HIDDEN".equals(r.status());
 			items.add(new MessageItemView(r.id(), r.conversationId(), people.get(r.senderMemberId()), r.type(), r.status(),
 					r.body(), r.language(), r.systemCode(), r.replyTo(),

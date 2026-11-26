@@ -301,6 +301,7 @@ public class MessageService {
 		if (!("SENT".equals(row.status()) || "EDITED".equals(row.status())) || !"TEXT".equals(row.type())) {
 			throw ApiException.conflict("messaging.message_unavailable");
 		}
+		requireRecordKept(access);
 		int window = this.settings.editWindowMinutes(access.conversation().schoolId());
 		if (window <= 0) {
 			throw ApiException.conflict("messaging.edit_disabled");
@@ -362,6 +363,7 @@ public class MessageService {
 		if (!("SENT".equals(row.status()) || "EDITED".equals(row.status()) || "HIDDEN".equals(row.status()))) {
 			throw ApiException.conflict("messaging.message_unavailable");
 		}
+		requireRecordKept(access);
 		if (row.body() != null) {
 			this.jdbc.sql("insert into message_edits (id, message_id, kind, body, edited_by, edited_at) values (:id, :m, 'DELETE', :b, :u, :t)")
 				.param("id", Ids.newId())
@@ -381,6 +383,16 @@ public class MessageService {
 			.school(access.conversation().schoolId())
 			.metadata("conversationId", conversationId.toString()));
 		this.doorbell.ringAfterCommit(access.conversation().schoolId(), conversationId, messageId, "message.updated");
+	}
+
+	/**
+	 * In a safeguarded conversation (an adult and a student) the adult's words stay as they were sent: they can be neither edited nor
+	 * deleted, so that what a student's guardians saw and what a reviewer may read can never be rewritten afterwards (rule book R8).
+	 */
+	private static void requireRecordKept(Access access) {
+		if (access.conversation().safeguarded() && access.member().actingAs() != ActingAs.STUDENT) {
+			throw ApiException.conflict("messaging.record_kept");
+		}
 	}
 
 	private void discardAttachments(UUID messageId) {
