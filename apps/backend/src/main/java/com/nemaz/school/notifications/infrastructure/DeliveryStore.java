@@ -27,7 +27,7 @@ public class DeliveryStore {
 
 	private static final String JOB_SELECT = """
 			select d.id as delivery_id, d.notification_id, d.push_device_id, n.user_id, p.provider, p.push_token,
-			       n.title, n.body, n.data::text as data, n.priority, d.attempt_count
+			       n.title, n.body, n.data::text as data, n.school_id, n.priority, d.attempt_count
 			from notification_deliveries d
 			join notifications n on n.id = d.notification_id
 			join push_devices p on p.id = d.push_device_id
@@ -153,10 +153,16 @@ public class DeliveryStore {
 
 	private DeliveryJob job(java.sql.ResultSet rs) throws java.sql.SQLException {
 		String data = rs.getString("data");
+		Map<String, Object> payload = new java.util.LinkedHashMap<>((data != null) ? this.json.readValue(data, MAP) : Map.of());
+		// A push carries no inbox row, so the app learns the school here (a tap can then open the right school at once).
+		UUID schoolId = rs.getObject("school_id", UUID.class);
+		if (schoolId != null) {
+			payload.putIfAbsent("schoolId", schoolId.toString());
+		}
 		return new DeliveryJob(rs.getObject("delivery_id", UUID.class), rs.getObject("notification_id", UUID.class),
 				rs.getObject("push_device_id", UUID.class), rs.getObject("user_id", UUID.class),
 				rs.getString("provider"), rs.getString("push_token"), rs.getString("title"), rs.getString("body"),
-				(data != null) ? this.json.readValue(data, MAP) : Map.of(), "URGENT".equals(rs.getString("priority")),
+				payload, "URGENT".equals(rs.getString("priority")),
 				rs.getInt("attempt_count"));
 	}
 
