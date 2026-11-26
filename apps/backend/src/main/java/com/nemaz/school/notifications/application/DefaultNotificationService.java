@@ -1,8 +1,10 @@
 package com.nemaz.school.notifications.application;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -18,8 +20,10 @@ import com.nemaz.school.notifications.NotificationService;
 import com.nemaz.school.notifications.NotificationsCreated;
 import com.nemaz.school.notifications.domain.NotificationRow;
 import com.nemaz.school.notifications.domain.NotificationType;
+import com.nemaz.school.notifications.infrastructure.DeliveryStore;
 import com.nemaz.school.notifications.infrastructure.NotificationStore;
 import com.nemaz.school.notifications.infrastructure.NotificationTypeStore;
+import com.nemaz.school.notifications.infrastructure.PreferenceStore;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -40,8 +44,15 @@ class DefaultNotificationService implements NotificationService {
 
 	private final Clock clock;
 
+	private final PreferenceStore preferences;
+
+	private final DeliveryStore deliveries;
+
 	DefaultNotificationService(NotificationTypeStore types, NotificationStore store, UserDirectory users,
-			NotificationRenderer renderer, ApplicationEventPublisher events, Clock clock) {
+			NotificationRenderer renderer, ApplicationEventPublisher events, Clock clock, PreferenceStore preferences,
+			DeliveryStore deliveries) {
+		this.preferences = preferences;
+		this.deliveries = deliveries;
 		this.types = types;
 		this.store = store;
 		this.users = users;
@@ -90,6 +101,28 @@ class DefaultNotificationService implements NotificationService {
 	@Transactional(readOnly = true)
 	public boolean alreadyNotified(UUID userId, String typeCode, String sourceType, UUID sourceId) {
 		return this.store.existsForSource(userId, typeCode, sourceType, sourceId);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Map<UUID, Instant> quietHoursEnds(Collection<UUID> userIds) {
+		Map<UUID, Instant> ends = new HashMap<>();
+		if (userIds.isEmpty()) {
+			return ends;
+		}
+		Instant now = this.clock.instant();
+		Map<UUID, PreferenceStore.QuietHours> hours = this.preferences.quietHours(userIds);
+		Map<UUID, UserPreferences> prefs = this.users.preferences(hours.keySet());
+		hours.forEach((userId, window) -> QuietHoursPolicy
+			.endOfQuietHours(now, PushFanout.zone(prefs.get(userId)), window.start(), window.end())
+			.ifPresent((end) -> ends.put(userId, end)));
+		return ends;
+	}
+
+	@Override
+	@Transactional
+	public int cancelHeldBackPushes(String sourceType, UUID sourceId) {
+		return this.deliveries.suppressHeldBack(sourceType, sourceId, this.clock.instant());
 	}
 
 }

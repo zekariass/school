@@ -20,6 +20,12 @@ public interface UserDirectory {
 	 */
 	java.util.Optional<VerifiedContacts> verifiedContacts(UUID userId);
 
+	/**
+	 * {@link #verifiedContacts} for many users (unknown users are absent). For channel delivery (email, SMS) of messages
+	 * the user has not asked for one by one; never show the values.
+	 */
+	Map<UUID, VerifiedContacts> verifiedContactsOf(Collection<UUID> userIds);
+
 	record VerifiedContacts(UUID userId, String phoneE164, String email, boolean activeStandardAccount) {
 
 		@Override

@@ -21,7 +21,7 @@ public class NotificationTypeStore {
 
 	public Optional<NotificationType> find(String code) {
 		return this.jdbc
-			.query("select code, category, default_channels, can_be_urgent, user_can_disable from notification_types where code = ?",
+			.query("select code, category, default_channels, can_be_urgent, user_can_disable, defer_in_quiet_hours, urgent_overrides_preferences from notification_types where code = ?",
 					(rs, i) -> map(rs), code)
 			.stream()
 			.findFirst();
@@ -30,14 +30,15 @@ public class NotificationTypeStore {
 	/** Every type, grouped by category and code (stable order for the preferences screens). */
 	public List<NotificationType> all() {
 		return this.jdbc.query("""
-				select code, category, default_channels, can_be_urgent, user_can_disable from notification_types
+				select code, category, default_channels, can_be_urgent, user_can_disable, defer_in_quiet_hours, urgent_overrides_preferences from notification_types
 				order by category, code""", (rs, i) -> map(rs));
 	}
 
 	private static NotificationType map(ResultSet rs) throws SQLException {
 		String[] channels = (String[]) rs.getArray("default_channels").getArray();
 		return new NotificationType(rs.getString("code"), rs.getString("category"), List.of(channels),
-				rs.getBoolean("can_be_urgent"), rs.getBoolean("user_can_disable"));
+				rs.getBoolean("can_be_urgent"), rs.getBoolean("user_can_disable"), rs.getBoolean("defer_in_quiet_hours"),
+				rs.getBoolean("urgent_overrides_preferences"));
 	}
 
 }

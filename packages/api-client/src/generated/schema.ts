@@ -192,6 +192,40 @@ export interface paths {
         patch: operations["updateMe"];
         trace?: never;
     };
+    "/api/v1/me/announcements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The announcements delivered to the caller (the recipient snapshot) across schools, optionally one school, keyset paged: newest first or sort=UNREAD_FIRST; filter UNREAD or NEEDS_ACKNOWLEDGEMENT. A guardian's custody-restricted, pending or revoked links, and students when the school does not address them, contribute nothing. Withdrawn announcements stay in the list as withdrawn */
+        get: operations["listMyAnnouncements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/announcements/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** How many delivered announcements are unread and how many still wait for the caller's acknowledgement (for a badge) */
+        get: operations["getMyAnnouncementSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/avatar": {
         parameters: {
             query?: never;
@@ -237,6 +271,24 @@ export interface paths {
         /** The caller's classes as student or teacher across schools, with school and the caller's role (at most 200, active only unless includeArchived) */
         get: operations["listMyClasses"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/communication-channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the caller accepts announcements by email and SMS (both on until switched off). Push and in-app are the notification preferences. Urgent announcements never override these two */
+        get: operations["getMyCommunicationChannels"];
+        /** Switches email and/or SMS announcements on or off (a null field stays). 409 announcement.sms_blocked_by_provider when the number opted out with the SMS provider */
+        put: operations["updateMyCommunicationChannels"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1269,6 +1321,281 @@ export interface paths {
         head?: never;
         /** Change a template (absent fields stay; items replace the list); its owner or a points manager */
         patch: operations["updateActivityTemplate"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The published and withdrawn announcements the caller may read in the school: the ones delivered to them, their own, every one for school.announcements.manage, and those whose audience rule matches them now (a guardian linked after publication, within 180 days). Server-filtered, keyset paged, newest first (sort=UNREAD_FIRST puts unread first) */
+        get: operations["listSchoolAnnouncements"];
+        put?: never;
+        /** Composes an announcement for an explicit audience (SCHOOL, CAMPUS, GRADE_LEVEL, CLASS or chosen USERs, each with the roles GUARDIAN, STUDENT or STAFF) as a draft, published at once (mode PUBLISH) or scheduled (mode SCHEDULE with scheduledFor). Needs school.announcements.manage for school, campus, grade and staff audiences; a lead or co-teacher (setting announcements.teachers_can_announce) or class manager may announce to the guardians and students of their own classes; URGENT and SAFETY need school.announcements.urgent. Plain text only. Recipients are resolved at publish. 400 announcement.* validation codes, 403 announcement.audience_not_allowed / announcement.urgent_not_allowed, 404 class.not_found, 422 announcement.no_recipients, 429 announcement.rate_limited */
+        post: operations["createAnnouncement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/authored": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The announcements the caller wrote (all of the school for school.announcements.manage unless mine=true) in every status, newest first, keyset paged */
+        get: operations["listAuthoredAnnouncements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the caller may compose in the school (school-wide or only for given classes), whether they may send urgent announcements, and which optional channels the school offers. 404 for callers who cannot see the school */
+        get: operations["getAnnouncementCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One announcement. Readers get PLAIN_TEXT title and body (a withdrawn announcement shows title, who withdrew it when and the public note, not the body); the author and managers also get audiences, channels, recipient count and what they may do. 404 announcement.not_found when the caller may not read it */
+        get: operations["getAnnouncement"];
+        put?: never;
+        post?: never;
+        /** Deletes a draft or scheduled announcement (author or manager). A published one is withdrawn instead (409 announcement.invalid_state) */
+        delete: operations["deleteAnnouncementDraft"];
+        options?: never;
+        head?: never;
+        /** Edits an announcement (author or school.announcements.manage). Drafts and scheduled ones change in place. After publishing only title, body, translations and language can change: the previous version is kept as a revision and material (required, 400 announcement.material_required) says whether recipients are told. 409 announcement.locked_after_publish for audience, type, channel or acknowledgement changes, 409 announcement.withdrawn */
+        patch: operations["updateAnnouncement"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirms the caller has read an announcement that asks for it (also marks it read, records the revision). Idempotent. 409 announcement.ack_not_required, 409 announcement.withdrawn */
+        post: operations["acknowledgeAnnouncement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** How many people (guardians, students, staff) a draft or scheduled announcement would reach if published now. Counts only */
+        get: operations["previewAnnouncementAudience"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publishes now: re-checks the author's rights, resolves the recipients into a snapshot and delivers through notifications (and email/SMS when chosen and allowed) in chunks after commit. Idempotent for an already published announcement. 409 announcement.withdrawn, 422 announcement.no_recipients, 429 announcement.rate_limited (30 per user per hour) */
+        post: operations["publishAnnouncement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Records that the caller opened the announcement (the first time stays). Separate from delivery and acknowledgement; idempotent */
+        post: operations["markAnnouncementRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/remind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reminds the recipients who have not acknowledged (in-app and push; urgent announcements push through quiet hours). At most once every announcements.reminder.min_hours (429 announcement.reminder_too_soon with Retry-After), at most 5 per announcement (409 announcement.reminder_limit_reached), 409 announcement.nobody_to_remind, 409 announcement.ack_not_required. Audited */
+        post: operations["remindUnacknowledged"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Delivered, failed, read and acknowledged counts of a published or withdrawn announcement, with per-channel (push, email, SMS) sent, failed, skipped and pending counts, late readers (outside the recipient snapshot) and reminders sent. Delivery, reading and acknowledgement are counted separately. 409 announcement.not_published for drafts */
+        get: operations["getAnnouncementReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/report.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The recipient list as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized, no contact details, sorted by name. Audited, rate limited (10 per 10 minutes, 429 announcement.export_rate_limited), at most 20000 rows (422 announcement.export_too_large) */
+        get: operations["exportAnnouncementReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/report/recipients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The recipient snapshot with delivery state per channel, read and acknowledgement, keyset paged by recipient (names, masked contact details, and for guardians the child they were reached through). filter narrows to UNREAD, UNACKNOWLEDGED, ACKNOWLEDGED or FAILED. Audited */
+        get: operations["listAnnouncementRecipients"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The previous versions of a published announcement, newest first, with who replaced them and whether the edit was material (author and managers) */
+        get: operations["listAnnouncementRevisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedules publication at scheduledFor (in the future, at most 180 days ahead). The scheduler publishes it as its author; if the author may no longer send it, it returns to DRAFT with scheduleErrorCode and the author is notified */
+        post: operations["scheduleAnnouncement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/unschedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Takes a scheduled announcement back to DRAFT */
+        post: operations["unscheduleAnnouncement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraws a published announcement (author or manager): recipients see it as withdrawn with the optional public reason, never erased; held-back pushes and pending email/SMS are cancelled; the recipients are told. Audited. Idempotent */
+        post: operations["withdrawAnnouncement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/schools/{schoolId}/attendance/dashboard": {
@@ -3403,6 +3730,284 @@ export interface components {
             /** Format: uuid */
             parentId?: string;
         };
+        AnnouncementAbilities: {
+            delete: boolean;
+            edit: boolean;
+            publish: boolean;
+            remind: boolean;
+            schedule: boolean;
+            viewReport: boolean;
+            withdraw: boolean;
+        };
+        AnnouncementAudienceInput: {
+            /** Format: uuid */
+            campusId?: string;
+            /** Format: uuid */
+            classId?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            roles?: ("GUARDIAN" | "STUDENT" | "STAFF")[];
+            /** @enum {string} */
+            type: "SCHOOL" | "CAMPUS" | "GRADE_LEVEL" | "CLASS" | "USER";
+            userIds?: string[];
+        };
+        AnnouncementAudienceView: {
+            /** Format: uuid */
+            campusId?: string;
+            /** Format: uuid */
+            classId?: string;
+            /** Format: uuid */
+            gradeLevelId?: string;
+            roles: ("GUARDIAN" | "STUDENT" | "STAFF")[];
+            /** @enum {string} */
+            type: "SCHOOL" | "CAMPUS" | "GRADE_LEVEL" | "CLASS" | "USER";
+            /**
+             * Format: uuid
+             * @description Present for USER audiences; hidden from everybody but the author and managers
+             */
+            userId?: string;
+        };
+        AnnouncementCapabilities: {
+            canCompose: boolean;
+            classes: components["schemas"]["AnnouncementClassRef"][];
+            emailAvailable: boolean;
+            /** Format: int32 */
+            reminderMinHours: number;
+            schoolWide: boolean;
+            smsAvailable: boolean;
+            smsTypes: ("NORMAL" | "IMPORTANT" | "URGENT" | "SAFETY")[];
+            studentsEnabled: boolean;
+            urgentAllowed: boolean;
+        };
+        AnnouncementCard: {
+            /** Format: date-time */
+            acknowledgedAt?: string;
+            /** Format: uuid */
+            authorId: string;
+            authorName?: string;
+            /** Format: date-time */
+            createdAt: string;
+            excerpt?: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            publishedAt?: string;
+            /** Format: date-time */
+            readAt?: string;
+            /** Format: int32 */
+            recipientCount?: number;
+            requiresAcknowledgement: boolean;
+            /** Format: int32 */
+            revision: number;
+            /** Format: date-time */
+            scheduledFor?: string;
+            /** Format: uuid */
+            schoolId: string;
+            schoolName: string;
+            /** @enum {string} */
+            status: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "WITHDRAWN";
+            title: string;
+            /** @enum {string} */
+            type: "NORMAL" | "IMPORTANT" | "URGENT" | "SAFETY";
+            /** Format: date-time */
+            withdrawnAt?: string;
+        };
+        AnnouncementClassRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        AnnouncementMine: {
+            acknowledged: boolean;
+            /** Format: date-time */
+            acknowledgedAt?: string;
+            /** Format: int32 */
+            acknowledgedRevision?: number;
+            read: boolean;
+            /** Format: date-time */
+            readAt?: string;
+            /** @description True when the caller was in the recipient snapshot at publish (false: opens it through the school's list only) */
+            recipient: boolean;
+        };
+        AnnouncementPreview: {
+            /** Format: int32 */
+            guardians: number;
+            /** Format: int32 */
+            recipients: number;
+            /** Format: int32 */
+            staff: number;
+            /** Format: int32 */
+            students: number;
+        };
+        AnnouncementRecipientView: {
+            /** Format: date-time */
+            acknowledgedAt?: string;
+            /** Format: int32 */
+            acknowledgedRevision?: number;
+            displayName: string;
+            email: string;
+            maskedEmail?: string;
+            maskedPhone?: string;
+            /** Format: date-time */
+            notifiedAt?: string;
+            push: string;
+            /** Format: date-time */
+            readAt?: string;
+            /** @enum {string} */
+            role: "GUARDIAN" | "STUDENT" | "STAFF";
+            sms: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            viaStudentId?: string;
+            viaStudentName?: string;
+        };
+        AnnouncementReminderView: {
+            /** Format: uuid */
+            noticeId: string;
+            /** Format: date-time */
+            requestedAt: string;
+            /** Format: int32 */
+            targeted: number;
+        };
+        AnnouncementReportSummary: {
+            /** Format: int32 */
+            acknowledged: number;
+            /** Format: uuid */
+            announcementId: string;
+            /** Format: int32 */
+            delivered: number;
+            deliveryComplete: boolean;
+            email: components["schemas"]["ChannelCounts"];
+            /** Format: int32 */
+            failed: number;
+            /** Format: date-time */
+            lastReminderAt?: string;
+            /**
+             * Format: int32
+             * @description People outside the recipient snapshot who opened it (linked or enrolled after publishing)
+             */
+            lateReaders: number;
+            push: components["schemas"]["ChannelCounts"];
+            /** Format: int32 */
+            read: number;
+            /** Format: int32 */
+            recipients: number;
+            /** Format: int32 */
+            reminders: number;
+            requiresAcknowledgement: boolean;
+            sms: components["schemas"]["ChannelCounts"];
+            /** @enum {string} */
+            status: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "WITHDRAWN";
+        };
+        AnnouncementRequest: {
+            audiences: components["schemas"]["AnnouncementAudienceInput"][];
+            body: string;
+            bodyLanguageCode?: string;
+            channels?: ("IN_APP" | "PUSH" | "EMAIL" | "SMS")[];
+            /** @enum {string} */
+            mode?: "DRAFT" | "PUBLISH" | "SCHEDULE";
+            requiresAcknowledgement?: boolean;
+            /** Format: date-time */
+            scheduledFor?: string;
+            title: string;
+            translations?: {
+                [key: string]: components["schemas"]["AnnouncementTranslation"];
+            };
+            /** @enum {string} */
+            type?: "NORMAL" | "IMPORTANT" | "URGENT" | "SAFETY";
+        };
+        AnnouncementRevisionView: {
+            body: string;
+            changeNote?: string;
+            /** Format: date-time */
+            editedAt: string;
+            /** Format: uuid */
+            editedBy: string;
+            editedByName?: string;
+            material: boolean;
+            /** Format: int32 */
+            revision: number;
+            title: string;
+            translations: {
+                [key: string]: components["schemas"]["AnnouncementTranslation"];
+            };
+        };
+        AnnouncementScheduleRequest: {
+            /** Format: date-time */
+            scheduledFor: string;
+        };
+        AnnouncementTranslation: {
+            body: string;
+            title: string;
+        };
+        AnnouncementUnreadSummary: {
+            /** Format: int32 */
+            needingAcknowledgement: number;
+            /** Format: int32 */
+            unread: number;
+        };
+        AnnouncementUpdateRequest: {
+            audiences?: components["schemas"]["AnnouncementAudienceInput"][];
+            body?: string;
+            bodyLanguageCode?: string;
+            changeNote?: string;
+            channels?: ("IN_APP" | "PUSH" | "EMAIL" | "SMS")[];
+            material?: boolean;
+            requiresAcknowledgement?: boolean;
+            title?: string;
+            translations?: {
+                [key: string]: components["schemas"]["AnnouncementTranslation"];
+            };
+            /** @enum {string} */
+            type?: "NORMAL" | "IMPORTANT" | "URGENT" | "SAFETY";
+        };
+        AnnouncementView: {
+            audiences?: components["schemas"]["AnnouncementAudienceView"][];
+            /** Format: uuid */
+            authorId: string;
+            authorName?: string;
+            body?: string;
+            bodyFormat: string;
+            bodyLanguageCode?: string;
+            can: components["schemas"]["AnnouncementAbilities"];
+            channels?: ("IN_APP" | "PUSH" | "EMAIL" | "SMS")[];
+            /** Format: date-time */
+            createdAt: string;
+            deliveryComplete?: boolean;
+            /** Format: date-time */
+            editedAt?: string;
+            /** Format: uuid */
+            id: string;
+            mine: components["schemas"]["AnnouncementMine"];
+            /** Format: date-time */
+            publishedAt?: string;
+            /** Format: int32 */
+            recipientCount?: number;
+            requiresAcknowledgement: boolean;
+            /** Format: int32 */
+            revision: number;
+            scheduleErrorCode?: string;
+            /** Format: date-time */
+            scheduledFor?: string;
+            /** Format: uuid */
+            schoolId: string;
+            schoolName: string;
+            /** @enum {string} */
+            status: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "WITHDRAWN";
+            title: string;
+            translations: {
+                [key: string]: components["schemas"]["AnnouncementTranslation"];
+            };
+            /** @enum {string} */
+            type: "NORMAL" | "IMPORTANT" | "URGENT" | "SAFETY";
+            withdrawalReason?: string;
+            /** Format: date-time */
+            withdrawnAt?: string;
+        };
+        AnnouncementWithdrawRequest: {
+            reason?: string;
+        };
         AppliedProfile: {
             /** Format: uuid */
             id: string;
@@ -3821,6 +4426,16 @@ export interface components {
             currentPassword?: string;
             newPassword: string;
         };
+        ChannelCounts: {
+            /** Format: int32 */
+            failed: number;
+            /** Format: int32 */
+            pending: number;
+            /** Format: int32 */
+            sent: number;
+            /** Format: int32 */
+            skipped: number;
+        };
         ChannelView: {
             /** @enum {string} */
             channel: "IN_APP" | "PUSH";
@@ -3995,6 +4610,16 @@ export interface components {
             unchanged: number;
             /** Format: int32 */
             updated: number;
+        };
+        CommunicationChannelsRequest: {
+            email?: boolean;
+            sms?: boolean;
+        };
+        CommunicationChannelsView: {
+            email: boolean;
+            sms: boolean;
+            /** @description True when this number opted out with the SMS provider and only the provider can undo it */
+            smsBlockedByProvider: boolean;
         };
         ConsentItem: {
             /** @enum {string} */
@@ -4285,6 +4910,16 @@ export interface components {
         };
         CursorPageAdministrativeAreaResponse: {
             items: components["schemas"]["AdministrativeAreaResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageAnnouncementCard: {
+            items: components["schemas"]["AnnouncementCard"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageAnnouncementRecipientView: {
+            items: components["schemas"]["AnnouncementRecipientView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -6214,6 +6849,7 @@ export interface components {
             channels: components["schemas"]["ChannelView"][];
             code: string;
             label: string;
+            urgentOverridesPreferences: boolean;
             userCanDisable: boolean;
         };
         UnreadCount: {
@@ -6822,6 +7458,70 @@ export interface operations {
             };
         };
     };
+    listMyAnnouncements: {
+        parameters: {
+            query?: {
+                schoolId?: string;
+                filter?: "ALL" | "UNREAD" | "NEEDS_ACKNOWLEDGEMENT";
+                sort?: "NEWEST" | "UNREAD_FIRST";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAnnouncementCard"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getMyAnnouncementSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementUnreadSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     setMyAvatar: {
         parameters: {
             query?: never;
@@ -6931,6 +7631,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyClass"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getMyCommunicationChannels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunicationChannelsView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateMyCommunicationChannels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommunicationChannelsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunicationChannelsView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -9631,6 +10393,636 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TemplateView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listSchoolAnnouncements: {
+        parameters: {
+            query?: {
+                filter?: "ALL" | "UNREAD" | "NEEDS_ACKNOWLEDGEMENT";
+                sort?: "NEWEST" | "UNREAD_FIRST";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAnnouncementCard"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createAnnouncement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnnouncementRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listAuthoredAnnouncements: {
+        parameters: {
+            query?: {
+                status?: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "WITHDRAWN";
+                mine?: boolean;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAnnouncementCard"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getAnnouncementCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementCapabilities"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getAnnouncement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteAnnouncementDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    updateAnnouncement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnnouncementUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    acknowledgeAnnouncement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    previewAnnouncementAudience: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementPreview"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    publishAnnouncement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    markAnnouncementRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    remindUnacknowledged: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementReminderView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getAnnouncementReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementReportSummary"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    exportAnnouncementReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listAnnouncementRecipients: {
+        parameters: {
+            query?: {
+                filter?: "ALL" | "UNREAD" | "UNACKNOWLEDGED" | "ACKNOWLEDGED" | "FAILED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAnnouncementRecipientView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listAnnouncementRevisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementRevisionView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    scheduleAnnouncement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnnouncementScheduleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unscheduleAnnouncement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    withdrawAnnouncement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                announcementId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AnnouncementWithdrawRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

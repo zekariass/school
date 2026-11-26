@@ -661,6 +661,7 @@ class AuthorizationMatrixTest {
 		cases.addAll(pointsCases());
 		cases.addAll(attendanceCases());
 		cases.addAll(feedCases());
+		cases.addAll(announcementCases());
 		return cases;
 	}
 
@@ -1197,6 +1198,118 @@ class AuthorizationMatrixTest {
 		// --- sync: open to every signed-in user; each operation is authorized as its online endpoint (SyncApiTest)
 		cases.add(new Case("POST sync", HttpMethod.POST, (f) -> "/api/v1/sync", (f) -> Map.of("operations", List.of()),
 				allow(200, EVERY_ACTIVE_PERSONA)));
+		return cases;
+	}
+
+	// ---- school communications centre: announcements (M10a) -----------------------------------------------
+
+	/** A row of the communications centre as the fixtures need it (the API paths are tested in the communications package). */
+	private UUID announcementRow(Fixture f, String status, boolean acknowledgement) {
+		UUID id = Ids.newId();
+		boolean published = "PUBLISHED".equals(status);
+		boolean scheduled = "SCHEDULED".equals(status);
+		this.jdbc.update("""
+				insert into announcements (id, school_id, author_id, title, body, status, published_at, scheduled_for,
+				                           announcement_type, requires_acknowledgement, recipient_count, authored_as)
+				values (?, ?, ?, 'Matrix', 'Matrix body', ?, ?, ?, ?, ?, ?, 'TEACHER')""", id, f.schoolA(), userOf(TEACHER_LEAD_A),
+				status, published ? new java.sql.Timestamp(System.currentTimeMillis()) : null,
+				scheduled ? new java.sql.Timestamp(System.currentTimeMillis() + 100L * 86_400_000L) : null,
+				acknowledgement ? "IMPORTANT" : "NORMAL", acknowledgement, published ? 1 : null);
+		this.jdbc.update("""
+				insert into announcement_audiences (announcement_id, audience_type, class_id, recipient_roles)
+				values (?, 'CLASS', ?, '{GUARDIAN}')""", id, f.class8A());
+		if (published) {
+			this.jdbc.update("""
+					insert into announcement_recipients (announcement_id, school_id, user_id, recipient_role, via_student_id, notified_at)
+					values (?, ?, ?, 'GUARDIAN', ?, now())""", id, f.schoolA(), userOf(GUARDIAN_A1), userOf(STUDENT_A1));
+		}
+		return id;
+	}
+
+	List<Case> announcementCases() {
+		List<Case> cases = new ArrayList<>();
+		String base = "/announcements";
+		// who sees school A at all: members, administrators, and guardians with an ACTIVE link to one of its students
+		Name[] sees = concat(READERS_OF_SCHOOL_A, SCHOOL_A_MEMBERS, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 });
+		// the author (lead of 8A) and the school's announcement managers act on an announcement; its recipient reads it
+		Name[] acts = concat(SCHOOL_A_MANAGERS, new Name[] { TEACHER_LEAD_A });
+		Name[] reads = concat(acts, new Name[] { GUARDIAN_A1 });
+		Name[] readerOnly = { GUARDIAN_A1 };
+		String schools = SCHOOLS;
+
+		// --- composing: managers, the class's lead teacher; the class's other people see the class but may not announce to it
+		cases.add(school("POST announcement to a class", HttpMethod.POST, (f) -> schools + f.schoolA() + base,
+				(f) -> Map.of("title", "Matrix", "body", "Matrix body", "audiences", List.of(Map.of("type", "CLASS", "classId", f.class8A()))),
+				201, acts, new Name[] { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("POST school-wide announcement", HttpMethod.POST, (f) -> schools + f.schoolA() + base,
+				(f) -> Map.of("title", "Matrix", "body", "Matrix body", "audiences", List.of(Map.of("type", "SCHOOL"))), 201,
+				SCHOOL_A_MANAGERS, concat(new Name[] { TEACHER_LEAD_A, TEACHER_SUBJECT_A, TEACHER_OTHER_A, STUDENT_A1, STUDENT_A2,
+						STUDENT_FORMER_A, GUARDIAN_A1, GUARDIAN_OF_A2 }, SCHOOL_A_VISITING_ADMINS)));
+		cases.add(school("POST urgent announcement needs the urgent permission", HttpMethod.POST, (f) -> schools + f.schoolA() + base,
+				(f) -> Map.of("title", "Matrix", "body", "Matrix body", "type", "URGENT", "audiences",
+						List.of(Map.of("type", "CLASS", "classId", f.class8A()))),
+				201, SCHOOL_A_MANAGERS, concat(SCHOOL_A_MEMBERS, SCHOOL_A_VISITING_ADMINS, new Name[] { GUARDIAN_A1, GUARDIAN_OF_A2 })));
+		cases.add(school("GET announcement capabilities", HttpMethod.GET, (f) -> schools + f.schoolA() + base + "/capabilities", null, 200,
+				sees));
+		cases.add(school("GET authored announcements", HttpMethod.GET, (f) -> schools + f.schoolA() + base + "/authored", null, 200,
+				sees));
+		cases.add(school("GET school announcements", HttpMethod.GET, (f) -> schools + f.schoolA() + base, null, 200, sees));
+
+		// --- the caller's own side: every signed-in user
+		cases.add(new Case("GET my announcements", HttpMethod.GET, (f) -> "/api/v1/me/announcements", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET my announcement summary", HttpMethod.GET, (f) -> "/api/v1/me/announcements/summary", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("GET my communication channels", HttpMethod.GET, (f) -> "/api/v1/me/communication-channels", null,
+				allow(200, EVERY_ACTIVE_PERSONA)));
+		cases.add(new Case("PUT my communication channels", HttpMethod.PUT, (f) -> "/api/v1/me/communication-channels",
+				(f) -> Map.of("email", true), allow(200, EVERY_ACTIVE_PERSONA)));
+
+		// --- one published announcement
+		cases.add(school("GET announcement (published)", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", false), null, 200, reads));
+		cases.add(school("GET announcement (draft: author and managers only)", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "DRAFT", false), null, 200, acts));
+		cases.add(school("PATCH announcement (author and managers)", HttpMethod.PATCH,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", false),
+				(f) -> Map.of("title", "Edited", "material", false), 200, acts, readerOnly));
+		cases.add(school("DELETE draft announcement", HttpMethod.DELETE,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "DRAFT", false), null, 204, acts));
+		cases.add(school("GET announcement audience preview", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "DRAFT", false) + "/preview", null, 200, acts));
+		cases.add(school("POST publish announcement", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "DRAFT", false) + "/publish", null, 200, acts));
+		cases.add(school("POST schedule announcement", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "DRAFT", false) + "/schedule",
+				(f) -> Map.of("scheduledFor", java.time.Instant.now().plus(java.time.Duration.ofDays(100)).toString()), 200, acts));
+		cases.add(school("POST unschedule announcement", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "SCHEDULED", false) + "/unschedule", null, 200, acts));
+		cases.add(school("POST withdraw announcement", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", false) + "/withdraw",
+				(f) -> Map.of("reason", "Matrix"), 200, acts, readerOnly));
+		cases.add(school("GET announcement revisions", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", false) + "/revisions", null, 200, acts,
+				readerOnly));
+
+		// --- reading and acknowledging: whoever may read it
+		cases.add(school("POST mark announcement read", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", false) + "/read", null, 204, reads));
+		cases.add(school("POST acknowledge announcement", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", true) + "/acknowledge", null, 200, reads));
+
+		// --- the delivery report: the author and managers (a recipient may read the announcement, not its report)
+		cases.add(school("GET announcement report", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", false) + "/report", null, 200, acts,
+				readerOnly));
+		cases.add(school("GET announcement report recipients", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", false) + "/report/recipients", null, 200,
+				acts, readerOnly));
+		cases.add(school("GET announcement report CSV", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", false) + "/report.csv", null, 200, acts,
+				readerOnly));
+		cases.add(school("POST remind the unacknowledged", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + base + "/" + announcementRow(f, "PUBLISHED", true) + "/remind", null, 200, acts,
+				readerOnly));
 		return cases;
 	}
 

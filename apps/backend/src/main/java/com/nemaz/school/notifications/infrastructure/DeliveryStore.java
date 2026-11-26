@@ -47,11 +47,34 @@ public class DeliveryStore {
 
 	/** Creates the QUEUED row of a device; false when it already exists (redelivered event). */
 	public boolean insertQueued(UUID notificationId, UUID deviceId, String provider, Instant now) {
+		return insertQueued(notificationId, deviceId, provider, now, null);
+	}
+
+	/**
+	 * Like {@link #insertQueued(UUID, UUID, String, Instant)}; with {@code notBefore} the push is held back (a
+	 * notification inside the user's quiet hours) and goes out once that instant has passed ({@link #due}).
+	 */
+	public boolean insertQueued(UUID notificationId, UUID deviceId, String provider, Instant now, Instant notBefore) {
 		return this.jdbc.update("""
-				insert into notification_deliveries (id, notification_id, channel, push_device_id, provider, status, queued_at)
-				values (?, ?, 'PUSH', ?, ?, 'QUEUED', ?)
+				insert into notification_deliveries (id, notification_id, channel, push_device_id, provider, status, queued_at,
+				                                     not_before)
+				values (?, ?, 'PUSH', ?, ?, 'QUEUED', ?, ?)
 				on conflict (notification_id, push_device_id) where push_device_id is not null do nothing""",
-				Ids.newId(), notificationId, deviceId, provider, Timestamp.from(now)) > 0;
+				Ids.newId(), notificationId, deviceId, provider, Timestamp.from(now),
+				(notBefore != null) ? Timestamp.from(notBefore) : null) > 0;
+	}
+
+	/**
+	 * Cancels the pushes of notifications of one source that are still held back (a withdrawn announcement must not wake
+	 * anybody up after the fact). Pushes already sent are unaffected.
+	 */
+	public int suppressHeldBack(String sourceType, UUID sourceId, Instant now) {
+		return this.jdbc.update("""
+				update notification_deliveries d set status = 'SUPPRESSED', suppressed_reason = 'BLOCKED'
+				from notifications n
+				where n.id = d.notification_id and n.source_type = ? and n.source_id = ?
+				  and d.status = 'QUEUED' and d.not_before is not null and d.not_before > ?""", sourceType, sourceId,
+				Timestamp.from(now));
 	}
 
 	/** A SUPPRESSED row for a device (quiet hours) or, with a null device, for the whole notification. */
@@ -73,24 +96,28 @@ public class DeliveryStore {
 		}
 	}
 
-	/** QUEUED deliveries of these notifications whose device is still active. */
-	public List<DeliveryJob> queuedFor(Collection<UUID> notificationIds) {
+	/** QUEUED deliveries of these notifications whose device is still active and that are not held back. */
+	public List<DeliveryJob> queuedFor(Collection<UUID> notificationIds, Instant now) {
 		if (notificationIds.isEmpty()) {
 			return List.of();
 		}
-		return this.named.query(JOB_SELECT + " and d.status = 'QUEUED' and d.notification_id in (:ids)",
-				new MapSqlParameterSource("ids", notificationIds), (rs, i) -> job(rs));
+		return this.named.query(JOB_SELECT
+				+ " and d.status = 'QUEUED' and d.notification_id in (:ids) and (d.not_before is null or d.not_before <= :now)",
+				new MapSqlParameterSource("ids", notificationIds).addValue("now", Timestamp.from(now)),
+				(rs, i) -> job(rs));
 	}
 
 	/**
 	 * Deliveries worth another attempt: QUEUED for over {@code queuedBefore} (the first attempt never
 	 * finished), or FAILED with attempts left once the back-off (1 minute after the first failure, 5 after
-	 * the second) has passed. Notifications older than {@code freshAfter} are not worth a push any more.
+	 * the second) has passed, or QUEUED and held back until a time that has now come (quiet hours). Notifications older
+	 * than {@code freshAfter} (counted from the end of the hold for held-back pushes) are not worth a push any more.
 	 */
 	public List<DeliveryJob> due(Instant now, Instant queuedBefore, Instant freshAfter, int limit) {
 		return this.named.query(JOB_SELECT + """
-				 and n.created_at > :fresh and (
-				   (d.status = 'QUEUED' and d.queued_at < :queuedBefore)
+				 and coalesce(d.not_before, n.created_at) > :fresh and (
+				   (d.status = 'QUEUED' and d.not_before is null and d.queued_at < :queuedBefore)
+				   or (d.status = 'QUEUED' and d.not_before is not null and d.not_before <= :now)
 				   or (d.status = 'FAILED' and d.attempt_count < :max and d.last_attempt_at +
 				       case when d.attempt_count <= 1 then interval '1 minute' else interval '5 minutes' end <= :now))
 				order by d.queued_at limit :limit""",

@@ -24,4 +24,9 @@ public final class Contacts {
 		return Emails.normalize(raw);
 	}
 
+	/** The ISO region (ET, KE, ...) of an E.164 number; empty when it cannot be told. */
+	public static Optional<String> region(String phoneE164) {
+		return PhoneNumbers.regionOf(phoneE164);
+	}
+
 }

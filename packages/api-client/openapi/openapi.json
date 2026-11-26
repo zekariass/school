@@ -454,6 +454,104 @@
         "tags" : [ "me" ]
       }
     },
+    "/api/v1/me/announcements" : {
+      "get" : {
+        "operationId" : "listMyAnnouncements",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "schoolId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "filter",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ALL", "UNREAD", "NEEDS_ACKNOWLEDGEMENT" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "sort",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "NEWEST", "UNREAD_FIRST" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAnnouncementCard"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The announcements delivered to the caller (the recipient snapshot) across schools, optionally one school, keyset paged: newest first or sort=UNREAD_FIRST; filter UNREAD or NEEDS_ACKNOWLEDGEMENT. A guardian's custody-restricted, pending or revoked links, and students when the school does not address them, contribute nothing. Withdrawn announcements stay in the list as withdrawn",
+        "tags" : [ "my-announcements" ]
+      }
+    },
+    "/api/v1/me/announcements/summary" : {
+      "get" : {
+        "operationId" : "getMyAnnouncementSummary",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementUnreadSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "How many delivered announcements are unread and how many still wait for the caller's acknowledgement (for a badge)",
+        "tags" : [ "my-announcements" ]
+      }
+    },
     "/api/v1/me/avatar" : {
       "delete" : {
         "operationId" : "clearMyAvatar",
@@ -588,6 +686,72 @@
         },
         "summary" : "The caller's classes as student or teacher across schools, with school and the caller's role (at most 200, active only unless includeArchived)",
         "tags" : [ "me" ]
+      }
+    },
+    "/api/v1/me/communication-channels" : {
+      "get" : {
+        "operationId" : "getMyCommunicationChannels",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CommunicationChannelsView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Whether the caller accepts announcements by email and SMS (both on until switched off). Push and in-app are the notification preferences. Urgent announcements never override these two",
+        "tags" : [ "my-announcements" ]
+      },
+      "put" : {
+        "operationId" : "updateMyCommunicationChannels",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CommunicationChannelsRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CommunicationChannelsView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Switches email and/or SMS announcements on or off (a null field stays). 409 announcement.sms_blocked_by_provider when the number opted out with the SMS provider",
+        "tags" : [ "my-announcements" ]
       }
     },
     "/api/v1/me/consents" : {
@@ -4289,6 +4453,955 @@
         },
         "summary" : "Change a template (absent fields stay; items replace the list); its owner or a points manager",
         "tags" : [ "toolkit" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements" : {
+      "get" : {
+        "operationId" : "listSchoolAnnouncements",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "filter",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ALL", "UNREAD", "NEEDS_ACKNOWLEDGEMENT" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "sort",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "NEWEST", "UNREAD_FIRST" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAnnouncementCard"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The published and withdrawn announcements the caller may read in the school: the ones delivered to them, their own, every one for school.announcements.manage, and those whose audience rule matches them now (a guardian linked after publication, within 180 days). Server-filtered, keyset paged, newest first (sort=UNREAD_FIRST puts unread first)",
+        "tags" : [ "announcements" ]
+      },
+      "post" : {
+        "operationId" : "createAnnouncement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AnnouncementRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Composes an announcement for an explicit audience (SCHOOL, CAMPUS, GRADE_LEVEL, CLASS or chosen USERs, each with the roles GUARDIAN, STUDENT or STAFF) as a draft, published at once (mode PUBLISH) or scheduled (mode SCHEDULE with scheduledFor). Needs school.announcements.manage for school, campus, grade and staff audiences; a lead or co-teacher (setting announcements.teachers_can_announce) or class manager may announce to the guardians and students of their own classes; URGENT and SAFETY need school.announcements.urgent. Plain text only. Recipients are resolved at publish. 400 announcement.* validation codes, 403 announcement.audience_not_allowed / announcement.urgent_not_allowed, 404 class.not_found, 422 announcement.no_recipients, 429 announcement.rate_limited",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/authored" : {
+      "get" : {
+        "operationId" : "listAuthoredAnnouncements",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SCHEDULED", "PUBLISHED", "WITHDRAWN" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "mine",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAnnouncementCard"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The announcements the caller wrote (all of the school for school.announcements.manage unless mine=true) in every status, newest first, keyset paged",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/capabilities" : {
+      "get" : {
+        "operationId" : "getAnnouncementCapabilities",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementCapabilities"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "What the caller may compose in the school (school-wide or only for given classes), whether they may send urgent announcements, and which optional channels the school offers. 404 for callers who cannot see the school",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}" : {
+      "delete" : {
+        "operationId" : "deleteAnnouncementDraft",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Deletes a draft or scheduled announcement (author or manager). A published one is withdrawn instead (409 announcement.invalid_state)",
+        "tags" : [ "announcements" ]
+      },
+      "get" : {
+        "operationId" : "getAnnouncement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One announcement. Readers get PLAIN_TEXT title and body (a withdrawn announcement shows title, who withdrew it when and the public note, not the body); the author and managers also get audiences, channels, recipient count and what they may do. 404 announcement.not_found when the caller may not read it",
+        "tags" : [ "announcements" ]
+      },
+      "patch" : {
+        "operationId" : "updateAnnouncement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AnnouncementUpdateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Edits an announcement (author or school.announcements.manage). Drafts and scheduled ones change in place. After publishing only title, body, translations and language can change: the previous version is kept as a revision and material (required, 400 announcement.material_required) says whether recipients are told. 409 announcement.locked_after_publish for audience, type, channel or acknowledgement changes, 409 announcement.withdrawn",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/acknowledge" : {
+      "post" : {
+        "operationId" : "acknowledgeAnnouncement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Confirms the caller has read an announcement that asks for it (also marks it read, records the revision). Idempotent. 409 announcement.ack_not_required, 409 announcement.withdrawn",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/preview" : {
+      "get" : {
+        "operationId" : "previewAnnouncementAudience",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementPreview"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "How many people (guardians, students, staff) a draft or scheduled announcement would reach if published now. Counts only",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/publish" : {
+      "post" : {
+        "operationId" : "publishAnnouncement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Publishes now: re-checks the author's rights, resolves the recipients into a snapshot and delivers through notifications (and email/SMS when chosen and allowed) in chunks after commit. Idempotent for an already published announcement. 409 announcement.withdrawn, 422 announcement.no_recipients, 429 announcement.rate_limited (30 per user per hour)",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/read" : {
+      "post" : {
+        "operationId" : "markAnnouncementRead",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Records that the caller opened the announcement (the first time stays). Separate from delivery and acknowledgement; idempotent",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/remind" : {
+      "post" : {
+        "operationId" : "remindUnacknowledged",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementReminderView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Reminds the recipients who have not acknowledged (in-app and push; urgent announcements push through quiet hours). At most once every announcements.reminder.min_hours (429 announcement.reminder_too_soon with Retry-After), at most 5 per announcement (409 announcement.reminder_limit_reached), 409 announcement.nobody_to_remind, 409 announcement.ack_not_required. Audited",
+        "tags" : [ "announcement-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/report" : {
+      "get" : {
+        "operationId" : "getAnnouncementReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementReportSummary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Delivered, failed, read and acknowledged counts of a published or withdrawn announcement, with per-channel (push, email, SMS) sent, failed, skipped and pending counts, late readers (outside the recipient snapshot) and reminders sent. Delivery, reading and acknowledgement are counted separately. 409 announcement.not_published for drafts",
+        "tags" : [ "announcement-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/report.csv" : {
+      "get" : {
+        "operationId" : "exportAnnouncementReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/csv" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The recipient list as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized, no contact details, sorted by name. Audited, rate limited (10 per 10 minutes, 429 announcement.export_rate_limited), at most 20000 rows (422 announcement.export_too_large)",
+        "tags" : [ "announcement-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/report/recipients" : {
+      "get" : {
+        "operationId" : "listAnnouncementRecipients",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "filter",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ALL", "UNREAD", "UNACKNOWLEDGED", "ACKNOWLEDGED", "FAILED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAnnouncementRecipientView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The recipient snapshot with delivery state per channel, read and acknowledgement, keyset paged by recipient (names, masked contact details, and for guardians the child they were reached through). filter narrows to UNREAD, UNACKNOWLEDGED, ACKNOWLEDGED or FAILED. Audited",
+        "tags" : [ "announcement-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/revisions" : {
+      "get" : {
+        "operationId" : "listAnnouncementRevisions",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AnnouncementRevisionView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The previous versions of a published announcement, newest first, with who replaced them and whether the edit was material (author and managers)",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/schedule" : {
+      "post" : {
+        "operationId" : "scheduleAnnouncement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AnnouncementScheduleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Schedules publication at scheduledFor (in the future, at most 180 days ahead). The scheduler publishes it as its author; if the author may no longer send it, it returns to DRAFT with scheduleErrorCode and the author is notified",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/unschedule" : {
+      "post" : {
+        "operationId" : "unscheduleAnnouncement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Takes a scheduled announcement back to DRAFT",
+        "tags" : [ "announcements" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/announcements/{announcementId}/withdraw" : {
+      "post" : {
+        "operationId" : "withdrawAnnouncement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "announcementId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AnnouncementWithdrawRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Withdraws a published announcement (author or manager): recipients see it as withdrawn with the optional public reason, never erased; held-back pushes and pending email/SMS are cancelled; the recipients are told. Audited. Idempotent",
+        "tags" : [ "announcements" ]
       }
     },
     "/api/v1/schools/{schoolId}/attendance/dashboard" : {
@@ -12668,6 +13781,732 @@
         },
         "required" : [ "countryCode", "id", "level", "nameI18n" ]
       },
+      "AnnouncementAbilities" : {
+        "type" : "object",
+        "properties" : {
+          "delete" : {
+            "type" : "boolean"
+          },
+          "edit" : {
+            "type" : "boolean"
+          },
+          "publish" : {
+            "type" : "boolean"
+          },
+          "remind" : {
+            "type" : "boolean"
+          },
+          "schedule" : {
+            "type" : "boolean"
+          },
+          "viewReport" : {
+            "type" : "boolean"
+          },
+          "withdraw" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "delete", "edit", "publish", "remind", "schedule", "viewReport", "withdraw" ]
+      },
+      "AnnouncementAudienceInput" : {
+        "type" : "object",
+        "properties" : {
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "roles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "GUARDIAN", "STUDENT", "STAFF" ]
+            },
+            "uniqueItems" : true
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "SCHOOL", "CAMPUS", "GRADE_LEVEL", "CLASS", "USER" ]
+          },
+          "userIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 200,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "AnnouncementAudienceView" : {
+        "type" : "object",
+        "properties" : {
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "gradeLevelId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "roles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "GUARDIAN", "STUDENT", "STAFF" ]
+            },
+            "uniqueItems" : true
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "SCHOOL", "CAMPUS", "GRADE_LEVEL", "CLASS", "USER" ]
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Present for USER audiences; hidden from everybody but the author and managers"
+          }
+        },
+        "required" : [ "roles", "type" ]
+      },
+      "AnnouncementCapabilities" : {
+        "type" : "object",
+        "properties" : {
+          "canCompose" : {
+            "type" : "boolean"
+          },
+          "classes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AnnouncementClassRef"
+            }
+          },
+          "emailAvailable" : {
+            "type" : "boolean"
+          },
+          "reminderMinHours" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "schoolWide" : {
+            "type" : "boolean"
+          },
+          "smsAvailable" : {
+            "type" : "boolean"
+          },
+          "smsTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "NORMAL", "IMPORTANT", "URGENT", "SAFETY" ]
+            }
+          },
+          "studentsEnabled" : {
+            "type" : "boolean"
+          },
+          "urgentAllowed" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "canCompose", "classes", "emailAvailable", "reminderMinHours", "schoolWide", "smsAvailable", "smsTypes", "studentsEnabled", "urgentAllowed" ]
+      },
+      "AnnouncementCard" : {
+        "type" : "object",
+        "properties" : {
+          "acknowledgedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "authorId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "authorName" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "excerpt" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "publishedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "readAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "recipientCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "requiresAcknowledgement" : {
+            "type" : "boolean"
+          },
+          "revision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "scheduledFor" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolName" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SCHEDULED", "PUBLISHED", "WITHDRAWN" ]
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "NORMAL", "IMPORTANT", "URGENT", "SAFETY" ]
+          },
+          "withdrawnAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "authorId", "createdAt", "id", "requiresAcknowledgement", "revision", "schoolId", "schoolName", "status", "title", "type" ]
+      },
+      "AnnouncementClassRef" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "name" ]
+      },
+      "AnnouncementMine" : {
+        "type" : "object",
+        "properties" : {
+          "acknowledged" : {
+            "type" : "boolean"
+          },
+          "acknowledgedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "acknowledgedRevision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "read" : {
+            "type" : "boolean"
+          },
+          "readAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "recipient" : {
+            "type" : "boolean",
+            "description" : "True when the caller was in the recipient snapshot at publish (false: opens it through the school's list only)"
+          }
+        },
+        "required" : [ "acknowledged", "read", "recipient" ]
+      },
+      "AnnouncementPreview" : {
+        "type" : "object",
+        "properties" : {
+          "guardians" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "recipients" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "staff" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "students" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "guardians", "recipients", "staff", "students" ]
+      },
+      "AnnouncementRecipientView" : {
+        "type" : "object",
+        "properties" : {
+          "acknowledgedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "acknowledgedRevision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "maskedEmail" : {
+            "type" : "string"
+          },
+          "maskedPhone" : {
+            "type" : "string"
+          },
+          "notifiedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "push" : {
+            "type" : "string"
+          },
+          "readAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "role" : {
+            "type" : "string",
+            "enum" : [ "GUARDIAN", "STUDENT", "STAFF" ]
+          },
+          "sms" : {
+            "type" : "string"
+          },
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "viaStudentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "viaStudentName" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayName", "email", "push", "role", "sms", "userId" ]
+      },
+      "AnnouncementReminderView" : {
+        "type" : "object",
+        "properties" : {
+          "noticeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "requestedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "targeted" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "noticeId", "requestedAt", "targeted" ]
+      },
+      "AnnouncementReportSummary" : {
+        "type" : "object",
+        "properties" : {
+          "acknowledged" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "announcementId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "delivered" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "deliveryComplete" : {
+            "type" : "boolean"
+          },
+          "email" : {
+            "$ref" : "#/components/schemas/ChannelCounts"
+          },
+          "failed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "lastReminderAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "lateReaders" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "People outside the recipient snapshot who opened it (linked or enrolled after publishing)"
+          },
+          "push" : {
+            "$ref" : "#/components/schemas/ChannelCounts"
+          },
+          "read" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "recipients" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "reminders" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "requiresAcknowledgement" : {
+            "type" : "boolean"
+          },
+          "sms" : {
+            "$ref" : "#/components/schemas/ChannelCounts"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SCHEDULED", "PUBLISHED", "WITHDRAWN" ]
+          }
+        },
+        "required" : [ "acknowledged", "announcementId", "delivered", "deliveryComplete", "email", "failed", "lateReaders", "push", "read", "recipients", "reminders", "requiresAcknowledgement", "sms", "status" ]
+      },
+      "AnnouncementRequest" : {
+        "type" : "object",
+        "properties" : {
+          "audiences" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AnnouncementAudienceInput"
+            },
+            "maxItems" : 20,
+            "minItems" : 1
+          },
+          "body" : {
+            "type" : "string",
+            "maxLength" : 10000,
+            "minLength" : 0
+          },
+          "bodyLanguageCode" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "channels" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "IN_APP", "PUSH", "EMAIL", "SMS" ]
+            },
+            "uniqueItems" : true
+          },
+          "mode" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "PUBLISH", "SCHEDULE" ]
+          },
+          "requiresAcknowledgement" : {
+            "type" : "boolean"
+          },
+          "scheduledFor" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 400,
+            "minLength" : 0
+          },
+          "translations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/AnnouncementTranslation"
+            }
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "NORMAL", "IMPORTANT", "URGENT", "SAFETY" ]
+          }
+        },
+        "required" : [ "audiences", "body", "title" ]
+      },
+      "AnnouncementRevisionView" : {
+        "type" : "object",
+        "properties" : {
+          "body" : {
+            "type" : "string"
+          },
+          "changeNote" : {
+            "type" : "string"
+          },
+          "editedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "editedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "editedByName" : {
+            "type" : "string"
+          },
+          "material" : {
+            "type" : "boolean"
+          },
+          "revision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "translations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/AnnouncementTranslation"
+            }
+          }
+        },
+        "required" : [ "body", "editedAt", "editedBy", "material", "revision", "title", "translations" ]
+      },
+      "AnnouncementScheduleRequest" : {
+        "type" : "object",
+        "properties" : {
+          "scheduledFor" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "scheduledFor" ]
+      },
+      "AnnouncementTranslation" : {
+        "type" : "object",
+        "properties" : {
+          "body" : {
+            "type" : "string",
+            "maxLength" : 5000,
+            "minLength" : 1
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 1
+          }
+        },
+        "required" : [ "body", "title" ]
+      },
+      "AnnouncementUnreadSummary" : {
+        "type" : "object",
+        "properties" : {
+          "needingAcknowledgement" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "unread" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "needingAcknowledgement", "unread" ]
+      },
+      "AnnouncementUpdateRequest" : {
+        "type" : "object",
+        "properties" : {
+          "audiences" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AnnouncementAudienceInput"
+            },
+            "maxItems" : 20,
+            "minItems" : 1
+          },
+          "body" : {
+            "type" : "string",
+            "maxLength" : 10000,
+            "minLength" : 0
+          },
+          "bodyLanguageCode" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "changeNote" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "channels" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "IN_APP", "PUSH", "EMAIL", "SMS" ]
+            },
+            "uniqueItems" : true
+          },
+          "material" : {
+            "type" : "boolean"
+          },
+          "requiresAcknowledgement" : {
+            "type" : "boolean"
+          },
+          "title" : {
+            "type" : "string",
+            "maxLength" : 400,
+            "minLength" : 0
+          },
+          "translations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/AnnouncementTranslation"
+            }
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "NORMAL", "IMPORTANT", "URGENT", "SAFETY" ]
+          }
+        }
+      },
+      "AnnouncementView" : {
+        "type" : "object",
+        "properties" : {
+          "audiences" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AnnouncementAudienceView"
+            }
+          },
+          "authorId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "authorName" : {
+            "type" : "string"
+          },
+          "body" : {
+            "type" : "string"
+          },
+          "bodyFormat" : {
+            "type" : "string"
+          },
+          "bodyLanguageCode" : {
+            "type" : "string"
+          },
+          "can" : {
+            "$ref" : "#/components/schemas/AnnouncementAbilities"
+          },
+          "channels" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "IN_APP", "PUSH", "EMAIL", "SMS" ]
+            }
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "deliveryComplete" : {
+            "type" : "boolean"
+          },
+          "editedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "mine" : {
+            "$ref" : "#/components/schemas/AnnouncementMine"
+          },
+          "publishedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "recipientCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "requiresAcknowledgement" : {
+            "type" : "boolean"
+          },
+          "revision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "scheduleErrorCode" : {
+            "type" : "string"
+          },
+          "scheduledFor" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "schoolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "schoolName" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SCHEDULED", "PUBLISHED", "WITHDRAWN" ]
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "translations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/AnnouncementTranslation"
+            }
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "NORMAL", "IMPORTANT", "URGENT", "SAFETY" ]
+          },
+          "withdrawalReason" : {
+            "type" : "string"
+          },
+          "withdrawnAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "authorId", "bodyFormat", "can", "createdAt", "id", "mine", "requiresAcknowledgement", "revision", "schoolId", "schoolName", "status", "title", "translations", "type" ]
+      },
+      "AnnouncementWithdrawRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          }
+        }
+      },
       "AppliedProfile" : {
         "type" : "object",
         "properties" : {
@@ -13603,6 +15442,28 @@
         },
         "required" : [ "newPassword" ]
       },
+      "ChannelCounts" : {
+        "type" : "object",
+        "properties" : {
+          "failed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pending" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sent" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "skipped" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "failed", "pending", "sent", "skipped" ]
+      },
       "ChannelView" : {
         "type" : "object",
         "properties" : {
@@ -14016,6 +15877,33 @@
           }
         },
         "required" : [ "created", "skipped", "unchanged", "updated" ]
+      },
+      "CommunicationChannelsRequest" : {
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "boolean"
+          },
+          "sms" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "CommunicationChannelsView" : {
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "boolean"
+          },
+          "sms" : {
+            "type" : "boolean"
+          },
+          "smsBlockedByProvider" : {
+            "type" : "boolean",
+            "description" : "True when this number opted out with the SMS provider and only the provider can undo it"
+          }
+        },
+        "required" : [ "email", "sms", "smsBlockedByProvider" ]
       },
       "ConsentItem" : {
         "type" : "object",
@@ -14894,6 +16782,38 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/AdministrativeAreaResponse"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageAnnouncementCard" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AnnouncementCard"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageAnnouncementRecipientView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AnnouncementRecipientView"
             }
           },
           "nextCursor" : {
@@ -19628,11 +21548,14 @@
           "label" : {
             "type" : "string"
           },
+          "urgentOverridesPreferences" : {
+            "type" : "boolean"
+          },
           "userCanDisable" : {
             "type" : "boolean"
           }
         },
-        "required" : [ "canBeUrgent", "channels", "code", "label", "userCanDisable" ]
+        "required" : [ "canBeUrgent", "channels", "code", "label", "urgentOverridesPreferences", "userCanDisable" ]
       },
       "UnreadCount" : {
         "type" : "object",

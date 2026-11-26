@@ -72,7 +72,7 @@ public class PreferenceService {
 			byCategory.computeIfAbsent(type.category(), (c) -> new ArrayList<>())
 				.add(new TypeView(type.code(),
 						this.renderer.label("notification." + type.code().toLowerCase() + ".label", locale),
-						type.canBeUrgent(), type.userCanDisable(), channels));
+						type.canBeUrgent(), type.userCanDisable(), type.urgentOverridesPreferences(), channels));
 		}
 		List<CategoryView> categories = new ArrayList<>();
 		byCategory.forEach((code, views) -> {
@@ -140,8 +140,13 @@ public class PreferenceService {
 	public record CategoryView(@NotNull String code, @NotNull String label, @NotNull List<TypeView> types) {
 	}
 
+	/**
+	 * {@code urgentOverridesPreferences}: urgent notifications of this type reach the phone even when its push is switched
+	 * off (and during quiet hours); the in-app item is always there.
+	 */
 	public record TypeView(@NotNull String code, @NotNull String label, @NotNull boolean canBeUrgent,
-			@NotNull boolean userCanDisable, @NotNull List<ChannelView> channels) {
+			@NotNull boolean userCanDisable, @NotNull boolean urgentOverridesPreferences,
+			@NotNull List<ChannelView> channels) {
 	}
 
 	/** {@code locked}: the user cannot change this channel. */

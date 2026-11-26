@@ -26,7 +26,9 @@ insert into permissions (code, module, description) values
   ('school.points.read',            'engagement',    'Read a school''s points reports (CSV export included) and any student''s points'),
   ('school.attendance.manage',      'attendance',    'Take or correct any class''s roll, edit a locked roll with a reason, decide on absence reports and read their notes'),
   ('school.attendance.read',        'attendance',    'Read a school''s attendance dashboard and summary reports (CSV export included) and any student''s attendance'),
-  ('school.feed.manage',            'feed',          'Post and pin school-wide posts and stories, approve or reject contributions of any class, moderate any post, story or comment of the school')
+  ('school.feed.manage',            'feed',          'Post and pin school-wide posts and stories, approve or reject contributions of any class, moderate any post, story or comment of the school'),
+  ('school.announcements.manage',   'communications', 'Compose, publish, edit and withdraw announcements to the whole school, a campus, a grade, any class or chosen people; read every announcement''s delivery report and remind the unacknowledged'),
+  ('school.announcements.urgent',   'communications', 'Send URGENT and SAFETY announcements (they bypass quiet hours and cannot be muted)')
 on conflict (code) do update
   set module = excluded.module,
       description = excluded.description;
@@ -72,6 +74,8 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('PLATFORM_ADMIN', 'school.attendance.manage'),
   ('PLATFORM_ADMIN', 'school.attendance.read'),
   ('PLATFORM_ADMIN', 'school.feed.manage'),
+  ('PLATFORM_ADMIN', 'school.announcements.manage'),
+  ('PLATFORM_ADMIN', 'school.announcements.urgent'),
   -- Country: organizations, schools and settings within the country; no plans or feature flags.
   ('COUNTRY_ADMIN', 'platform.organizations.manage'),
   ('COUNTRY_ADMIN', 'platform.schools.manage'),
@@ -92,6 +96,8 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('COUNTRY_ADMIN', 'school.attendance.manage'),
   ('COUNTRY_ADMIN', 'school.attendance.read'),
   ('COUNTRY_ADMIN', 'school.feed.manage'),
+  ('COUNTRY_ADMIN', 'school.announcements.manage'),
+  ('COUNTRY_ADMIN', 'school.announcements.urgent'),
   -- Organization: its schools (create, status, campuses, school settings) and their admins.
   ('ORGANIZATION_ADMIN', 'platform.schools.manage'),
   ('ORGANIZATION_ADMIN', 'platform.roles.manage'),
@@ -110,6 +116,8 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('ORGANIZATION_ADMIN', 'school.attendance.manage'),
   ('ORGANIZATION_ADMIN', 'school.attendance.read'),
   ('ORGANIZATION_ADMIN', 'school.feed.manage'),
+  ('ORGANIZATION_ADMIN', 'school.announcements.manage'),
+  ('ORGANIZATION_ADMIN', 'school.announcements.urgent'),
   -- School: its own school, campuses and school-level settings.
   ('SCHOOL_ADMIN', 'school.read'),
   ('SCHOOL_ADMIN', 'school.manage'),
@@ -126,6 +134,8 @@ insert into declared_role_permissions (role_code, permission_code) values
   ('SCHOOL_ADMIN', 'school.attendance.manage'),
   ('SCHOOL_ADMIN', 'school.attendance.read'),
   ('SCHOOL_ADMIN', 'school.feed.manage'),
+  ('SCHOOL_ADMIN', 'school.announcements.manage'),
+  ('SCHOOL_ADMIN', 'school.announcements.urgent'),
   -- The four school-operations permissions (M3a) are held by every administrator who may grant SCHOOL_ADMIN
   -- (platform, country, organization): granting needs every permission of the role (no escalation), so withholding
   -- them would only move the data access to a school administrator they appoint.
