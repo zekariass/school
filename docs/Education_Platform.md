@@ -1169,6 +1169,8 @@ This is important for copyright, licensing, and takedown workflows.
 The platform must not assume that a user has the right to distribute an uploaded book simply because they uploaded it.
 
 # 36. Marketplace / Learning Ecosystem
+
+> **Revised (26 November 2026, §135, D32, D33). The ecosystem is the school platform plus a tutor directory. Online courses, recorded content and hosted video are removed.**
 The **Marketplace module** contains all learning/tutoring activity that is not simply an official school class.
 
 This includes:
@@ -1208,6 +1210,8 @@ Marketplace
 This is the correct place for the tutoring ecosystem.
 
 # 37. Three Different Learning Concepts
+
+> **Revised (26 November 2026, §135). Only two concepts remain: the **school class** and the **tutor listing**. The "online course" concept is removed (D33), and a tutor listing is a directory entry, not a service the platform delivers (D32).**
 The platform must distinguish:
 
 ## A. School Class
@@ -1228,6 +1232,8 @@ Bookable tutoring offering.
 Do not merge these concepts into one entity.
 
 # 38. Online Course Delivery Modes
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 An online course can be:
 
 PRE_RECORDED
@@ -1278,6 +1284,8 @@ Assignments
 Quizzes
 
 # 39. Online Course Ownership
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 Courses can be created by:
 
 SCHOOL
@@ -1305,6 +1313,8 @@ Tutor
 → GCSE Physics Course
 
 # 40. Teacher Marketplace Participation
+
+> **Revised (26 November 2026, §135). A teacher may list as a tutor with a **separate** directory profile; there are no courses to publish.**
 A teacher may have:
 
 Teacher Profile
@@ -1328,6 +1338,8 @@ Offer Mathematics tutoring on the marketplace
 subject to platform and school policies.
 
 # 41. Course Enrollment
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 Enrollment is its own entity.
 
 course_enrollments
@@ -1371,6 +1383,8 @@ PAID
 FREE
 
 # 42. Teacher-Controlled Course Enrollment
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 A teacher can create:
 
 > Grade 10 Mathematics Live Tutoring
@@ -1408,6 +1422,8 @@ Student can access course
 Only enrolled students can access course content.
 
 # 43. Course Content
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 A course may contain:
 
 Course
@@ -1445,6 +1461,8 @@ QUIZ
 ASSIGNMENT
 
 # 44. Live Course Sessions
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 A live course contains scheduled sessions.
 
 course_live_sessions
@@ -1474,6 +1492,8 @@ status
 Only enrolled students can receive authorization to join.
 
 # 45. Live Course Flow
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 Tutor
 
 ↓
@@ -1509,6 +1529,8 @@ The video provider handles media transport.
 The platform controls authorization.
 
 # 46. Live Session Recording
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 A live session can optionally become a recording.
 
 Live Session
@@ -1532,6 +1554,8 @@ Course Lesson / Recording
 The recording can be available only to enrolled students.
 
 # 47. Hybrid Course
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 Example:
 
 Grade 9 Chemistry
@@ -1553,6 +1577,8 @@ Grade 9 Chemistry
 The platform should support both asynchronous and scheduled content in one course.
 
 # 48. Tutor Marketplace
+
+> **Revised (26 November 2026, §135, D32). This is now the **tutor directory**. The search filters stand except rating (there are no reviews). Contact is by platform message, never by booking.**
 Independent students/parents can discover tutors.
 
 Search filters:
@@ -1578,6 +1604,8 @@ Rating
 Verified status
 
 # 49. Tutor Profile
+
+> **Revised (26 November 2026, §135). The fields stand, with an area-level location instead of an address. No intro video, no reviews and no rating are kept.**
 Tutor Profile
 
 -------------
@@ -1619,6 +1647,8 @@ Services
 Reviews
 
 # 50. Tutor Services
+
+> **Removed (26 November 2026, §135, D32). There are no services, bookings, sessions, reviews or lesson payments on the platform.**
 A tutor can create multiple services.
 
 Example:
@@ -1652,6 +1682,8 @@ Booking rules
 Cancellation policy
 
 # 51. Personal Tutoring
+
+> **Removed (26 November 2026, §135, D32). There are no services, bookings, sessions, reviews or lesson payments on the platform.**
 A student or parent can:
 
 Search tutor
@@ -1679,6 +1711,8 @@ Attend session
 For minors, the platform should support guardian approval/payment policies.
 
 # 52. Tutoring Types
+
+> **Removed (26 November 2026, §135, D32). There are no services, bookings, sessions, reviews or lesson payments on the platform.**
 Support:
 
 ONE_TO_ONE
@@ -1694,6 +1728,8 @@ IN_PERSON
 The same tutor can offer multiple services.
 
 # 53. Tutor Availability
+
+> **Revised (26 November 2026, §135). Availability is an **informational weekly pattern** shown on the listing; nothing is reserved and there are no slots or exceptions.**
 Create structured availability instead of storing only free-form text.
 
 tutor_availability
@@ -1715,6 +1751,8 @@ active
 Then bookings reserve actual slots.
 
 # 54. Tutoring Booking
+
+> **Removed (26 November 2026, §135, D32). There are no services, bookings, sessions, reviews or lesson payments on the platform.**
 booking
 
 -------
@@ -1756,6 +1794,8 @@ NO_SHOW
 REFUNDED
 
 # 55. Tutoring Session
+
+> **Removed (26 November 2026, §135, D32). There are no services, bookings, sessions, reviews or lesson payments on the platform.**
 A confirmed booking creates a session.
 
 tutoring_session
@@ -1781,6 +1821,8 @@ ended_at
 status
 
 # 56. Video Infrastructure
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 Do not implement the video transport system yourself initially.
 
 Use a managed provider such as Agora.
@@ -1836,6 +1878,8 @@ The provider owns:
 - Real-time media
 
 # 57. Course vs Tutoring Video
+
+> **Removed (26 November 2026, §135, D33). No courses, live sessions, recordings or hosted video are built.**
 There are two different video contexts:
 
 LIVE COURSE
@@ -1857,6 +1901,8 @@ TUTORING SESSION
 They can share the video infrastructure but should remain separate domain concepts.
 
 # 58. Tutor Reviews
+
+> **Removed (26 November 2026, §135, D32). There are no services, bookings, sessions, reviews or lesson payments on the platform.**
 After a completed tutoring session/service, authorized users can review.
 
 tutor_reviews
@@ -1882,6 +1928,8 @@ status
 Reviews should be associated with real transactions/bookings.
 
 # 59. Marketplace Payments
+
+> **Removed (26 November 2026, §135, D32). There are no services, bookings, sessions, reviews or lesson payments on the platform.**
 Marketplace payments cover:
 
 Paid courses
@@ -2623,6 +2671,8 @@ Student
 Library access must be checked server-side.
 
 # 85. Tutor Authorization
+
+> **Stands (26 November 2026, §135). In the directory a tutor receives **no** school data at all and there are no sharing grants.**
 A tutor should receive only the information necessary for a tutoring relationship.
 
 For example:
@@ -3624,6 +3674,8 @@ AI
 Tutors may have a separate marketplace business model.
 
 # 106. Marketplace Revenue
+
+> **Revised (26 November 2026, §135, D35). Platform revenue is **school subscriptions and tutor listing subscriptions** only. There are no course sales, booking commissions or payouts.**
 Potential revenue:
 
 School subscriptions
@@ -3818,6 +3870,8 @@ Add structured teaching, assessment and evidence-of-learning capabilities.
 Keep curriculum content configurable and versioned; do not hard-code one national syllabus.
 
 # 114. Phase 3 — Online Learning Marketplace
+
+> **Removed (26 November 2026, D33). Phase 3 is now **payments and school fees** (Implementation Plan).**
 Introduce structured online courses and learning content, separate from official school classes.
 
 - Teacher/tutor course creator profiles and course ownership
@@ -3833,6 +3887,8 @@ Introduce structured online courses and learning content, separate from official
 - Course pricing and payments where the local market is ready
 
 # 115. Phase 4 — Tutor Marketplace
+
+> **Revised (26 November 2026, D32). Phase 4 is the **tutor directory** (§135).**
 Launch parent-led discovery and booking of independent tutors. A school teacher profile and a public marketplace tutor profile must remain separate.
 
 - Tutor profiles, identity checks, qualification evidence and country-specific verification
@@ -3855,6 +3911,8 @@ Launch parent-led discovery and booking of independent tutors. A school teacher 
 
 # 116. Phase 5 — Marketplace Finance & Tutor Insights
 
+> **Revised (26 November 2026, D32, D37). Commissions, earnings, payouts and tutor insights are removed. Phase 5 is platform billing and reconciliation; school fees moved to Phase 3.**
+
 Complete the commercial operations needed to operate tutoring and paid learning reliably.
 
 - Orders, payments, payment reconciliation, refunds and cancellation rules
@@ -3872,6 +3930,8 @@ Complete the commercial operations needed to operate tutoring and paid learning 
 Avoid opaque tutor rankings; explain recommendation factors and allow parents to choose.
 
 # 117. Phase 6 — AI Tutoring & Advanced Platform
+
+> **Removed (26 November 2026, D34). There is no Student AI Tutor or Tutor Copilot, and no AI phase. The school AI assistant (§134.9) is deferred.**
 
 Introduce AI in two separate products with shared curriculum and learning infrastructure: AI assistance for human tutors/teachers, and an optional student-facing AI learning tutor.
 
@@ -3935,7 +3995,7 @@ Advanced recommendation engine
 
 Huge analytics warehouse
 
-Complex school ERP features
+Complex school ERP features (Section 134.7 adds a fee ledger and cash book only; payroll, tax and general accounting stay out of scope)
 
 Start with strong boundaries inside a modular monolith.
 
@@ -4114,7 +4174,7 @@ All three can share the same global identity, messaging, media, calendar, notifi
 
 # 123. Product Specification Update — Scope and Authority
 
-This update adds the capabilities described in Sections 124–133. It does not replace the original architecture. The original principles for global identity, multi-tenancy, explicit memberships, server-side authorization, separation of school and marketplace data, modular-monolith delivery and country configuration remain in force.
+This update adds the capabilities described in Sections 124–135 (Section 135, added later on 26 November 2026, **revises the product scope**: the tutor marketplace is a paid directory, online courses and hosted video are removed, the Student AI Tutor and Tutor Copilot are removed, and the school AI assistant is deferred. Section 134, added 26 November 2026, covers school operations: timetable, lesson planning, assessment and report cards, attendance methods, student numbers and transfers, school fees and financial management, and the school AI assistant). It does not replace the original architecture. The original principles for global identity, multi-tenancy, explicit memberships, server-side authorization, separation of school and marketplace data, modular-monolith delivery and country configuration remain in force.
 
 The roadmap in Sections 112–117 has been revised directly in this edition. Sections 124–133 add the detailed requirements that support those phases. If an earlier statement elsewhere in the document conflicts with these updated sections, use the updated phase and addendum requirements. The additions are intended to make the product more complete while keeping the first release focused.
 
@@ -4218,6 +4278,8 @@ Suggested entities include education_systems, curriculum_versions, academic_leve
 
 # 128. Tutor Marketplace Improvements
 
+> **Revised (26 November 2026, §135). Trial lessons, post-trial assessments, matching and the tutor insights dashboard are removed; only the transparent ordering rule (no opaque ranking) and the parent-choice principle stand.**
+
 ## Intelligent tutor matching
 
 - Collect the parent/student learning goal, subject, grade/age range, preferred language, current learning level, schedule, delivery mode and budget.
@@ -4251,6 +4313,8 @@ Suggested entities include education_systems, curriculum_versions, academic_leve
 - Give tutors actionable, non-punitive insights such as lesson preparation reminders, repeated scheduling conflicts and learning goals needing review.
 
 # 129. AI Tutor Copilot — Support for Human Tutors and Teachers
+
+> **Removed (26 November 2026, §135, D34). The Tutor Copilot is not built.**
 
 AI Tutor Copilot is an assistant for the adult educator. It does not replace the tutor or teacher and must not independently make high-stakes decisions about a child.
 
@@ -4293,6 +4357,8 @@ AI Tutor Copilot is an assistant for the adult educator. It does not replace the
 - Make AI usage, quotas and cost controls configurable by task type; keep AI model routing and billing/credit calculation as separate services.
 
 # 130. Student AI Learning Tutor
+
+> **Removed (26 November 2026, §135, D34). The Student AI Tutor is not built.**
 
 Student AI Tutor is a separate student-facing learning experience. It helps a learner understand concepts and practise skills through guided interaction. It is distinct from AI Tutor Copilot, which supports a human educator.
 
@@ -4337,6 +4403,8 @@ Student AI Tutor is a separate student-facing learning experience. It helps a le
 - Use human-reviewed benchmark questions and language-specific evaluation before enabling a subject/language combination for children.
 
 # 131. Consent, Safeguarding & AI Governance
+
+> **Revised (26 November 2026, D34). The child-safeguarding and consent parts stand. The AI parts apply only if the deferred school AI assistant (§134.9) is built; recording and transcription consents are unused (D33).**
 
 Safeguarding must be a cross-platform capability, not only a moderation screen. It applies to classroom communication, media, student accounts, portfolios, tutoring, live video, AI features and support operations.
 
@@ -4421,3 +4489,168 @@ Use measurable pilot gates before expanding scope or opening a new country. Sugg
 - Safety: consent coverage, report response time, moderation backlog, unauthorised access incidents and data-retention compliance.
 
 Do not expand AI to additional subjects or languages solely because a model can produce text in that language. Require reviewed curriculum alignment, acceptable educational quality and functioning safeguarding controls first.
+
+# 134. School Operations Update — Timetable, Assessment, Attendance Methods, Fees and School Assistant
+
+*Added 26 November 2026. Decisions D14–D40 in [Spec_Review.md](Spec_Review.md); schema in [Database_Design.md](Database_Design.md) §4.30–§4.37 (§4.37 deferred); delivery in [Implementation_Plan.md](Implementation_Plan.md) (M7d, M7e, M22, M31a–d, M35, M37, M39–M42). Revised the same day by §135 and D32–D40.*
+
+This section completes the school-operations scope of the platform. It adds to Sections 13–15, 24–27, 60, 62 and 126 and follows the same principles: server-side authorization, tenant isolation, consent for children's data, country configuration, and no feature that depends on one payment provider, one grading scheme or one national format. **HR and payroll (employee records beyond school staff membership, leave, payroll, tax, pension and payslips) are explicitly out of scope** (D14).
+
+Every capability below is delivered with its security requirements. The requirements are part of the capability, not a later hardening step: a milestone is not done until the allow/deny tests, the abuse-case tests and the audit events listed for it pass.
+
+## 134.1 Timetable and annual academic plan
+
+- **Bell schedule and periods** per school or campus; **rooms**; per-class **subject period requirements** (periods per week, maximum per day, double periods); **teacher, room and class constraints** (unavailable, preferred, maximum per day, no consecutive).
+- **Weekly timetables**, built by hand in a grid editor with a **coverage view** (periods placed against the weekly periods each class needs per subject). **An automatic generator is deferred** (D40) until a school with many classes asks for it.
+- **Clash-free scheduling:** a class, a teacher or a room can be in one place at a time. This is enforced by the database for every version, so hand edits and the generator are both bound.
+- **Versioned publishing:** a published version is immutable; a change is a new version with an effective date, or an override for one date (substitution, cancelled lesson, room change). Teachers, students and guardians see the published version in the calendar.
+- **Annual academic plan:** terms, exam windows, holidays, activities, deadlines and meetings for the year, publishable to the school calendar.
+- **Security:** only timetable managers build and publish; guardians see the timetable of their child's class only; change notifications say "lesson changed" and never why.
+
+## 134.2 Lesson planning
+
+- **Annual, term (scheme of work), weekly and daily lesson plans**, chained from one level to the next.
+- **Ministry of Education format and other formats as templates:** each template lists the required fields, so a country or school format is configuration, not code. The platform ships a generic template; official formats are added as templates once supplied.
+- **Timetable-driven planning:** daily plan skeletons for a week are created from the published timetable and linked to their lesson.
+- **Review workflow:** draft, submit, approve or request changes, with revisions kept. The reviewer is never the author. Reviewers are the class's lead teacher, heads of department and holders of the review permission.
+- Plans are tagged to curriculum objectives (§127).
+- **Security:** plans are **staff-only**; students and guardians never read them; a plan is about a class and a topic, with no student reference.
+
+## 134.3 Assessment, results, report cards and transcripts
+
+- **Continuous assessment and assessment plans:** for each subject, class and period a plan defines the components (quizzes, tests, assignments, midterm, final, project, participation), their weights (adding to 100), maximum marks and drop-lowest rules.
+- **Mark entry and subject marklists:** a gradebook grid with keyboard entry, limited to the subject's teachers. A marklist is submitted, optionally approved, then published to the child and guardians.
+- **Corrections after publication** are recorded as amendments with a reason and a second approver, and the guardian is told that a result changed.
+- **Semester or term results** (total, average, grade, conduct, comments, promotion decision at year end) and **student ranking** under the school's rank-visibility setting (§134.3.1).
+- **Report cards:** generated automatically from a country or school template, issued as an immutable document with a verification code, in the family's language where translated.
+- **Transcripts:** the cumulative record of this school's own published results across years, signed by a second person, issued for a transfer, a scholarship or the family's own copy. The platform holds no results from previous schools (D39).
+
+### 134.3.1 Ranking and verification rules
+- Rank visibility is a school setting: none, staff only, or **own rank only**. Families never see a list of students by rank, and rank is never sent in a notification. The Ethiopia configuration defaults to own rank only, because Ethiopian report cards print it.
+- Every issued document carries a QR code that opens a public page showing only the document type, the school, the issue date and whether it is valid, revoked or replaced. The page never shows a name, marks or rank. It is rate-limited and answers unknown and malformed codes identically.
+- **Records are not withheld because of unpaid fees** unless a school deliberately turns that on; the choice is audited.
+- **Security:** unpublished marks are visible to the subject's teachers and grading managers only; every change after submission is an audited amendment; documents are generated from a snapshot so a reprint years later is identical; files are served through the owning record's access rule and never through a cached link.
+
+## 134.4 Question banks, online exams and secure exams
+
+- **Question banks** organised by subject and grade, tagged to curriculum objectives, with difficulty, language, approval and versions. Visibility: private, subject team or school.
+- **Online examinations** built from the shared quiz engine (§25): time limits, attempts, auto-grading of objective questions, manual grading of essays, results release by the teacher or at close. Questions are **copied** into an exam so later bank edits never change an exam already taken.
+- **Secure online exams:** a scheduled window, a server-side timer, one active attempt and device, per-student shuffling, an optional access code and school-network allowlist, extra time for learners who need it, and **integrity signals** for the teacher (focus lost, offline, device change).
+- **Homework, assignment submission, marking and grading** are as in Sections 24–26.
+- **Security:** correct answers never reach a student or guardian client before release; the exam paper is confidential before it opens; no cross-school sharing of banks; **no camera, microphone or screen proctoring** and no automatic penalty from signals (children's images and audio are not collected for exams); accommodation reasons are stored as codes and read only by the staff who need them.
+
+## 134.5 Attendance: methods, reports and staff attendance
+
+- **Methods**, chosen per school and per class. **Only manual marking and QR are supported (D38):**
+  - **Manual** marking (the existing roll), always available.
+  - **Rotating QR:** the teacher's screen shows a code that changes every few seconds; the student's app scans it.
+  - **Student QR:** a card or badge with a QR that the teacher's phone scans (the code can be static).
+- **Not supported:** NFC, RFID, GPS or any location check-in, kiosks and gate readers. No location is requested or stored anywhere in attendance.
+- **Every method feeds the same roll**, so the lock window, school-local date, class membership on the date and the conflict rules are identical. A scan can mark a student present or late, never absent, and never overwrites a different mark.
+- **Reports:** daily class and school summaries, **per-period** summaries (from timetable-driven rolls), student history, absence and lateness patterns, and **teacher and staff attendance** (daily and monthly), all exportable as audited CSV.
+- **Staff attendance** uses the same two QR methods (a manager shows a rotating code for the campus and day, or scans the staff member's card) and manual marking; it is visible to the staff member and to school managers only, and has no leave or payroll link.
+- **Security:** attendance credentials are separate from login codes, random, free of personal data, stored only as hashes, and revocable; a lost card is revoked and reissued. Known limits are stated to schools: a rotating code can be photographed and shared, and a static card can be copied. The short window, the teacher's live list and the teacher's ability to correct the roll are the mitigations.
+
+## 134.6 Student identity numbers, ID cards and transferred status
+
+- **Student ID generation:** a per-school format (prefix, year, zero-padded sequence, optional check digit), allocated without gaps or reuse, with a bulk run for existing students. The number is an identifier, **not a credential**, and is never used in a URL.
+- **ID cards** for students and staff from a template (photo, name, class, validity, QR code), printed in batches, revocable, reissued on loss.
+- **Student transfer is a status only (D39).** A school administrator marks a student **Transferred** with the date they left. Nothing moves between schools: there is no request, approval, consent, records package or prior-school record, and the destination is not recorded. The student's class memberships end, login codes, attendance credentials and ID cards are revoked, and guardians and teachers see "Transferred". The student's global identity and the guardian links stay, so a receiving school can add the same child without a duplicate profile. An administrator can undo it. The family can ask the school for a **transcript** (§134.3), which covers the school's own results; unpaid fees never block a transfer.
+
+## 134.7 School fees
+
+The fee requirement (D37):
+1. a school sets up **periodic payment**: fee structures (items, each with a billing cycle: once, monthly, termly or yearly), assignment to students, optional items such as transport and meals, instalments and discounts, and a **billing schedule**; the platform then **issues invoices automatically** on the schedule;
+2. guardians **pay in the app** through the country's payment provider (§61); or
+3. guardians **pay through their bank or wallet and submit the transaction reference**, and the platform **verifies it through a payment-verification service** (a third-party lookup of Ethiopian bank and wallet receipts: **Veritas**, https://veritas.et, chosen by the owner).
+
+Also in scope:
+- **Cash payment recording** and cheque and deposit-slip recording by the bursar, with a second person's verification where required and a signed-off closing for every cashier session; a one-person school may use a single-person mode that is flagged in the audit.
+- **Digital receipts** numbered without gaps per school and year, immutable, with **QR receipt verification** (the public page shows school, receipt number, date, amount and status, never a name).
+- **Reports:** arrears and ageing, collection summary, cash book, receipts register, claims log and student statements.
+- **Out of scope:** a double-entry ledger or accounting books, period closing, payroll, tax, purchasing, and provider refunds (a payment returned to a payer is a reversal recorded by finance and settled outside the platform). HR and payroll (D14).
+- **Security:**
+  - Financial records are **never edited**: a mistake is a reversal plus a new entry.
+  - A payment is never marked paid by the client. An in-app payment is confirmed only by a verified, signed notification and a server-side status check that agree with the invoice on amount, currency and reference.
+  - **An externally verified payment is confirmed only if** the receiver account matches the school's own registered account, the currency and amount agree, the date is sane, and the reference has never been used on the platform; anything doubtful goes to a person. The verification service receives **only the transaction reference and the one extra identifier a method needs** (an account suffix, or a phone number for CBE Birr), never a child's name or any student data; its key is a secret and each school's lookups are capped per month; its answers are parsed strictly (a missing field means a person decides); lookups run in the background and can take up to a minute; and a person can always confirm by hand if the service is down. The service is in Beta and publishes no SLA or privacy terms, so its terms are checked before launch.
+  - Known limit, documented: a verification service proves that a transfer exists, not whose it is, so claims are rate-limited, the provider's masked payer name is shown to the reviewer, finance gets a daily digest of confirmed claims, and a family can dispute a claim on their reference.
+  - Segregation of duties (configurable, with the single-person mode above): the person who records is not the person who verifies, voids or signs off; activating a billing schedule needs a second person; a cashier cannot void.
+  - Guardians see fees only for their own child, with an active, unrestricted link; teachers and students never see balances, and no arrears appear in any class view.
+  - Reminders carry the school name and due date only, never an amount or a child's name, and are never sent to a student account. The hardship reason of a discount is visible to finance managers only. Receiving-account numbers are encrypted and shown as the last four digits.
+
+## 134.8 Communication and learning materials (confirmation)
+
+The following are already specified and scheduled; this update records them against the owner's list so that none is lost:
+- **Communication and messaging:** school-wide and class announcements (§28), teacher–parent, direct and group messaging (§29–31), in-app, push, SMS and email notifications (§93, §125), multilingual messages and translation (§32, §71), parents' preferred language (§111) and the school communication feed (§16, §125).
+- **Learning materials:** shared classroom resources through the digital library (§33–35) and class work through assignments (§24). **Online courses and recorded content are not built (D33, §135).** A student's progress is their assignments, assessments, points and portfolio (§27).
+- **Assignments and grading:** §24–27.
+
+## 134.9 School AI assistant (deferred)
+
+**Deferred on 26 November 2026 (D34): no milestone is scheduled and nothing of it is built.** The design below is kept for when the owner decides to build it; it also depends on an AI platform that does not exist in this version.
+
+An assistant for parents, teachers and administrators that would answer questions **from the school's own records and documents** rather than from generic knowledge.
+- **Parents** would ask about their own child's attendance, results, timetable, assignments, events and fees; **teachers** about their classes and timetable; **administrators** about school information and documents. It would also answer questions about the school's own handbook, policies, fee schedule and calendar.
+- **How it would work:** no copy of the records. It calls fixed **read-only tools** that run as the signed-in user and apply the same access rules as the app, and it searches only the school's published, non-personal documents. Answers cite their source and say when nothing was found; it never guesses a number.
+- **It adds no power:** it cannot show anything the user could not open in the app (health data and absence reasons, safeguarding records, messages, other children, rosters, restricted guardian links, exam content before release), and in the first version it cannot change anything.
+- **Governance:** off by default, enabled per school, subject to AI consent (§131), minimised data to the model provider, a legal decision on where children's data may be processed, language-by-language quality gates, usage limits and a kill switch. Conversations are encrypted and expire; administrators cannot read other users' conversations. Students are not an audience.
+
+## 134.10 Phasing and release gates
+
+| Capability | Phase (see the Implementation Plan) |
+|---|---|
+| Per-period attendance, staff attendance, attendance reports | Phase 1 extension (M7d) |
+| QR check-in | Phase 1 extension (M7e) |
+| Student numbers, ID cards, transferred status; timetable and annual plan; lesson planning | Phase 2b (M35, M37, M39) |
+| Assessment plans, marklists, results, ranking, report cards and transcripts; question banks and secure exams | Phase 2 and 2b (M18, M40, M41, M42) |
+| Payment core; periodic fee invoicing, in-app payment, cash, receipts, payment verification, fee reports | Phase 3 (M22, M31a–d) |
+| Tutor directory | Phase 4 (M25–M27, §135) |
+| School AI assistant | **Deferred** (no milestone) |
+
+Release gates (additions to §133): attendance by scan accepted without roll conflicts in the pilot; a pilot school's timetable published with every class's weekly periods covered; report cards issued with zero post-publication discrepancies; payment reconciliation with zero unexplained differences for a full term; a verified external payment confirmed without a person in the large majority of claims, with zero confirmed against the wrong school's account; tutor listings with zero contact details exposed in search or profile payloads.
+
+# 135. Scope Revision — Tutor Directory and Removed Scope
+
+*Added 26 November 2026. Decisions D32–D40 in [Spec_Review.md](Spec_Review.md); schema in [Database_Design.md](Database_Design.md) §4.24–§4.29 and §4.34–§4.36; delivery in [Implementation_Plan.md](Implementation_Plan.md) (Phases 3 to 5 and "Removed and deferred scope"). Where this section conflicts with an earlier one, this section wins.*
+
+The product is a **school platform** (classroom, families, school operations, fees) plus a **tutor directory**. It is not a marketplace for online courses or recorded content, and it does not host lessons, run an AI tutor or process money on behalf of tutors.
+
+## 135.1 Tutor directory
+
+- **Tutors list themselves.** A tutor profile has a headline, bio, years of experience, subjects and levels, languages, a delivery mode (in person, or online with the tutor's own tools), **area-level locations** (city, sub-city or woreda, never an address), a **weekly availability pattern** shown as information (nothing is reserved), an informational rate, and a verified badge.
+- **Families find tutors.** Authenticated **guardians and independent adult learners (verified adults)** can search by subject, level, language, area or city, in-person or online, price range, day of the week and verified status. **Student accounts have no directory.** Search and profiles never show a phone number, e-mail address, exact address or document.
+- **Families message tutors** through the platform: a guardian or an adult learner starts a conversation, the tutor replies, and either side can block or report. **Students under 18 never contact a tutor** (owner decision), and a tutor can never start a conversation. The tutor sees the family's role label ("Parent" or "Learner"), the child's **age band** and the subject, never a name, school or photo unless the guardian writes it. Rules and limits: Messaging_Rules R14.
+- **Verification before listing.** A platform review checks identity and qualifications (and, where the country requires it, police clearance) and the listing text and photo. Documents are private to platform reviewers.
+- **No bookings, sessions, lesson payments, reviews, ratings, commissions or payouts.** Lessons are arranged between the family and the tutor outside the platform, and the product says so plainly. Reviews can be reconsidered later; nothing in the platform proves that a lesson happened, so ratings would not be trustworthy.
+- **No school data for tutors.** A tutor never sees grades, attendance, portfolios, class membership or school messages, and a school never sees a family's tutor inquiries (§85, §103).
+
+## 135.2 Listing fee
+
+- Tutors **pay a listing subscription** to be listed, through the payment core (§61): a plan priced per country, billed monthly or yearly, with an optional trial.
+- A tutor is **visible only while verified, listed and subscribed**. After a missed payment there is a 7-day grace, then the listing is hidden and the data is kept; paying again relists it without a new review unless the profile text or photo changed.
+- **Paying buys a listing, not rank.** Results are ordered by relevance to the filters and by recent activity, the factors are shown, and there is no paid placement or opaque score.
+- The platform takes no commission and no part in lesson payments.
+
+## 135.3 Child safety in the directory
+
+- Lessons happen off the platform, so the family is told plainly, on the listing and before the first message, that the platform does not run, supervise or guarantee lessons, that a guardian should be present or meet the tutor first, and that meetings should be in a public place or at home with an adult present.
+- Anyone can report a tutor or a message to **platform moderators** (never to a school); a confirmed case suspends the listing at once and closes open conversations. Rate limits and review flags apply to a tutor who contacts many families of minors, and to messages that try to move a child off the platform.
+- The terms (tutor terms, family notice) need legal review before launch. A public, searchable list of people who teach children is a safeguarding decision as well as a product one.
+
+## 135.4 Removed and deferred scope
+
+| Item | Status |
+|---|---|
+| Online courses, course sections, lessons, enrollments, live sessions, recordings, transcripts, hosted video (§36–§47, §56, §57) | **Removed** |
+| Tutor services, bookings, sessions, trials, reviews, matching, tutor insights, commissions, payouts, lesson payments (§50–§52, §54, §55, §58, §59, §128) | **Removed** |
+| Student AI Tutor and Tutor Copilot (§129, §130) and the AI platform built for them | **Removed** |
+| School AI assistant (§134.9) | **Deferred**, no milestone |
+| NFC, RFID, GPS check-in, kiosks and gate readers | **Removed**: attendance is manual and QR |
+| Student transfer workflow, records package, prior-school records | **Removed**: transfer is a status |
+| Automatic timetable generator | **Deferred** until a school with many classes asks |
+| Double-entry ledger, financial periods, trial balance | **Removed** (D15, D37) |
+| HR and payroll | **Out of scope** (D14) |
+
+## 135.5 Phasing
+
+Phase 3 is **payments and school fees** (payment core, periodic invoicing, in-app payment, cash and receipts, payment verification, fee reports). Phase 4 is the **tutor directory** (verification, search, inquiries, paid listing). Phase 5 is **platform billing and reconciliation**. There is no online-learning phase and no AI phase.

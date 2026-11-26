@@ -5,7 +5,7 @@ Guidance for AI agents and developers working in this repository.
 ## Source of truth
 
 - Product spec: `docs/Education_Platform.md`
-- Resolved inconsistencies and confirmed decisions (D1–D7): `docs/Spec_Review.md`. Where they conflict, these override the spec.
+- Resolved inconsistencies and confirmed decisions (D1–D40): `docs/Spec_Review.md`. Where they conflict, these override the spec.
 - Schema: `docs/Database_Design.md`. Migrations must match it; update the doc in the same change if the schema must differ.
 - Delivery order: `docs/Implementation_Plan.md`. Work milestone by milestone and keep its "definition of done".
 

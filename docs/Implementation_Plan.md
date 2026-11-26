@@ -4,7 +4,7 @@
 
 This plan builds on three documents:
 - [Education_Platform.md](Education_Platform.md), the product specification
-- [Spec_Review.md](Spec_Review.md), with decisions D1–D7 confirmed
+- [Spec_Review.md](Spec_Review.md), with decisions D1–D7 confirmed (D8–D13 for guardians and consent, D14–D31 for school operations, 26 November 2026)
 - [Database_Design.md](Database_Design.md), the schema
 
 Section references: § is the specification, R-xx is a spec-review finding, and DB §x is a section of the database design.
@@ -13,7 +13,7 @@ Section references: § is the specification, R-xx is a spec-review finding, and 
 
 ## 0. How to read this plan
 
-- **Order:** Phase 0 (foundation), then Phases 1–6, following the spec roadmap (§112–§117) with D4 applied: the payment core and video rooms move to Phase 3.
+- **Order:** Phase 0 (foundation), then Phases 1 to 5 (with 2b), following the spec roadmap (§112–§117) as revised on 26 November 2026 (D32–D40): the payment core and school fees are Phase 3, the tutor marketplace is a paid **directory** (Phase 4), there is no online-course, video or AI phase, and the school AI assistant is deferred. The phases are 0, 1, 2, 2b, 3, 4 and 5.
 - **Phases contain milestones (M), and milestones contain numbered steps.** Steps within a milestone run in order. Milestones marked *parallel* can overlap.
 - **Every feature milestone is a vertical slice.** It includes:
   - migration
@@ -90,7 +90,7 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
    - Platform: `identity`, `authorization`, `tenancy`, `reference`, `people`, `academic`
    - Classroom: `attendance`, `engagement`, `media`, `social`, `messaging`, `communications`, `notifications`, `calendar`
    - Operations: `sis`, `portfolio`, `moderation`, `consent`, `audit`, `subscriptions`
-   - Added in later phases: `curriculum`, `assessment`, `library`, `courses`, `video`, `payments`, `marketplace`, `finance`, `ai`
+   - Added in later phases: `curriculum`, `assessment`, `library`, `timetable`, `planning`, `payments`, `fees`, `tutors` (no `courses`, `video`, `marketplace`, `finance` or `ai` modules: D32–D34)
 2. **Enforce module boundaries** with Spring Modulith, or ArchUnit if Modulith has no Boot-4.2-compatible release yet. Modules talk only through public application services and domain events.
 3. **Shared kernel** (`common`):
    - RFC 9457 problem-details error model with stable error codes
@@ -588,7 +588,7 @@ Tables: DB §4.6.
    - `base_version` for conflict detection
    - returns the result for each operation (APPLIED, DUPLICATE, CONFLICT, REJECTED) and the server state
 3. **Mobile offline store (SQLite):**
-   - caches the roster, today's attendance, recent points, recent messages metadata, and calendar and course metadata (§72)
+   - caches the roster, today's attendance, recent points, recent messages metadata, and calendar and timetable metadata (§72)
    - a sync queue with retry and backoff
    - conflict UI for the rare case where two teachers mark the same student
 4. **Quick attendance UI:** everyone present by default, tap to cycle status, late minutes, notes.
@@ -632,6 +632,30 @@ Tables: DB §4.6.
 - **Notifications:** `ABSENCE_REPORTED` (path `/classes/{classId}/attendance`) opens the class inbox, `ATTENDANCE_MARKED` (path `/children` plus `data.studentId` and `data.date`) opens the child's attendance (`routeForPath` now takes the notification data; only teachers follow the first, only guardians the second).
 - **Verified:** vitest (engine, protocol, outbox SQL against Node's SQLite incl. the M6c migration, cache, cached fetch, roll loading, roll model, conflicts, dates, absence form, offline identity, routes); the engine and wire format against a running API (`SYNC_E2E_FIXTURE=<json> npx vitest run src/lib/sync/e2e.test.ts`, skipped otherwise): airplane mode with marks and awards, restart while offline, reconnect, replay of the whole batch (all DUPLICATE, totals unchanged), a colleague marking the same students meanwhile (per-student conflict, keep theirs, use mine), refusals (date in the future, student not in the class) next to an applied operation, an award first sent through the direct endpoint then through sync (DUPLICATE), and 101 operations (413 then one by one). `expo export` for iOS and Android, a Metro dev bundle, `expo-doctor` and a full `expo run:ios` build (iPhone 17e simulator) pass. **Not verified on a device:** no tap or typing was possible in the simulator (screenshots and `simctl openurl` are blocked or hang on the custom-scheme prompt), so the screens, the SQLite migrations on the Hermes/expo-sqlite runtime and the offline start were exercised only through tests, the type checker and the bundler, not by hand.
 - **Not done / for M7c:** realtime refresh of a roll another teacher is editing, per-student attendance notes that survive an app restart (deliberately not stored), an attendance summary for the teacher, offline absence-report inbox, a way to build a roll for a class whose roll was never opened online (the zone is only known from the first roll answer: `MyClass` has no time zone), the guardian's notification-preference screen for attendance, Amharic review.
+
+### M7d Per-period attendance, staff attendance & attendance reports (≈ 2 weeks, after M7c)
+Tables: DB §4.34 (`staff_attendance_*`), DB §4.6. Spec §134.5. Decisions D17, D20. **No new hardware or consent type.**
+
+1. **Per-period rolls.** The roll already carries `slot` (`P1..P8`) and `subject_id` (M7a). Make them usable: the web and mobile roll can choose a slot and subject, the roster is the class's members on that date (a subject group of an elective uses `student_groups`), the dashboard and reports show period rolls, and a school enables slots with `attendance.slots`. Once M37 exists, a period roll is created **from a timetable entry** (`attendance_sessions.timetable_entry_id`) and a teacher sees "my lessons today".
+2. **Staff attendance (manual).** `staff_attendance_records` and `staff_attendance_corrections`; a manager marks the day (PRESENT, ABSENT, LATE, HALF_DAY, EXCUSED), with minutes late and a note of at most 200 characters; corrections need a reason and are append-only; the school-local date comes from `SchoolTime`. Permissions `school.staff_attendance.read` and `.manage` (administrators, deputies; **a teacher never reads a colleague's record**); setting `attendance.staff.enabled` (default off). Feature flag `attendance`.
+3. **Reports** through `report_jobs` (M7a CSV rules: UTF-8 BOM, CRLF, neutralized formulas, audited, rate-limited): daily class summary (exists), **per-period summary**, **staff daily and monthly summary**, lateness and absence patterns. Every staff export is audited.
+4. **Screens:** web (`/s/{slug}/attendance`: Periods and Staff tabs) and mobile for managers (a staff roll). Staff self check-in arrives with M7e.
+5. **Security and tests:** allow/deny for every role including a teacher reading a colleague (404/403), another school's administrator, a guardian and a student; staff attendance never appears in class, points or student reports; the CSV audit; school-local date boundaries; the roll of one period never overwrites another's.
+
+**Exit:** a school takes attendance per period and reports it; a manager records staff attendance for a month and exports it.
+
+### M7e Attendance QR check-in (≈ 2 weeks, after M7d; Sonnet high, the lead reviews the credential and check-in endpoints)
+Tables: DB §4.34. Spec §134.5. Decisions D17, D19, D38. **Scope: manual marking (already built) and QR only.** NFC, RFID, GPS, kiosks and gate readers are not part of the product; no location is requested or stored anywhere in attendance.
+
+1. **Credential service.** `attendance_credentials`: a 128-bit random token printed as a QR on the ID card, stored as an HMAC with a server pepper kept in the secrets store (rotation procedure documented), revocable with a reason, one live credential per student or staff member. A credential carries no personal data and is never the login code of D6. A scan answers the scanning teacher with **first name and avatar only**.
+2. **One write path.** `RollService.markFromCheckin(...)` creates PRESENT or LATE through the same validation as the online roll and `/sync` (school-local date, lock window, class membership on the date, conflict rule). A check-in never writes ABSENT and never overwrites a different stored mark (`REJECTED_CONFLICT`). Every attempt, accepted or not, is stored in `attendance_checkins` (append-only).
+3. **Rotating QR (the student scans the teacher's code).** `attendance_qr_sessions`: the code is `HMAC(server key, qr_session | floor(t / rotation_s))`, so no per-session secret is stored; the server accepts the current and previous window; the caller is an authenticated student session; one accepted check-in per student per session; per-student and per-class rate limits; the teacher's live list, with the ability to remove an entry. The teacher screen shows a countdown and works for the display without a connection.
+4. **Static QR (the teacher scans the student's card).** Teacher phone scan with `expo-camera`, queued through the sync outbox with a `client_op_id` so a scan taken offline applies once. A scan of a revoked or expired credential is refused and logged with the scanner; two scanners reading one credential within a minute raise an alert (`SUSPECTED_COPY`).
+5. **Staff check-in.** A manager opens a staff QR session for a campus and day and shows the rotating code; staff scan it. A manager can also scan a staff member's static card. Results go to `staff_attendance_records` under the M7d rules.
+6. **Settings and admin.** `attendance.methods.enabled` (`MANUAL`, `QR_ROTATING`, `QR_STATIC`), `attendance.qr.rotation_seconds`, `attendance.staff.late_after_minutes`; credential issue, revoke and reissue on the student page; a plain-language notice to schools of the two known limits (a rotating code can be photographed and shared; a static card can be copied).
+7. **Tests (abuse cases, mandatory):** replayed and expired codes, previous-window acceptance, a student scanning for a class they are not in, a code from another school, a duplicate scan, revoked and expired credentials, a credential scanned for another school's student, conflict with a teacher's mark, the lock window, a scan after the roll's window, rate limits, the offline replay (DUPLICATE on the second send), and a test that no check-in endpoint accepts or stores a location. Allow/deny matrix additions for every endpoint.
+
+**Exit:** a pilot class uses the rotating QR for a week with no roll conflicts; a student card scanned by a teacher marks the student present; a lost card is revoked and its next scan is refused and visible.
 
 ### M8 Class Story, School Story & feed (≈ 3 weeks)
 Tables: DB §4.10.
@@ -677,7 +701,7 @@ Tables: DB §4.10.
 - **Error codes:** `feed.feature_disabled`, `feed.access_denied`, `feed.post_not_found`, `feed.story_not_found`, `feed.comment_not_found`, `feed.post_empty`, `feed.story_empty`, `feed.comment_empty`, `feed.too_many_media`, `feed.media_kind_not_allowed`, `feed.media_already_attached`, `feed.tag_invalid`, `feed.too_many_tags`, `feed.media_consent_missing` (422), `feed.media_confirmation_required` (422), `feed.invalid_state`, `feed.schedule_in_past`, `feed.schedule_too_far`, `feed.pin_limit_reached`, `feed.pin_not_published`, `feed.comments_disabled`, `feed.comment_not_allowed`, `feed.reaction_invalid`, `feed.rate_limited`, `feed.contributions_disabled`, `feed.contribution_not_allowed`, `feed.contribution_media_not_allowed`, `feed.contribution_needs_tag`, `feed.contribution_tag_not_own`, `feed.not_pending`, `feed.translation_disabled`, `feed.translation_unavailable` (503), `feed.translation_language_invalid`, `feed.translation_empty`, `feed.translation_rate_limited`, `feed.report_rate_limited`, plus `media.*`, `class.not_found`, `class.archived`, `school.not_found`, `student.not_found`, `invalid_cursor`.
 - **Open questions (product/legal):** (1) Should the confirmation also be required when students *are* tagged (others may appear untagged)? Today it is required only with no tag, as specified. (2) Are guardian and student names to be shown to other families at all (ClassDojo shows first names)? Today they are not. (3) Is the "seen by" list of names wanted for teachers? Today only the count. (4) May a school switch on translation before a provider contract with a data-processing agreement exists, and which providers are acceptable for children's text? (5) Retention of photos after a post is deleted, a contribution is rejected or a story expires (deleted now/at once/after seven days) versus safeguarding evidence needs (M13). (6) School-scope contributions and contributions to stories. (7) Whether a guardian whose link was revoked should lose the notifications already delivered. (8) Consent withdrawn by a guardian link change (not by a new decision) hides photos at once but does not notify authors (only `ConsentChanged` does).
 - **Tests:** 56 feed tests (`apps/backend/src/test/java/com/nemaz/school/feed`: consent-gate matrix, scheduler idempotency, withdrawal hiding and its redelivery, media access per persona, contributions, stories and their expiry, comments, reactions under concurrency, seen-by, reports, translation with the fake adapter, keyset paging, the home feed) and 34 endpoint cases in `AuthorizationMatrixTest`; the whole backend suite is 929 tests. Smoke-tested over HTTP on a separate database and port with real presigned uploads (class post, gate failures, untagged confirmation, scheduled post blocked after a withdrawal, approved contribution, story, comment, reaction, home feed, signed-URL access of a guardian, a stranger and after withdrawal, translation off).
-- **Not done / follow-ups:** web and mobile screens (M8b/M8c), video and poster frames (Phase 3), realtime push of new posts to open apps, report moderation (M13), school-scope contributions, translation provider, history access for former class members, an index-backed "posts about my child" filter, an author notification when consent changes through a guardian-link change.
+- **Not done / follow-ups:** web and mobile screens (M8b/M8c), video and poster frames (not scheduled; hosted video is out of scope, D33), realtime push of new posts to open apps, report moderation (M13), school-scope contributions, translation provider, history access for former class members, an index-backed "posts about my child" filter, an author notification when consent changes through a guardian-link change.
 
 **As built: M8c mobile feed (26 Nov 2026).** The Expo app shows Class Story, School Story and the feed for teachers, parents and students; only the API change below touches the backend. Code: `apps/mobile/src/lib/feed` (pure, tested), `components/feed`, routes `app/feed/*`, the `feed` tab of `(guardian)` and `(student)`.
 - **Screens:** `feed/class/[classId]` (story strip, new post, new story, "share with the class", my posts, approvals when the API says `canModerate`, then the post list), `feed/school/[schoolId]` (school-wide stories and posts; the school-wide composer only when `canPostSchoolWide`), `feed/post/[postId]` (the post in full, comments, translation, report), `feed/story/[storyId]` (a story opened from a notification), `feed/compose` (post, edit, story, family contribution), `feed/my-posts` (all statuses with the rejection reason and the publish error), `feed/approvals` (queue plus a review sheet). Entry points: the class screen ("Class feed"), the Classes tab ("School news"), the parent's **Feed** tab (home feed across children with a child filter and the stories of `/me/stories`; a "Share with the class" button where `canContribute`) and the student's **Feed** tab (class chips plus the school feed).
@@ -806,7 +830,7 @@ Tables: DB §4.12.
 Tables: DB §4.14.
 
 1. Native events with scope, recurrence rules (RRULE) and RSVP. Parent-meeting events have `regarding_student_id`.
-2. The calendar API combines native events with holidays and academic period boundaries (and later assignments, sessions and tutoring) and applies access filtering (R-17).
+2. The calendar API combines native events with holidays and academic period boundaries (and later assignments and the published timetable) and applies access filtering (R-17).
 3. Month, week and agenda views on web and mobile, with a Gregorian or Ethiopian display toggle that uses `packages/calendar`.
 4. UPCOMING_EVENT reminders through scheduled jobs.
 
@@ -817,7 +841,7 @@ Tables: DB §4.14.
 - **Parent meetings and RSVP.** Meetings carry `regarding_student_id`, are future-dated, timed and not repeating; the guardians resolved at creation get an invitation (`EVENT_INVITATION`) and a PENDING row; YES/NO/MAYBE until the start (same answer again: no change), RSVP reset on a reschedule, the organiser alone sees each guardian's answer; ordinary events with `rsvpEnabled` let everybody who sees them answer and show totals (never names) to managers. The audit entry of an answer holds the answer and the totals only; no audit entry holds a title, text or child id.
 - **Notifications.** No push for a new ordinary event (setting `calendar.notify.new_events`, default off); cancellations and moves (time or place) of ordinary events notify the audience (guardians who allow notifications and staff, never the actor, never students; setting `calendar.notify.changes`, default on); parent meetings always notify their participants. A parent meeting's notifications never carry its title, description, place or the child (they say "parent meeting", the teacher's name and the time); ordinary events carry their title only. Quiet hours: the three new types defer their push to the end of the recipient's quiet hours.
 - **Reminders.** `CalendarMaintenance.sendRemindersJob` (every minute, ShedLock `calendar.send-reminders`, returns `Integer`) sends `UPCOMING_EVENT` once per person per occurrence (memory: `event_reminders`), one day before events (`calendar.reminder.event_minutes`) and one hour before parent meetings (`calendar.reminder.parent_meeting_minutes`); 0 turns them off. Who: the owner of a personal event; the organiser and the still-valid guardians of a parent meeting; other events: those who answered YES or MAYBE, or everybody in the audience with `calendar.reminder.audience = EVERYONE` (those who said NO are never reminded).
-- **The union** `GET /api/v1/calendar` asks every `CalendarSource` bean (`EVENT`, `PERSONAL_EVENT`, `HOLIDAY`, `ACADEMIC_PERIOD`; later `ASSIGNMENT`, `LIVE_SESSION`, `TUTORING_SESSION` plug in as beans in their own modules) for the caller's window; each source filters by the caller's access in SQL. Holidays: the school's own and those of its country (and its area); academic years and periods: start and end dates as one-day all-day items. Items are ordered by (start, id) and keyset paged; the union leaves the caller's personal events out when a school or child is named unless `sources` asks for them.
+- **The union** `GET /api/v1/calendar` asks every `CalendarSource` bean (`EVENT`, `PERSONAL_EVENT`, `HOLIDAY`, `ACADEMIC_PERIOD`; later `ASSIGNMENT`, `TIMETABLE` plug in as beans in their own modules) for the caller's window; each source filters by the caller's access in SQL. Holidays: the school's own and those of its country (and its area); academic years and periods: start and end dates as one-day all-day items. Items are ordered by (start, id) and keyset paged; the union leaves the caller's personal events out when a school or child is named unless `sources` asks for them.
 - **Not built (open):** invitations for guardians linked after a meeting was created, a "remind me" per user, ICS export and feeds, free/busy and room booking, COURSE-scoped events (P3), multi-language event text (events are single-language plain text), event attachments.
 
 **As built: M11c mobile calendar (26 Nov 2026, apps/mobile only; no API change).** Step 3 on the phone (item 3 of M11) with the create and edit flows of step 1. Routes: the calendar is the **Calendar tab** of guardians and teachers (`app/(guardian)/calendar.tsx`, `app/(teacher)/calendar.tsx`; Android allows five tabs and a guardian already has five) and a **card on the student home** that opens `app/events/index.tsx` (a student has five tabs too); `app/events/[eventId].tsx` is the event detail (the deep-link target: `/calendar/events/{id}` of `EVENT_INVITATION`, `EVENT_UPDATED`, `EVENT_CANCELLED`, `UPCOMING_EVENT` becomes `/events/{id}` with `schoolId` and `occurrenceId` when the push has them); `app/events/compose.tsx` is the create/edit/occurrence form (modal). The route is `events`, not `calendar`, because a tab file `(guardian)/calendar` already owns the URL `/calendar`. Decisions:
@@ -936,7 +960,7 @@ Scope: §113, §124 (full) and §127. Tables: DB §4.21–4.23, plus the P2 colu
 3. A tagging component (pick objectives) that can be reused in assignments, assessments, questions, lessons, portfolio items and resources.
 
 ### M17 Assignments & submissions
-1. Assignments scoped to a class (and later a course), with attachments, targets, scheduling, due dates and late policy.
+1. Assignments scoped to a class, with attachments, targets, scheduling, due dates and late policy.
 2. Student submissions: text, photos and files. Offline drafts. Guardians can help young children submit (`submitted_by`).
 3. Teacher review: return, request resubmission, feedback. Notifications for NEW_ASSIGNMENT and returned work. Due dates appear on the calendar.
 
@@ -944,7 +968,7 @@ Scope: §113, §124 (full) and §127. Tables: DB §4.21–4.23, plus the P2 colu
 1. Grading schemes and bands (templates per country, overrides per school), and rubrics.
 2. Assessments: offline exams and participation, or graded assignments or quizzes. A gradebook grid on web with keyboard entry. Subject teachers are limited to their own subject.
 3. **Shared quiz engine:** question types, attempts, auto-grading, and manual grading for essays. Correct answers are never sent to students before results are released.
-4. Result publication, `period_grades` computed from weights, teacher overrides, report-card PDF generation (`report_jobs`), and parent access to published results.
+4. Result publication, `period_grades` computed from weights, teacher overrides, and parent access to published results. **Report cards are not issued in M18:** the immutable, verifiable report card and the transcript are M41, and assessment plans, marklists, semester results and ranking are M40 (M40 and M41 extend M18's tables; M18 must keep results unpublished-by-default so M40's workflow can wrap them).
 5. Learning evidence comes from results. Mastery is recorded only by teachers (§127).
 
 ### M19 Digital library
@@ -961,106 +985,195 @@ Scope: §113, §124 (full) and §127. Tables: DB §4.21–4.23, plus the P2 colu
 
 ---
 
-## Phase 3 — Online learning (≈ 4 months)
+## Phase 2b — School operations (≈ 3–4 months, two parallel tracks)
 
-Scope: §114, plus the payment core and video moved here by D4. Tables: DB §4.24–4.26.
+Scope: Spec §134.1–§134.4, §134.6. Tables: DB §4.30–§4.33, §4.35. Decisions D21, D23–D29, D39, D40. These milestones complete the academic and administrative work of a school; they run alongside Phase 2 and are ordered by dependency, not by number.
 
-### M22 Payment core (moved from Phase 5)
-1. A `PaymentService` provider abstraction (§61). The first Ethiopian provider adapter is chosen after commercial evaluation (for example Chapa or telebirr).
-2. Orders and order items, then payments, then webhooks. Webhook intake is idempotent and verifies signatures. A status-polling fallback handles providers whose webhooks aren't reliable.
-3. A reconciliation report (manual at first), and a sandbox mode for test environments.
+**Dependencies and suggested order**
 
-### M23 Courses & enrollment
-1. **Course builder:** sections, lessons (video, text, PDF, audio, quiz, assignment, live), materials, preview lessons.
-2. Ownership and audience rules, including the rule that SCHOOL and CLASS audiences mean the course is school-owned (R-20). Enrollment policies and pricing are separate fields.
-3. **Enrollment flows:**
-   - open
-   - approval required (§42: request → teacher approves)
-   - invite
-   - school-assigned
-   - paid (order → payment → ACTIVE)
-4. Course player with lesson progress, offline download where allowed, and completion.
-5. Course discussions (COURSE-scoped posts) and learner notifications.
+| Track | Milestones in order | Needs |
+|---|---|---|
+| A — Academic records | M16 → M17 → M18 → **M40 → M41** → M42 | M16 curriculum for tagging; M18 grading and quiz engine; M13 moderation for exam/question reports |
+| B — Timetable and planning | **M37 → M39** (M7d period rolls link to M37) | M3 classes and teachers; M11 calendar sources; M16 for objectives (M39) |
+| C — Identity and records | **M35** (the card's QR credential comes from M7e; number allocation and the transferred status can ship first) | M3 school people; M7e credentials |
 
-### M24 Video & live sessions
-1. A video adapter (Agora) and `video_rooms`. Short-lived join tokens are issued only to the host and ACTIVE enrolled students. Each issue is audited.
-2. Live session scheduling, a calendar entry, reminders, and join from web and mobile. Attendance is recorded in `course_live_participants`.
-3. Recording only after every participant's RECORDING consent has been checked (R-35). A visible indicator. A stop control. Retention policy. The recording is published to enrolled students as a lesson.
+**Model guidance (Opus only where security-critical, see the model policy):** none of the Phase 2b milestones needs Opus. Sonnet high, with the lead reviewing every security-sensitive diff (the public verification endpoint of M41, exam answer secrecy in M42, rank visibility in M40, document access) before merge. Opus is recommended for M22, M27, M31b and M31c (payments and child-safety messaging).
+
+### M35 Student numbers, ID cards & transferred status (≈ 2 weeks)
+Tables: DB §4.35. Decisions D21, D39.
+1. **Number allocation:** `student_number_formats` and `student_number_counters`; `StudentNumbers.allocate(...)` locks the counter row inside the admission transaction (a number is never reused, not even after withdrawal); preview of the format; manual entry still allowed (imports keep their numbers); the existing unique index is the final guard.
+2. **Bulk generation** for existing students without a number: a dry run lists the order and the first and last number, a second confirmation runs it, in a stable order (admission date, then name key); audited.
+3. **ID card templates and cards:** layout (school logo and design tokens), photo (new media purpose `ID_PHOTO`; school-record use, with the media-publication consent rule applying only if the photo is shown outside the card), class, validity, and the QR credential of M7e (**a random token, never the student number**). Printing through `report_jobs` (`ID_CARDS`) into a private, short-retention media row; reissue revokes the old card and its credential in one transaction. Staff cards use the same flow.
+4. **Screens:** school settings (format), student page (number, card, issue/reissue/revoke), card batch print (web); the student and guardian see their own card (web and mobile).
+5. **Security and tests:** an endpoint addressed by student number is never offered (UUIDs only); concurrent admissions never produce a duplicate number (concurrency test); a guardian sees only their own child's card; a card photo never enters the feed; revoked cards fail at the scanner.
+6. **Transferred status (D39).** `POST /schools/{s}/students/{id}/mark-transferred` (`school.students.manage`; body: the date left): in one transaction the student becomes TRANSFERRED (`left_on`, `left_reason = TRANSFERRED_SCHOOL`), class memberships end, login codes, attendance credentials and ID cards are revoked, and the audit records who did it. **No destination, request, consent, package or prior-school record** (D39). Guardians and teachers see "Transferred" on the child; the global student identity and guardian links are untouched (R-01, D13). `POST .../reinstate` undoes it (administrators, audited; class memberships are added again by hand). Notification to the guardian: "your child's enrolment changed" with the school name only. Unpaid fees never block it.
+7. **Tests (transfer):** allow/deny for every role and another school's administrator, a teacher cannot mark a student transferred, codes and credentials are dead after it, a transferred student cannot sign in with an old code, a reinstated student works again, the guardian link survives, and a second school can add the same child without a duplicate profile.
+**Exit:** a new school generates numbers for 500 students, prints a card batch, a lost card is revoked, and a student who leaves shows as transferred.
+
+### M37 Timetable & annual academic plan (≈ 4 weeks, manual builder)
+Tables: DB §4.30. Spec §134.1. Decisions D29, D40. **There is no automatic generator**: it is deferred until a school with many classes asks for it.
+1. **Bell schedules and periods, rooms and subject period requirements** (weekly period targets per class and subject; admin screens on web).
+2. **Timetable versions and entries:** a grid editor (class × weekday × period) with drag and drop, a per-class **coverage view** (periods placed against `subject_period_requirements`), and **live clash detection that mirrors the database unique indexes** (class, teacher, room per weekday and period); co-teachers through `timetable_entry_teachers`; copy a version to start the next one.
+3. **Publishing:** DRAFT → PUBLISHED with an effective date; the previous version becomes SUPERSEDED; a published version is immutable (a change is a new version or an override). `TIMETABLE_PUBLISHED` notifies affected teachers (title and school only).
+4. **Overrides:** substitution, cancelled lesson, room change for one date, notifying the substitute and the class's guardians ("lesson changed", never why).
+5. **Calendar source:** a `CalendarSource` bean `TIMETABLE` (R-17; no copies into `events`), so students, guardians and teachers see lessons in the calendar of M11, in the school's time zone. Mobile and web views: "my day", class week, teacher week, room week.
+6. **Links:** period attendance rolls are created from a timetable entry (M7d); daily lesson plans link to it (M39).
+7. **Tests:** database-level clash tests (two writers racing for one teacher slot: one fails), published-version immutability, access (a guardian sees the timetable of their own child's class only, never a teacher's other classes), school-local time and DST-free zone handling, effective-date boundaries.
+8. **Annual academic plan:** `academic_plans` and items (term dates, exam windows, holidays, activities, deadlines, meetings); publishing creates calendar events (M11 rules) and keeps the plan as the source.
+**Exit:** a pilot school builds and publishes a weekly timetable by hand, with every class's weekly periods covered; teachers and families see it in the calendar; a substitution reaches the class; the school publishes its annual plan.
+
+### M39 Lesson planning (≈ 2.5 weeks)
+Tables: DB §4.31. Spec §134.2. Decision D28.
+1. **Templates:** `lesson_plan_templates` per level and country/school; a generic template ships; the **Ministry of Education format is added as a template once the owner supplies it** (open item in Spec_Review). Fields are validated against the template (type, required, maximum length).
+2. **Plans and chain:** annual → term → weekly → daily, each linked to its parent; curriculum objectives tagged from M16 (`lesson_plan_objectives`); resources from the library (M19) when it exists.
+3. **Timetable-driven planning:** "create this week's daily plans" builds one DRAFT skeleton per timetable entry (idempotent through the unique index) with class, subject, date and the parent weekly plan.
+4. **Review:** DRAFT → SUBMITTED → APPROVED or CHANGES_REQUESTED, revisions kept (`lesson_plan_revisions`), a reviewer is never the author, reviewers are the class's lead teacher, heads of department and `school.lesson_plans.review`; notifications `LESSON_PLAN_REVIEWED` (no plan text).
+5. **Screens:** web editor (the main surface), mobile view and quick edit of a daily plan; a head-of-department review queue; print/PDF of a plan in the template layout (`report_jobs`).
+6. **Security and tests:** plans are **staff-only** (students and guardians get 404); a plan from another school or another teacher's private draft is not readable except by reviewers; a submitted revision cannot be edited in place; no student reference exists in the model.
+**Exit:** teachers plan a week from the timetable, submit it, and a head approves; a plan prints in the configured format.
+
+### M40 Assessment plans, marklists, semester results & ranking (≈ 3 weeks, extends M18)
+Tables: DB §4.32. Spec §134.3. Decisions D25, D26.
+1. **Assessment plans:** per class, subject and period with weighted components (weights must add to 100 to activate; drop-lowest; maximum marks); an assessment links to a component; the plan locks when the first result is entered (changing it afterwards needs a reason and recomputes).
+2. **Marklist and mark entry:** the web gradebook grid (keyboard-first, paste from a spreadsheet, validation against maximum marks, offline-tolerant drafts) for the subject's teachers only; per-student excused and absent handling per the setting `grading.absent_counts_as_zero`; the **marklist workflow** DRAFT → SUBMITTED → (APPROVED when `grading.marklist_approval_required`) → PUBLISHED; the approver is never the submitter.
+3. **Computation:** `period_grades` from the plan (weighted sum, drop-lowest, excused redistributed, rounding rule from the grading scheme), teacher override with a reason, **idempotent recompute** (never deltas); `period_results` (total, average, grade label, conduct, homeroom comment) per student and period; year-end `promotion_decision`.
+4. **Ranking (D26):** a job computes `class_rank`, `class_size` (and optionally grade rank) with competition ranking; setting `grading.rank.visibility` (`NONE`, `STAFF`, `OWN`; Ethiopia defaults to `OWN`); `grading.rank.requires_all_subjects`. **No endpoint returns a list of students ordered by rank to a student or guardian;** an `OWN` response contains only the viewer's own child. Rank never appears in a notification or an announcement.
+5. **Amendments:** after PUBLISHED, a change writes `result_amendments` (old and new value, reason, a **different approver**); the guardian is notified `RESULT_AMENDED` (subject and date, no scores).
+6. **Reports:** marklist per subject, class result sheet, subject statistics (mean, pass rate, distribution; no individual names for guardians), exports through `report_jobs` with the CSV rules.
+7. **Tests:** weights and rounding (golden cases from a real school's grading rules), tie ranking (1,2,2,4), unpublished marks invisible to guardians, a subject teacher cannot edit another subject, assistants cannot edit, approver ≠ submitter, amendments after publication, `OWN` rank leaks nothing about classmates (including class size inference by listing), and recompute idempotency.
+**Exit:** a pilot class completes a term: plans, marks entered, marklists published, ranks shown to families per the school's setting.
+
+### M41 Report cards & transcripts (≈ 3 weeks)
+Tables: DB §4.32. Spec §134.3. Decision D27. Security-sensitive (public verification and document integrity): the lead reviews the verification endpoint and the access rules before merge.
+1. **Templates:** `report_card_templates` (layout JSON: sections, columns, labels in i18n, signature blocks, a rank section only when `shows_rank`); the Ethiopian format is a template once supplied (open item). **PDF engine decision (ADR):** a server-side renderer that handles **Ethiopic (Ge'ez) script and shaping** (embed a Noto Sans Ethiopic font), right pagination and QR; verify output for am and en on a real device before choosing.
+2. **Issuing:** a job generates cards for a class from the PUBLISHED `period_results` and `period_grades` into an immutable **snapshot** with `content_sha256`; the PDF is a `media` row (purpose `REPORT`, short-lived signed links, never cached or logged); `report_cards.status` ISSUED, SUPERSEDED, REVOKED; a correction supersedes and notifies the family, never edits. A second person signs when the school requires it.
+3. **Verification page:** `https://<school-host>/verify/{token}` where the token is 128 random bits (22 base64url characters) stored **only as an HMAC** (`verification_hash`); a public Route Handler outside the authenticated routes with no session, constant-time comparison, a per-IP and per-token-prefix rate limit, `no-referrer` and `noindex`, and an identical answer for unknown and malformed tokens; the page shows **type, school, issue date and status only**. The token lives in the URL path only (never in storage, query keys or logs).
+4. **Transcripts:** `transcripts` cover this school's own PUBLISHED results (all years); a second person (the head) signs (`signed_by ≠ issued_by`); purposes TRANSFER, STUDENT_COPY, SCHOLARSHIP, OTHER; numbered per school (`transcript_no`); requested by a guardian or staff; `fees.hold_records_on_arrears` default **false**, an audited opt-in. The platform holds no prior-school records (D39).
+5. **Access:** the child and ACTIVE, unrestricted guardians with `can_view_academics`, `school.grading.read`; a guardian of another child, a teacher without the class and another school's administrator get 404; families get a share-by-link option **only** through the verification page, never a link to the PDF.
+6. **Screens:** issue and reprint (web), family view and download (web and mobile, the PDF opens in the system viewer), a "document check" page (the verification page), the registry of issued documents for administrators.
+7. **Tests:** reprint equals the original hash years later (snapshot), a post-issue mark change does not alter an issued card, a revoked card verifies as REVOKED, token enumeration is throttled and answers uniformly, the verification response contains no name or marks (schema test), rank appears only per the setting, Amharic rendering golden test, concurrency of two issuers (one card), allow/deny matrix.
+**Exit:** a pilot school issues a term's report cards to a whole grade, families download them, and a printed card verifies by QR.
+
+### M42 Question banks & secure online exams (≈ 4 weeks)
+Tables: DB §4.33. Spec §134.4. Decisions D23, D24. Security-sensitive (answer secrecy, exam integrity): the lead reviews the student-facing DTOs and the timer.
+1. **Question banks:** `question_banks`, `bank_questions` by subject and grade, objective tagging (`target_type = BANK_QUESTION`), difficulty and language, versions, approval (an approver differs from the author when `quizzes.bank.review_required`), visibility PRIVATE, SUBJECT_TEAM, SCHOOL; import from CSV; platform-curated read-only banks. **No cross-school sharing.**
+2. **Compose an exam:** pick or randomly draw questions by objective and difficulty into a quiz; the quiz **copies** the questions (`bank_question_id` + `bank_question_version`), so a later bank edit never changes an exam already taken.
+3. **Exam sittings:** `exam_sittings` (window, duration, access code, optional school-network allowlist, `single_device`, shuffles, `results_release`); **accommodations** (extra time by percentage, reason code only) per student.
+4. **Taking the exam (web first, mobile second):** the attempt start computes `deadline_at` **on the server**; each answer is saved with a server timestamp and a late answer is refused (`exam.attempt_closed`); the paper is served for the attempt's own seed, one question set at a time; a second device ends the first (`DEVICE_CHANGED`); focus loss, offline and reconnect are recorded in `quiz_attempt_events`; autosave and resume after a network drop within the window; low-data friendly.
+5. **Teacher side:** live status (not started, in progress, submitted), the integrity timeline per attempt (**signals, never a verdict, never an automatic penalty**), grading queue for essays and short text, regrade with amendment after publication (M40), results release.
+6. **Security, enforced by tests:** an **architecture test fails the build if any student- or guardian-facing DTO has a `correctAnswer`/`explanation` property** before release; the paper is unreadable by non-staff before `opens_at`; answers and papers are not in logs, events, notifications or audit rows; a student cannot read another student's attempt; bank questions are not reachable across schools; no camera, microphone or screen capture is requested anywhere.
+7. **Tests:** server-timer abuse (clock changes, late submits), double-device, replayed submissions (idempotent by attempt and question), random draw determinism per seed, accommodation timing, large-class load (a whole grade starting at once), reconnect storms.
+**Exit:** a pilot school runs a real class exam online in a lab; results are graded, released and enter the marklist (M40) with no answer disclosed early.
 
 ---
 
-## Phase 4 — Tutor marketplace (≈ 4–5 months)
+## Phase 3 — Payments & school fees (≈ 3 months)
 
-Scope: §115 and §128. Tables: DB §4.27, plus `tutor_profiles` and `data_sharing_grants`.
+Scope: Spec §134.7, §60, §61. Tables: DB §4.26, §4.28, §4.36. Decisions D30, D37. *Phase 3 was "Online learning" (courses and video); those were removed (D33) and school fees moved here (D37).* Order: M22, then M31a, M31b, M31c, M31d. M31a needs no payment provider and can start first.
 
-### M25 Tutor onboarding & verification
-1. Create a tutor profile. A teacher can opt in with a **separate** profile (§40). Subjects, languages, qualifications, intro video.
-2. Verification requirements for each country, document upload, a platform review queue, and status changes. Only VERIFIED tutors can be listed.
+### M22 Payment core (≈ 2 weeks; **Opus**)
+1. A `PaymentService` provider abstraction (§61). The first Ethiopian provider adapter is chosen after commercial evaluation (for example Chapa, telebirr or ArifPay).
+2. `payments`, `payment_transactions`, `platform_invoices`, `payment_webhook_events`. **A payment is SUCCEEDED only after a valid signature, a server-side status query, and an amount, currency and reference match, once per event id** (D30). A status-polling fallback handles providers whose webhooks are not reliable. There are **no orders and no provider refunds**: a payment returned to a payer is a reversal recorded by finance.
+3. Webhook endpoints are unauthenticated by design, so: signature first, body size limit, rate limit, no side effects before verification, no body in logs, replay safe, constant-time compare.
+4. A sandbox mode for test environments and a manual reconciliation report (automated in M29).
+5. **Tests:** forged webhook, replayed webhook, correct signature with the wrong amount, currency or reference, a success redirect without a webhook, parallel duplicates, a provider outage and a late webhook.
 
-### M26 Services, availability & discovery
-1. Services (one-to-one or small group, online or in person, trial), cancellation policies.
-2. A weekly availability pattern plus exceptions. A slot generator that respects notice period, booking window and existing sessions.
-3. **Discovery:** filters (§48) and **transparent matching** (`tutor_match_requests` and `results` with factor explanations, §128). Nothing from school records is used in discovery.
+### M31a Fee structures, billing schedules & automatic invoicing (≈ 3 weeks; needs no payment provider)
+Tables: DB §4.28 and §4.36. Decisions D15, D16, D37.
+1. **Fee setup:** `fee_items`, `fee_structures` per grade, year and campus, `fee_structure_items` with a billing cycle each (once, monthly, termly, yearly) and optional items (transport, meals), `payment_plans` (instalment shares add up to 10000 bps), `student_fee_assignments` (one ACTIVE per student and year, bulk by grade or class), `fee_discounts` (percent or fixed, a **reason code only**, an approver, validity).
+2. **Periodic payment set-up:** `fee_billing_schedules` (cycle, day of month, days allowed to pay, start and end). **Activating a schedule needs a second person** (setting `fees.second_approval`, default on; `fees.single_person_mode` lets a one-person school skip it, flagged in the audit).
+3. **Automatic invoicing:** a daily job `fees.schedule-run` (ShedLock, returns `Integer`) creates the period's invoices from active schedules with no further approval; idempotent through `invoices.billing_key` (`unique (school_id, student_id, billing_key)`), chunked and resumable (`FOR UPDATE SKIP LOCKED`), with installments, and an e-mail digest of counts and exceptions to the finance manager. A manual run is available, with a **dry run** first and, by setting, a second person's approval.
+4. **Notifications:** `INVOICE_ISSUED` (school name and due date; **never the amount or the child's name**), `INVOICE_DUE`, `INVOICE_OVERDUE` (quiet hours respected; **never to a student account, never shaming**).
+5. **Guardian view:** invoices and balances of a child with an ACTIVE, **unrestricted** link and `student_guardians.can_view_fees` (new column); teachers and students never see balances; no arrears in any class view.
+6. **Screens:** web admin (structures, assignments, discounts, schedules, runs, invoice list, student statement); web and mobile guardian invoice list.
+7. **Tests:** idempotent reruns (no duplicate invoice), schedule activation by the requester refused, a discount's reason code never reaches a guardian or teacher, balances recomputed from allocations and not by deltas, allow/deny for every role including a restricted guardian and another school's administrator.
+**Exit:** a school defines its fees, activates a monthly schedule, and invoices appear on the right day for every assigned student.
 
-### M27 Booking, sessions & safety
-1. **Booking state machine (R-22):**
-   - request
-   - guardian approval for minors
-   - payment (M22)
-   - confirmed: session created or joined, with the exclusion constraint preventing double booking
-   - reschedule, cancel (policy-based refunds are manual until M30), no-show, complete
-2. Tutoring relationships and guardian **data-sharing grants** (R-21). Tutoring conversations follow the messaging policy, with guardian observers for minors.
-3. Session delivery: video rooms for online sessions, location for in-person ones. Attendance. Session notes with visibility.
-4. **Trials:** a post-trial assessment shared with the family. Follow-up booking or a series.
-5. Reviews tied to completed bookings. A report flow into moderation.
+### M31b Pay in the app, cash recording & receipts (≈ 4 weeks, needs M22; **Opus**)
+Tables: DB §4.26, §4.36. Spec §134.7. Decision D30. **Security-critical (money, insider fraud, forgery).**
+1. **Pay an invoice or instalment in the app** through the country's provider (M22), with `can_pay_fees`. On success, in one transaction: `payment_allocations` (append-only; a reversal is a negative row), invoice and installment totals recomputed **from allocations**, a receipt and a notification. An overpayment becomes a credit on the student's account.
+2. **Cash and other manual payments:** `manual_payments` (CASH, CHEQUE, BANK_DEPOSIT_SLIP) recorded by `school.fees.record`; a **second person** with `school.fees.verify` verifies cheques, deposit slips and cash at or above `fees.cash.approval_threshold_minor` (CHECK plus service rule); smaller cash is verified at once but is covered by the **cash session's closing, signed off by a different person**; a recorded payment is never edited, a wrong one is **voided with a reason by a second person** (reversal row, replacement receipt). A cashier cannot void, approve their own entry or change another cashier's session. `fees.single_person_mode` lets a one-person school verify its own entries; every such entry is flagged in the audit and the cash book.
+3. **Receipts:** issued when a payment is VERIFIED, from the payment row (the amount is never typed twice), **gapless numbering per school and year** (`receipt_sequences`, a locked row, rolled back on failure), an immutable snapshot with `content_sha256`, the PDF as media (`RECEIPT`), served only to the payer, guardians with `can_view_fees` and `school.fees.read`. A void is a status change with a reason and a replacement receipt.
+4. **QR verification:** `https://<school-host>/verify/{token}`, the same hardened public endpoint as M41 (a 128-bit token stored as an HMAC, constant-time, rate-limited, identical answer for unknown and malformed, throttled after three failures per source per minute); it shows **school, receipt number, date, amount, currency and status**, never a student or payer name.
+5. **Screens:** the bursar's desk (find a student, record, print a receipt), the verification queue, cash session open, close and sign-off, voids; web first; guardian payment and receipts on web and mobile.
+6. **Tests (two-person rules for every pair of roles):** a cashier verifying their own deposit slip is refused (outside single-person mode), a cashier voiding is refused, a closing signed by the cashier is refused, gapless numbering under concurrency, a voided receipt verifies as VOIDED, a receipt PDF requested by another family (404), token enumeration throttled, the verification response contains no name (schema test), a payment cannot exceed its invoice without an explicit credit, a guardian paying another family's invoice is refused, a forged success never marks a payment paid.
+**Exit:** a guardian pays an invoice in the app and gets a receipt; a bursar records a day's cash, a second person signs it off, and a printed receipt verifies by QR.
+
+### M31c Verify external payments with Veritas (≈ 3 weeks, needs M31b; **Opus**)
+Tables: DB §4.36 (`verification_providers`, `school_receiving_accounts`, `external_payment_claims`). Decision D37. **Security-critical (money, third-party data).** This is the "pay through your bank or wallet, then verify" path.
+0. **Terms and spike first (about 3 days).** Before any design is final: read Veritas's terms and privacy policy (Spec_Review open item 2), choose a plan, get a key, and **record each method's real answer** (CBE, Telebirr, Dashen, Abyssinia, CBE Birr, M-Pesa; successes, not-found, wrong suffix, and an HTTP 200 failure) as fixtures in a contract test, because the service documents no response fields. Confirm whether Telebirr lookups work from the hosting region. If the spike shows the service is unusable, the manual path and check.et remain.
+1. **Verification port and Veritas adapter.** A `PaymentVerifier` port with a `VeritasVerifier` (https://veritas.et; hosted API, `x-api-key` header, key in the secrets store). The adapter chooses the **dedicated route from the method the guardian picked** (never auto-detection), **validates the reference format per method** before spending a credit (for example a 10-character Telebirr reference, a 16-character Dashen reference, a CBE `FT` reference), maps each method's answer into one internal `VerifiedTransfer` (amount, currency, paid time, receiver account, payer name, status) and treats **HTTP 200 with `success: false`** as a failure; **a missing or unexpected field is NEEDS_REVIEW**. Lookups run in a **background job** (the claim shows "checking") with a **65-second timeout**, one retry for network errors only (each lookup uses a credit), a **rate limiter below the plan's requests a minute**, and a circuit breaker. Raw responses are never logged or stored. A second adapter (check.et) can be added behind the same port.
+2. **School receiving accounts:** `school_receiving_accounts` (method, account name, number encrypted at the application level, last four shown) managed by `school.fees.manage`; the claim check compares the provider's receiver account with these rows.
+3. **Claims:** a guardian with `can_pay_fees` submits the method, the transaction reference, optionally a screenshot and the invoice. The reference is normalized and length- and charset-checked; **one live claim per transaction on the whole platform** (`ux_claim_reference_live`). The service is asked for the transaction; **only the reference and the second identifier the method needs (an account suffix, or the payer's phone for CBE Birr; stored encrypted and erased when the claim ends) leave the platform, never a child's name, a student id or the school** (contract test on the outgoing request).
+4. **Acceptance rule.** A claim becomes VERIFIED (and produces a `VERIFIED_TRANSFER` manual payment, an allocation and a receipt) only if, from the provider's answer and never from what the guardian typed: the transaction exists and succeeded; the receiver matches an active receiving account of this school; the currency is the invoice's; the paid time is not in the future and not before the invoice was issued (minus a tolerance); the reference is unused; and the **verified amount** is used (less than the invoice: part-paid; more: a credit). Anything else, a provider error or a timeout goes to **NEEDS_REVIEW** for a finance user. The guardian sees "checking", "confirmed" or "we need a person to check".
+5. **Abuse and cost controls:** 5 claims an hour per guardian and 20 a day per child; **each school's lookups are capped per month** (`fees.claims.monthly_cap`; past the cap a claim goes straight to a person) so the platform's single Veritas key and its monthly credits are not exhausted by one school; the provider's **masked payer name** is shown to the reviewer; a **daily digest of auto-confirmed claims** goes to the finance manager; a payer who finds their reference "already used" can **dispute** it (`DISPUTED`); a school may require review for every claim (`fees.claims.auto_confirm`, default on). **Residual risk, accepted and documented:** the service proves that a transfer exists, not whose it is, so a guardian could claim someone else's transfer; the controls above make it visible and recoverable.
+6. **Screens:** guardian "I paid elsewhere" flow (web and mobile), the finance review queue with the provider's answer, a claims log.
+7. **Tests:** a reference used twice in parallel (one wins), a transfer to another school's account, a wrong currency, an amount below the invoice, a date before the invoice, a provider timeout, a malformed answer, an HTTP 200 failure and a missing field (all NEEDS_REVIEW), a reference in the wrong format (refused before any lookup), the monthly cap, the rate limiter never exceeding the plan, a claim for another family's child (refused), a claim against another school's invoice (refused), the outgoing request carries no student data, API keys never in logs or responses, rate limits, the circuit breaker opening and closing, and the manual fallback working with the provider down.
+**Exit:** a guardian pays through a bank app, submits the reference, and the invoice is confirmed within about a minute with a receipt (longer if the service is slow); a doubtful claim lands in the review queue.
+
+### M31d Fee reports (≈ 1.5 weeks)
+Tables: DB §4.36. Decision D15.
+1. **Reports** (`report_jobs`, CSV rules, audited, rate-limited, never e-mailed): arrears and ageing, collection summary by day, fee type and method, **cash book** per cashier session, **receipts register** (every number including voids), **claims log**, student statement.
+2. **Tests:** the cash book equals the sum of verified cash, the receipts register has no gaps, a campus administrator sees only their campus, exports are audited and rate-limited, and arrears never appear to teachers.
+**Exit:** a school exports a term's collection, arrears and cash book for its own records. *(There is no ledger, financial period closing or trial balance: D15, D37.)*
 
 ---
 
-## Phase 5 — Marketplace finance, tutor insights & billing (≈ 3–4 months)
+## Phase 4 — Tutor directory (≈ 2 months)
 
-Scope: §116. Tables: DB §4.28, plus subscription billing.
+Scope: Spec §135 (replaces §114–§116 and §128). Tables: DB §4.27, plus `platform_invoices` (§4.26) and the `TUTOR` arm of `subscriptions` (§4.20). Decisions D32, D35, D36. *Phase 4 was the tutor marketplace (services, bookings, sessions, reviews, payouts); it is now a directory where tutors pay to be listed and families message them.* Needs M22 (payments) and the messaging module (M9).
 
-### M28 Commissions, earnings & payouts
-1. Platform commission and tutor earnings created on order payment. They become available after the session completes and a hold period passes.
-2. Payout accounts (tokenized), a payout batch job, payout records and a tutor earnings dashboard.
+### M25 Tutor onboarding & verification (≈ 2 weeks)
+1. Create a tutor profile. A teacher can opt in with a **separate** profile (§40). Subjects, languages, qualifications, a photo (`AVATAR`).
+2. Verification requirements per country (`verification_requirements`), document upload (`VERIFICATION_DOC`: private media readable only by platform reviewers), a platform review queue (PLATFORM_MODERATOR), statuses and reason **codes** (not free text) back to the tutor. Only VERIFIED tutors can be listed; a change of identity or qualification returns the tutor to review.
+3. The same review covers the **listing text and photo** before the first listing (`PENDING_REVIEW` to `LISTED`).
+4. **Tests:** a tutor cannot list without verification; documents unreadable to everyone but reviewers; a tutor sees only their own profile and requests; another tutor's documents are a 404.
 
-### M29 Refunds & reconciliation
-1. Policy-driven refunds (cancellation, no-show, dispute), provider refund calls, and reversal of commissions and earnings.
-2. Automated reconciliation against provider reports, with an exception queue.
+### M26 Directory profile, availability & search (≈ 3 weeks)
+1. **Profile:** headline, bio, years of experience, subjects and levels, languages, delivery (in person, online with the tutor's own tools), **area-level locations** (`tutor_locations`; never an address), a weekly **availability pattern** (informational: nothing is reserved), an informational rate, `accepting_learners`.
+2. **Search** for **authenticated guardians and adult learners only** (a student account gets a 404 and has no directory, Messaging_Rules R4.6): filters subject, level, language, area or city, in person or online, price range, day of week, verified. `pg_trgm` and ordinary indexes, no separate search engine (§119). **Ordering is relevance and recent activity, never payment, and the factors are shown.** Keyset paging; per-user query limits (60 an hour) and no bulk export, against scraping. Search and profile responses never contain phone, e-mail, an exact address or documents.
+3. **Screens:** "Find a tutor" (web and the guardian app), the profile page, the tutor's profile editor and a listing preview.
+4. **Tests:** only VERIFIED, LISTED and subscribed tutors appear; a tutor in grace still appears and an expired one does not; students and anonymous callers are refused; no contact data in any payload (schema test); ordering ignores the subscription.
 
-### M30 Tutor insights & parent tutoring history
-1. Tutor dashboard: upcoming and completed sessions, cancellations, earnings, reliability metrics. These are kept separate from teaching-quality signals and are not punitive (§128).
-2. Parent view: tutoring history, shared notes, progress summaries.
-
-### M31 Subscription billing & school fees (D7)
-1. Automated school subscription billing (plan prices per country), usage limits from `plan_entitlements`, dunning.
-2. **School fees:** fee items, invoices, invoice lines, guardian payment through the payment core, receipts, an arrears report. This domain stays separate from marketplace orders.
+### M27 Inquiries, listing subscription & safety (≈ 3 weeks; **Opus**)
+Tables: DB §4.27, §4.20, §4.26. Messaging_Rules R14. Decisions D35, D36. **Child-safety critical.**
+1. **Inquiry conversation (`TUTOR_INQUIRY`, R14).** A migration relaxes `conversations.school_id` for this type only (a CHECK ties NULL to `TUTOR_INQUIRY`) and the messaging `Eligibility` gets a tutor branch. Only a guardian or an independent adult learner (`users.adult_confirmed_at`: a verified phone and a date of birth showing 18 or over, set at sign-up and changed only through support) may start one; **students under 18 never contact a tutor** and a student account can never be a member; a tutor can never start. The tutor sees "Parent" or "Learner", the child's **age band** and the subject only. Limits: 5 new inquiries a day per user, one live inquiry per tutor and user, 30 new people a week per tutor, a text-only first message of at most 1,000 characters with no links or attachments; safety notices at the top and before the first message; messages that look like a phone number, e-mail or off-platform payment request are delivered with a notice to both sides and counted for review. Tutor inbox with "pause new inquiries".
+2. **Listing subscription (D35).** The `TUTOR_PRO` plan priced per country (`plan_prices`), `subscriptions.tutor_id` and the `TUTOR` arm of the subscriber check, `platform_invoices`, payment through M22, renewal reminders, a **7-day grace** after a missed payment, then the listing is hidden (`EXPIRED`) and the data kept; paying again relists it without a new review unless the profile text or photo changed; a trial is configurable (`TRIALING`). **Paying buys a listing, not rank.**
+3. **Reporting and moderation:** a "Report" action on a profile and on a message (reason category `TUTOR_CONDUCT`) goes to **platform moderators** (never a school); a confirmed case suspends the listing at once and closes all open inquiries; repeated first contact with many guardians of minors is flagged.
+4. **Terms and notices:** tutor terms and a family notice (`policy_documents`): the platform does not run, supervise, guarantee or take payment for lessons; for minors the guardian is present or meets the tutor first. These need legal review before launch (open item).
+5. **Tests (Messaging_Rules R14):** only guardians and adult learners may start; an account without `adult_confirmed_at`, and any account that is or was a student profile, is refused; a student can never be a member; a tutor can never start; only listed, verified, subscribed tutors can be contacted; the tutor learns only age band and subject; rate limits hold; the first message is plain text only; a contact-detail message triggers the notice and the count; block and report reach platform moderators only; suspending a listing closes inquiries; no school staff can read a tutor conversation; an unpaid tutor is hidden after the grace and relisted on payment; no payment, review or booking endpoint exists.
+**Exit:** a guardian finds a verified tutor, sends an inquiry, the tutor replies, and the tutor's listing lapses and returns with the subscription.
 
 ---
 
-## Phase 6 — AI Tutor Copilot & Student AI Tutor (≈ 4–6 months)
+## Phase 5 — Platform billing & reconciliation (≈ 1–1.5 months)
 
-Scope: §117 and §129–§131. Tables: DB §4.29, plus `session_transcripts`. The model provider is chosen at this point.
+Scope: Spec §105, §106. Tables: DB §4.20, §4.26.
 
-### M32 AI platform & governance
-1. An AI gateway service:
-   - model routing (`ai_model_configs`)
-   - versioned prompt templates
-   - data minimization (references, not raw records)
-   - logging to `ai_generations`
-   - usage metering and quotas, kept separate from billing
-2. Benchmark sets and evaluation runs for each subject × language. Enablement records gate every combination (§130). A kill switch and suspension.
-3. AI_PROCESSING and TRANSCRIPTION consent types. AI-output reports flow into moderation.
+### M29 Reconciliation (≈ 2 weeks)
+1. Automated reconciliation of provider reports against `payments`, with an exception queue (differences, missing webhooks, late settlements).
+2. Recording of reversals (money returned to a payer, settled outside the platform) with the matching allocation reversal and receipt void.
 
-### M33 Tutor Copilot
-1. Before a lesson: lesson plan, questions and activities from curriculum objectives and authorized notes.
-2. During a lesson (optional): tutor-only prompts. Transcription only with consent and a visible indicator. No emotion inference.
-3. After a lesson: summary, homework suggestions and a parent-report draft. **The tutor approves before anything is shared or recorded** (`tutoring_session_notes.ai_generation_id`).
+### M31 School subscription billing
+1. Automated billing of school plans through `platform_invoices` (plan prices per country), usage limits from `plan_entitlements`, reminders and dunning. Tutor listing billing is already in M27.
 
-### M34 Student AI Tutor
-1. A guided-learning chat (explain, hint, practice), grounded in curriculum and library content, with citations and clearly labelled AI-generated content.
-2. Practice attempts feed `learning_evidence`, never mastery. Teacher and guardian activity view. Session limits, age-appropriate filters, escalation.
-3. Launch with Mathematics, Science and Reading in Amharic and English only, after benchmarks pass (§130). Expand only through the release gates (§133).
+---
+
+## Removed and deferred scope (26 November 2026)
+
+| Item | Status | Decision |
+|---|---|---|
+| M23 Courses & enrollment, M24 Video & live sessions | **Removed** (no online courses, no hosted or recorded video) | D33 |
+| Tutor services, bookings, sessions, trials, reviews, matching (old M26, M27) | **Replaced** by the directory (M25–M27 above) | D32 |
+| M28 Commissions, earnings & payouts; M30 Tutor insights & parent tutoring history; provider refunds in M29 | **Removed** | D32 |
+| M32 AI platform & governance, M33 Tutor Copilot, M34 Student AI Tutor (old Phase 6) | **Removed** | D34 |
+| M36 Student transfer & prior-school records | **Removed** (replaced by a status in M35) | D39 |
+| M38 Timetable generator | **Deferred** until a school with many classes asks; the manual builder is M37 | D40 |
+| NFC, RFID, GPS, kiosks and gate readers (old M7e scope) | **Removed** | D38 |
+| Double-entry ledger, financial periods, manual journals, trial balance (old M31a and M31d scope) | **Removed** | D15, D37 |
+| M43 School AI assistant | **Deferred**: no milestone scheduled. The design is in `Database_Design.md` §4.37 and `Education_Platform.md` §134.9. **Before it can start:** the owner decides to build it; an AI platform (gateway, prompt templates, usage quotas, benchmark sets, enablement and kill switch) is designed and built first; the legal position on sending children's records to a model provider is settled; the `AI_PROCESSING` consent type is put in use; and the injection and cross-user disclosure test suites are written. It stays read-only, runs as the signed-in user and keeps no copy of children's records | D34 |
+
+**Cleanup of what is already built (for the owner to schedule):** the seeded feature flags `courses`, `marketplace`, `tutoring`, `ai_copilot` and `ai_student_tutor` in `R__20_definitions.sql` are unused and a small migration removes them (adding `tutor_directory` and `school_fees`); the policy types `RECORDING` and `TRANSCRIPTION` in the consent schema and the `COURSE` scope in the built `events` check are unused; `SubscriberType.TUTOR` and the `TUTOR_PRO` plan are kept and used by M27. No application code was changed by this plan update.
 
 ---
 
@@ -1075,6 +1188,7 @@ Scope: §117 and §129–§131. Tables: DB §4.29, plus `session_transcripts`. T
 | **Accessibility** | WCAG 2.2 AA target on web. Platform accessibility APIs on mobile. |
 | **Observability** | Traces across web/mobile → API → jobs. Dashboards for sync success, notification delivery, payment webhooks. |
 | **Documentation** | Module READMEs. ADRs for major choices (auth, jobs, offline store, providers). Runbooks. A seed script for a demo school. |
+| **School-operations security** | Abuse-case tests are part of each milestone's definition of done (M7e, M22, M27, M31a–c, M40–M42): replay, forgery, enumeration, two-person-rule bypass, cross-tenant and cross-user access. Public endpoints (`/verify/{token}`, payment webhooks) are rate-limited, constant-time, uniform on failure and side-effect free until verified. Secrets (HMAC peppers for credentials and verification tokens, webhook keys, the verification-service API key) live in the vault with a documented rotation. Financial and issued-document tables have no update or delete path. Exam answers, card tokens, receiving-account numbers and message text are never logged; no location is collected anywhere. A new endpoint is added to `AuthorizationMatrixTest` in the same change |
 | **Compliance** | Consent coverage reporting. Data processing agreements with every processor. Country legal review before each new market (§131). |
 
 ---
@@ -1089,8 +1203,11 @@ Scope: §117 and §129–§131. Tables: DB §4.29, plus `session_transcripts`. T
 | Machine translation (D5) | M8 | Run a blind quality test for am, om, ti and so on real school messages, then enable the winner with a flag |
 | Analytics store | M14 | Self-hosted or EU-region product analytics with no child profiling |
 | Payment provider(s) | M22 | One Ethiopian provider first (§119: don't build many providers initially) |
-| Video | M24 | Agora, as in §56 |
-| AI model provider | M32 | Choose after evaluation on benchmark sets |
+| Secrets store and HMAC pepper rotation | M7e | The platform secrets store (M1.5); one pepper per purpose (credentials, document verification, receipts), rotation runbook written before M7e ships |
+| Payment verification service (D37) | M31c | **Veritas** (https://veritas.et), chosen by the owner. Beta; no SLA or privacy terms found; response fields undocumented; a failed lookup still uses a credit. Before M31c: read its terms and privacy policy, pick a plan (Free 100 lookups a month; Pro 199 ETB for 2,000; Business 499 ETB for 50,000), decide who pays, run the spike. Keep it behind the `PaymentVerifier` port with a manual fallback; check.et is the candidate second adapter |
+| PDF engine with Ethiopic script | M41 | A server-side renderer proven on Amharic shaping (embedded Noto Sans Ethiopic), QR and pagination; verified on a device before choosing |
+| Tutor listing price and trial | M27 | Set the `TUTOR_PRO` price per country (and a trial length) after a short test with tutors; payment through the M22 provider |
+| Ministry of Education formats | M39, M41 | The owner supplies the official lesson-plan and report-card formats (Spec_Review open item); a generic template ships until then |
 
 ---
 
@@ -1102,9 +1219,9 @@ Scope: §117 and §129–§131. Tables: DB §4.29, plus `session_transcripts`. T
 | 1 School & family MVP, then pilot | 7–9 months | ~9–10 months |
 | Pilot evaluation window | 1–2 months (Phase 2 design runs in parallel) | |
 | 2 School learning | 4–5 months | |
-| 3 Online learning (payments core, video) | ~4 months | |
-| 4 Tutor marketplace | 4–5 months | |
-| 5 Finance, insights, billing, school fees | 3–4 months | |
-| 6 AI | 4–6 months | |
+| 2b School operations (student numbers and cards, timetable, lesson plans, results and report cards, question banks and exams; two parallel tracks) | 3–4 months | |
+| 3 Payments & school fees (payment core, periodic invoicing, in-app payment, cash and receipts, payment verification, reports) | ~3 months | |
+| 4 Tutor directory (verification, search, inquiries, paid listing) | ~2 months | |
+| 5 Platform billing & reconciliation | 1–1.5 months | |
 
 Phase 1's critical path is M1 → M3 → M5 → M8/M9, because guardian linking and consent gate the feed and messaging. M4, M6, M7, M10–M12 run in parallel tracks once M3 is done.

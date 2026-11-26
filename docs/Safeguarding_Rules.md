@@ -27,7 +27,7 @@ will add one. M13 connects them.
 ## Words used
 
 - **Reporter**: the person who files a report. **Target**: what was reported (a post, comment, story, message, portfolio item,
-  user, and later tutor, course, review, library resource, media, AI output).
+  user, and later tutor listing, tutor conversation, library resource, media).
 - **School moderator**: a holder of the new permission `school.moderation.manage` (school, organization, country and platform
   administrators by default). **Platform moderator**: the existing role `PLATFORM_MODERATOR`.
 - **Safeguarding lead**: the existing role `SAFEGUARDING_LEAD`, at school scope (one or more per school) or platform scope.
@@ -63,7 +63,7 @@ will add one. M13 connects them.
    (adult-student) conversation start at **HIGH** and notify the school's safeguarding leads at once (generic text, no
    content). HARASSMENT starts at HIGH; everything else NORMAL; a safeguarding lead can set CRITICAL.
 3. **Queues:** one queue per school (school moderators), one platform queue (platform moderators) for platform-scope targets
-   (tutors, courses, reviews, library) and for cases escalated by a school or raised against school administrators. A case
+   (tutor listings and tutor conversations, library) and for cases escalated by a school or raised against school administrators. A case
    about a school administrator or a moderator **skips the school queue** and goes to the platform queue (**drafted: confirm**).
 4. **Decisions** (each needs a reason of 10 to 500 characters and is a row in the append-only `moderation_actions`):
    NO_ACTION, HIDE (reversible), REMOVE, WARN_USER, SUSPEND_USER, ESCALATE (to a safeguarding incident).
