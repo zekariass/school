@@ -8,7 +8,7 @@ import { getBrowserApi } from "@/lib/api-client";
 import { ensureOk, unwrap } from "@/lib/api-error";
 import { useRouter } from "@/i18n/navigation";
 import { notificationKeys } from "@/lib/notifications/keys";
-import { resolveDeepLink } from "@/lib/notifications/deep-link";
+import { deepLinkNeedsSchool, resolveDeepLink, schoolSlugOf } from "@/lib/notifications/deep-link";
 import { applyEventToLists } from "@/lib/notifications/realtime-cache";
 import type { NotificationItem } from "@/lib/notifications/types";
 
@@ -54,7 +54,16 @@ export function useNotificationActions() {
   /** Marks the item read and goes where it points, when that is a safe in-app path. */
   const open = useCallback(
     async (item: NotificationItem) => {
-      const path = resolveDeepLink(item.data);
+      let schoolSlug: string | null = null;
+      if (item.schoolId && deepLinkNeedsSchool(item.data)) {
+        try {
+          const me = unwrap(await getBrowserApi().GET("/api/v1/me"));
+          schoolSlug = schoolSlugOf(me, item.schoolId);
+        } catch {
+          // The item is still marked read; without a slug there is nowhere to go.
+        }
+      }
+      const path = resolveDeepLink(item.data, { schoolSlug });
       if (!item.readAt) {
         try {
           await markRead(item.id);

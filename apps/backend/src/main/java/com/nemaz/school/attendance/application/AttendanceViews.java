@@ -199,7 +199,7 @@ public class AttendanceViews {
 		CursorPage<DashboardClass> page = CursorPage
 			.fromOverfetch(rows, pageSize, (c) -> Cursors.encode(c.sortName(), c.view().classId().toString()))
 			.map(SortedClass::view);
-		return new AttendanceDashboard(day, effectiveSlot, zone.getId(), totals, page);
+		return new AttendanceDashboard(day, effectiveSlot, slots, zone.getId(), totals, page);
 	}
 
 	// --- shapes -----------------------------------------------------------------------------
@@ -209,7 +209,9 @@ public class AttendanceViews {
 			@Schema(description = "The teacher's note: staff only") String note, @NotNull Instant recordedAt) {
 	}
 
-	public record AttendanceDashboard(@NotNull LocalDate date, @NotNull String slot, @NotNull String timeZone,
+	public record AttendanceDashboard(@NotNull LocalDate date, @NotNull String slot,
+			@Schema(description = "The slots the school enabled (attendance.slots), so clients can offer a switcher") @NotNull List<String> slots,
+			@NotNull String timeZone,
 			@Schema(description = "Over every class the caller sees, not just this page") @NotNull DashboardTotals totals,
 			@NotNull CursorPage<DashboardClass> classes) {
 	}

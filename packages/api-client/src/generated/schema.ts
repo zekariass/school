@@ -3438,6 +3438,8 @@ export interface components {
             /** Format: date */
             date: string;
             slot: string;
+            /** @description The slots the school enabled (attendance.slots), so clients can offer a switcher */
+            slots: string[];
             timeZone: string;
             /** @description Over every class the caller sees, not just this page */
             totals: components["schemas"]["DashboardTotals"];

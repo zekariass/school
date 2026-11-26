@@ -4,12 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { EmptyNotice, ErrorNotice, LoadingRows } from "@/components/console/states";
+import { AttendanceHistory } from "@/components/attendance/attendance-history";
 import { StudentAvatar } from "@/components/school/student-avatar";
 import { StudentPointsView } from "@/components/points/student-points-view";
 import { Link } from "@/i18n/navigation";
 import { errorMessage } from "@/lib/console/errors";
 import { fetchMyChildren, familyKeys } from "@/lib/family/queries";
+import { canSeeChildAttendance } from "@/lib/attendance/access";
 import { canAwardHome } from "@/lib/points/sections";
+import { AbsenceReports } from "./absence-reports";
 
 /** One child: their School points and Home points (two sections), and for guardians who may, awarding home points. */
 export function ChildDetail({ studentId }: { studentId: string }) {
@@ -65,6 +68,20 @@ export function ChildDetail({ studentId }: { studentId: string }) {
           />
         ))
       )}
+      {child.schools.map((school, index) => (
+        // The attendance notification opens #attendance: the history and the absence reports of the child's school.
+        <div key={school.schoolId} id={index === 0 ? "attendance" : undefined} className="flex scroll-mt-20 flex-col gap-6" data-testid="child-attendance">
+          {canSeeChildAttendance(child.permissions) ? (
+            <AttendanceHistory
+              schoolId={school.schoolId}
+              studentId={child.studentId}
+              audience="guardian"
+              heading={child.schools.length > 1 ? school.schoolName : undefined}
+            />
+          ) : null}
+          <AbsenceReports schoolId={school.schoolId} studentId={child.studentId} childName={child.displayName} />
+        </div>
+      ))}
     </div>
   );
 }
