@@ -1,27 +1,22 @@
 import { formatEthiopianDate, gregorianToEthiopian, instantToEthiopian } from '@school/calendar';
+import { isDisplayCalendar, type DisplayCalendar } from '@school/validation/country';
 
-import { DISPLAY_TIME_ZONE } from '@/lib/i18n/locale';
-
-export type CalendarPreference = 'gregorian' | 'ethiopian';
-
-export const CALENDAR_PREFERENCES: readonly CalendarPreference[] = ['gregorian', 'ethiopian'];
+/** The calendars the app can draw; a country offers some of them (`offeredCalendars`, D42). */
+export type CalendarPreference = DisplayCalendar;
 
 /** kv-store key of the saved calendar display preference. */
 export const CALENDAR_STORAGE_KEY = 'school.calendar';
 
-export function isCalendarPreference(value: unknown): value is CalendarPreference {
-  return value === 'gregorian' || value === 'ethiopian';
-}
-
-/** Ethiopian by default for Amharic, Gregorian otherwise (same rule as the web app). */
-export function defaultCalendarFor(locale: string): CalendarPreference {
-  return locale === 'am' ? 'ethiopian' : 'gregorian';
-}
+export const isCalendarPreference = isDisplayCalendar;
 
 export interface FormatInstantOptions {
   locale: string;
   calendar: CalendarPreference;
-  timeZone?: string;
+  /**
+   * The IANA zone the time is shown in: the school's, else the person's (D42, `usePlace`). Absent only before the
+   * place is known: Intl then uses the phone's zone and the Ethiopian calendar, which needs a zone, is not drawn.
+   */
+  timeZone?: string | undefined;
 }
 
 /**
@@ -30,15 +25,12 @@ export interface FormatInstantOptions {
  * via @school/calendar and takes the time of day from Intl. Returns "" for an
  * invalid instant.
  */
-export function formatInstant(
-  instant: string | Date,
-  { locale, calendar, timeZone = DISPLAY_TIME_ZONE }: FormatInstantOptions,
-): string {
+export function formatInstant(instant: string | Date, { locale, calendar, timeZone }: FormatInstantOptions): string {
   const date = typeof instant === 'string' ? new Date(instant) : instant;
   if (Number.isNaN(date.getTime())) return '';
 
-  if (calendar === 'gregorian') {
-    return new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short', timeZone }).format(date);
+  if (calendar === 'gregorian' || !timeZone) {
+    return new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short', ...(timeZone ? { timeZone } : {}) }).format(date);
   }
 
   const day = formatEthiopianDate(instantToEthiopian(date, timeZone), { language: locale, style: 'long' });

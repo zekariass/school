@@ -3,12 +3,9 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 
 import type { Locale } from '@school/i18n';
 
-import {
-  CALENDAR_STORAGE_KEY,
-  defaultCalendarFor,
-  isCalendarPreference,
-  type CalendarPreference,
-} from '@/lib/calendar/format-instant';
+import { resolveDisplayCalendar } from '@school/validation/country';
+
+import { CALENDAR_STORAGE_KEY, isCalendarPreference, type CalendarPreference } from '@/lib/calendar/format-instant';
 import { LOCALE_STORAGE_KEY, pickInitialLocale, setCurrentLocale } from '@/lib/i18n/locale';
 import { kv, saveQuietly } from '@/lib/storage';
 import { THEME_STORAGE_KEY, isThemePreference, type ThemePreference } from '@/lib/theme/preference';
@@ -16,7 +13,7 @@ import { THEME_STORAGE_KEY, isThemePreference, type ThemePreference } from '@/li
 export interface StoredPreferences {
   locale: Locale;
   theme: ThemePreference;
-  /** Null until the user picks one: the default then follows the language. */
+  /** Null until the user picks one: the default then comes from the school's or country's configuration (D42). */
   calendar: CalendarPreference | null;
 }
 
@@ -54,12 +51,22 @@ interface PreferencesValue {
   setLocale: (locale: Locale) => void;
   themePreference: ThemePreference;
   setThemePreference: (preference: ThemePreference) => void;
-  /** Effective calendar: the saved choice, else the default for the language. */
+  /**
+   * Effective calendar: this device's saved choice, else the account's preference, else the default of the school's or
+   * country's configuration, always one of `calendars`. The provider below the session (`PlaceProvider`) fills in the
+   * place; above it only Gregorian is offered.
+   */
   calendar: CalendarPreference;
+  /** The calendars to offer: Gregorian, and Ethiopian only where the country has it (`calendarCodes`). */
+  calendars: readonly CalendarPreference[];
+  /** The choice saved on this device, if any. */
+  savedCalendar: CalendarPreference | null;
   setCalendar: (calendar: CalendarPreference) => void;
 }
 
-const PreferencesContext = createContext<PreferencesValue | null>(null);
+export const PreferencesContext = createContext<PreferencesValue | null>(null);
+
+const GREGORIAN_ONLY: readonly CalendarPreference[] = ['gregorian'];
 
 export function PreferencesProvider({ initial, children }: { initial: StoredPreferences; children: ReactNode }) {
   const [locale, setLocaleState] = useState(initial.locale);
@@ -86,7 +93,9 @@ export function PreferencesProvider({ initial, children }: { initial: StoredPref
       setLocale,
       themePreference,
       setThemePreference,
-      calendar: savedCalendar ?? defaultCalendarFor(locale),
+      calendar: resolveDisplayCalendar({ stored: savedCalendar, offered: GREGORIAN_ONLY }),
+      calendars: GREGORIAN_ONLY,
+      savedCalendar,
       setCalendar,
     }),
     [locale, setLocale, themePreference, setThemePreference, savedCalendar, setCalendar],

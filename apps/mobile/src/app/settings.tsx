@@ -8,7 +8,6 @@ import { CommunicationChannelsCard } from '@/components/announcements/channels-c
 import { AvatarSection } from '@/components/avatar-section';
 import { NotificationSettings } from '@/components/notification-settings';
 import { Button, Card, Screen, SegmentedControl, Text } from '@/components/ui';
-import { CALENDAR_PREFERENCES } from '@/lib/calendar/format-instant';
 import { SUPPORTED_LOCALES, isSupportedLocale } from '@school/i18n';
 import { metaQuery } from '@/lib/meta';
 import { usePreferences } from '@/lib/preferences/preferences-provider';
@@ -20,7 +19,7 @@ import { useAppTheme } from '@/lib/theme/theme-provider';
 export default function SettingsScreen() {
   const t = useTranslations();
   const { spacing } = useAppTheme();
-  const { locale, setLocale, themePreference, setThemePreference, calendar, setCalendar } = usePreferences();
+  const { locale, setLocale, themePreference, setThemePreference, calendar, calendars, setCalendar } = usePreferences();
   const { status, roles, activeRole, setActiveRole, signOut, preview } = useSession();
   // Show the API version the last status check saw; don't fetch just to open settings.
   const meta = useQuery({ ...metaQuery, staleTime: Infinity, enabled: false });
@@ -62,14 +61,17 @@ export default function SettingsScreen() {
         />
       </Section>
 
-      <Section title={t('calendar.label')}>
-        <SegmentedControl
-          accessibilityLabel={t('calendar.label')}
-          value={calendar}
-          onChange={setCalendar}
-          options={CALENDAR_PREFERENCES.map((value) => ({ value, label: t(`calendar.${value}`) }))}
-        />
-      </Section>
+      {/* Nothing to choose where the country has only the Gregorian calendar (D42). */}
+      {calendars.length > 1 ? (
+        <Section title={t('calendar.label')}>
+          <SegmentedControl
+            accessibilityLabel={t('calendar.label')}
+            value={calendar}
+            onChange={setCalendar}
+            options={calendars.map((value) => ({ value, label: t(`calendar.${value}`) }))}
+          />
+        </Section>
+      ) : null}
 
       {status === 'signedIn' && !preview ? <NotificationSettings /> : null}
       {status === 'signedIn' && !preview ? <CommunicationChannelsCard /> : null}

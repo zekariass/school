@@ -232,3 +232,27 @@ export function confirmationFor(preview: AnnouncementPreview, state: Pick<Compos
 // --- idempotency of the create call ----------------------------------------------------------------
 
 export { keyAfterFailure, keyFor, type SubmitKey } from '@/lib/feed/composer';
+
+// --- the language of the text (D42) -----------------------------------------------------------------------------------
+
+/**
+ * The languages an announcement can be written in: those of the school's country (`country.languageCodes`), plus the
+ * language a saved announcement already has even when the country no longer lists it.
+ */
+export function contentLanguages(countryLanguages: readonly string[], current: string | null | undefined): string[] {
+  return current && !countryLanguages.includes(current) ? [current, ...countryLanguages] : [...countryLanguages];
+}
+
+/**
+ * The language a text starts in: the saved one, else the app's language when the country uses it, else the country's
+ * default language.
+ */
+export function initialContentLanguage(input: {
+  saved: string | null | undefined;
+  uiLocale: string;
+  countryLanguages: readonly string[];
+  defaultLanguage: string;
+}): string {
+  if (input.saved) return input.saved;
+  return input.countryLanguages.includes(input.uiLocale) ? input.uiLocale : input.defaultLanguage;
+}

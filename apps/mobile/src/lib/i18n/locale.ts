@@ -3,9 +3,6 @@ import { isSupportedLocale, resolveLocale, type Locale } from '@school/i18n';
 /** kv-store key of the saved UI language. */
 export const LOCALE_STORAGE_KEY = 'school.locale';
 
-/** Placeholder until the user's / school's time zone comes from settings. */
-export const DISPLAY_TIME_ZONE = 'Africa/Addis_Ababa';
-
 /**
  * Initial UI language: the saved preference if it is still a supported locale,
  * otherwise the best match for the device's language list, otherwise English.
