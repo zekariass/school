@@ -26,7 +26,7 @@ class SubscriptionServiceTest extends TenancyTestSupport {
 		assertThat(entitlements.planCode()).isEqualTo("SCHOOL_FREE");
 		assertThat(entitlements.freeFallback()).isTrue();
 		assertThat(entitlements.of("attendance").enabled()).isTrue();
-		assertThat(entitlements.of("courses").enabled()).isFalse();
+		assertThat(entitlements.of("library").enabled()).isFalse();
 		assertThat(entitlements.of("max_students").limit()).isEqualTo(100L);
 		assertThat(entitlements.of("not_a_feature")).isEqualTo(Entitlement.NONE);
 	}

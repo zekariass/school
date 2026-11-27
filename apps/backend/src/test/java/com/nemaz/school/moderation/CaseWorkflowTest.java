@@ -86,7 +86,7 @@ class CaseWorkflowTest extends ModerationTestSupport {
 	void aTargetOfALaterMilestoneNeedsOnlyTheSpisAndAPlatformScopeTargetGoesToThePlatformQueue() throws Exception {
 		Msg m = school("wf-platform-scope");
 		// a type nobody owns yet is refused; a type registered through the SPIs works with no change to moderation
-		assertThat(code(report(m.g1(), "COURSE", UUID.randomUUID(), "OTHER", null, 400))).isEqualTo("moderation.target_type_unsupported");
+		assertThat(code(report(m.g1(), "TUTOR_PROFILE", UUID.randomUUID(), "OTHER", null, 400))).isEqualTo("moderation.target_type_unsupported");
 		UUID resource = this.fake.resource(m.lead().userId(), m.g1().userId());
 		assertThat(code(report(m.g2(), FakeModerationTarget.TYPE, resource, "COPYRIGHT", null, 404))).isEqualTo("moderation.target_not_found");
 		report(m.g1(), FakeModerationTarget.TYPE, resource, "COPYRIGHT");

@@ -31,13 +31,11 @@ from (values
   ('SCHOOL_BASIC', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar', 'moderation',
                          'portfolio', 'library', 'assignments', 'max_students', 'storage_bytes']),
   ('SCHOOL_STANDARD', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar', 'moderation',
-                            'portfolio', 'library', 'assignments', 'courses', 'max_students', 'storage_bytes']),
+                            'portfolio', 'library', 'assignments', 'max_students', 'storage_bytes']),
   ('SCHOOL_PREMIUM', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar', 'moderation',
-                           'portfolio', 'library', 'assignments', 'courses', 'marketplace', 'tutoring',
-                           'payments', 'ai_copilot', 'max_students', 'storage_bytes']),
+                           'portfolio', 'library', 'assignments', 'payments', 'max_students', 'storage_bytes']),
   ('ENTERPRISE', array['attendance', 'points', 'feed', 'messaging', 'announcements', 'calendar', 'moderation',
-                       'portfolio', 'library', 'assignments', 'courses', 'marketplace', 'tutoring',
-                       'payments', 'ai_copilot', 'ai_student_tutor', 'max_students', 'storage_bytes'])
+                       'portfolio', 'library', 'assignments', 'payments', 'max_students', 'storage_bytes'])
 ) as m(plan_code, features)
 join subscription_plans p on p.code = m.plan_code
 cross join feature_definitions f
@@ -49,8 +47,7 @@ left join (values
   ('SCHOOL_STANDARD', 'max_students',  2000),
   ('SCHOOL_STANDARD', 'storage_bytes', 53687091200),      -- 50 GiB
   ('SCHOOL_PREMIUM',  'max_students',  10000),
-  ('SCHOOL_PREMIUM',  'storage_bytes', 268435456000),     -- 250 GiB
-  ('SCHOOL_PREMIUM',  'ai_copilot',    10000)             -- monthly AI credits
+  ('SCHOOL_PREMIUM',  'storage_bytes', 268435456000)      -- 250 GiB
   -- ENTERPRISE: unlimited (null)
 ) as l(plan_code, feature_key, limit_value) on l.plan_code = m.plan_code and l.feature_key = f.key
 on conflict (plan_id, feature_key) do update
