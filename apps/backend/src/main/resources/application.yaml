@@ -59,8 +59,7 @@ spring:
       republish-outstanding-events-on-restart: false  # EventPublicationMaintenance resubmits
 
 school:
-  i18n:
-    supported-locales: en,am
+  # school.i18n.supported-locales (optional) restricts the message languages detected from messages_*.properties
   migrations:
     # migrate: Flyway applies pending migrations at startup (local, tests). validate: the application only checks
     # that the schema is fully migrated and fails otherwise; staging/prod use it and run `--migrate` once per

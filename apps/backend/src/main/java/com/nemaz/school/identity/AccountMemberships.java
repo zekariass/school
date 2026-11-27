@@ -22,9 +22,14 @@ public interface AccountMemberships {
 
 	}
 
-	/** {@code staffId} is set for TEACHER and STAFF, {@code studentId} (the student's user id) for STUDENT. */
+	/**
+	 * {@code staffId} is set for TEACHER and STAFF, {@code studentId} (the student's user id) for STUDENT.
+	 * {@code countryCode} and {@code timezone} are the school's country and its own IANA zone: school dates and times are
+	 * shown in it (the country's calendars and languages are in {@code GET /me}'s {@code countries}).
+	 */
 	record SchoolMembership(@NotNull MembershipType type, @NotNull UUID schoolId, @NotNull String schoolSlug,
-			@NotNull String schoolName, UUID staffId, UUID studentId, UUID campusId) {
+			@NotNull String schoolName, UUID staffId, UUID studentId, UUID campusId, @NotNull String countryCode,
+			@NotNull String timezone) {
 	}
 
 }

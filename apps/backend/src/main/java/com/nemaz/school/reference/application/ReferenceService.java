@@ -71,17 +71,27 @@ public class ReferenceService implements ReferenceData {
 
 	@Override
 	public Optional<CountryInfo> findCountry(String countryCode) {
-		return this.countries.findById(countryCode).map((country) -> {
-			Set<String> languageCodes = new TreeSet<>();
-			this.countryLanguages.findByCountryCodeInOrderByCountryCodeAscSortOrderAsc(List.of(countryCode))
-				.forEach((cl) -> languageCodes.add(cl.getLanguageCode()));
-			Set<String> calendarCodes = new TreeSet<>();
-			this.countryCalendars.findByCountryCodeInOrderByCountryCodeAscCalendarCodeAsc(List.of(countryCode))
-				.forEach((cc) -> calendarCodes.add(cc.getCalendarCode()));
-			return new CountryInfo(country.getCode(), country.isEnabled(), country.getDefaultCurrencyCode(),
-					country.getDefaultLanguageCode(), country.getDefaultTimezone(), country.getDefaultCalendarCode(),
-					languageCodes, calendarCodes);
-		});
+		return this.countries.findById(countryCode).map(this::info);
+	}
+
+	@Override
+	public List<CountryInfo> findEnabledCountries() {
+		return this.countries.findByStatusOrderByCode(CountryStatus.ENABLED).stream().map(this::info).toList();
+	}
+
+	/** The country with the ENABLED languages and the calendars it is linked to. */
+	private CountryInfo info(Country country) {
+		String countryCode = country.getCode();
+		Set<String> languageCodes = new TreeSet<>();
+		this.countryLanguages.findByCountryCodeInOrderByCountryCodeAscSortOrderAsc(List.of(countryCode))
+			.forEach((cl) -> languageCodes.add(cl.getLanguageCode()));
+		languageCodes.removeIf((code) -> !languageExists(code));
+		Set<String> calendarCodes = new TreeSet<>();
+		this.countryCalendars.findByCountryCodeInOrderByCountryCodeAscCalendarCodeAsc(List.of(countryCode))
+			.forEach((cc) -> calendarCodes.add(cc.getCalendarCode()));
+		return new CountryInfo(country.getCode(), country.isEnabled(), country.getDefaultCurrencyCode(),
+				country.getDefaultLanguageCode(), country.getDefaultTimezone(), country.getDefaultCalendarCode(),
+				languageCodes, calendarCodes, country.getPhoneCountryCode(), country.getNameI18n());
 	}
 
 	@Override

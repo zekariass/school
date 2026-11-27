@@ -8,13 +8,18 @@ import com.nemaz.school.common.security.AccessScope;
 import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
 import com.nemaz.school.media.MediaSummary;
+import com.nemaz.school.reference.CountryConfig;
+import com.nemaz.school.tenancy.CountryContext;
+import com.nemaz.school.tenancy.CountryResolver;
 import com.nemaz.school.tenancy.application.SchoolService;
 import com.nemaz.school.tenancy.domain.School;
 import com.nemaz.school.tenancy.domain.SchoolStatus;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +39,10 @@ public class SchoolLookupController {
 
 	private final AccessControl access;
 
-	SchoolLookupController(SchoolService schools, AccessControl access) {
+	private final CountryResolver countries;
+
+	SchoolLookupController(SchoolService schools, AccessControl access, CountryResolver countries) {
+		this.countries = countries;
 		this.schools = schools;
 		this.access = access;
 	}
@@ -48,12 +56,18 @@ public class SchoolLookupController {
 		if (!this.access.can(user, Permissions.SCHOOL_READ, AccessScope.school(school.getId()))) {
 			throw ApiException.notFound("school.not_found");
 		}
+		CountryContext country = this.countries.forSchool(school.getId());
 		return new SchoolSummary(school.getId(), school.getName(), school.getShortName(), school.getSlug(),
-				school.getCountryCode(), school.getStatus(), this.schools.get(school.getId()).logo());
+				school.getCountryCode(), school.getStatus(), this.schools.get(school.getId()).logo(), country.zone().getId(),
+				school.getDefaultLanguageCode(), school.getDefaultCalendarCode(), school.getCurrencyCode(),
+				CountryConfig.of(country.country(), LocaleContextHolder.getLocale().getLanguage()));
 	}
 
+	@Schema(description = "`timezone` is the school's own IANA zone: school dates and times are shown in it. `country` has the calendars and languages the school's country offers.")
 	public record SchoolSummary(@NotNull UUID id, @NotNull String name, String shortName, @NotNull String slug,
-			@NotNull String countryCode, @NotNull SchoolStatus status, MediaSummary logo) {
+			@NotNull String countryCode, @NotNull SchoolStatus status, MediaSummary logo, @NotNull String timezone,
+			@NotNull String defaultLanguageCode, @NotNull String defaultCalendarCode, @NotNull String currencyCode,
+			@NotNull CountryConfig country) {
 	}
 
 }
