@@ -1032,7 +1032,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Service metadata and server time */
+        /** Service metadata, server time and the enabled countries */
         get: operations["getMeta"];
         put?: never;
         post?: never;
@@ -1809,7 +1809,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The current text of a policy (public): the school's own document if it has a published version, else the country default (country, default ET); in lang, else English, else any language. 404 policy.not_found */
+        /** The current text of a policy (public): the school's own document if it has a published version, else the default of the country (the `country` parameter, else the platform default country); legal text of another country is never served: 404 policy.country_not_available when the resolved country has none; in lang, else English, else any language. 404 policy.not_found */
         get: operations["getPolicy"];
         put?: never;
         post?: never;
@@ -2030,7 +2030,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The country's safety text for the reporting screens ('if a child is in danger contact ...'), in your language. reviewed false means the wording is a placeholder the owner has not approved; the Ethiopian default is exactly that. */
+        /** The country's safety text for the reporting screens ('if a child is in danger contact ...'), in your language. reviewed false means the wording is a placeholder the owner has not approved. The country is required; a country with no text answers 404 safety.emergency_info_not_found (the text of another country is never served instead). */
         get: operations["getEmergencyInfo"];
         put?: never;
         post?: never;
@@ -6777,6 +6777,25 @@ export interface components {
             isDefault: boolean;
             name: string;
         };
+        /** @description A country's configuration: calling code, default zone, calendars, languages and currency */
+        CountryConfig: {
+            /** @description Calendar systems the country uses (country_calendars), alphabetical, for example GREGORIAN, ETHIOPIAN */
+            calendarCodes: string[];
+            /** @description ISO 3166-1 alpha-2 code */
+            code: string;
+            /** @description ISO 4217 code */
+            currencyCode: string;
+            defaultCalendarCode: string;
+            defaultLanguageCode: string;
+            /** @description IANA zone id, the default for schools and people of this country */
+            defaultTimezone: string;
+            /** @description Languages the country uses (country_languages), alphabetical */
+            languageCodes: string[];
+            /** @description Name in the request language, English when there is none */
+            name: string;
+            /** @description Calling code with its plus sign, for example +254 */
+            phoneCountryCode: string;
+        };
         CountryLanguageResponse: {
             code: string;
             direction: string;
@@ -7751,12 +7770,18 @@ export interface components {
             /** @description READY avatar; ask /media/{id}/url for a signed link */
             avatar?: components["schemas"]["MediaSummary"];
             calendarPreference?: string;
+            /** @description Configurations of `country` and of the countries of the memberships' schools: look up membership.countryCode here (calendars, languages, calling code) */
+            countries: components["schemas"]["CountryConfig"][];
+            /** @description The country that applies to this person where no school is meant: their home country, else the platform default country */
+            country: components["schemas"]["CountryConfig"];
             displayName: string;
             email?: string;
             emailVerified: boolean;
             familyName?: string;
             givenName: string;
             hasPassword: boolean;
+            /** @description users.home_country_code: the country the person chose or was registered in; absent when unknown */
+            homeCountryCode?: string;
             /** Format: uuid */
             id: string;
             /** Format: date-time */
@@ -7889,9 +7914,14 @@ export interface components {
         MetaResponse: {
             apiVersion: string;
             buildVersion: string;
+            /** @description ENABLED countries only, by code */
+            countries: components["schemas"]["CountryConfig"][];
+            /** @description Platform default country code: applies where no school, user or organization country is known (phone sign-in, one-time codes, invitation accept) */
+            defaultCountry: string;
             /** Format: date-time */
             serverTime: string;
             service: string;
+            /** @description Languages the backend has messages for (English first) */
             supportedLocales: string[];
         };
         /** @description One row of the append-only history of a case */
@@ -8157,7 +8187,7 @@ export interface components {
             /** Format: int32 */
             version: number;
         };
-        /** @description Set exactly one of phone or email. National phone formats are read in `country` (default ET). */
+        /** @description Set exactly one of phone or email. National phone formats are read in `country` (ISO code; when absent, the platform default country). */
         OtpRequest: {
             country?: string;
             email?: string;
@@ -9163,6 +9193,7 @@ export interface components {
         SchoolMembership: {
             /** Format: uuid */
             campusId?: string;
+            countryCode: string;
             /** Format: uuid */
             schoolId: string;
             schoolName: string;
@@ -9171,6 +9202,7 @@ export interface components {
             staffId?: string;
             /** Format: uuid */
             studentId?: string;
+            timezone: string;
             /** @enum {string} */
             type: "TEACHER" | "STUDENT" | "STAFF" | "GUARDIAN";
         };
@@ -9212,8 +9244,13 @@ export interface components {
             version: number;
             website?: string;
         };
+        /** @description `timezone` is the school's own IANA zone: school dates and times are shown in it. `country` has the calendars and languages the school's country offers. */
         SchoolSummary: {
+            country: components["schemas"]["CountryConfig"];
             countryCode: string;
+            currencyCode: string;
+            defaultCalendarCode: string;
+            defaultLanguageCode: string;
             /** Format: uuid */
             id: string;
             logo?: components["schemas"]["MediaSummary"];
@@ -9222,6 +9259,7 @@ export interface components {
             slug: string;
             /** @enum {string} */
             status: "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+            timezone: string;
         };
         ScopePermissions: {
             permissions: string[];

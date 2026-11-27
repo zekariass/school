@@ -3171,7 +3171,7 @@
           }
         },
         "security" : [ ],
-        "summary" : "Service metadata and server time",
+        "summary" : "Service metadata, server time and the enabled countries",
         "tags" : [ "system" ]
       }
     },
@@ -5874,7 +5874,7 @@
           }
         },
         "security" : [ ],
-        "summary" : "The current text of a policy (public): the school's own document if it has a published version, else the country default (country, default ET); in lang, else English, else any language. 404 policy.not_found",
+        "summary" : "The current text of a policy (public): the school's own document if it has a published version, else the default of the country (the `country` parameter, else the platform default country); legal text of another country is never served: 404 policy.country_not_available when the resolved country has none; in lang, else English, else any language. 404 policy.not_found",
         "tags" : [ "policies" ]
       }
     },
@@ -6448,7 +6448,7 @@
             "description" : "Error (RFC 9457 problem details)"
           }
         },
-        "summary" : "The country's safety text for the reporting screens ('if a child is in danger contact ...'), in your language. reviewed false means the wording is a placeholder the owner has not approved; the Ethiopian default is exactly that.",
+        "summary" : "The country's safety text for the reporting screens ('if a child is in danger contact ...'), in your language. reviewed false means the wording is a placeholder the owner has not approved. The country is required; a country with no text answers 404 safety.emergency_info_not_found (the text of another country is never served instead).",
         "tags" : [ "moderation" ]
       }
     },
@@ -22760,6 +22760,53 @@
         },
         "required" : [ "code", "isDefault", "name" ]
       },
+      "CountryConfig" : {
+        "type" : "object",
+        "description" : "A country's configuration: calling code, default zone, calendars, languages and currency",
+        "properties" : {
+          "calendarCodes" : {
+            "type" : "array",
+            "description" : "Calendar systems the country uses (country_calendars), alphabetical, for example GREGORIAN, ETHIOPIAN",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "code" : {
+            "type" : "string",
+            "description" : "ISO 3166-1 alpha-2 code"
+          },
+          "currencyCode" : {
+            "type" : "string",
+            "description" : "ISO 4217 code"
+          },
+          "defaultCalendarCode" : {
+            "type" : "string"
+          },
+          "defaultLanguageCode" : {
+            "type" : "string"
+          },
+          "defaultTimezone" : {
+            "type" : "string",
+            "description" : "IANA zone id, the default for schools and people of this country"
+          },
+          "languageCodes" : {
+            "type" : "array",
+            "description" : "Languages the country uses (country_languages), alphabetical",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Name in the request language, English when there is none"
+          },
+          "phoneCountryCode" : {
+            "type" : "string",
+            "description" : "Calling code with its plus sign, for example +254"
+          }
+        },
+        "required" : [ "calendarCodes", "code", "currencyCode", "defaultCalendarCode", "defaultLanguageCode", "defaultTimezone", "languageCodes", "name", "phoneCountryCode" ]
+      },
       "CountryLanguageResponse" : {
         "type" : "object",
         "properties" : {
@@ -25449,6 +25496,17 @@
           "calendarPreference" : {
             "type" : "string"
           },
+          "countries" : {
+            "type" : "array",
+            "description" : "Configurations of `country` and of the countries of the memberships' schools: look up membership.countryCode here (calendars, languages, calling code)",
+            "items" : {
+              "$ref" : "#/components/schemas/CountryConfig"
+            }
+          },
+          "country" : {
+            "$ref" : "#/components/schemas/CountryConfig",
+            "description" : "The country that applies to this person where no school is meant: their home country, else the platform default country"
+          },
           "displayName" : {
             "type" : "string"
           },
@@ -25466,6 +25524,10 @@
           },
           "hasPassword" : {
             "type" : "boolean"
+          },
+          "homeCountryCode" : {
+            "type" : "string",
+            "description" : "users.home_country_code: the country the person chose or was registered in; absent when unknown"
           },
           "id" : {
             "type" : "string",
@@ -25518,7 +25580,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "accountType", "displayName", "emailVerified", "givenName", "hasPassword", "id", "memberships", "phoneVerified", "roleAssignments", "scopes", "status" ]
+        "required" : [ "accountType", "countries", "country", "displayName", "emailVerified", "givenName", "hasPassword", "id", "memberships", "phoneVerified", "roleAssignments", "scopes", "status" ]
       },
       "MediaResponse" : {
         "type" : "object",
@@ -25815,6 +25877,17 @@
           "buildVersion" : {
             "type" : "string"
           },
+          "countries" : {
+            "type" : "array",
+            "description" : "ENABLED countries only, by code",
+            "items" : {
+              "$ref" : "#/components/schemas/CountryConfig"
+            }
+          },
+          "defaultCountry" : {
+            "type" : "string",
+            "description" : "Platform default country code: applies where no school, user or organization country is known (phone sign-in, one-time codes, invitation accept)"
+          },
           "serverTime" : {
             "type" : "string",
             "format" : "date-time"
@@ -25824,12 +25897,13 @@
           },
           "supportedLocales" : {
             "type" : "array",
+            "description" : "Languages the backend has messages for (English first)",
             "items" : {
               "type" : "string"
             }
           }
         },
-        "required" : [ "apiVersion", "buildVersion", "serverTime", "service", "supportedLocales" ]
+        "required" : [ "apiVersion", "buildVersion", "countries", "defaultCountry", "serverTime", "service", "supportedLocales" ]
       },
       "ModerationActionView" : {
         "type" : "object",
@@ -26467,7 +26541,7 @@
       },
       "OtpRequest" : {
         "type" : "object",
-        "description" : "Set exactly one of phone or email. National phone formats are read in `country` (default ET).",
+        "description" : "Set exactly one of phone or email. National phone formats are read in `country` (ISO code; when absent, the platform default country).",
         "properties" : {
           "country" : {
             "type" : "string",
@@ -29021,6 +29095,9 @@
             "type" : "string",
             "format" : "uuid"
           },
+          "countryCode" : {
+            "type" : "string"
+          },
           "schoolId" : {
             "type" : "string",
             "format" : "uuid"
@@ -29039,12 +29116,15 @@
             "type" : "string",
             "format" : "uuid"
           },
+          "timezone" : {
+            "type" : "string"
+          },
           "type" : {
             "type" : "string",
             "enum" : [ "TEACHER", "STUDENT", "STAFF", "GUARDIAN" ]
           }
         },
-        "required" : [ "schoolId", "schoolName", "schoolSlug", "type" ]
+        "required" : [ "countryCode", "schoolId", "schoolName", "schoolSlug", "timezone", "type" ]
       },
       "SchoolPolicy" : {
         "type" : "object",
@@ -29150,8 +29230,21 @@
       },
       "SchoolSummary" : {
         "type" : "object",
+        "description" : "`timezone` is the school's own IANA zone: school dates and times are shown in it. `country` has the calendars and languages the school's country offers.",
         "properties" : {
+          "country" : {
+            "$ref" : "#/components/schemas/CountryConfig"
+          },
           "countryCode" : {
+            "type" : "string"
+          },
+          "currencyCode" : {
+            "type" : "string"
+          },
+          "defaultCalendarCode" : {
+            "type" : "string"
+          },
+          "defaultLanguageCode" : {
             "type" : "string"
           },
           "id" : {
@@ -29173,9 +29266,12 @@
           "status" : {
             "type" : "string",
             "enum" : [ "ONBOARDING", "ACTIVE", "SUSPENDED", "ARCHIVED" ]
+          },
+          "timezone" : {
+            "type" : "string"
           }
         },
-        "required" : [ "countryCode", "id", "name", "slug", "status" ]
+        "required" : [ "country", "countryCode", "currencyCode", "defaultCalendarCode", "defaultLanguageCode", "id", "name", "slug", "status", "timezone" ]
       },
       "ScopePermissions" : {
         "type" : "object",
