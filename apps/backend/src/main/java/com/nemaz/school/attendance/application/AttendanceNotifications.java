@@ -16,6 +16,7 @@ import com.nemaz.school.academic.ClassMemberships.StudentClass;
 import com.nemaz.school.attendance.AbsenceReported;
 import com.nemaz.school.attendance.AttendanceMarked;
 import com.nemaz.school.attendance.AttendanceStatus;
+import com.nemaz.school.common.i18n.SupportedLocales;
 import com.nemaz.school.guardians.GuardianAccess;
 import com.nemaz.school.guardians.GuardianAccess.GuardianGrant;
 import com.nemaz.school.guardians.GuardianPermission;
@@ -60,8 +61,11 @@ class AttendanceNotifications {
 
 	private final MessageSource messages;
 
+	private final SupportedLocales languages;
+
 	AttendanceNotifications(NotificationService notifications, GuardianAccess guardians, ClassMemberships memberships,
-			AttendanceSettings settings, JdbcClient jdbc, MessageSource messages) {
+			AttendanceSettings settings, JdbcClient jdbc, MessageSource messages, SupportedLocales languages) {
+		this.languages = languages;
 		this.notifications = notifications;
 		this.guardians = guardians;
 		this.memberships = memberships;
@@ -147,7 +151,7 @@ class AttendanceNotifications {
 	private LocalizedText statusText(AttendanceStatus status) {
 		String key = "attendance.status." + status.name().toLowerCase(Locale.ROOT);
 		Map<String, String> values = new LinkedHashMap<>();
-		for (String language : List.of("en", "am")) {
+		for (String language : this.languages.codes()) {
 			values.put(language, this.messages.getMessage(key, null, key, Locale.forLanguageTag(language)));
 		}
 		return LocalizedText.of(values);

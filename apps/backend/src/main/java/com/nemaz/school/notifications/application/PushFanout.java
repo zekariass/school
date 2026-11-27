@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  * is pushed by default this is recorded as SUPPRESSED (PREFERENCE). Locked types ignore any stored
  * opt-out.</li>
  * <li>No active device: SUPPRESSED (NO_DEVICE).</li>
- * <li>Each device: inside the user's quiet hours (their timezone, default Africa/Addis_Ababa) the
+ * <li>Each device: inside the user's quiet hours (their timezone, else the default zone of their resolved country) the
  * push is SUPPRESSED (QUIET_HOURS), unless the notification is URGENT and its type may be urgent;
  * for types that {@code defer_in_quiet_hours} (announcements) it is instead QUEUED with {@code not_before} =
  * the end of the quiet hours, and {@link DeliveryRetryJob} sends it then; otherwise QUEUED, then sent.</li>
@@ -45,8 +45,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 class PushFanout {
-
-	static final ZoneId DEFAULT_ZONE = ZoneId.of("Africa/Addis_Ababa");
 
 	private static final Logger log = LoggerFactory.getLogger(PushFanout.class);
 
@@ -64,8 +62,11 @@ class PushFanout {
 
 	private final Clock clock;
 
+	private final UserZones zones;
+
 	PushFanout(NotificationTypeStore types, PreferenceStore preferences, PushDeviceStore devices,
-			DeliveryStore deliveries, UserDirectory users, PushDispatcher dispatcher, Clock clock) {
+			DeliveryStore deliveries, UserDirectory users, PushDispatcher dispatcher, Clock clock, UserZones zones) {
+		this.zones = zones;
 		this.types = types;
 		this.preferences = preferences;
 		this.devices = devices;
@@ -109,7 +110,7 @@ class PushFanout {
 			QuietHours hours = quiet.get(row.userId());
 			Instant heldUntil = (bypass || hours == null) ? null
 					: QuietHoursPolicy
-						.endOfQuietHours(now, zone(userPrefs.get(row.userId())), hours.start(), hours.end())
+						.endOfQuietHours(now, this.zones.zone(userPrefs.get(row.userId())), hours.start(), hours.end())
 						.orElse(null);
 			for (PushDevice device : userDevices) {
 				if (heldUntil == null) {
@@ -125,19 +126,6 @@ class PushFanout {
 			}
 		}
 		this.dispatcher.dispatch(this.deliveries.queuedFor(rows.stream().map(NotificationRow::id).toList(), now));
-	}
-
-	static ZoneId zone(UserPreferences preferences) {
-		if (preferences == null || preferences.timezone() == null || preferences.timezone().isBlank()) {
-			return DEFAULT_ZONE;
-		}
-		try {
-			return ZoneId.of(preferences.timezone());
-		}
-		catch (DateTimeException ex) {
-			log.warn("Unknown user timezone {}; using {}", preferences.timezone(), DEFAULT_ZONE);
-			return DEFAULT_ZONE;
-		}
 	}
 
 }

@@ -35,6 +35,7 @@ import com.nemaz.school.guardians.GuardianAccess;
 import com.nemaz.school.guardians.GuardianAccess.GuardianGrant;
 import com.nemaz.school.guardians.GuardianPermission;
 import com.nemaz.school.identity.UserDirectory;
+import com.nemaz.school.tenancy.CountryResolver;
 import com.nemaz.school.tenancy.TenantDirectory;
 import com.nemaz.school.tenancy.TenantDirectory.SchoolRef;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -90,10 +91,13 @@ public class ConsentRecordService {
 
 	private final Clock clock;
 
+	private final CountryResolver countries;
+
 	ConsentRecordService(JdbcClient jdbc, PolicyService policies, DefaultConsentService consents,
 			GuardianAccess guardians, ClassAccess classAccess, ClassMemberships memberships, SchoolPeople people,
 			SchoolGate gate, UserDirectory users, TenantDirectory directory, AuditLog audit,
-			ApplicationEventPublisher events, Clock clock) {
+			ApplicationEventPublisher events, Clock clock, CountryResolver countries) {
+		this.countries = countries;
 		this.jdbc = jdbc;
 		this.policies = policies;
 		this.consents = consents;
@@ -121,7 +125,7 @@ public class ConsentRecordService {
 			.filter((g) -> g.allows(GuardianPermission.GIVE_CONSENT))
 			.toList();
 		Map<UUID, PersonCard> cards = this.people.cards(links.stream().map(GuardianGrant::studentId).toList());
-		String country = null;
+		UUID firstSchool = null;
 		for (GuardianGrant link : links) {
 			PersonCard card = cards.get(link.studentId());
 			for (UUID schoolId : activeSchools(link.studentId())) {
@@ -129,7 +133,7 @@ public class ConsentRecordService {
 				if (card == null || school == null) {
 					continue;
 				}
-				country = (country != null) ? country : school.countryCode();
+				firstSchool = (firstSchool != null) ? firstSchool : schoolId;
 				List<ConsentItem> items = new ArrayList<>();
 				for (ConsentType type : List.of(ConsentType.ACCOUNT_PARTICIPATION, ConsentType.MEDIA_PUBLICATION)) {
 					Optional<Document> document = this.policies.effectiveDocument(type, schoolId, null);
@@ -143,9 +147,10 @@ public class ConsentRecordService {
 						school.name(), items));
 			}
 		}
+		String country = accountCountry(user.userId(), firstSchool);
 		List<ConsentItem> account = new ArrayList<>();
 		for (ConsentType type : List.of(ConsentType.TERMS, ConsentType.PRIVACY)) {
-			Optional<Document> document = this.policies.effectiveDocument(type, null, (country != null) ? country : "ET");
+			Optional<Document> document = this.policies.effectiveDocument(type, null, country);
 			Optional<Version> current = document.flatMap((d) -> this.policies.currentVersion(d.id(), language));
 			Instant since = document.flatMap((d) -> this.policies.reconsentSince(d.id())).orElse(null);
 			account.add(item(type, document.orElse(null), current.orElse(null),
@@ -205,13 +210,9 @@ public class ConsentRecordService {
 		}
 		Version version = this.policies.version(r.policyVersionId())
 			.orElseThrow(() -> ApiException.notFound("policy.not_found"));
-		Document document = this.jdbc.sql("select country_code from policy_documents where id = :id and school_id is null"
-				+ " and policy_type = :t")
-			.param("id", version.documentId())
-			.param("t", r.consentType().name())
-			.query(String.class)
-			.optional()
-			.flatMap((country) -> this.policies.effectiveDocument(r.consentType(), null, country))
+		// Only the text of the country that applies to this adult can be accepted, never another country's.
+		String country = accountCountry(user.userId(), firstSchoolOf(user));
+		Document document = this.policies.effectiveDocument(r.consentType(), null, country)
 			.filter((d) -> d.id().equals(version.documentId()))
 			.orElseThrow(() -> ApiException.badRequest("consent.version_invalid"));
 		requireCurrent(document, version);
@@ -320,10 +321,34 @@ public class ConsentRecordService {
 
 	// --- helpers --------------------------------------------------------------------------------
 
+	/**
+	 * The country whose TERMS and PRIVACY apply to an adult: that of the first school of a child they may decide for, else
+	 * their home country, else the platform default country (the resolution order of {@code tenancy.CountryResolver}).
+	 */
+	private String accountCountry(UUID userId, UUID firstSchool) {
+		UserDirectory.UserPreferences preferences = this.users.preferences(List.of(userId)).get(userId);
+		return this.countries.resolve(firstSchool, (preferences != null) ? preferences.homeCountryCode() : null, null).code();
+	}
+
+	private UUID firstSchoolOf(CurrentUser user) {
+		for (GuardianGrant link : this.guardians.childrenOf(user.userId())) {
+			if (!link.allows(GuardianPermission.GIVE_CONSENT)) {
+				continue;
+			}
+			for (UUID schoolId : activeSchools(link.studentId())) {
+				if (this.directory.school(schoolId).isPresent()) {
+					return schoolId;
+				}
+			}
+		}
+		return null;
+	}
+
 	private Version currentOrConflict(ConsentType type, UUID schoolId, String country, UUID versionId) {
 		Version version = this.policies.version(versionId).orElseThrow(() -> ApiException.notFound("policy.not_found"));
+		// no document at all for the school's country: never fall back to another country's text
 		Document document = this.policies.effectiveDocument(type, schoolId, country)
-			.orElseThrow(() -> ApiException.conflict("consent.version_outdated"));
+			.orElseThrow(() -> ApiException.conflict("policy.country_not_available"));
 		if (!document.id().equals(version.documentId())) {
 			throw ApiException.conflict("consent.version_outdated");
 		}

@@ -46,8 +46,11 @@ public class BootstrapAdmin implements ApplicationRunner {
 
 	private final Clock clock;
 
+	private final PhoneInputs phones;
+
 	BootstrapAdmin(BootstrapProperties props, UserRepository users, RoleAssignments roleAssignments, AuditLog audit,
-			JdbcTemplate jdbc, Clock clock) {
+			JdbcTemplate jdbc, Clock clock, PhoneInputs phones) {
+		this.phones = phones;
 		this.props = props;
 		this.users = users;
 		this.roleAssignments = roleAssignments;
@@ -72,7 +75,7 @@ public class BootstrapAdmin implements ApplicationRunner {
 		}
 		String e164 = null;
 		if (phone != null) {
-			e164 = PhoneNumbers.toE164(phone, PhoneNumbers.DEFAULT_COUNTRY)
+			e164 = this.phones.toE164(phone, null)
 				.orElseThrow(() -> new IllegalStateException("school.bootstrap.admin.phone is not a valid phone number"));
 		}
 		String normalizedEmail = null;

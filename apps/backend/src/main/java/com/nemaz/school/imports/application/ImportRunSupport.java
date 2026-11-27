@@ -7,6 +7,8 @@ import java.util.Map;
 
 import com.nemaz.school.imports.application.ImportModel.Job;
 import com.nemaz.school.imports.application.RowHandler.JobContext;
+import com.nemaz.school.tenancy.CountryContext;
+import com.nemaz.school.tenancy.CountryResolver;
 import com.nemaz.school.imports.domain.DateParser;
 import com.nemaz.school.imports.domain.ImportType;
 import com.nemaz.school.notifications.NotificationRequest;
@@ -32,8 +34,11 @@ class ImportRunSupport {
 
 	private final Clock clock;
 
+	private final CountryResolver countries;
+
 	ImportRunSupport(List<RowHandler> handlers, PlatformTransactionManager transactions, NotificationService notifications,
-			TenantDirectory directory, Clock clock) {
+			TenantDirectory directory, Clock clock, CountryResolver countries) {
+		this.countries = countries;
 		this.handlers = new java.util.EnumMap<>(ImportType.class);
 		handlers.forEach((h) -> this.handlers.put(h.type(), h));
 		this.each = new TransactionTemplate(transactions);
@@ -57,9 +62,10 @@ class ImportRunSupport {
 	}
 
 	JobContext context(Job job) {
-		LocalDate today = LocalDate.now(this.clock.withZone(java.time.ZoneId.of("Africa/Addis_Ababa")));
+		CountryContext country = this.countries.forSchool(job.schoolId());
+		LocalDate today = LocalDate.now(this.clock.withZone(country.zone()));
 		return new JobContext(job.schoolId(), job.id(), job.initiatedBy(), job.externalSystemId(),
-				new DateParser.Options(job.options().dateSystemOrDefault(), date1904(job)), today);
+				new DateParser.Options(job.options().dateSystemOrDefault(), date1904(job)), today, country);
 	}
 
 	private static boolean date1904(Job job) {

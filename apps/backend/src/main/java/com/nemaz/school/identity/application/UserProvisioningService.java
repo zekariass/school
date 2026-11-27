@@ -39,8 +39,11 @@ public class UserProvisioningService {
 
 	private final Clock clock;
 
+	private final PhoneInputs phones;
+
 	UserProvisioningService(UserRepository users, ReferenceData reference, AuthRateLimits limits, AuditLog audit,
-			Clock clock) {
+			Clock clock, PhoneInputs phones) {
+		this.phones = phones;
 		this.users = users;
 		this.reference = reference;
 		this.limits = limits;
@@ -54,7 +57,7 @@ public class UserProvisioningService {
 		if (!hasPhone && !hasEmail) {
 			throw ApiException.badRequest("user.contact_required");
 		}
-		String phone = hasPhone ? PhoneNumbers.toE164(p.phone(), p.country())
+		String phone = hasPhone ? this.phones.toE164(p.phone(), p.country())
 			.orElseThrow(() -> ApiException.badRequest("user.invalid_phone")) : null;
 		String email = hasEmail
 				? Emails.normalize(p.email()).orElseThrow(() -> ApiException.badRequest("user.invalid_email")) : null;
@@ -106,7 +109,7 @@ public class UserProvisioningService {
 		Optional<User> found;
 		boolean byPhone = hasPhone;
 		if (byPhone) {
-			String e164 = PhoneNumbers.toE164(phone, country).orElseThrow(() -> ApiException.badRequest("user.invalid_phone"));
+			String e164 = this.phones.toE164(phone, country).orElseThrow(() -> ApiException.badRequest("user.invalid_phone"));
 			found = this.users.findByPhoneE164(e164);
 		}
 		else {

@@ -35,8 +35,8 @@ public interface UserDirectory {
 
 	}
 
-	/** Both values may be null when the user never chose one. */
-	record UserPreferences(String languageCode, String timezone) {
+	/** Each value may be null when the user never chose one; {@code homeCountryCode} is {@code users.home_country_code}. */
+	record UserPreferences(String languageCode, String timezone, String homeCountryCode) {
 	}
 
 	/** Names, avatar and the personal fields that school roles may show (callers decide who sees what). */

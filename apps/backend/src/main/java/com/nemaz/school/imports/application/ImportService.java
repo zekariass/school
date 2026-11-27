@@ -14,6 +14,7 @@ import com.nemaz.school.audit.AuditEntry;
 import com.nemaz.school.audit.AuditLog;
 import com.nemaz.school.audit.AuditOutcome;
 import com.nemaz.school.common.error.ApiException;
+import com.nemaz.school.imports.domain.DateParser.DateSystem;
 import com.nemaz.school.common.id.Ids;
 import com.nemaz.school.common.pagination.CursorPage;
 import com.nemaz.school.common.pagination.Cursors;
@@ -51,6 +52,7 @@ import com.nemaz.school.media.MediaPurpose;
 import com.nemaz.school.media.MediaService;
 import com.nemaz.school.people.PeopleImports;
 import com.nemaz.school.system.RateLimiter;
+import com.nemaz.school.tenancy.CountryResolver;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
@@ -103,9 +105,13 @@ public class ImportService {
 
 	private final JdbcClient jdbc;
 
+	private final CountryResolver countries;
+
 	ImportService(ImportStore store, ImportFiles files, MediaService media, SchoolGate gate, ImportProperties properties,
 			RateLimiter limiter, ExternalMappings mappings, MappingProfileService profiles, MessageSource messages,
-			ProblemMessages problemMessages, PeopleImports people, AuditLog audit, ApplicationEventPublisher events, JdbcClient jdbc) {
+			ProblemMessages problemMessages, PeopleImports people, AuditLog audit, ApplicationEventPublisher events, JdbcClient jdbc,
+			CountryResolver countries) {
+		this.countries = countries;
 		this.store = store;
 		this.files = files;
 		this.media = media;
@@ -152,6 +158,7 @@ public class ImportService {
 				"import.rate_limited");
 		this.media.requireAttachable(r.mediaId(), MediaPurpose.IMPORT_FILE, MediaContext.school(schoolId), user);
 		ImportOptions options = ((r.options() != null) ? r.options() : ImportOptions.DEFAULT).forReading();
+		requireDateSystem(schoolId, options);
 		UUID id = Ids.newId();
 		try (ImportFiles.Staged file = this.files.stage(r.mediaId())) {
 			Scan scan = scan(file, options);
@@ -216,6 +223,17 @@ public class ImportService {
 		}
 	}
 
+	/**
+	 * Text dates may be read in a non-Gregorian system only when the school's country runs that calendar
+	 * ({@code country_calendars}); otherwise 422 {@code import.date_system_not_available}.
+	 */
+	private void requireDateSystem(UUID schoolId, ImportOptions options) {
+		DateSystem system = options.dateSystemOrDefault();
+		if (system != DateSystem.GREGORIAN && !this.countries.forSchool(schoolId).hasCalendar(system.name())) {
+			throw ApiException.unprocessable("import.date_system_not_available");
+		}
+	}
+
 	private static String blank(String value) {
 		return (value == null || value.isBlank()) ? null : value;
 	}
@@ -244,6 +262,7 @@ public class ImportService {
 			throw ApiException.conflict("import.invalid_state");
 		}
 		ImportOptions options = (r.options() != null) ? r.options().forReading() : job.options();
+		requireDateSystem(schoolId, options);
 		Scan scan;
 		try (ImportFiles.Staged file = this.files.stage(job.mediaId())) {
 			scan = scan(file, options);

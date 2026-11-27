@@ -45,8 +45,11 @@ class DefaultUserAccounts implements UserAccounts {
 
 	private final Clock clock;
 
+	private final PhoneInputs phones;
+
 	DefaultUserAccounts(UserRepository users, PasswordCredentialRepository credentials, PasswordEncoder encoder,
-			ReferenceData reference, TokenService tokens, UserSnapshotCache snapshots, Clock clock) {
+			ReferenceData reference, TokenService tokens, UserSnapshotCache snapshots, Clock clock, PhoneInputs phones) {
+		this.phones = phones;
 		this.snapshots = snapshots;
 		this.users = users;
 		this.credentials = credentials;
@@ -63,7 +66,7 @@ class DefaultUserAccounts implements UserAccounts {
 		if (!hasPhone && !hasEmail) {
 			throw ApiException.badRequest("user.contact_required");
 		}
-		String phone = hasPhone ? PhoneNumbers.toE164(p.phone(), p.country())
+		String phone = hasPhone ? this.phones.toE164(p.phone(), p.country())
 			.orElseThrow(() -> ApiException.badRequest("user.invalid_phone")) : null;
 		String email = hasEmail
 				? Emails.normalize(p.email()).orElseThrow(() -> ApiException.badRequest("user.invalid_email")) : null;

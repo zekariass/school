@@ -34,6 +34,7 @@ import com.nemaz.school.portfolio.application.PortfolioModels.PortfolioStatus;
 import com.nemaz.school.portfolio.application.PortfolioModels.PortfolioVisibility;
 import com.nemaz.school.portfolio.application.PortfolioWorkflow.Move;
 import com.nemaz.school.system.RateLimiter;
+import com.nemaz.school.tenancy.CountryResolver;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -76,9 +77,12 @@ public class PortfolioItemService {
 
 	private final Clock clock;
 
+	private final CountryResolver countries;
+
 	PortfolioItemService(JdbcClient jdbc, PortfolioAccess access, PortfolioAudience audience, PortfolioConsent consent,
 			PortfolioMedia media, PortfolioViews views, PortfolioSettings settings, PortfolioLedger ledger, AuditLog audit,
-			ApplicationEventPublisher events, RateLimiter limiter, Clock clock) {
+			ApplicationEventPublisher events, RateLimiter limiter, Clock clock, CountryResolver countries) {
+		this.countries = countries;
 		this.jdbc = jdbc;
 		this.access = access;
 		this.audience = audience;
@@ -434,13 +438,7 @@ public class PortfolioItemService {
 	}
 
 	private ZoneId zone(UUID schoolId) {
-		String zone = this.jdbc.sql("select timezone from schools where id = :id").param("id", schoolId).query(String.class).optional().orElse(null);
-		try {
-			return (zone != null) ? ZoneId.of(zone) : ZoneId.of("Africa/Addis_Ababa");
-		}
-		catch (DateTimeException ex) {
-			return ZoneId.of("Africa/Addis_Ababa");
-		}
+		return this.countries.schoolZone(schoolId);
 	}
 
 	/** The class of a student's item: one they are ACTIVE in; when omitted, their only ACTIVE class (else none). */

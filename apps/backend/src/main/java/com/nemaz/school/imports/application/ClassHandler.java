@@ -194,7 +194,7 @@ class ClassHandler implements RowHandler {
 
 		/** The lead teacher named by phone or email, when she is a teacher of this school. */
 		private UUID leadTeacher(Draft d, RowInput in) {
-			String phone = (in.get("lead_teacher_phone") != null) ? phone(d, "lead_teacher_phone", in.get("lead_teacher_phone"), true)
+			String phone = (in.get("lead_teacher_phone") != null) ? phone(this.ctx, d, "lead_teacher_phone", in.get("lead_teacher_phone"), true)
 					: null;
 			String email = null;
 			if (in.get("lead_teacher_email") != null) {
