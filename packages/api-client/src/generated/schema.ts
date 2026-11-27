@@ -2517,8 +2517,42 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot, students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403 */
+        /** The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot (with subjectId: only the classes that have the subject and only rolls taken for it), students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403 */
         get: operations["getAttendanceDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/period-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The per-period summary: marks counted per class, slot and subject over from..to (school-local dates, inclusive, default the last 30 days, at most 400), keyset paged in class name, slot, subject order. slot and subjectId narrow it; rolls taken without a subject have none. With classId: teachers of that class and school.attendance.read/manage; without: school.attendance.read/manage (403 for everybody else who sees the school, 404 for the rest). 400 attendance.invalid_slot */
+        get: operations["getAttendancePeriodReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/period-report.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The per-period summary as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized. Audited (attendance.period_report.export), rate limited with the other attendance exports (10 per 10 minutes, 429 attendance.export_rate_limited), at most 50000 rows */
+        get: operations["exportAttendancePeriodReport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2674,9 +2708,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The roll of a class for a school-local date (default today) and slot (default the school's first): every student who belonged to the class that day with their record, suggestedStatus (EXCUSED for an acknowledged absence report) and the absence-report annotation (reason and note only for the lead, co and subject teachers and attendance managers). ACTIVE teachers of the class, class managers and school.attendance.read/manage (403 for students and guardians who see the class, 404 for everybody else) */
+        /** The roll of a class for a school-local date (default today) and slot (default the school's first): every student who belonged to the class that day (only the members of the saved student group groupId, an elective's group, when given) with their record, the subject of a period roll (P1..P8), suggestedStatus (EXCUSED for an acknowledged absence report) and the absence-report annotation (reason and note only for the lead, co and subject teachers and attendance managers). ACTIVE teachers of the class, class managers and school.attendance.read/manage (403 for students and guardians who see the class, 404 for everybody else) */
         get: operations["getClassAttendance"];
-        /** Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage */
+        /** Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, a subject that is not one of the class's (400 attendance.invalid_subject) or is given for a slot that is not a period (400 attendance.subject_requires_period) or differs from the roll's own (409 attendance.subject_mismatch), a group that is not the class's (400 attendance.invalid_group), a student outside the group (409 attendance.student_not_in_group), locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage */
         put: operations["takeClassAttendance"];
         post?: never;
         delete?: never;
@@ -4665,6 +4699,160 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/staff-attendance/days/{date}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The staff roll of a school-local day: ACTIVE staff (and anybody who already has a record that day) with the day's record, keyset paged by name, optionally one campus. school.staff_attendance.read/manage (403 staff_attendance.access_denied for other members of the school, 404 for people who cannot see it); 403 staff_attendance.disabled while the school setting attendance.staff.enabled is off */
+        get: operations["getStaffAttendanceDay"];
+        /** Marks staff for a school-local day (manual): records lists staff (PRESENT, ABSENT, LATE with minutesLate 1 to 600, HALF_DAY, EXCUSED, an optional note of at most 200 characters), markRestPresent marks every other ACTIVE staff member of the day without a record PRESENT. A staff member who already has a record keeps it (outcome EXISTS): change it with a correction. Everything is validated first: unknown staff 404 staff_attendance.staff_not_found, staff who are not ACTIVE 409 staff_attendance.staff_not_active, a day that has not started in the staff member's campus or school time zone 409 staff_attendance.date_in_future, more than 62 days back 400 staff_attendance.date_too_old, 400 for duplicates, too many records (500) or bad minutes. Audited. school.staff_attendance.manage */
+        put: operations["markStaffAttendanceDay"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff-attendance/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's own staff attendance records (any ACTIVE staff member of the school), newest first, keyset paged, optionally from..to. 403 staff_attendance.access_denied for members who are not staff, 404 for people who cannot see the school */
+        get: operations["listMyStaffAttendance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff-attendance/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff attendance records over from..to (school-local dates, inclusive, default the last 30 days, at most 400), newest first, keyset paged; staffId narrows to one staff member. school.staff_attendance.read/manage only: a teacher or any other member gets 403 staff_attendance.access_denied (their own records are under /me) */
+        get: operations["listStaffAttendance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff-attendance/records/{recordId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One record with its corrections: school.staff_attendance.read/manage and the staff member the record belongs to. Anybody else, a colleague included, gets 404 staff_attendance.record_not_found */
+        get: operations["getStaffAttendanceRecord"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff-attendance/records/{recordId}/corrections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Corrects a record: the new status (minutesLate only with LATE) and optionally a new note, with the required reason (at most 200 characters) and the record's version (expectedVersion; 409 staff_attendance.version_conflict when it changed). The correction is appended (never edited or deleted) and audited; 400 staff_attendance.nothing_to_correct when nothing changes. school.staff_attendance.manage */
+        post: operations["correctStaffAttendance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff-attendance/reports/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff attendance counted per school-local day over from..to (default the last 30 days, at most 93): one row per day that has records. school.staff_attendance.read/manage */
+        get: operations["getStaffAttendanceDailyReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff-attendance/reports/daily.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The daily summary as a CSV download (UTF-8 with a byte order mark, CRLF, headers in the caller's language). Audited (staff_attendance.report.export), rate limited (10 per 10 minutes, 429 staff_attendance.export_rate_limited). school.staff_attendance.read/manage */
+        get: operations["exportStaffAttendanceDailyReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff-attendance/reports/monthly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff attendance counted per staff member for a month (month=yyyy-MM, default the school's current month; 400 staff_attendance.invalid_month): ACTIVE staff and anybody with a record that month, keyset paged by name. school.staff_attendance.read/manage */
+        get: operations["getStaffAttendanceMonthlyReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff-attendance/reports/monthly.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The monthly summary as a CSV download, with the same rules as the daily one (audited, rate limited, at most 50000 rows). school.staff_attendance.read/manage */
+        get: operations["exportStaffAttendanceMonthlyReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/staff/{staffId}": {
         parameters: {
             query?: never;
@@ -5582,6 +5770,11 @@ export interface components {
             slot: string;
             /** @description The slots the school enabled (attendance.slots), so clients can offer a switcher */
             slots: string[];
+            /**
+             * Format: uuid
+             * @description The subject filter that was asked for, if any
+             */
+            subjectId?: string;
             timeZone: string;
             /** @description Over every class the caller sees, not just this page */
             totals: components["schemas"]["DashboardTotals"];
@@ -5689,6 +5882,11 @@ export interface components {
              * @description School-local calendar date (the school's or campus's time zone), not in the future beyond a small tolerance
              */
             date: string;
+            /**
+             * Format: uuid
+             * @description Restricts this request to the members of a saved student group of the class (an elective's group): only they may be marked and markAllPresent covers only them. Not stored with the roll
+             */
+            groupId?: string;
             /** @description Mark everyone without a record present (see the description above) */
             markAllPresent?: boolean;
             /** @description Required to edit a locked roll (lead teacher, class manager or attendance manager); audited */
@@ -5698,7 +5896,7 @@ export interface components {
             slot?: string;
             /**
              * Format: uuid
-             * @description Subject of a period roll (optional; only used when the roll is created)
+             * @description Subject of a period roll (P1..P8 only; one of the class's subjects). Set when the roll is created; a later request naming another subject is refused (409 attendance.subject_mismatch)
              */
             subjectId?: string;
         };
@@ -5718,13 +5916,18 @@ export interface components {
              */
             suggestedStatus?: "PRESENT" | "ABSENT" | "LATE" | "EXCUSED" | "LEFT_EARLY";
         };
-        /** @description The roll of a class for a date and slot: every student who belonged to the class that day, with the record (if any) and the absence-report annotation */
+        /** @description The roll of a class for a date and slot: every student who belonged to the class that day (or of the requested group), with the record (if any) and the absence-report annotation */
         AttendanceRollView: {
             /** Format: uuid */
             classId: string;
             counts: components["schemas"]["AttendanceCounts"];
             /** Format: date */
             date: string;
+            /**
+             * Format: uuid
+             * @description The group the roster was restricted to, if one was asked for
+             */
+            groupId?: string;
             /** @description True once the lock window has passed: only the lead teacher, class managers and attendance managers may edit, with a reason */
             locked?: boolean;
             /** Format: date-time */
@@ -5740,6 +5943,9 @@ export interface components {
             slot: string;
             slots: string[];
             students: components["schemas"]["AttendanceRollStudent"][];
+            /** Format: uuid */
+            subjectId?: string;
+            subjectName?: string;
             /** Format: date-time */
             takenAt?: string;
             /** Format: uuid */
@@ -6888,6 +7094,11 @@ export interface components {
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
+        CursorPagePeriodReportRow: {
+            items: components["schemas"]["PeriodReportRow"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
         CursorPagePortfolioCommentView: {
             items: components["schemas"]["PortfolioCommentView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
@@ -6925,6 +7136,21 @@ export interface components {
         };
         CursorPageSchoolResponse: {
             items: components["schemas"]["SchoolResponse"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageStaffDayEntry: {
+            items: components["schemas"]["StaffDayEntry"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageStaffMonthlySummaryRow: {
+            items: components["schemas"]["StaffMonthlySummaryRow"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageStaffRecordView: {
+            items: components["schemas"]["StaffRecordView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -6966,6 +7192,12 @@ export interface components {
             present?: number;
             /** Format: int32 */
             students?: number;
+            /**
+             * Format: uuid
+             * @description The subject the roll was taken for (a period roll), if any
+             */
+            subjectId?: string;
+            subjectName?: string;
             taken?: boolean;
             /** Format: date-time */
             takenAt?: string;
@@ -7983,6 +8215,43 @@ export interface components {
             schoolName?: string;
             /** @enum {string} */
             status: "PENDING" | "ACTIVE" | "REJECTED" | "REVOKED";
+        };
+        /** @description Marks of one class in one slot (and subject, for a period roll) over the range */
+        PeriodReportRow: {
+            /** Format: int32 */
+            absent?: number;
+            /** Format: uuid */
+            classId: string;
+            className: string;
+            /** Format: int32 */
+            excused?: number;
+            /** Format: int32 */
+            late?: number;
+            /** Format: int32 */
+            leftEarly?: number;
+            /** Format: int32 */
+            marked?: number;
+            /** Format: int64 */
+            minutesLate?: number;
+            /** Format: int32 */
+            present?: number;
+            /**
+             * Format: int32
+             * @description Rolls taken in the range
+             */
+            rolls?: number;
+            slot: string;
+            /**
+             * Format: int32
+             * @description Distinct students marked
+             */
+            students?: number;
+            /**
+             * Format: uuid
+             * @description The subject of a period roll; null for rolls taken without one
+             */
+            subjectId?: string;
+            subjectName?: string;
         };
         PermissionChange: {
             canAwardPoints?: boolean;
@@ -9071,6 +9340,170 @@ export interface components {
             method: "IN_APP" | "PAPER_RECORDED_BY_SCHOOL" | "VERBAL_RECORDED_BY_SCHOOL";
             /** Format: uuid */
             policyVersionId: string;
+        };
+        /** @description Correct a staff record: the new status (and minutes late, only with LATE), optionally a new note (omit to keep it, send an empty text to clear it) and the reason, which is required and kept in the append-only corrections. expectedVersion is the record's version you read */
+        StaffCorrectionRequest: {
+            /** Format: int32 */
+            expectedVersion: number;
+            /** Format: int32 */
+            minutesLate?: number;
+            note?: string;
+            reason: string;
+            /** @enum {string} */
+            status: "PRESENT" | "ABSENT" | "LATE" | "HALF_DAY" | "EXCUSED";
+        };
+        StaffCorrectionView: {
+            /** Format: date-time */
+            correctedAt: string;
+            /** Format: uuid */
+            correctedBy: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            newMinutesLate?: number;
+            /** @enum {string} */
+            newStatus: "PRESENT" | "ABSENT" | "LATE" | "HALF_DAY" | "EXCUSED";
+            /** Format: int32 */
+            oldMinutesLate?: number;
+            /** @enum {string} */
+            oldStatus: "PRESENT" | "ABSENT" | "LATE" | "HALF_DAY" | "EXCUSED";
+            reason: string;
+        };
+        /** @description One row per school-local day that has records, oldest first */
+        StaffDailyReport: {
+            /** Format: date */
+            from: string;
+            rows: components["schemas"]["StaffDailySummaryRow"][];
+            /** Format: date */
+            to: string;
+        };
+        StaffDailySummaryRow: {
+            /** Format: int32 */
+            absent?: number;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            excused?: number;
+            /** Format: int32 */
+            halfDay?: number;
+            /** Format: int32 */
+            late?: number;
+            /** Format: int32 */
+            marked?: number;
+            /** Format: int64 */
+            minutesLate?: number;
+            /** Format: int32 */
+            present?: number;
+        };
+        /** @description A staff member on the day's roll, with the day's record when there is one */
+        StaffDayEntry: {
+            /** Format: uuid */
+            campusId?: string;
+            displayName: string;
+            jobTitle?: string;
+            record?: components["schemas"]["StaffRecordView"];
+            /** Format: uuid */
+            staffId: string;
+            staffType: string;
+        };
+        /** @description Mark staff for one school-local day. records: the staff to mark; markRestPresent additionally marks every other ACTIVE staff member of the day who has no record PRESENT. A staff member who already has a record for the day is left as it is (EXISTS): changing it is a correction with a reason */
+        StaffDayRequest: {
+            markRestPresent?: boolean;
+            records?: components["schemas"]["StaffMarkInput"][];
+        };
+        StaffDayResult: {
+            /** Format: int32 */
+            created?: number;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            existing?: number;
+            outcomes: components["schemas"]["StaffMarkOutcome"][];
+        };
+        /** @description The staff roll of a school-local day: ACTIVE staff (and anybody who already has a record that day), keyset paged by name */
+        StaffDayRoll: {
+            /** Format: date */
+            date: string;
+            staff: components["schemas"]["CursorPageStaffDayEntry"];
+            timeZone: string;
+        };
+        StaffMarkInput: {
+            /**
+             * Format: int32
+             * @description Minutes late, 1 to 600, only with LATE
+             */
+            minutesLate?: number;
+            note?: string;
+            /** Format: uuid */
+            staffId: string;
+            /** @enum {string} */
+            status: "PRESENT" | "ABSENT" | "LATE" | "HALF_DAY" | "EXCUSED";
+        };
+        /** @description CREATED: the record was written. EXISTS: the staff member already had a record for the day, which stays as it is */
+        StaffMarkOutcome: {
+            outcome: string;
+            record: components["schemas"]["StaffRecordView"];
+            /** Format: uuid */
+            staffId: string;
+        };
+        StaffMonthlyReport: {
+            month: string;
+            staff: components["schemas"]["CursorPageStaffMonthlySummaryRow"];
+        };
+        /** @description A staff member's days in a month, counted per status */
+        StaffMonthlySummaryRow: {
+            /** Format: int32 */
+            absent?: number;
+            displayName: string;
+            /** Format: int32 */
+            excused?: number;
+            /** Format: int32 */
+            halfDay?: number;
+            jobTitle?: string;
+            /** Format: int32 */
+            late?: number;
+            /** Format: int32 */
+            marked?: number;
+            /** Format: int64 */
+            minutesLate?: number;
+            /** Format: int32 */
+            present?: number;
+            /** Format: uuid */
+            staffId: string;
+            staffType: string;
+        };
+        StaffRecordDetail: {
+            corrections: components["schemas"]["StaffCorrectionView"][];
+            record: components["schemas"]["StaffRecordView"];
+        };
+        StaffRecordView: {
+            /** Format: uuid */
+            campusId?: string;
+            /**
+             * Format: int32
+             * @description How many corrections the record has
+             */
+            corrections?: number;
+            /** Format: date */
+            date: string;
+            /** Format: uuid */
+            id: string;
+            /** @description MANUAL; the QR methods arrive with M7e */
+            method: string;
+            /** Format: int32 */
+            minutesLate?: number;
+            note?: string;
+            /** Format: date-time */
+            recordedAt: string;
+            /** Format: uuid */
+            recordedBy: string;
+            /** Format: uuid */
+            staffId: string;
+            staffName: string;
+            /** @enum {string} */
+            status: "PRESENT" | "ABSENT" | "LATE" | "HALF_DAY" | "EXCUSED";
+            /** Format: int32 */
+            version?: number;
         };
         StaffView: {
             avatar?: components["schemas"]["MediaSummary"];
@@ -15888,6 +16321,7 @@ export interface operations {
             query?: {
                 date?: string;
                 slot?: string;
+                subjectId?: string;
                 cursor?: string;
                 limit?: number;
             };
@@ -15906,6 +16340,82 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttendanceDashboard"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getAttendancePeriodReport: {
+        parameters: {
+            query?: {
+                classId?: string;
+                slot?: string;
+                subjectId?: string;
+                from?: string;
+                to?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPagePeriodReportRow"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    exportAttendancePeriodReport: {
+        parameters: {
+            query?: {
+                classId?: string;
+                slot?: string;
+                subjectId?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -16346,6 +16856,7 @@ export interface operations {
             query?: {
                 date?: string;
                 slot?: string;
+                groupId?: string;
             };
             header?: never;
             path: {
@@ -21171,6 +21682,355 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StaffView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getStaffAttendanceDay: {
+        parameters: {
+            query?: {
+                campusId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffDayRoll"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    markStaffAttendanceDay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                date: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffDayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffDayResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listMyStaffAttendance: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageStaffRecordView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStaffAttendance: {
+        parameters: {
+            query?: {
+                staffId?: string;
+                from?: string;
+                to?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageStaffRecordView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getStaffAttendanceRecord: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                recordId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffRecordDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    correctStaffAttendance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                recordId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffCorrectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffRecordDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getStaffAttendanceDailyReport: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffDailyReport"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    exportStaffAttendanceDailyReport: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getStaffAttendanceMonthlyReport: {
+        parameters: {
+            query?: {
+                month?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMonthlyReport"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    exportStaffAttendanceMonthlyReport: {
+        parameters: {
+            query?: {
+                month?: string;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
                 };
             };
             /** @description Error (RFC 9457 problem details) */

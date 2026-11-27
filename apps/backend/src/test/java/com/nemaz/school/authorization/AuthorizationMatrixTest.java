@@ -664,6 +664,7 @@ class AuthorizationMatrixTest {
 		cases.addAll(guardianCases());
 		cases.addAll(pointsCases());
 		cases.addAll(attendanceCases());
+		cases.addAll(staffAttendanceCases());
 		cases.addAll(feedCases());
 		cases.addAll(announcementCases());
 		cases.addAll(messagingCases());
@@ -1181,6 +1182,20 @@ class AuthorizationMatrixTest {
 				(f) -> schools + f.schoolA() + "/attendance/report.csv?classId=" + freshClass(f), null, 200,
 				concat(managers, classTeachers), classBystanders));
 
+		// --- per-period summary (M7d): the same people as the daily summary
+		cases.add(school("GET attendance period report of the school", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/attendance/period-report", null, 200, managers, SCHOOL_A_VISITING_ADMINS,
+				SCHOOL_A_MEMBERS));
+		cases.add(school("GET attendance period report of a class", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/attendance/period-report?classId=" + freshClass(f), null, 200,
+				concat(managers, classTeachers), classBystanders));
+		cases.add(school("GET attendance period report CSV of the school", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/attendance/period-report.csv", null, 200, managers, SCHOOL_A_VISITING_ADMINS,
+				SCHOOL_A_MEMBERS));
+		cases.add(school("GET attendance period report CSV of a class", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/attendance/period-report.csv?classId=" + freshClass(f), null, 200,
+				concat(managers, classTeachers), classBystanders));
+
 		// --- absence reports: only the child's own guardian files; the student's teachers and attendance managers decide
 		cases.add(new Case("POST absence report", HttpMethod.POST,
 				(f) -> schools + f.schoolA() + "/students/" + userOf(STUDENT_A1) + "/absence-reports",
@@ -1205,6 +1220,61 @@ class AuthorizationMatrixTest {
 		// --- sync: open to every signed-in user; each operation is authorized as its online endpoint (SyncApiTest)
 		cases.add(new Case("POST sync", HttpMethod.POST, (f) -> "/api/v1/sync", (f) -> Map.of("operations", List.of()),
 				allow(200, EVERY_ACTIVE_PERSONA)));
+		return cases;
+	}
+
+	// ---- staff attendance (M7d) ---------------------------------------------------------------------------
+
+	/** Staff attendance is off by default: the matrix switches it on for school A (the afterEach clears the settings). */
+	private String staffBase(Fixture f) {
+		this.settingsService.set("attendance.staff.enabled", com.nemaz.school.tenancy.SettingScope.school(f.schoolA()),
+				this.json.valueToTree(true), this.personas.platformAdmin().userId());
+		return SCHOOLS + f.schoolA() + "/staff-attendance";
+	}
+
+	private static final java.util.concurrent.atomic.AtomicInteger STAFF_DAY = new java.util.concurrent.atomic.AtomicInteger();
+
+	/** A record of the staff member (fixtures; the API path is tested in StaffAttendanceApiTest), on a day nobody else uses. */
+	private UUID staffRecord(Fixture f, Name staff) {
+		UUID id = Ids.newId();
+		UUID staffId = this.jdbc.queryForObject("select id from school_staff where school_id = ? and user_id = ?", UUID.class,
+				f.schoolA(), userOf(staff));
+		java.time.LocalDate date = java.time.LocalDate.of(2000, 1, 1).plusDays(STAFF_DAY.incrementAndGet());
+		this.jdbc.update("""
+				insert into staff_attendance_records (id, school_id, staff_id, attendance_date, status, recorded_by)
+				values (?, ?, ?, ?, 'LATE', ?)""", id, f.schoolA(), staffId, java.sql.Date.valueOf(date), userOf(SCHOOL_ADMIN_A));
+		return id;
+	}
+
+	List<Case> staffAttendanceCases() {
+		List<Case> cases = new ArrayList<>();
+		Name[] managers = SCHOOL_A_MANAGERS;
+		// The permission holders; every other member of the school gets 403 (a teacher is a staff member and nothing more), people
+		// who cannot see the school 404.
+		Name[] members = concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS);
+		cases.add(school("GET staff attendance day", HttpMethod.GET,
+				(f) -> staffBase(f) + "/days/" + matrixToday().minusDays(1), null, 200, managers, members));
+		cases.add(school("PUT staff attendance day", HttpMethod.PUT,
+				(f) -> staffBase(f) + "/days/" + matrixToday().minusDays(1), (f) -> Map.of("markRestPresent", true), 200, managers,
+				members));
+		cases.add(school("GET staff attendance records", HttpMethod.GET, (f) -> staffBase(f) + "/records", null, 200, managers,
+				members));
+		// Own records: any ACTIVE staff member of the school; students, administrators who are not staff and the campus
+		// administrator have none (403); everybody else cannot see the school.
+		cases.add(school("GET my staff attendance", HttpMethod.GET, (f) -> staffBase(f) + "/me", null, 200, SCHOOL_A_TEACHERS,
+				managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS));
+		// One record: the permission holders and the staff member it belongs to; for everybody else, a colleague included, it
+		// does not exist.
+		cases.add(new Case("GET staff attendance record", HttpMethod.GET,
+				(f) -> staffBase(f) + "/records/" + staffRecord(f, TEACHER_LEAD_A), null,
+				allow(200, concat(managers, new Name[] { TEACHER_LEAD_A })), 404));
+		cases.add(school("POST staff attendance correction", HttpMethod.POST,
+				(f) -> staffBase(f) + "/records/" + staffRecord(f, TEACHER_LEAD_A) + "/corrections",
+				(f) -> Map.of("status", "ABSENT", "reason", "matrix", "expectedVersion", 0), 201, managers, members));
+		for (String report : List.of("/reports/daily", "/reports/daily.csv", "/reports/monthly", "/reports/monthly.csv")) {
+			cases.add(school("GET staff attendance " + report.substring(9), HttpMethod.GET, (f) -> staffBase(f) + report, null, 200,
+					managers, members));
+		}
 		return cases;
 	}
 

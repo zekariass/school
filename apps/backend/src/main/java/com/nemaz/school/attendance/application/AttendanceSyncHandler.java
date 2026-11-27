@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
  * edited from. Per-record conflicts make the whole operation CONFLICT (the marks that did not conflict were written);
  * the state lists, per student, APPLIED, UNCHANGED or CONFLICT with the server's current record and the submitted mark.
  * <p>
- * Payload: {@code {schoolId, classId, date, slot?, subjectId?, markAllPresent?, overrideReason?, records: [{studentId,
+ * Payload: {@code {schoolId, classId, date, slot?, subjectId?, groupId?, markAllPresent?, overrideReason?, records: [{studentId,
  * status, minutesLate?, note?, expectedVersion?}]}}.
  */
 @Component
@@ -59,6 +59,7 @@ class AttendanceSyncHandler implements SyncHandler {
 	public SyncOutcome apply(SyncOperation op, CurrentUser user) {
 		Payload payload = parse(op.payload());
 		AttendanceRollRequest request = new AttendanceRollRequest(payload.date(), payload.slot(), payload.subjectId(),
+				payload.groupId(),
 				payload.markAllPresent(), op.baseVersion(), payload.overrideReason(), payload.records());
 		WriteContext context = new WriteContext("OFFLINE_SYNC", op.deviceId(), op.clientOperationId(), op.recordedAt());
 		AttendanceWriteResult result = this.rolls.write(user, payload.schoolId(), payload.classId(), request, context);
@@ -86,7 +87,7 @@ class AttendanceSyncHandler implements SyncHandler {
 		return payload;
 	}
 
-	record Payload(UUID schoolId, UUID classId, LocalDate date, String slot, UUID subjectId,
+	record Payload(UUID schoolId, UUID classId, LocalDate date, String slot, UUID subjectId, UUID groupId,
 			Boolean markAllPresent, String overrideReason, List<AttendanceMarkInput> records) {
 	}
 
