@@ -100,6 +100,7 @@ Some milestones protect children, money or identity. They need the most capable 
 |---|---|---|
 | M7e QR check-in | Credentials, replay | Sonnet high; the lead reviews credentials and check-in endpoints |
 | M13b–d moderation screens and platform admin | Child safety, account locks, support access | Opus for M13d (support view and locks); Sonnet high for the screens |
+| M15 Hardening & pilot launch | Threat model, penetration-test fixes, authorization audit | **Opus** for the security review |
 | M21 Data governance | Erasure and export of children's data | Opus |
 | M22 Payment core, M31b, M31c | Money, webhooks, third-party verification | **Opus** |
 | M27 Tutor inquiries | Adults contacting families; child safety | **Opus** |
@@ -130,7 +131,9 @@ We don't copy its trademarks, monster characters, illustrations, sounds or copy 
 
 # Part B — Status dashboard (27 November 2026)
 
-PR numbers refer to `github.com/zekariass/school/pull/<n>`. "Next" in the last column is the recommended order for the remaining work.
+PR numbers refer to `github.com/zekariass/school/pull/<n>`. The order in which to do the remaining work is **B2**; the owner decisions it needs are **B3**.
+
+## B1. Status of every milestone
 
 | Milestone | Status | Delivered by | What is left |
 |---|---|---|---|
@@ -151,16 +154,16 @@ PR numbers refer to `github.com/zekariass/school/pull/<n>`. "Next" in the last c
 | M5 Families, guardians & consent | ✅ Done 🔧 | #22, #23, #25 | Part C: U-15, U-16 |
 | M6 Points, badges & toolkit | ✅ Done 🔧 | #26, #27, #28, #30 | Part C: U-17, U-30 |
 | M7 Attendance with offline sync | ✅ Done 🔧 | #32, #33, #34 | Part C: U-18; per-period rolls and staff attendance are M7d |
-| M7d Per-period & staff attendance, reports | ⬜ To do | — | Whole milestone (Next: 1) |
-| M7e QR check-in | ⬜ To do | — | Whole milestone (Next: 2) |
+| M7d Per-period & staff attendance, reports | ⬜ To do | — | Whole milestone (B2 step 2) |
+| M7e QR check-in | ⬜ To do | — | Whole milestone (B2 step 4) |
 | M8 Class Story, School Story & feed | ✅ Done 🔧 | #35, #36, #37 | Part C: U-19, U-30 |
 | M9 Messaging | ✅ Done 🔧 | #42, #45, #46 | Part C: U-20; the tutor conversation type is M27 |
 | M10 School communications centre | ✅ Done 🔧 | #39, #40, #41 | Part C: U-21 (SMS adapter needs the provider) |
 | M11 Calendar & events | ✅ Done 🔧 | #44, #47, #48 | Part C: U-22, U-05 |
-| M12 Student portfolios (basic) | 🟡 Partly done | #50 (backend) | **M12b web, M12c mobile** (Next: 3) |
-| M13 Moderation, safeguarding & platform admin | 🟡 Partly done | #49 (rule book), #51 (backend) | **M13b web, M13c mobile, M13d platform administration** (Next: 4) |
-| M14 Localization, low-data & release-gate instrumentation | ⬜ To do | (catalogs exist; #18 review pack) | Whole milestone (Next: 5) |
-| M15 Hardening & pilot launch | ⬜ To do | — | Whole milestone; needs M1.5 deployed and the pre-pilot items of part C (Next: 6) |
+| M12 Student portfolios (basic) | 🟡 Partly done | #50 (backend) | **M12b web, M12c mobile** (B2 step 3) |
+| M13 Moderation, safeguarding & platform admin | 🟡 Partly done | #49 (rule book), #51 (backend) | **M13b web, M13c mobile, M13d platform administration** (B2 steps 5–6) |
+| M14 Localization, low-data & release-gate instrumentation | ⬜ To do | (catalogs exist; #18 review pack) | Whole milestone (B2 step 7) |
+| M15 Hardening & pilot launch | ⬜ To do | — | Whole milestone; needs M1.5 deployed and the pre-pilot items of part C (B2 step 9) |
 | **Phase 2 — School learning** | | | |
 | M16 Curriculum foundation | ⬜ To do | — | Whole milestone |
 | M17 Assignments & submissions | ⬜ To do | — | Needs U-11 first |
@@ -193,6 +196,63 @@ PR numbers refer to `github.com/zekariass/school/pull/<n>`. "Next" in the last c
 | M43 School AI assistant | ⏸ Deferred | — | Owner decision (D34) |
 | M23, M24, M28, M30, M32, M33, M34, M36 | ✖ Removed | — | Do not build (D32–D34, D39) |
 | **Scope-revision cleanup of built code** | 🔧 Needs update | — | Part C: U-01 to U-07 (one small PR) |
+
+
+## B2. Recommended order of the remaining work
+
+Work through the steps in order. A step may start when its **"Starts when"** condition holds, and the next step depends on its **"Done when"**. Steps marked **‖** run in parallel with the step above them, given a separate agent or engineer and, for backend work, a separate database and ports (A3 step 4). Owner decisions are listed in B3; start them now, because they take longer than the code.
+
+| # | Step | Why here | Starts when | Done when | Model |
+|---|---|---|---|---|---|
+| 0 | **Merge the open documentation PRs** (#53 consistency fixes, #54 this plan) | Every later step reads these documents | Now | Both merged | — |
+| 1 | **Scope-revision cleanup** (part C1: U-01 to U-06), one small backend PR | Removes the unused values of the old scope (feature flags, moderation targets, event scope, consent types) before new migrations build on them; the smallest possible change, a good first task | Step 0 | CI green, part C1 rows removed | Sonnet medium |
+| 2 | **M7d** Per-period attendance, staff attendance, reports | Schools use attendance every day; it builds directly on the finished M7 and needs no owner decision | Step 1 merged (to avoid migration clashes) | Exit criteria of M7d | Sonnet high |
+| 3 ‖ | **M12b + M12c** Portfolio web and mobile | The backend (M12a) is finished and waiting; frontend-only work, so it runs beside the backend work of steps 2 and 4 | Step 0 | Exit criteria of M12b and M12c | Sonnet high |
+| 4 | **M7e** QR check-in | Needs M7d's staff attendance records; the credentials need a careful review | Step 2 merged | Exit criteria of M7e | Sonnet high, lead review |
+| 5 ‖ | **M13b + M13c** Reporting and moderation screens | Families must be able to report before the pilot; the backend (M13a) is finished; frontend-only | Step 0 | Exit criteria of M13b and M13c | Sonnet high |
+| 6 | **M13d** Platform administration | Support staff need user search, locks, the audit viewer and system health to run a pilot | Steps 4 and 5 merged | Exit criteria of M13d | **Opus** |
+| 7 | **M14** Localization, low data, analytics | A pass over **all** Phase 1 screens, so it comes after they exist; needs the analytics-store decision (B3) | Steps 2–6 merged | Exit criteria of M14 | Sonnet high |
+| 8 ‖ | **Pre-pilot items** (part C2: U-08 SMS, U-09 Amharic review, U-10 legal review, U-11 malware scanning if documents are enabled, U-15 universal links, U-23 device testing, U-24 deployment) | Mostly owner-driven; they block the pilot, not the code, so they run beside steps 1–7. Device testing (U-23) repeats after every mobile step | Owner decisions of B3 | Every C2 row closed | Sonnet for U-11, U-15; people for the rest |
+| 9 | **M15** Hardening and pilot launch | The gate to real families: threat model, penetration test, authorization audit, load test, privacy, operations, app stores | Steps 7 and 8 done | The pilot is live with no open high finding | **Opus** for the security review |
+| 10 | **Pilot evaluation** (4–6 weeks of use, §133 release gates) | Prove regular use before building more (§112). Fix what the pilot finds first | Step 9 | Release gates reviewed with the owner | — |
+| 10 ‖ | **U-13 Year-end rollover** (promote classes and students to the next year) | Must exist **before the pilot schools' first school year ends**, whatever else is in progress | Step 9 | Tested on a copy of a pilot school | Sonnet high |
+| 11 | **M16** Curriculum foundation | Phase 2 and 2b tag everything with curriculum objectives | Step 10 (design may start during the pilot) | Exit criteria of M16 | Sonnet high |
+| 12 | **M17** Assignments, then **M18** Assessment and quizzes | The core of school learning; M18 is the base of M40–M42 | Step 11; M17 also needs U-11 | Exit criteria of M17, M18 | Sonnet high |
+| 12 ‖ | **M19** Digital library | Independent of M17 and M18 | Step 11 | Exit criteria of M19 | Sonnet high |
+| 12 ‖ | **M35** Student numbers, ID cards, transferred status | Independent of Phase 2; needs M7e for the card's QR | Step 4 | Exit criteria of M35 | Sonnet high |
+| 12 ‖ | **M37** Timetable and annual plan | Independent of Phase 2; per-period rolls (M7d) then link to the timetable | Step 10 | Exit criteria of M37 | Sonnet high |
+| 13 | **M40** Assessment plans, marklists, results and ranking, then **M41** Report cards and transcripts | Need M18; report cards are what schools ask for at term end, so time M41 before the first term ends after the pilot | M18 merged; for M41 also the PDF-engine decision and the Ministry of Education format (B3) | Exit criteria of M40, M41 | Sonnet high, lead review of the verify endpoint |
+| 13 ‖ | **M39** Lesson planning | Needs M37 (timetable entries) and M16 (objectives) | M37 and M16 merged; the Ministry format (B3) | Exit criteria of M39 | Sonnet high |
+| 13 ‖ | **M42** Question banks and secure exams | Needs M18's quiz engine | M18 merged | Exit criteria of M42 | Sonnet high, lead review of answer secrecy |
+| 14 | **M20** Portfolios (full), **M21** Data governance | M20 needs M16 and M18 (tags, rubrics); M21 must exist before data has been held long enough to need purging, and before any erasure request | M16, M18 merged | Exit criteria of M20, M21 | Sonnet high (M20), **Opus** (M21) |
+| 15 | **M22** Payment core | Base of fees and of the tutor listing fee; needs the payment-provider decision and a deployed staging for webhooks | Provider chosen (B3), U-24 done | Exit criteria of M22 | **Opus** |
+| 15 ‖ | **M31a** Fee structures, schedules, invoicing | Needs no payment provider, so it may start **earlier** (any time after step 10) if the owner wants fees sooner | Step 10 | Exit criteria of M31a | Sonnet high |
+| 16 | **M31b** Pay in the app, cash, receipts, then **M31c** Veritas verification, then **M31d** Fee reports | Money paths in dependency order; M31c needs the Veritas terms checked | M22 and M31a merged; Veritas terms (B3) before M31c | Exit criteria of each | **Opus** (M31b, M31c), Sonnet (M31d) |
+| 17 | **M25** Tutor onboarding, **M26** directory and search, then **M27** inquiries and paid listing | The tutor directory is a separate product line; it needs M22 (listing fee) and M13a (platform moderation) | M22 merged; listing price and legal view (B3) before M27 | Exit criteria of each | Sonnet high (M25, M26), **Opus** (M27) |
+| 18 | **M29** Reconciliation, **M31** School subscription billing | Platform money operations once real payments flow | M22 merged and payments in use | Exit criteria of each | Sonnet high |
+| — | **Follow-ups** of part C3 (U-12, U-14, U-16 to U-22, U-25 to U-30) | Improvements; slot them into quiet weeks or into the milestone that touches the same module | Any time after step 9 | Row removed from part C | Sonnet |
+| — | **Not scheduled:** M38 Timetable generator, M43 School AI assistant | Deferred by the owner (D40, D34) | Only on an owner decision | — | — |
+
+**If only one agent or engineer is available,** follow the numbers and skip the ‖ markers: 0, 1, 2, 3, 4, 5, 6, 7, 9 (with step 8 done by the owner meanwhile), 10, then 11 onwards.
+
+**If the owner wants fees before Phase 2,** move steps 15–16 to right after step 10. Only M22 needs the payment-provider decision, and M31a needs nothing.
+
+## B3. Owner decisions needed, and by when
+
+| Decision | Needed before | Where it is described |
+|---|---|---|
+| Hosting, domain, storage region (EU or default R2), Expo/EAS account | Step 8 (U-24), so before M15 | `docs/ops/Hosting_Options.md`, provider table at the end of this plan |
+| SMS provider for Ethiopia | Step 8 (U-08) | `docs/ops/sms-provider-adapter.md` |
+| Native Amharic reviewers | Now (U-09 is the longest item) | `docs/i18n/REVIEWING.md` |
+| Legal review of policy texts and privacy notice; data processing agreements | Step 8 (U-10), step 9 | Spec_Review D8, M15 step 4 |
+| Analytics store | Step 7 (M14) | Provider table |
+| Answers to the open questions of the rule books (messaging, safeguarding, portfolio) | Before the pilot, ideally | The "Open questions" sections of `docs/Messaging_Rules.md`, `docs/Safeguarding_Rules.md`, `docs/Portfolio_Rules.md` |
+| Ethiopian curriculum source and licence | Step 11 (M16) | M16 step 2 |
+| Ministry of Education lesson-plan and report-card formats; national or per-school grading and promotion rules | Step 13 (M39, M41) | Spec_Review open item 1 |
+| Payment provider for in-app payment | Step 15 (M22) | Provider table |
+| Veritas terms, privacy policy, plan and who pays | Step 16 (M31c) | Spec_Review open item 2 |
+| Tutor listing price and trial; legal view on a public directory of tutors for children; tutor terms | Step 17 (M27) | Spec_Review open items 4–5 |
+| Whether to bring fees forward (steps 15–16 before Phase 2) | After step 10 | D16, D37 |
 
 ---
 
@@ -1666,6 +1726,6 @@ Scope: Spec §105, §106. Tables: DB §4.20, §4.26.
 | 4 Tutor directory (verification, search, inquiries, paid listing) | ~2 months | ⬜ |
 | 5 Platform billing & reconciliation | 1–1.5 months | ⬜ |
 
-**Recommended order of the remaining work:** the scope-revision cleanup (part C1) → M7d → M7e → M12b/c → M13b–d → M14 → pre-pilot items (C2) → M15 (pilot) → Phase 2 (M16 first) and Phase 2b in parallel → Phase 3 → Phase 4 → Phase 5. Phase 3 (fees) may be brought forward by the owner: M31a needs no payment provider.
+**Recommended order of the remaining work:** see **B2** (numbered steps, what runs in parallel, when each step may start) and **B3** (owner decisions and when they are needed).
 
 Phase 1's critical path is M1 → M3 → M5 → M8/M9, because guardian linking and consent gate the feed and messaging. M4, M6, M7, M10–M12 run in parallel tracks once M3 is done.
