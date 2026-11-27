@@ -219,6 +219,12 @@ function PhoneStep({ onSent }: { onSent: (phone: string, expiresIn: number, coun
           <Button asChild variant="ghost">
             <Link href="/connect">{t("family.connect.open")}</Link>
           </Button>
+          {/* A student signs in with the class code their teacher gave them (D41), not with a phone number. */}
+          <Button asChild variant="ghost">
+            <Link href="/student-code" data-testid="student-code-link">
+              {t("auth.studentCode.link")}
+            </Link>
+          </Button>
         </form>
       </CardContent>
     </Card>

@@ -12,6 +12,9 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
+/** The class-code sign-in is the one page that may use the camera (to scan the QR code a teacher printed): this page only, this origin only. */
+const cameraHeaders = [{ key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" }];
+
 const nextConfig: NextConfig = {
   // Self-contained server bundle for the container image (apps/web/Dockerfile).
   // Trace from the monorepo root so the source-only @school/* workspace
@@ -29,7 +32,11 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    // Later rules override earlier ones for the same header: every page denies the camera except `/{locale}/student-code`.
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/:locale/student-code", headers: cameraHeaders },
+    ];
   },
 };
 
