@@ -160,7 +160,7 @@ PR numbers refer to `github.com/zekariass/school/pull/<n>`. The order in which t
 | M9 Messaging | ✅ Done 🔧 | #42, #45, #46 | Part C: U-20; the tutor conversation type is M27 |
 | M10 School communications centre | ✅ Done 🔧 | #39, #40, #41 | Part C: U-21 (SMS adapter needs the provider) |
 | M11 Calendar & events | ✅ Done 🔧 | #44, #47, #48 | Part C: U-22, U-05 |
-| M12 Student portfolios (basic) | 🟡 Partly done | #50 (backend) | **M12b web, M12c mobile** (B2 step 3) |
+| M12 Student portfolios (basic) | 🟡 Partly done | #50 (backend), M12c (mobile) | Backend and mobile done; **web (M12b) to do** (B2 step 3); part C: U-26, U-31 |
 | M13 Moderation, safeguarding & platform admin | 🟡 Partly done | #49 (rule book), #51 (backend) | **M13b web, M13c mobile, M13d platform administration** (B2 steps 5–6) |
 | M14 Localization, low-data & release-gate instrumentation | ⬜ To do | (catalogs exist; #18 review pack) | Whole milestone (B2 step 7) |
 | M15 Hardening & pilot launch | ⬜ To do | — | Whole milestone; needs M1.5 deployed and the pre-pilot items of part C (B2 step 9) |
@@ -306,6 +306,7 @@ Each item has an id, the milestone it comes from, what to change, and **when** i
 | U-28 | Platform console (M1c) | Search in the school and country pickers (they load the first 100); a batched user lookup for the admin list; web screens for password sign-in and e-mail codes | Later |
 | U-29 | Identity (M1) | Federated sign-in (Google, Apple; table exists); e-mail verification flows | Later |
 | U-30 | Mobile points and feed (M6c, M8c) | The leaderboard view stays off unless a school enables it; notes on awards; offline undo of a sent award; routine ticks across devices; student contributions on the web | Later |
+| U-31 | Portfolio mobile (M12c) | Mobile: an in-app drawing canvas (it needs an image-export native module such as view-shot or Skia, so it was left out), PDF documents (a document picker to upload; a signed PDF link to open), the teacher's view of one student's portfolio and the class and school galleries, the guardian's combined `/me/portfolio` view, a pinch-zoom picture viewer, a work-date picker. API: `capabilities.reviewer` is school-wide, so the review-queue button shows on every class of a teacher (a per-class `reviewClassIds` would show it only where the caller reviews); the history has no capability flag (guardians get 403 and the app explains it); the OpenAPI `maxLength` of the text fields (title 2000, description and reflection 4000, text 20000, note 2000, comment 2000, hide reason 1000) differs from what the server enforces (120, 1000, 1000, 5000, 500, 500, 200), so the app hard-codes the real limits (expose them in `capabilities`); `portfolio.media_consent_missing` carries `students` as an untyped extension | Later |
 
 ---
 # Part D — Milestones by phase
@@ -503,7 +504,7 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 
 ## Phase 1 — School & family MVP (≈ 7–9 months)
 
-**Status:** 🟡 Mostly done: M1–M11 done; M7d, M7e, M12b/c, M13b–d, M14, M15 open
+**Status:** 🟡 Mostly done: M1–M11 done; M7d, M7e, M12b, M13b–d, M14, M15 open
 
 Scope: §112. Milestones M1 and M2 are the platform core and come first. From M3 onward, backend, web and mobile work on each slice in parallel.
 
@@ -1201,7 +1202,7 @@ Tables: DB §4.14.
 
 ### M12 Student portfolios — basic (≈ 2 weeks)
 
-**Status:** 🟡 Partly done: backend M12a (#50); **M12b web and M12c mobile to do** (below)
+**Status:** 🟡 Partly done: backend M12a (#50) and mobile M12c done; **M12b web to do** (below)
 
 Tables: DB §4.16 (without collections).
 
@@ -1238,10 +1239,21 @@ The API is final (`openapi.json`, M12a as-built above). The rule book `docs/Port
 - *Tests:* vitest for the pure logic (status moves offered, visibility labels, the consent-gate parser), Playwright on the real UI for one student, one reviewer and one guardian.
 - *Exit:* a student submits an item, the lead teacher approves it, the guardian sees it and comments.
 
-**M12c Portfolio on mobile (⬜ To do, ≈ 1.5 weeks, Sonnet high)**
+**M12c Portfolio on mobile (✅ Done, 27 Nov 2026; ≈ 1.5 weeks, Sonnet high)**
 - *Screens:* the student app (capture with the camera or a document scan; text items; a drawing canvas is optional and client-side only), the teacher quick capture from the class view, the review queue, the guardian child page with comments.
 - *Privacy:* queries under a private `portfolio` root, kept out of the persisted cache (`lib/query/persistence.ts`, one tested predicate), `gcTime` a few minutes; drafts live in the screen's state only (no SQLite, no AsyncStorage); photos converted to JPEG and shrunk before upload (`lib/media/upload.ts`); `mobile.portfolio.*` plural-free with the catalog test.
 - *Exit:* the M12b exit on a phone, plus an offline open that shows "needs a connection" instead of stale items.
+
+**As built: M12c Portfolio on mobile (27 Nov 2026, mobile only).** Steps 1-4 of the milestone on `apps/mobile`, from the M12a API and the rule book `docs/Portfolio_Rules.md`; no backend change. The portfolio is children's own work, so **nothing of it is stored on the phone**: it lives in TanStack memory under the private `portfolio` root and in the screens' own state.
+- **Routes** (`src/app/portfolio`, one stack above the tabs of every role, registered in the root layout): `mine` (the student's own items in every status, a status filter, "Add my work"), `compose` (one composer for a student's new item, a student's edit of a draft or of an item with changes requested, and a teacher's quick capture), `item/[itemId]` (the item in full: pictures, text, reflection, the teacher's note, audience, comments, history and every button), `queue/[classId]` (the review queue, oldest first), `capture` (quick capture, step one: the class wall, then the composer) and `child/[studentId]` (the guardian's page for one child). Entry points: a "My portfolio" card on the student home (the five-tab limit leaves no tab; the hidden placeholder tab was removed), "Add student work" and "Review student work" on a teacher's class page and "Add to portfolio" on a student's page in a class (shown only from `capabilities.captureClassIds` and `capabilities.reviewer`), "{name}'s portfolio" on the guardian's child page (shown with `canViewAcademics`). A notification path `/portfolio/items/{id}` opens `/portfolio/item/{id}?schoolId=` (the school comes from `data.schoolId`; without it the caller's schools are asked in turn).
+- **What is built:** TEXT, PHOTO, DRAWING (a photo of paper) and SCAN (a photo of a page, taken with the camera) items with title, description, reflection, class (the class's subject goes with it), audience (up to the school cap), "other children appear" and, for a teacher, tagged children; draft, submit, edit and send again; quick capture (approved at once); review with approve (optionally for a narrower audience), request changes and reject (a note is required); feature, archive, unarchive, delete; comments with hide and delete; the history on request. Photos use the existing pipeline (`pickPhoto`, `prepareImage` to JPEG at most 2048 px, `uploadImage` with purpose PORTFOLIO and context SCHOOL) through the shared `usePhotoUploads` hook (moved to `components/media`) and the list state of `lib/media/attachments.ts` (extracted so that the feed and the portfolio share it).
+- **Controls come from the API only:** the item's `capabilities` (`canEdit`, `canSubmit`, `canReview`, `canFeature`, `canArchive`, `canUnarchive`, `canDelete`, `canComment`), the school's `capabilities` (`studentMayCreate`, `captureClassIds`, `reviewer`, `maxVisibility`, `itemTypes`), `status`, `effectiveVisibility`, `mediaWithheld` and the comment flags (`canDelete`, `canHide`, `mine`). Nothing is filtered or derived from a role on the client; every failure shows the API's `problem.detail`.
+- **Consent gate:** `portfolio.media_consent_missing` and `portfolio.media_confirmation_required` are parsed by `lib/portfolio/gate.ts` and explained inline in the composer (`ConsentPanel`, `ConfirmPanel`) and in the review sheet; the words, the pictures and the tags are never lost. A withheld item shows its text and a notice instead of the pictures (`withheldNotice`: `hidden` when the API sent no files, `warning` for the student and the reviewers, who still get them).
+- **Privacy:** queries sit under `portfolio` (`lib/portfolio/keys.ts`, `isPersistablePortfolioQuery`, wired into `lib/query/persistence.ts` and tested), `gcTime` 3 minutes, 12 items a page and at most 6 pages, `networkMode: 'online'`: a phone opened offline has nothing to show and says "This needs a connection" (`listState`, `NeedsConnection`) instead of showing any old copy. Drafts live in the composer's reducer only (and are asked about before the screen closes); the converted photos are deleted from the phone when uploaded or when the screen closes; uploads that were never attached are discarded; signed links are never persisted; an `Idempotency-Key` goes only on the three creates (item, quick capture, comment) and is reused only for the same unchanged request; routes carry ids only. A source-scanning test (`lib/portfolio/privacy.test.ts`) fails when the portfolio code touches storage, SQLite, SecureStore, files, `console` or analytics, or puts anything but an id in a route.
+- **Decisions where the rule book was silent (added by the implementer):** (1) a student's audience choices are exactly the levels up to `capabilities.maxVisibility`, the default is GUARDIANS (or lower when the cap is lower); (2) the class a student picks sets the subject (`MyClass.subjectId`): there is no subject picker, because a student may not list the school's subjects; (3) a student in exactly one class gets it preselected, with several the student chooses (or "No class"), with none no class is sent; (4) the work date cannot be edited (the API defaults it to today in the school's zone); (5) a student cannot tag children (there is no directory), so the "other children appear" switch and the confirmation statement stand in, and a reviewer whose approval the gate refuses is told to ask for changes or to lower the audience; the statement is offered whenever there are pictures and nobody is tagged, sent only when ticked, and sent again on an edit only when it is new or the files changed; (6) a teacher's capture starts with "other children appear" on, as the API treats a capture that says nothing; (7) DRAWING and SCAN are photos taken with the camera or chosen from the library (no in-app drawing canvas, no page-edge detection or crop) and DOCUMENT (PDF) is not offered on the phone (an existing PDF shows an "open it on the web" tile); (8) a reviewer can lower the audience while approving, never raise it (the choices are the item's own level and below); (9) the history is fetched when asked for (the API answers 403 to guardians and classmates, which is explained); (10) comments are shown when `canComment` is true or `commentCount` is above zero (the API sends zero to people who may not read them); (11) a hidden comment shows only the note that it was hidden unless the API sent its text (to its author and the reviewers).
+- **Not exercised by hand:** no screen was tapped on a device or simulator (an agent cannot drive them); verification is the unit tests, the type checker, lint, `npx expo export` for iOS and Android and a Metro dev server on port 8098 that served the bundle. The camera, the photo library, the uploads, the keyboard layout and the Amharic strings need a person with a phone (U-23).
+- **Tests:** the portfolio logic is pure and tested in `lib/portfolio` (keys and the single persistence predicate, the model, the composer and its requests, the gate parser, the schools, the catalog test including a no-dead-key check, the privacy test), in `lib/media/attachments` and in the notification routes.
+- **Not done / follow-ups (part C, U-31):** the drawing canvas, PDF upload and viewing, the teacher's view of a student's portfolio and the class and school galleries, the guardian's combined view of all children, a zoomable picture viewer, a work-date picker, native-speaker review of `mobile.portfolio.*` in Amharic, and the API gaps listed in U-31.
 
 **Not in M12 (moved):** sharing to the class story (U-26), collections, objective tags and rubric feedback (M20), audio and video (D33 and owner decision).
 
@@ -1315,7 +1327,7 @@ Step 4 of M13 and `docs/Safeguarding_Rules.md` S7:
 
 ### M15 Hardening & pilot launch (⬜ To do, ≈ 3–4 weeks, Opus for the security review)
 
-**Goal:** launch the pilot with real schools and families safely. **Depends on:** M1.5 deployed (U-24), every pre-pilot item of part C (U-08, U-09, U-10, U-11 if documents are on, U-15, U-23), M12b/c, M13b–d, M14.
+**Goal:** launch the pilot with real schools and families safely. **Depends on:** M1.5 deployed (U-24), every pre-pilot item of part C (U-08, U-09, U-10, U-11 if documents are on, U-15, U-23), M12b, M13b–d, M14.
 
 1. **Security:** a written threat model; dependency and container scanning in CI; the OWASP ASVS level 2 checklist; an **external penetration test** focused on authorization, IDOR and tenant isolation, with every finding fixed or accepted in writing.
 2. **Authorization audit:** generate the role × endpoint matrix from `AuthorizationMatrixTest` and review it by hand against DB §5.
@@ -1718,7 +1730,7 @@ Scope: Spec §105, §106. Tables: DB §4.20, §4.26.
 | Phase | Duration | Status (27 Nov 2026) |
 |---|---|---|
 | 0 Foundation | 3–4 weeks | ✅ Done (M0.5 brand needs a designer) |
-| 1 School & family MVP, then pilot | 7–9 months | 🟡 M1–M11 done; left: M7d, M7e, M12b/c, M13b–d, M14, M15 (about 3 months) and the pre-pilot items of part C |
+| 1 School & family MVP, then pilot | 7–9 months | 🟡 M1–M11 done; left: M7d, M7e, M12b, M13b–d, M14, M15 (about 3 months) and the pre-pilot items of part C |
 | Pilot evaluation window | 1–2 months (Phase 2 design runs in parallel) | ⬜ |
 | 2 School learning | 4–5 months | ⬜ |
 | 2b School operations (student numbers and cards, timetable, lesson plans, results and report cards, question banks and exams; two parallel tracks) | 3–4 months | ⬜ |

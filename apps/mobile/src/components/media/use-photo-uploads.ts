@@ -4,22 +4,22 @@ import { useCallback, useEffect, useRef, type Dispatch } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { problemOf } from '@/lib/api-error';
-import type { Attachment, ComposerAction } from '@/lib/feed/composer';
+import type { Attachment, AttachmentAction } from '@/lib/media/attachments';
 import { policyFor, typeLabels, validateFile, type FileProblem, type MediaPurpose } from '@/lib/media/policies';
 import { UploadError, deletePrepared, discardUpload, pickPhoto, prepareImage, uploadImage, type PickSource, type PreparedImage } from '@/lib/media/upload';
 import { useMediaPolicies } from '@/lib/media/use-media';
 
-export type PhotoTarget = { purpose: Extract<MediaPurpose, 'POST' | 'STORY'>; context: { type: 'CLASS' | 'SCHOOL'; id: string } };
+export type PhotoTarget = { purpose: Extract<MediaPurpose, 'POST' | 'STORY' | 'PORTFOLIO'>; context: { type: 'CLASS' | 'SCHOOL'; id: string } };
 
 /**
- * Picks, converts and uploads photos for a post or a story, one at a time per photo, keeping the screen's composer state in
+ * Picks, converts and uploads photos for a post, a story or a portfolio item, one at a time per photo, keeping the screen's composer state in
  * step (`dispatch`). The photo is shrunk to JPEG on the device first (no location data), PUT straight to storage with a
  * progress bar, and kept as a failed attachment (with a retry) when anything goes wrong: nothing the author did is lost. The
  * converted copies on the device are deleted as soon as they are uploaded and when the screen closes.
  *
  * `add` answers with a message to show when there is no photo to add (permission, no camera, wrong kind), else null.
  */
-export function usePhotoUploads({ dispatch, target }: { dispatch: Dispatch<ComposerAction>; target: PhotoTarget }) {
+export function usePhotoUploads({ dispatch, target }: { dispatch: Dispatch<AttachmentAction>; target: PhotoTarget }) {
   const t = useTranslations();
   const policies = useMediaPolicies();
   const policy = policies.data ? policyFor(policies.data, target.purpose) : undefined;

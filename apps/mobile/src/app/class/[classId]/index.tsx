@@ -6,6 +6,7 @@ import { useTranslations } from 'use-intl';
 
 import { ClassAnnouncementButton } from '@/components/announcements/school-entry';
 import { ClassBadge } from '@/components/class-card';
+import { ClassPortfolioButtons } from '@/components/portfolio/class-actions';
 import { ProblemBanner } from '@/components/problem-banner';
 import { RosterGrid } from '@/components/roster-grid';
 import { OfflineNote } from '@/components/sync/offline-note';
@@ -109,6 +110,7 @@ export default function ClassDetail() {
                 onPress={() => router.push({ pathname: '/feed/class/[classId]', params: { classId: cls.id, schoolId: cls.schoolId } })}
               />
               <ClassAnnouncementButton schoolId={cls.schoolId} classId={cls.id} />
+              <ClassPortfolioButtons schoolId={cls.schoolId} classId={cls.id} />
               <Button
                 variant="secondary"
                 label={t('mobile.points.openClass')}
