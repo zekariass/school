@@ -34,6 +34,8 @@ import com.nemaz.school.attendance.application.AttendanceModels.AttendanceRollVi
 import com.nemaz.school.attendance.application.AttendanceModels.AttendanceSubmittedMark;
 import com.nemaz.school.attendance.application.AttendanceModels.AttendanceWriteResult;
 import com.nemaz.school.attendance.application.AttendanceModels.WriteContext;
+import com.nemaz.school.attendance.application.CheckinLedger.Attempt;
+import com.nemaz.school.attendance.application.CheckinModels.CheckinResultCode;
 import com.nemaz.school.audit.AuditEntry;
 import com.nemaz.school.audit.AuditLog;
 import com.nemaz.school.audit.AuditOutcome;
@@ -66,6 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
  * who wins.</li>
  * <li><b>Lock:</b> a roll locks {@code attendance.lock_after_hours} after the end of its date (school time). Afterwards
  * only the lead teacher, class managers and attendance managers may write, with an {@code overrideReason} (audited).</li>
+ * <li><b>Check-ins (M7e):</b> {@link #markFromCheckin} is the only way a QR scan reaches a roll; see there.</li>
  * </ul>
  */
 @Service
@@ -95,8 +98,11 @@ public class RollService {
 
 	private final ApplicationEventPublisher events;
 
+	private final CheckinLedger ledger;
+
 	RollService(AttendanceAccess access, AttendanceSettings settings, SchoolTime time, JdbcClient jdbc, AuditLog audit,
-			ApplicationEventPublisher events) {
+			ApplicationEventPublisher events, CheckinLedger ledger) {
+		this.ledger = ledger;
 		this.access = access;
 		this.settings = settings;
 		this.time = time;
@@ -258,7 +264,7 @@ public class RollService {
 		if (marks.isEmpty() && existingSession.isEmpty()) {
 			throw ApiException.conflict("attendance.nothing_to_record");
 		}
-		SessionRow session = existingSession.orElseGet(() -> createSession(user, schoolId, classId, date, slot,
+		SessionRow session = existingSession.orElseGet(() -> createSession(user.userId(), schoolId, classId, date, slot,
 				cmd.subjectId(), ctx));
 		int baseVersion = existingSession.map(SessionRow::version).orElse(0);
 		List<AttendanceRecordOutcome> outcomes = new ArrayList<>();
@@ -345,9 +351,129 @@ public class RollService {
 				session.classId(), record.studentId(), session.date(), record.status(), user.userId()));
 	}
 
+	// --- check-ins (M7e) ----------------------------------------------------------------------
+
+	/** What a check-in asks of the roll: {@code rollOwner} is who the roll is credited to if the check-in has to create it. */
+	record CheckinMark(Attempt attempt, ClassRef ref, AttendanceStatus status, Integer minutesLate, UUID rollOwner,
+			UUID subjectId, Instant recordedAt) {
+	}
+
+	/** What became of it: the ledger row is written either way; {@code record} is the stored (or new) mark. */
+	record CheckinOutcome(CheckinResultCode result, UUID checkinId, UUID rollSessionId, AttendanceRecordView record) {
+
+		boolean accepted() {
+			return this.result == CheckinResultCode.ACCEPTED;
+		}
+
+	}
+
+	/**
+	 * The only way a QR scan (a student's own check-in on a rotating code, or a teacher scanning a card) reaches a roll: it
+	 * applies the same rules as {@link #write} and the ATTENDANCE_MARK sync operation, and a method can never bypass them.
+	 * The caller has checked who the actor is and what they may do (credential, code, scanner's access); this method
+	 * checks the roll:
+	 * <ul>
+	 * <li><b>Only PRESENT or LATE</b> (400 {@code attendance.checkin_status_invalid} otherwise): a scan never marks absent.</li>
+	 * <li><b>The roll's window</b> (school-local): a date that has not started, a date older than {@link #MAX_DAYS_BACK}, or a
+	 * locked roll (a check-in has no override, whoever scans) is REJECTED_WINDOW.</li>
+	 * <li><b>Class membership on that date</b> (as for a hand mark): otherwise REJECTED_NOT_ENROLLED.</li>
+	 * <li><b>Never overwrites</b>: a stored mark that is the same is REJECTED_DUPLICATE, a different one REJECTED_CONFLICT
+	 * (nothing is written; the teacher decides by hand).</li>
+	 * </ul>
+	 * Everything is validated before the first write; the ledger row ({@code attendance_checkins}) is appended in every case,
+	 * the record and the roll only when ACCEPTED. The roll is serialized with online and offline writes by the same advisory
+	 * lock as {@link #write}.
+	 */
+	CheckinOutcome markFromCheckin(CurrentUser actor, CheckinMark m) {
+		Attempt attempt = m.attempt();
+		ClassRef ref = m.ref();
+		UUID schoolId = ref.schoolId();
+		if (m.status() != AttendanceStatus.PRESENT && m.status() != AttendanceStatus.LATE) {
+			throw ApiException.badRequest("attendance.checkin_status_invalid");
+		}
+		if (m.minutesLate() != null && (m.status() != AttendanceStatus.LATE || m.minutesLate() < 1 || m.minutesLate() > 600)) {
+			throw ApiException.badRequest("attendance.invalid_minutes_late");
+		}
+		if (!this.settings.slots(schoolId).contains(attempt.slot())) {
+			throw ApiException.badRequest("attendance.slot_not_enabled");
+		}
+		if (m.subjectId() != null) {
+			requirePeriodSubject(schoolId, ref.id(), attempt.slot(), m.subjectId());
+		}
+		ZoneId zone = this.time.zoneOf(ref);
+		Instant now = this.time.now();
+		LocalDate date = attempt.date();
+		if (date.isAfter(this.time.dateOf(now.plus(FUTURE_TOLERANCE), zone))
+				|| date.isBefore(this.time.today(zone).minusDays(MAX_DAYS_BACK))
+				|| !now.isBefore(locksAt(schoolId, date, zone))) {
+			return refuse(attempt, CheckinResultCode.REJECTED_WINDOW);
+		}
+		Set<UUID> eligible = this.access.memberships()
+			.studentIdsDuring(ref.id(), this.time.startOf(date, zone), this.time.endOf(date, zone));
+		if (!eligible.contains(attempt.personId())) {
+			return refuse(attempt, CheckinResultCode.REJECTED_NOT_ENROLLED);
+		}
+		AdvisoryLocks.acquire(this.jdbc, "attendance:" + ref.id() + ":" + date + ":" + attempt.slot());
+		Optional<SessionRow> existingSession = session(ref.id(), date, attempt.slot());
+		if (m.subjectId() != null && existingSession.isPresent() && existingSession.get().subjectId() != null
+				&& !m.subjectId().equals(existingSession.get().subjectId())) {
+			throw ApiException.conflict("attendance.subject_mismatch");
+		}
+		RecordRow current = existingSession
+			.flatMap((s) -> this.jdbc.sql("select " + RECORD_COLUMNS + " from attendance_records r where r.attendance_session_id = :s and r.student_id = :st")
+				.param("s", s.id())
+				.param("st", attempt.personId())
+				.query(RollService::record)
+				.optional())
+			.orElse(null);
+		if (current != null) {
+			boolean same = current.status() == m.status() && Objects.equals(current.minutesLate(), m.minutesLate());
+			CheckinOutcome refused = refuse(attempt.withRoll(existingSession.get().id()),
+					same ? CheckinResultCode.REJECTED_DUPLICATE : CheckinResultCode.REJECTED_CONFLICT);
+			return new CheckinOutcome(refused.result(), refused.checkinId(), refused.rollSessionId(), view(current));
+		}
+		WriteContext ctx = new WriteContext(attempt.method(), null, attempt.clientOpId(), m.recordedAt());
+		SessionRow session = existingSession
+			.orElseGet(() -> createSession(m.rollOwner(), schoolId, ref.id(), date, attempt.slot(), m.subjectId(), ctx));
+		this.ledger.append(attempt.withRoll(session.id()), CheckinResultCode.ACCEPTED, m.status(), m.minutesLate());
+		RecordRow created = insertRecord(actor, session,
+				new MarkInput(attempt.personId(), m.status(), m.minutesLate(), null, null, false), null, ctx, attempt.id());
+		publish(created, session, actor);
+		touch(session.id());
+		return new CheckinOutcome(CheckinResultCode.ACCEPTED, attempt.id(), session.id(), view(created));
+	}
+
+	/** Appends the refusal to the ledger (the roll's id when it exists) and answers it. */
+	private CheckinOutcome refuse(Attempt attempt, CheckinResultCode result) {
+		UUID rollId = attempt.rollSessionId();
+		if (rollId == null) {
+			rollId = session(attempt.classId(), attempt.date(), attempt.slot()).map(SessionRow::id).orElse(null);
+		}
+		this.ledger.append(attempt.withRoll(rollId), result, null, null);
+		return new CheckinOutcome(result, attempt.id(), rollId, null);
+	}
+
+	/**
+	 * A teacher takes a rotating check-in's mark off the roll: only while it is still exactly what the check-in wrote (never
+	 * edited since: version 0), so a teacher's own correction is never undone behind their back. Bumps the roll's version
+	 * (clients that read it before must re-read). Returns false when nothing could be removed.
+	 */
+	boolean removeCheckinMark(UUID checkinId) {
+		UUID rollId = this.jdbc.sql("delete from attendance_records where checkin_id = :c and version = 0 returning attendance_session_id")
+			.param("c", checkinId)
+			.query(UUID.class)
+			.optional()
+			.orElse(null);
+		if (rollId == null) {
+			return false;
+		}
+		touch(rollId);
+		return true;
+	}
+
 	// --- rows -------------------------------------------------------------------------------
 
-	private SessionRow createSession(CurrentUser user, UUID schoolId, UUID classId, LocalDate date, String slot,
+	private SessionRow createSession(UUID takenBy, UUID schoolId, UUID classId, LocalDate date, String slot,
 			UUID subjectId, WriteContext ctx) {
 		UUID id = Ids.newId();
 		this.jdbc.sql("""
@@ -360,12 +486,12 @@ public class RollService {
 			.param("date", java.sql.Date.valueOf(date))
 			.param("slot", slot)
 			.param("subject", subjectId)
-			.param("by", user.userId())
+			.param("by", takenBy)
 			.param("at", Timestamp.from(ctx.recordedAt()))
 			.param("op", ctx.clientOperationId())
 			.param("now", Timestamp.from(this.time.now()))
 			.update();
-		return new SessionRow(id, schoolId, classId, date, slot, subjectId, 0, user.userId(), ctx.recordedAt());
+		return new SessionRow(id, schoolId, classId, date, slot, subjectId, 0, takenBy, ctx.recordedAt());
 	}
 
 	private int touch(UUID sessionId) {
@@ -378,14 +504,19 @@ public class RollService {
 	}
 
 	private RecordRow insertRecord(CurrentUser user, SessionRow session, MarkInput mark, UUID reportId, WriteContext ctx) {
+		return insertRecord(user, session, mark, reportId, ctx, null);
+	}
+
+	private RecordRow insertRecord(CurrentUser user, SessionRow session, MarkInput mark, UUID reportId, WriteContext ctx,
+			UUID checkinId) {
 		UUID id = Ids.newId();
 		Timestamp now = Timestamp.from(this.time.now());
 		this.jdbc.sql("""
 				insert into attendance_records (id, attendance_session_id, school_id, class_id, attendance_date, student_id,
 				                                status, minutes_late, note, absence_report_id, recorded_by, recorded_at, source,
-				                                device_id, client_op_id, created_at, updated_at)
+				                                device_id, client_op_id, checkin_id, created_at, updated_at)
 				values (:id, :session, :school, :class, :date, :student, :status, :minutes, :note, :report, :by, :at, :source,
-				        :device, :op, :now, :now)""")
+				        :device, :op, :checkin, :now, :now)""")
 			.param("id", id)
 			.param("session", session.id())
 			.param("school", session.schoolId())
@@ -401,6 +532,7 @@ public class RollService {
 			.param("source", ctx.source())
 			.param("device", ctx.deviceId())
 			.param("op", ctx.clientOperationId())
+			.param("checkin", checkinId)
 			.param("now", now)
 			.update();
 		return new RecordRow(id, mark.studentId(), mark.status(), mark.minutesLate(), mark.note(), 0, user.userId(),
@@ -466,7 +598,7 @@ public class RollService {
 	 * A period roll's subject: one of the class's active subjects (400 {@code attendance.invalid_subject}), and only for
 	 * the periods P1..P8 (400 {@code attendance.subject_requires_period}).
 	 */
-	private void requirePeriodSubject(UUID schoolId, UUID classId, String slot, UUID subjectId) {
+	void requirePeriodSubject(UUID schoolId, UUID classId, String slot, UUID subjectId) {
 		boolean taught = this.jdbc.sql("""
 				select exists (select 1 from class_subjects cs join subjects s on s.id = cs.subject_id and s.school_id = cs.school_id
 				               where cs.class_id = :class and cs.subject_id = :subject and cs.school_id = :school and s.is_active)""")
