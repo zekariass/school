@@ -23,6 +23,7 @@ import com.nemaz.school.authorization.infrastructure.RoleAssignmentRepository;
 import com.nemaz.school.authorization.infrastructure.RolePermissions;
 import com.nemaz.school.authorization.infrastructure.RoleRepository;
 import com.nemaz.school.common.error.ApiException;
+import com.nemaz.school.common.i18n.SupportedLocales;
 import com.nemaz.school.common.pagination.CursorPage;
 import com.nemaz.school.common.pagination.KeysetPages;
 import com.nemaz.school.common.security.AccessScope;
@@ -36,7 +37,6 @@ import jakarta.persistence.criteria.Predicate;
 import org.hibernate.exception.ConstraintViolationException;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
@@ -79,12 +79,12 @@ public class RoleAssignmentService implements RoleAssignments {
 
 	private final ApplicationEventPublisher events;
 
-	private final List<String> languages;
+	private final SupportedLocales languages;
 
 	RoleAssignmentService(RoleRepository roles, RoleAssignmentRepository assignments, RolePermissions rolePermissions,
 			AuthorizationService authorization, GrantCache grantCache, TenantDirectory directory,
 			ReferenceData reference, AuditLog audit, Clock clock, ApplicationEventPublisher events,
-			@Value("${school.i18n.supported-locales:en,am}") List<String> languages) {
+			SupportedLocales languages) {
 		this.roles = roles;
 		this.assignments = assignments;
 		this.rolePermissions = rolePermissions;
@@ -95,7 +95,7 @@ public class RoleAssignmentService implements RoleAssignments {
 		this.audit = audit;
 		this.clock = clock;
 		this.events = events;
-		this.languages = List.copyOf(languages);
+		this.languages = languages;
 	}
 
 	// --- RoleAssignments (for the identity module) -------------------------------------
@@ -284,7 +284,7 @@ public class RoleAssignmentService implements RoleAssignments {
 			.metadata("scope", describe(scope)));
 		this.grantCache.evictAfterCommit(userId);
 		Map<String, String> scopeNames = new LinkedHashMap<>();
-		for (String language : this.languages) {
+		for (String language : this.languages.codes()) {
 			String name = scopeName(scope, Locale.forLanguageTag(language));
 			if (name != null) {
 				scopeNames.put(language, name);

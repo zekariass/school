@@ -142,28 +142,37 @@ describe("primaryConflict", () => {
 });
 
 describe("readContact", () => {
-  it("reads a phone number in the default country", () => {
-    expect(readContact({ via: "SMS", phone: "0911 23 45 67", email: "ignored@x.org" })).toEqual({
+  it("reads a phone number in the school's country", () => {
+    expect(readContact({ via: "SMS", phone: "0911 23 45 67", email: "ignored@x.org" }, "ET")).toEqual({
       ok: true,
       contact: { phone: "+251911234567" },
     });
+    expect(readContact({ via: "SMS", phone: "0712 345678", email: "" }, "KE")).toEqual({
+      ok: true,
+      contact: { phone: "+254712345678" },
+    });
+  });
+
+  it("keeps the own country of a number with a plus, and refuses a national number when the country is not a code", () => {
+    expect(readContact({ via: "SMS", phone: "+254712345678", email: "" }, "ET")).toMatchObject({ ok: true, contact: { phone: "+254712345678" } });
+    expect(readContact({ via: "SMS", phone: "0712345678", email: "" }, "")).toMatchObject({ ok: false, key: "validation.phone" });
   });
 
   it("reads an email and ignores a stale phone", () => {
-    expect(readContact({ via: "EMAIL", phone: "123", email: " Mother@Example.org " })).toEqual({
+    expect(readContact({ via: "EMAIL", phone: "123", email: " Mother@Example.org " }, "KE")).toEqual({
       ok: true,
       contact: { email: "mother@example.org" },
     });
   });
 
   it("names the field and the problem", () => {
-    expect(readContact({ via: "SMS", phone: "", email: "" })).toEqual({
+    expect(readContact({ via: "SMS", phone: "", email: "" }, "KE")).toEqual({
       ok: false,
       field: "phone",
       key: "validation.required",
     });
-    expect(readContact({ via: "SMS", phone: "12", email: "" })).toMatchObject({ key: "validation.phone" });
-    expect(readContact({ via: "EMAIL", phone: "", email: "nope" })).toEqual({
+    expect(readContact({ via: "SMS", phone: "12", email: "" }, "KE")).toMatchObject({ key: "validation.phone" });
+    expect(readContact({ via: "EMAIL", phone: "", email: "nope" }, "KE")).toEqual({
       ok: false,
       field: "email",
       key: "validation.email",

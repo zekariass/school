@@ -1,5 +1,6 @@
 package com.nemaz.school.reference;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -9,6 +10,9 @@ import java.util.Optional;
 public interface ReferenceData {
 
 	Optional<CountryInfo> findCountry(String countryCode);
+
+	/** Every ENABLED country, by code (the countries a school may be created in). */
+	List<CountryInfo> findEnabledCountries();
 
 	boolean currencyExists(String currencyCode);
 

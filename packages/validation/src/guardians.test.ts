@@ -42,20 +42,25 @@ describe('invitation tokens', () => {
 
 describe('parseDestinationInput', () => {
   it('reads a national phone number in the default country', () => {
-    expect(parseDestinationInput('0911 23 45 67')).toEqual({ ok: true, destination: { phone: '+251911234567' } });
+    expect(parseDestinationInput('0911 23 45 67', 'ET')).toEqual({ ok: true, destination: { phone: '+251911234567' } });
+  });
+
+  it('reads the same national number in another country, and a + number in its own', () => {
+    expect(parseDestinationInput('0712 345678', 'KE')).toEqual({ ok: true, destination: { phone: '+254712345678' } });
+    expect(parseDestinationInput('+254712345678', 'ET')).toEqual({ ok: true, destination: { phone: '+254712345678' } });
   });
 
   it('reads an email, lower-cased', () => {
-    expect(parseDestinationInput(' Parent@Example.com ')).toEqual({
+    expect(parseDestinationInput(' Parent@Example.com ', 'KE')).toEqual({
       ok: true,
       destination: { email: 'parent@example.com' },
     });
   });
 
   it('names the problem', () => {
-    expect(parseDestinationInput('  ')).toEqual({ ok: false, key: 'validation.required' });
-    expect(parseDestinationInput('12')).toEqual({ ok: false, key: 'validation.phone' });
-    expect(parseDestinationInput('a@')).toEqual({ ok: false, key: 'validation.email' });
+    expect(parseDestinationInput('  ', 'KE')).toEqual({ ok: false, key: 'validation.required' });
+    expect(parseDestinationInput('12', 'KE')).toEqual({ ok: false, key: 'validation.phone' });
+    expect(parseDestinationInput('a@', 'KE')).toEqual({ ok: false, key: 'validation.email' });
   });
 });
 

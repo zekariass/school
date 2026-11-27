@@ -105,7 +105,7 @@ class StaffHandler implements RowHandler {
 			d.put("givenName", given);
 			d.put("fatherName", father);
 			d.put("grandfatherName", grand);
-			String phone = (in.get("phone") != null) ? phone(d, "phone", in.get("phone"), false) : null;
+			String phone = (in.get("phone") != null) ? phone(this.ctx, d, "phone", in.get("phone"), false) : null;
 			String email = null;
 			if (in.get("email") != null) {
 				email = Cells.email(in.get("email"));

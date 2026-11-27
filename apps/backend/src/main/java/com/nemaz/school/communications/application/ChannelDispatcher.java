@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.nemaz.school.common.i18n.SupportedLocales;
 import com.nemaz.school.common.persistence.Rows;
 import com.nemaz.school.common.tx.AdvisoryLocks;
 import com.nemaz.school.communications.SmsAdapter;
@@ -84,9 +85,12 @@ class ChannelDispatcher {
 
 	private final TransactionTemplate tx;
 
+	private final SupportedLocales languages;
+
 	ChannelDispatcher(JdbcClient jdbc, UserDirectory users, ChannelPreferences preferences, CommunicationsSettings settings,
 			NotificationService notifications, SmsAdapterRegistry registry, EmailSender email, MessageSource messages,
-			AnnouncementRows rows, Clock clock, PlatformTransactionManager transactionManager) {
+			AnnouncementRows rows, Clock clock, PlatformTransactionManager transactionManager, SupportedLocales languages) {
+		this.languages = languages;
 		this.jdbc = jdbc;
 		this.users = users;
 		this.preferences = preferences;
@@ -391,9 +395,8 @@ class ChannelDispatcher {
 		return (translation != null && !locale.getLanguage().equals(ann.languageCode())) ? translation.body() : ann.body();
 	}
 
-	private static Locale localeOf(UserPreferences preferences) {
-		String language = (preferences != null) ? preferences.languageCode() : null;
-		return ("am".equals(language)) ? Locale.forLanguageTag("am") : Locale.ENGLISH;
+	private Locale localeOf(UserPreferences preferences) {
+		return this.languages.localeOf((preferences != null) ? preferences.languageCode() : null);
 	}
 
 	// --- recovery -------------------------------------------------------------------------

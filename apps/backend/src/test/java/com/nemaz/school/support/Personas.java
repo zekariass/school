@@ -305,17 +305,29 @@ public class Personas {
 				Ids.newId(), classId, schoolId, studentId);
 	}
 
+	/**
+	 * A new independent ACTIVE school in {@code country} (any status) with a current academic year: language, zone, calendar
+	 * and currency are the country's defaults, read from the {@code countries} row like the platform does.
+	 */
+	public UUID newSchoolIn(String country, String label) {
+		UUID id = school(country, null, label);
+		year(id);
+		return id;
+	}
+
 	private UUID school(String country, UUID organization, String name) {
 		UUID id = Ids.newId();
-		boolean ethiopia = "ET".equals(country);
+		Map<String, Object> c = this.jdbc.queryForMap("""
+				select default_language_code, default_timezone, default_calendar_code, default_currency_code
+				from countries where code = ?""", country);
 		this.jdbc.update("""
 				insert into schools (id, country_code, organization_id, name, slug, default_language_code, timezone,
 				                     default_calendar_code, currency_code, status)
 				values (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE')""", id, country, organization, name, newSlug("persona-school"),
-				ethiopia ? "am" : "en", ethiopia ? "Africa/Addis_Ababa" : "Africa/Nairobi",
-				ethiopia ? "ETHIOPIAN" : "GREGORIAN", ethiopia ? "ETB" : "KES");
+				c.get("default_language_code"), c.get("default_timezone"), c.get("default_calendar_code"),
+				c.get("default_currency_code"));
 		this.jdbc.update("insert into school_languages (school_id, language_code, is_default) values (?, ?, true)", id,
-				ethiopia ? "am" : "en");
+				c.get("default_language_code"));
 		return id;
 	}
 

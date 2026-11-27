@@ -1,10 +1,19 @@
 "use client";
 
 import { createContext, useContext, useMemo } from "react";
+import type { components } from "@school/api-client";
 import { SP } from "@/lib/school/access";
 
 export interface SchoolSession {
-  school: { id: string; slug: string; name: string };
+  school: {
+    id: string;
+    slug: string;
+    name: string;
+    /** The school's IANA zone. */
+    timezone: string;
+    /** The school's country: calling code, calendars and the languages its texts can be written in. */
+    country: components["schemas"]["CountryConfig"];
+  };
   userId: string;
   /** Permission codes that apply to this school (the API still checks every call). */
   permissions: ReadonlySet<string>;

@@ -2,9 +2,8 @@ import { getCalendars } from 'expo-localization';
 import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { useMe } from '@/lib/auth/use-me';
 import { useClock } from '@/lib/feed/use-clock';
-import { DISPLAY_TIME_ZONE } from '@/lib/i18n/locale';
+import { useDisplayZone } from '@/lib/country/place';
 import { usePreferences } from '@/lib/preferences/preferences-provider';
 
 import type { IsoDate } from './civil';
@@ -21,12 +20,11 @@ export function useDeviceZone(): string | null {
 }
 
 /**
- * The zone that decides what "today" is: the account's own (`GET /me` timezone), else the app's display zone. Explicit either
- * way; the phone's setting does not change which day the calendar opens on.
+ * The zone that decides what "today" is: the account's own (`GET /me` timezone), else the zone of their country (D42).
+ * Explicit either way; the phone's setting does not change which day the calendar opens on.
  */
 export function useTodayZone(): string {
-  const me = useMe();
-  return usableZone(me.data?.timezone ?? DISPLAY_TIME_ZONE);
+  return usableZone(useDisplayZone());
 }
 
 export function useToday(): IsoDate {

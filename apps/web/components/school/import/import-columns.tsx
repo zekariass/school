@@ -32,6 +32,7 @@ import {
   type Mapping,
   type ReadingChoice,
 } from "@/lib/school/import/mapping";
+import { importDateSystems, initialDateSystem, type ImportDateSystem } from "@/lib/school/import/date-system";
 import { deleteProfile, fetchPreview, fetchProfiles, ik, saveMapping, startDryRun } from "@/lib/school/import/queries";
 import type { ImportJob, ImportPreview } from "@/lib/school/import/state";
 import { ConfirmDialog } from "../confirm-dialog";
@@ -247,7 +248,10 @@ function MappingEditor({
   const { school } = useSchool();
   const queryClient = useQueryClient();
   const [mapping, setMapping] = useState<Mapping>(() => cleanMapping(preview.suggestedMapping, preview.headers.length));
-  const [dateSystem, setDateSystem] = useState<"GREGORIAN" | "ETHIOPIAN">(job.options.dateSystem ?? "GREGORIAN");
+  // Date systems the school's country has (D42): Ethiopian only where `calendarCodes` lists it. The API refuses
+  // the others (422 import.date_system_not_available) and its message is shown as it is.
+  const dateSystems = importDateSystems(school.country.calendarCodes);
+  const [dateSystem, setDateSystem] = useState<ImportDateSystem>(() => initialDateSystem(job.options.dateSystem, dateSystems));
   const [profileName, setProfileName] = useState("");
   const [profileId, setProfileId] = useState(preview.appliedProfile?.id ?? "");
   // The API applies the newest saved match of this type when the import is created.
@@ -401,16 +405,15 @@ function MappingEditor({
           <CardTitle>{t("options.title")}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <SelectField
-            label={t("options.dateSystem")}
-            value={dateSystem}
-            onChange={(value) => setDateSystem(value === "ETHIOPIAN" ? "ETHIOPIAN" : "GREGORIAN")}
-            options={[
-              { value: "GREGORIAN", label: t("options.GREGORIAN") },
-              { value: "ETHIOPIAN", label: t("options.ETHIOPIAN") },
-            ]}
-            hint={t("options.dateHint")}
-          />
+          {dateSystems.length > 1 ? (
+            <SelectField
+              label={t("options.dateSystem")}
+              value={dateSystem}
+              onChange={(value) => setDateSystem(dateSystems.find((d) => d === value) ?? "GREGORIAN")}
+              options={dateSystems.map((value) => ({ value, label: t(`options.${value}`) }))}
+              hint={t("options.dateHint")}
+            />
+          ) : null}
           <FormField label={t("profiles.saveAs")} hint={t("profiles.saveHint")}>
             {(props) => (
               <Input {...props} value={profileName} maxLength={100} onChange={(e) => setProfileName(e.target.value)} />

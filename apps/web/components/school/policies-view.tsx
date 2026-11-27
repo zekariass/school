@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { isCountryNotAvailableProblem } from "@school/validation/family";
 import { ApiRequestError, unwrap } from "@/lib/api-error";
 import { getBrowserApi } from "@/lib/api-client";
 import { errorMessage } from "@/lib/console/errors";
@@ -98,7 +99,8 @@ function PolicyCard({
       try {
         return await fetchEffectivePolicy(school.id, type, locale);
       } catch (error) {
-        if (error instanceof ApiRequestError && error.status === 404) return null;
+        // "No version yet" is a 404 too, but "this country has no text" (D42) is an error to show as the API words it.
+        if (error instanceof ApiRequestError && error.status === 404 && !isCountryNotAvailableProblem(error.problem)) return null;
         throw error;
       }
     },

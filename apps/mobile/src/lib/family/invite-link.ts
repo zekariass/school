@@ -1,6 +1,5 @@
+import { LOCALE_CODES } from '@school/i18n';
 import { looksLikeInviteToken } from '@school/validation/guardians';
-
-const LANGUAGES = ['en', 'am'];
 
 /**
  * The in-app route of an invitation link, or null when `path` is not one. Accepts what the OS hands to
@@ -13,7 +12,7 @@ export function inviteRouteFor(link: string): string | null {
   const path = /^school:\/\//i.test(link) ? `/${link.replace(/^school:\/\//i, '')}` : withoutOrigin;
   const [clean = ''] = path.split(/[?#]/);
   const parts = clean.split('/').filter(Boolean);
-  const rest = parts[0] && LANGUAGES.includes(parts[0]) ? parts.slice(1) : parts;
+  const rest = parts[0] && (LOCALE_CODES as readonly string[]).includes(parts[0]) ? parts.slice(1) : parts;
   if (rest.length !== 2 || rest[0] !== 'invite') return null;
   const token = rest[1];
   return looksLikeInviteToken(token) ? `/invite/${token}` : null;

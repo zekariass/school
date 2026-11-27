@@ -14,6 +14,7 @@ import com.nemaz.school.imports.application.ImportModel.RowStatus;
 import com.nemaz.school.imports.domain.DateParser;
 import com.nemaz.school.imports.domain.ImportType;
 import com.nemaz.school.imports.domain.Problem;
+import com.nemaz.school.tenancy.CountryContext;
 
 /**
  * Checks and applies the rows of one import type. A handler is a bean; {@link #open} prepares a {@link Session} for
@@ -26,9 +27,12 @@ interface RowHandler {
 
 	Session open(JobContext context);
 
-	/** What a run needs to know about the job. {@code today} is the school's today (age checks). */
+	/**
+	 * What a run needs to know about the job. {@code today} is the school's today in its own zone (age checks);
+	 * {@code country} is the school's country: phone numbers are read in it.
+	 */
 	record JobContext(UUID schoolId, UUID jobId, UUID actorId, UUID externalSystemId, DateParser.Options dateOptions,
-			LocalDate today) {
+			LocalDate today, CountryContext country) {
 	}
 
 	/** A data row as the file gave it: the mapped fields (cleaned, null when empty), and the reader's notes. */

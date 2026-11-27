@@ -10,6 +10,7 @@ import { RestoreOfflineScreen } from '@/components/restore-offline-screen';
 import { SyncRuntime } from '@/components/sync-runtime';
 import { bootstrap, type BootstrapResult } from '@/lib/bootstrap';
 import { AppIntlProvider } from '@/lib/i18n/intl-provider';
+import { PlaceProvider } from '@/lib/country/place';
 import { PreferencesProvider } from '@/lib/preferences/preferences-provider';
 import { AppQueryProvider } from '@/lib/query/query-provider';
 import { startQueryDeviceListeners } from '@/lib/query/query-client';
@@ -35,7 +36,10 @@ export default function RootLayout() {
         <AppIntlProvider>
           <AppQueryProvider>
             <SessionProvider>
-              <RootNavigator />
+              {/* Zone and calendars of the person or the platform default country (D42); needs the session and the query cache. */}
+              <PlaceProvider>
+                <RootNavigator />
+              </PlaceProvider>
             </SessionProvider>
           </AppQueryProvider>
         </AppIntlProvider>

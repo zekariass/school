@@ -27,10 +27,11 @@ class DefaultUserDirectory implements UserDirectory {
 		if (userIds.isEmpty()) {
 			return result;
 		}
-		this.jdbc.query("select id, preferred_language_code, timezone from users where id in (:ids)",
+		this.jdbc.query("select id, preferred_language_code, timezone, home_country_code from users where id in (:ids)",
 				new MapSqlParameterSource("ids", userIds), (rs) -> {
 					result.put(rs.getObject("id", UUID.class),
-							new UserPreferences(rs.getString("preferred_language_code"), rs.getString("timezone")));
+							new UserPreferences(rs.getString("preferred_language_code"), rs.getString("timezone"),
+									rs.getString("home_country_code")));
 				});
 		return result;
 	}

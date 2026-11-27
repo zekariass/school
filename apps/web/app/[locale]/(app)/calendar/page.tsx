@@ -17,7 +17,7 @@ export default function CalendarRoute() {
           schools={calendarSchools(me)}
           workSchools={calendarWorkSchools(me)}
           isGuardian={isCalendarGuardian(me)}
-          userTimeZone={me.timezone ?? null}
+          userTimeZone={me.timezone ?? me.country.defaultTimezone}
         />
       )}
     </CalendarShell>

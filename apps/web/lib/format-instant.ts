@@ -1,23 +1,19 @@
 import { formatEthiopianDate, instantToEthiopian } from "@school/calendar";
+import { isDisplayCalendar, type DisplayCalendar } from "@school/validation/country";
 
-export type CalendarPreference = "gregorian" | "ethiopian";
+/** The calendars the app can draw (a country offers some of them, see `offeredCalendars`). */
+export type CalendarPreference = DisplayCalendar;
 
-export const CALENDAR_PREFERENCES: readonly CalendarPreference[] = ["gregorian", "ethiopian"];
-
-/** Placeholder until the user's / school's timezone comes from settings. */
-export const DISPLAY_TIME_ZONE = "Africa/Addis_Ababa";
-
-export function isCalendarPreference(value: unknown): value is CalendarPreference {
-  return value === "gregorian" || value === "ethiopian";
-}
-
-export function defaultCalendarFor(locale: string): CalendarPreference {
-  return locale === "am" ? "ethiopian" : "gregorian";
-}
+export const isCalendarPreference = isDisplayCalendar;
 
 export interface FormatInstantOptions {
   locale: string;
   calendar: CalendarPreference;
+  /**
+   * The IANA zone to show the time in: the school's in a workspace, else the person's (D42, see `useDisplayPlace`).
+   * Absent only before the place is known (a public page): then Intl uses the browser's zone and the Ethiopian
+   * calendar, which needs a zone, is not drawn.
+   */
   timeZone?: string;
 }
 
@@ -26,14 +22,11 @@ export interface FormatInstantOptions {
  * calendar. Gregorian uses Intl; Ethiopian converts the civil date in the
  * timezone via @school/calendar and takes the time of day from Intl.
  */
-export function formatInstant(
-  instant: string | Date,
-  { locale, calendar, timeZone = DISPLAY_TIME_ZONE }: FormatInstantOptions,
-): string {
+export function formatInstant(instant: string | Date, { locale, calendar, timeZone }: FormatInstantOptions): string {
   const date = typeof instant === "string" ? new Date(instant) : instant;
   if (Number.isNaN(date.getTime())) return "";
 
-  if (calendar === "gregorian") {
+  if (calendar === "gregorian" || !timeZone) {
     return new Intl.DateTimeFormat(locale, {
       dateStyle: "long",
       timeStyle: "short",

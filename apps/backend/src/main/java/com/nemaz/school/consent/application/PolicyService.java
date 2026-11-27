@@ -23,6 +23,7 @@ import com.nemaz.school.common.security.Permissions;
 import com.nemaz.school.common.security.SchoolGate;
 import com.nemaz.school.consent.ConsentType;
 import com.nemaz.school.reference.ReferenceData;
+import com.nemaz.school.tenancy.CountryResolver;
 import com.nemaz.school.tenancy.TenantDirectory;
 import com.nemaz.school.tenancy.TenantDirectory.SchoolRef;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -65,8 +66,11 @@ public class PolicyService {
 
 	private final Clock clock;
 
+	private final CountryResolver countries;
+
 	PolicyService(JdbcClient jdbc, SchoolGate gate, TenantDirectory directory, ReferenceData reference, AuditLog audit,
-			ApplicationEventPublisher events, Clock clock) {
+			ApplicationEventPublisher events, Clock clock, CountryResolver countries) {
+		this.countries = countries;
 		this.jdbc = jdbc;
 		this.gate = gate;
 		this.directory = directory;
@@ -149,11 +153,18 @@ public class PolicyService {
 		return this.jdbc.sql(VERSION + " where v.id = :id").param("id", versionId).query(PolicyService::version).optional();
 	}
 
-	/** The public read: the current text of a type for a school or a country (default ET). */
+	/**
+	 * The public read: the current text of a type for a school (its own document, else its country's) or for a country (the
+	 * one asked for, else the platform default country). Legal text is never served from another country: when the
+	 * resolved country has no document of the type, 404 {@code policy.country_not_available}.
+	 */
 	@Transactional(readOnly = true)
 	public PolicyView read(ConsentType type, UUID schoolId, String country, String languageCode) {
-		Document document = effectiveDocument(type, schoolId, (country != null) ? country : "ET")
-			.orElseThrow(() -> ApiException.notFound("policy.not_found"));
+		String resolved = (schoolId != null) ? null
+				: (country != null) ? country : this.countries.platformDefault().code();
+		Document document = effectiveDocument(type, schoolId, resolved)
+			.orElseThrow(() -> (schoolId != null && this.directory.school(schoolId).isEmpty())
+					? ApiException.notFound("policy.not_found") : ApiException.notFound("policy.country_not_available"));
 		Version version = currentVersion(document.id(), languageCode)
 			.orElseThrow(() -> ApiException.notFound("policy.not_found"));
 		return view(document, version);

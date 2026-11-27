@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeftIcon, CheckCircle2Icon, Loader2Icon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
+import { languageLabel } from "@school/i18n";
 import { useFormatInstant } from "@/components/calendar-preference";
 import { EmptyNotice, ErrorNotice, LoadingRows } from "@/components/console/states";
 import { Button } from "@/components/ui/button";
@@ -93,7 +94,6 @@ function DetailBody({
   onChanged: (a: Announcement) => void;
 }) {
   const t = useTranslations("school.announcements");
-  const tl = useTranslations("school.announcements.composer.languages");
   const locale = useLocale();
   const format = useFormatInstant();
   const queryClient = useQueryClient();
@@ -167,7 +167,7 @@ function DetailBody({
                   data-testid={`language-${code}`}
                   className={cn("min-h-9 rounded-full border px-3 text-sm font-medium", shown.language === code ? "border-primary bg-primary text-primary-foreground" : "hover:bg-accent")}
                 >
-                  {code === "en" || code === "am" ? tl(code) : code === "und" ? "—" : code}
+                  {code === "und" ? "—" : languageLabel(code, locale)}
                   {code === (a.bodyLanguageCode ?? "und") ? " ·" : ""}
                 </button>
               ))}

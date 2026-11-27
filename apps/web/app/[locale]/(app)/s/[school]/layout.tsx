@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { SchoolShell, SchoolShellSkeleton } from "@/components/app-shell/school-shell";
+import { placeForSchool } from "@school/validation/country";
+import { SchoolPlaceProvider } from "@/components/display-place";
 import { PointsProvider } from "@/components/points/points-provider";
 import { IssuedCodesProvider } from "@/components/school/issued-codes-context";
 import { SchoolProvider } from "@/components/school/school-context";
@@ -39,25 +41,28 @@ async function Workspace({
   if (access.isTeacher && !roles.length) roles.push(tRoles("teacher"));
 
   return (
-    <SchoolProvider
-      school={{ id: school.id, slug: school.slug, name: school.name }}
-      userId={me.id}
-      permissions={[...access.permissions].sort()}
-      isTeacher={access.isTeacher}
-      isStaff={access.isStaff}
-    >
-      <IssuedCodesProvider>
-        <PointsProvider>
-        <SchoolShell
-          slug={school.slug}
-          schoolName={school.name}
-          items={navItems(access)}
-          user={{ name: me.displayName, detail: roles.join(", ") || undefined }}
-        >
-          {children}
-        </SchoolShell>
-        </PointsProvider>
-      </IssuedCodesProvider>
-    </SchoolProvider>
+    // Dates in the workspace are the school's: its zone, its calendars (D42).
+    <SchoolPlaceProvider place={placeForSchool(school)}>
+      <SchoolProvider
+        school={{ id: school.id, slug: school.slug, name: school.name, timezone: school.timezone, country: school.country }}
+        userId={me.id}
+        permissions={[...access.permissions].sort()}
+        isTeacher={access.isTeacher}
+        isStaff={access.isStaff}
+      >
+        <IssuedCodesProvider>
+          <PointsProvider>
+            <SchoolShell
+              slug={school.slug}
+              schoolName={school.name}
+              items={navItems(access)}
+              user={{ name: me.displayName, detail: roles.join(", ") || undefined }}
+            >
+              {children}
+            </SchoolShell>
+          </PointsProvider>
+        </IssuedCodesProvider>
+      </SchoolProvider>
+    </SchoolPlaceProvider>
   );
 }

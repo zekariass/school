@@ -275,3 +275,19 @@ on conflict (key) do update
       default_value = excluded.default_value,
       allowed_scopes = excluded.allowed_scopes,
       description = excluded.description;
+
+-- Platform configuration (docs/Spec_Review.md D42). Settable at platform scope only. The country that applies to a flow
+-- before any school or user is known (phone sign-in, one-time codes, invitation accept); a school's, a user's and an
+-- organization's own country come first (tenancy.CountryResolver). The value must name an ENABLED country: the settings
+-- guard refuses anything else and the application refuses to start without a valid one. The seed is the default_value of
+-- the definition; a platform override row (PUT /platform/configuration) replaces it. The code has no country fallback.
+insert into setting_definitions (key, module, value_schema, default_value, allowed_scopes, description)
+values ('platform.default_country', 'platform',
+        '{"type": "string", "pattern": "^[A-Z]{2}$"}', '"ET"', array['PLATFORM'],
+        'Platform default country (ISO 3166-1 alpha-2, an ENABLED country): applies where no school, user or organization country is known (phone sign-in, one-time codes, invitation accept)')
+on conflict (key) do update
+  set module = excluded.module,
+      value_schema = excluded.value_schema,
+      default_value = excluded.default_value,
+      allowed_scopes = excluded.allowed_scopes,
+      description = excluded.description;

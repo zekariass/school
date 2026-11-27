@@ -42,7 +42,7 @@ class GuardianMemberships implements AccountMemberships {
 		for (UUID schoolId : schools) {
 			this.directory.school(schoolId)
 				.ifPresent((s) -> result.add(new SchoolMembership(MembershipType.GUARDIAN, schoolId, s.slug(), s.name(),
-						null, null, null)));
+						null, null, null, s.countryCode(), s.timezone())));
 		}
 		return result;
 	}

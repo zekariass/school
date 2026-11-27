@@ -5,6 +5,7 @@ import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { phoneSchema, toFieldErrors, z } from "@school/validation";
+import { asCountryCode } from "@school/validation/country";
 import { useFormatInstant } from "@/components/calendar-preference";
 import { Button } from "@/components/ui/button";
 import {
@@ -245,7 +246,7 @@ function AddAdminDialog({ school, onClose }: { school: School; onClose: () => vo
 
   function onLookup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const parsed = phoneSchema("ET").safeParse(phoneText);
+    const parsed = phoneSchema(asCountryCode(school.countryCode)).safeParse(phoneText);
     if (!parsed.success) {
       const error = toFieldErrors(parsed.error as z.ZodError)[""];
       setPhoneError(translate(error?.key ?? "validation.phone", error?.values));

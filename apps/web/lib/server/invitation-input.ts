@@ -1,3 +1,4 @@
+import { parseCountryCode } from "./country-input";
 import { isCompleteParentCode, looksLikeInviteToken, normalizeParentCode } from "@school/validation/guardians";
 
 /** Exactly one of the token of an invitation link and the printed parent code. */
@@ -8,6 +9,8 @@ export interface InvitationInput {
   key: InvitationKey;
   phone?: string;
   email?: string;
+  /** The country the national phone number is read in (`^[A-Z]{2}$`); absent means the platform default on the API side. */
+  country?: string;
   otpCode?: string;
   displayName?: string;
   preferredLanguage?: string;
@@ -45,6 +48,8 @@ export function parseInvitationInput(input: unknown, need: "key" | "destination"
   if ((phone === undefined) === (email === undefined)) return null;
   if (phone !== undefined) out.phone = phone;
   if (email !== undefined) out.email = email;
+  const country = parseCountryCode(raw.country);
+  if (country) out.country = country;
   if (need === "destination") return out;
 
   const otpCode = text(raw.otpCode, 16);

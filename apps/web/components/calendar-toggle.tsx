@@ -15,7 +15,10 @@ import { isCalendarPreference } from "@/lib/format-instant";
 
 export function CalendarToggle() {
   const t = useTranslations("calendar");
-  const { calendar, setCalendar } = useCalendarPreference();
+  const { calendar, calendars, setCalendar } = useCalendarPreference();
+
+  // Nothing to choose where the country has only the Gregorian calendar (D42).
+  if (calendars.length < 2) return null;
 
   return (
     <DropdownMenu>
@@ -29,12 +32,11 @@ export function CalendarToggle() {
           value={calendar}
           onValueChange={(value) => isCalendarPreference(value) && setCalendar(value)}
         >
-          <DropdownMenuRadioItem value="gregorian" className="min-h-10 rounded-lg">
-            {t("gregorian")}
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="ethiopian" className="min-h-10 rounded-lg">
-            {t("ethiopian")}
-          </DropdownMenuRadioItem>
+          {calendars.map((value) => (
+            <DropdownMenuRadioItem key={value} value={value} className="min-h-10 rounded-lg">
+              {t(value)}
+            </DropdownMenuRadioItem>
+          ))}
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

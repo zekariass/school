@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
   const upstream = await postAuth(
     "otp/verify",
-    { ...destination, code: code.trim(), country: "ET" },
+    { ...destination, code: code.trim() },
     localeFromRequest(request),
   );
   if (!upstream) return problemResponse(request, "bff_upstream_unavailable", 502);

@@ -10,10 +10,15 @@ export interface OtpChallenge {
   expiresIn: number;
 }
 
-/** Asks the backend to send a sign-in code. The answer is the same whether or not an account exists. */
-export function requestOtp(phone: string): Promise<OtpChallenge> {
+/**
+ * Asks the backend to send a sign-in code. The answer is the same whether or not an account exists. `country` is the
+ * one the number was entered in (D42); absent means the platform default on the API side.
+ */
+export function requestOtp(phone: string, country?: string): Promise<OtpChallenge> {
   return request(async () => {
-    const accepted = unwrap(await authApi.POST('/api/v1/auth/otp/request', { body: { phone } }));
+    const accepted = unwrap(
+      await authApi.POST('/api/v1/auth/otp/request', { body: { phone, ...(country ? { country } : {}) } }),
+    );
     return { codeLength: accepted.codeLength, expiresIn: accepted.expiresIn };
   });
 }

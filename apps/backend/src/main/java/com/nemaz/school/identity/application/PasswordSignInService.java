@@ -27,7 +27,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Password sign-in (secondary, for staff who prefer it). Identifier: email, phone (national
- * format read in {@code country}, Ethiopia by default) or username. Unknown account, wrong
+ * format read in {@code country}, else the platform default country) or username. Unknown account, wrong
  * password, locked credential and inactive account all answer the same 400
  * {@code auth.invalid_credentials}, and an unknown account still runs one argon2 hash, so
  * neither the body nor the timing reveals which. Five consecutive failures lock the password
@@ -60,9 +60,13 @@ public class PasswordSignInService {
 
 	private final String dummyHash;
 
+	private final PhoneInputs phones;
+
 	PasswordSignInService(UserRepository users, PasswordCredentialRepository credentials, PasswordEncoder encoder,
 			TokenService tokens, java.util.List<com.nemaz.school.identity.ManagedAccountPolicy> managedPolicies,
-			AuthRateLimits limits, AuditLog audit, IdentityProperties props, Clock clock, TransactionTemplate tx) {
+			AuthRateLimits limits, AuditLog audit, IdentityProperties props, Clock clock, TransactionTemplate tx,
+			PhoneInputs phones) {
+		this.phones = phones;
 		this.users = users;
 		this.credentials = credentials;
 		this.encoder = encoder;
@@ -158,13 +162,13 @@ public class PasswordSignInService {
 	}
 
 	/** Email lower-cased, phone in E.164, otherwise the username lower-cased. */
-	static String normalizeIdentifier(String identifier, String country) {
+	String normalizeIdentifier(String identifier, String country) {
 		String raw = (identifier != null) ? identifier.trim() : "";
 		if (raw.indexOf('@') >= 0) {
 			return Emails.normalize(raw).orElse(raw.toLowerCase(Locale.ROOT));
 		}
 		if (raw.matches("^[+0-9][0-9 ()-]{5,}$")) {
-			Optional<String> phone = PhoneNumbers.toE164(raw, country);
+			Optional<String> phone = this.phones.toE164(raw, country);
 			if (phone.isPresent()) {
 				return phone.get();
 			}

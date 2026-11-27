@@ -80,7 +80,7 @@ function Loaded({
   const t = useTranslations("family.calendar");
   const locale = useLocale();
   const queryClient = useQueryClient();
-  const { calendar: system, setCalendar } = useCalendarPreference();
+  const { calendar: system, calendars, setCalendar } = useCalendarPreference();
   const narrow = useIsNarrow() ?? false;
 
   const [view, setView] = useState<CalendarView>("month");
@@ -189,13 +189,15 @@ function Loaded({
           options={CALENDAR_VIEWS.map((v) => ({ value: v, label: t(`views.${v}`) }))}
           testId="calendar-views"
         />
-        <Segmented
-          label={t("systemLabel")}
-          value={system}
-          onChange={(v) => setCalendar(v)}
-          options={(["gregorian", "ethiopian"] as const).map((v) => ({ value: v, label: t(`systems.${v}`) }))}
-          testId="calendar-system"
-        />
+        {calendars.length > 1 ? (
+          <Segmented
+            label={t("systemLabel")}
+            value={system}
+            onChange={(v) => setCalendar(v)}
+            options={calendars.map((v) => ({ value: v, label: t(`systems.${v}`) }))}
+            testId="calendar-system"
+          />
+        ) : null}
         <Button type="button" onClick={() => setCreating({ day: selectedDay })} data-testid="calendar-new">
           <CalendarPlusIcon className="size-4" aria-hidden />
           {t("newEvent")}

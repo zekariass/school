@@ -6,21 +6,23 @@ import { useTranslations } from 'use-intl';
 
 import { phoneSchema, toFieldErrors } from '@school/validation';
 
+import { PhoneCountryPicker } from '@/components/phone-country-picker';
 import { ProblemBanner } from '@/components/problem-banner';
 import { Button, Screen, Text, TextField } from '@/components/ui';
 import { requestOtp } from '@/lib/auth/auth-requests';
 import { endNoticeKey } from '@/lib/auth/auth-problems';
 import { nowMs } from '@/lib/auth/otp-timer';
+import { usePhoneCountry } from '@/lib/country/use-phone-country';
 import { useSession } from '@/lib/session/session-provider';
 import { useAppTheme } from '@/lib/theme/theme-provider';
-
-const phoneValidator = phoneSchema('ET');
 
 export default function SignInScreen() {
   const t = useTranslations();
   const { colors, radii, spacing } = useAppTheme();
   const [phone, setPhone] = useState('');
   const [fieldError, setFieldError] = useState<string>();
+  // The country the number is read in: the platform default from /meta, or the person's pick when several are enabled (D42).
+  const phoneCountry = usePhoneCountry();
 
   const { endReason, dismissEndReason } = useSession();
 
@@ -28,7 +30,7 @@ export default function SignInScreen() {
   const requestCode = useMutation({
     networkMode: 'always',
     retry: false,
-    mutationFn: async (e164: string) => ({ phone: e164, ...(await requestOtp(e164)) }),
+    mutationFn: async (e164: string) => ({ phone: e164, ...(await requestOtp(e164, phoneCountry.country?.code)) }),
     onSuccess: ({ phone: e164, codeLength, expiresIn }) => {
       router.push({
         pathname: '/(auth)/verify',
@@ -41,7 +43,7 @@ export default function SignInScreen() {
 
 
   function submit() {
-    const parsed = phoneValidator.safeParse(phone);
+    const parsed = phoneSchema(phoneCountry.regionCode).safeParse(phone);
     if (!parsed.success) {
       const error = toFieldErrors(parsed.error)[''];
       setFieldError(error ? t(error.key as 'validation.phone', error.values) : t('validation.phone'));
@@ -75,6 +77,15 @@ export default function SignInScreen() {
         </View>
       ) : null}
 
+      {phoneCountry.showPicker ? (
+        <PhoneCountryPicker
+          countries={phoneCountry.countries}
+          value={phoneCountry.country?.code}
+          onChange={phoneCountry.select}
+          disabled={requestCode.isPending}
+        />
+      ) : null}
+
       <TextField
         label={t('auth.phoneNumber')}
         hint={t('auth.phoneHint')}
@@ -101,7 +112,7 @@ export default function SignInScreen() {
         />
       ) : null}
 
-      <Button label={t('auth.sendCode')} onPress={submit} loading={requestCode.isPending} />
+      <Button label={t('auth.sendCode')} onPress={submit} loading={requestCode.isPending || phoneCountry.loading} />
 
       <View style={{ gap: spacing[3] }}>
         <Button

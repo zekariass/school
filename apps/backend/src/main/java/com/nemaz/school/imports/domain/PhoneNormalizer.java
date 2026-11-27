@@ -10,11 +10,13 @@ import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 /**
  * Phone numbers as people type them in spreadsheets, to E.164. Handles what Excel does to them: the leading zero is
  * lost when the cell is a number ({@code 911234567}), large numbers become scientific notation
- * ({@code 9.11234567E8}), and formatting characters, non-Latin digits and the stray zero in {@code +2510911...}
- * are common. Ethiopian mobile numbers are 9 digits starting with 9 (Ethio Telecom) or 7 (Safaricom Ethiopia).
+ * ({@code 9.11234567E8}), and formatting characters, non-Latin digits and the stray zero after the calling code
+ * ({@code +2510911...}) are common.
  * <p>
- * libphonenumber may not know the newest 07 ranges, so a number that is not "valid" is still accepted with a
- * warning when it has the shape of an Ethiopian mobile number; anything that cannot be a phone number is an error.
+ * Numbers are read in the school's country: its ISO region and the calling code from the {@code countries} table
+ * (nothing here names a country). libphonenumber may not know the newest ranges, so a number of the school's own
+ * country that is not "valid" is still accepted with a warning when it has the length of a mobile number; a number of
+ * another country when it is at least possible there; anything that cannot be a phone number is an error.
  */
 public final class PhoneNormalizer {
 
@@ -40,10 +42,16 @@ public final class PhoneNormalizer {
 
 	}
 
-	public static Result normalize(String raw) {
+	/**
+	 * @param raw the cell as the file gave it
+	 * @param region ISO 3166-1 alpha-2 code of the country national numbers are read in (the school's)
+	 * @param callingCode that country's calling code, with or without the plus sign ({@code +254} or {@code 254})
+	 */
+	public static Result normalize(String raw, String region, String callingCode) {
 		if (raw == null || raw.isBlank()) {
 			return new Result(null, null, null);
 		}
+		String cc = callingCode.replaceAll("[^0-9]", "");
 		String text = Digits.toAscii(raw).strip();
 		if (SCIENTIFIC.matcher(text).matches() || WHOLE_DECIMAL.matcher(text).matches()) {
 			text = new BigDecimal(text).toBigInteger().toString();
@@ -73,37 +81,52 @@ public final class PhoneNormalizer {
 		else if (d.startsWith("00")) {
 			international = d.substring(2);
 		}
-		else if (d.startsWith("251") && d.length() >= 12) {
+		else if (d.startsWith(cc) && possible("+" + d, region)) {
+			// the calling code typed without its plus sign
 			international = d;
 		}
 		else if (d.startsWith("0")) {
-			international = "251" + d.substring(1);
-		}
-		else if (d.length() == 9 && (d.startsWith("9") || d.startsWith("7"))) {
-			international = "251" + d;
+			international = cc + d.substring(1);
 		}
 		else {
-			// A national number of another shape (a landline without its zero, a foreign number typed without +)
-			international = "251" + d;
+			// a national number without its trunk zero (a spreadsheet dropped it), or another shape: read it in the country
+			international = cc + d;
 		}
-		// A stray zero after the country code: +2510911234567
-		if (international.startsWith("2510") && international.length() == 13) {
-			international = "251" + international.substring(4);
+		// A stray zero after the calling code (+2510911234567): drop it when the number only makes sense without it
+		if (international.startsWith(cc + "0") && !valid("+" + international, region)
+				&& possible("+" + cc + international.substring(cc.length() + 1), region)) {
+			international = cc + international.substring(cc.length() + 1);
 		}
-		return judge("+" + international);
+		return judge("+" + international, region, cc);
 	}
 
-	private static Result judge(String candidate) {
+	private static boolean possible(String candidate, String region) {
 		try {
-			PhoneNumber number = UTIL.parse(candidate, "ET");
+			return UTIL.isPossibleNumber(UTIL.parse(candidate, region));
+		}
+		catch (NumberParseException ex) {
+			return false;
+		}
+	}
+
+	private static boolean valid(String candidate, String region) {
+		try {
+			return UTIL.isValidNumber(UTIL.parse(candidate, region));
+		}
+		catch (NumberParseException ex) {
+			return false;
+		}
+	}
+
+	private static Result judge(String candidate, String region, String callingCode) {
+		try {
+			PhoneNumber number = UTIL.parse(candidate, region);
 			String e164 = UTIL.format(number, PhoneNumberUtil.PhoneNumberFormat.E164);
 			if (UTIL.isValidNumber(number)) {
 				return new Result(e164, null, null);
 			}
-			if (e164.matches("^\\+251[79][0-9]{8}$")) {
-				return new Result(e164, null, "phone_unrecognized");
-			}
-			if (UTIL.isPossibleNumber(number) && !e164.startsWith("+251")) {
+			boolean ownCountry = String.valueOf(number.getCountryCode()).equals(callingCode);
+			if (ownCountry ? mobileLength(number) : UTIL.isPossibleNumber(number)) {
 				return new Result(e164, null, "phone_unrecognized");
 			}
 			return new Result(null, "phone_invalid", null);
@@ -111,6 +134,12 @@ public final class PhoneNormalizer {
 		catch (NumberParseException ex) {
 			return new Result(null, "phone_invalid", null);
 		}
+	}
+
+	/** The length of a mobile number of the number's country (libphonenumber's own metadata, no per-country rule here). */
+	private static boolean mobileLength(PhoneNumber number) {
+		return UTIL.isPossibleNumberForType(number, PhoneNumberUtil.PhoneNumberType.MOBILE)
+				|| UTIL.isPossibleNumberForType(number, PhoneNumberUtil.PhoneNumberType.FIXED_LINE_OR_MOBILE);
 	}
 
 }

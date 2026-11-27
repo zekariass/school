@@ -14,7 +14,7 @@ public final class Contacts {
 	private Contacts() {
 	}
 
-	/** E.164, reading national formats in {@code countryCode} (default ET); empty when it is not a valid number. */
+	/** E.164, reading national formats in {@code countryCode} (the caller resolves it: a school's country; with none only +numbers parse); empty when it is not a valid number. */
 	public static Optional<String> phone(String raw, String countryCode) {
 		return PhoneNumbers.toE164(raw, countryCode);
 	}

@@ -53,7 +53,7 @@ import { zoneLabel } from '@/lib/calendar/zone';
 import { keyAfterFailure, keyFor, type SubmitKey } from '@/lib/feed/composer';
 import { clockText } from '@/lib/feed/schedule';
 import { useClock } from '@/lib/feed/use-clock';
-import { DISPLAY_TIME_ZONE } from '@/lib/i18n/locale';
+import { useDisplayZone } from '@/lib/country/place';
 import { useMyClasses, useRoster } from '@/lib/people/queries';
 import { useAppTheme } from '@/lib/theme/theme-provider';
 
@@ -126,7 +126,8 @@ function Creator({ date, schoolParam }: { date: string | undefined; schoolParam:
   }, [me.data, schools]);
   const [schoolId, setSchoolId] = useState<string | null>(() => (creatorSchools.some((s) => s.id === schoolParam) ? (schoolParam ?? null) : (creatorSchools[0]?.id ?? null)));
   const caps = useCalendarCapabilities(schoolId ?? undefined);
-  const userZone = me.data?.timezone ?? DISPLAY_TIME_ZONE;
+  // The account's own zone, else the zone of their country (D42).
+  const userZone = useDisplayZone();
 
   if (schoolId && caps.isPending) return <Waiting />;
   // A school whose calendar is off, or that does not let this person create, still allows personal events.
@@ -464,7 +465,10 @@ function WhenSection({
   const t = useTranslations();
   const { spacing } = useAppTheme();
   const { locale, calendar } = useLabelContext();
-  const zones = zoneChoices([form.timeZone, schoolZone, userZone, deviceZone]);
+  // The zones of the countries the account has schools in come from /me (D42).
+  const me = useMe();
+  const countryZones = me.data?.countries.map((c) => c.defaultTimezone) ?? [];
+  const zones = zoneChoices([form.timeZone, schoolZone, userZone, deviceZone, ...countryZones]);
   const dayLabels = { smallBack: t('mobile.calendar.stepper.dayBefore'), smallForward: t('mobile.calendar.stepper.dayAfter'), largeBack: t('mobile.calendar.stepper.weekBefore'), largeForward: t('mobile.calendar.stepper.weekAfter') };
   const timeLabels = { smallBack: t('mobile.calendar.stepper.quarterBefore'), smallForward: t('mobile.calendar.stepper.quarterAfter'), largeBack: t('mobile.calendar.stepper.hourBefore'), largeForward: t('mobile.calendar.stepper.hourAfter') };
 

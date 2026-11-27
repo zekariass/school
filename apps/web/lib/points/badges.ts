@@ -11,6 +11,15 @@ export const asBadgeType = (value: string): BadgeCriteriaType | null => TYPES.fi
 export const BADGE_CODE = /^[a-z][a-z0-9_]{1,40}$/;
 
 /** "Super Helper!" becomes "super_helper": a starting point for the code that the user may change. */
+/** A code suggested from the first language whose name makes a valid slug (a name in another script makes none). */
+export function suggestCode(languages: readonly string[], names: Readonly<Record<string, string>>): string {
+  for (const code of languages) {
+    const slug = slugFromName(names[code] ?? "");
+    if (slug) return slug;
+  }
+  return "";
+}
+
 export function slugFromName(name: string): string {
   const slug = name
     .normalize("NFKD")

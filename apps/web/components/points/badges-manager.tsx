@@ -8,6 +8,7 @@ import { FormField } from "@/components/console/form-field";
 import { EmptyNotice, ErrorNotice, LoadingRows } from "@/components/console/states";
 import { useSubmit } from "@/components/console/use-submit";
 import { SelectField } from "@/components/school/fields";
+import { LocalizedInputs } from "@/components/school/localized-fields";
 import { FormDialog } from "@/components/school/form-dialog";
 import { useSchool } from "@/components/school/school-context";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +17,10 @@ import { Input } from "@/components/ui/input";
 import { unwrap } from "@/lib/api-error";
 import { getBrowserApi } from "@/lib/api-client";
 import { errorMessage, fieldErrors } from "@/lib/console/errors";
-import { asBadgeType, badgeCriteria, BADGE_CODE, slugFromName, type BadgeCriteriaType } from "@/lib/points/badges";
+import { asBadgeType, badgeCriteria, BADGE_CODE, suggestCode, type BadgeCriteriaType } from "@/lib/points/badges";
 import { BADGE_ICON_CHOICES } from "@/lib/points/icons";
 import { fetchBadges, fetchCategories, pk, type BadgeDefinition } from "@/lib/points/queries";
+import { compactTexts, hasText, inputLanguages } from "@/lib/school/localized";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "./category-icon";
 
@@ -112,10 +114,11 @@ function BadgeForm({ badge, onClose }: { badge: BadgeDefinition | null; onClose:
   const tv = useTranslations("school.validation");
   const { school } = useSchool();
   const [type, setType] = useState<BadgeCriteriaType>((badge?.criteriaType as BadgeCriteriaType | undefined) ?? "MANUAL");
-  const [en, setEn] = useState(badge?.names.en ?? "");
-  const [am, setAm] = useState(badge?.names.am ?? "");
-  const [descEn, setDescEn] = useState(badge?.descriptions.en ?? "");
-  const [descAm, setDescAm] = useState(badge?.descriptions.am ?? "");
+  // One input per language of the school's country (D42), plus any language the saved badge already has.
+  const [names, setNames] = useState<Record<string, string>>(() => ({ ...badge?.names }));
+  const [descriptions, setDescriptions] = useState<Record<string, string>>(() => ({ ...badge?.descriptions }));
+  const nameLanguages = inputLanguages(school.country.languageCodes, badge?.names);
+  const descriptionLanguages = inputLanguages(school.country.languageCodes, badge?.descriptions);
   const [code, setCode] = useState(badge?.code ?? "");
   const [icon, setIcon] = useState<string>(badge?.icon || BADGE_ICON_CHOICES[0]);
   const [threshold, setThreshold] = useState(String(badge?.criteria.threshold ?? 50));
@@ -132,19 +135,13 @@ function BadgeForm({ badge, onClose }: { badge: BadgeDefinition | null; onClose:
 
   const save = useSubmit({
     mutationFn: async (_: void, idempotencyKey) => {
-      const names: Record<string, string> = {};
-      if (en.trim()) names.en = en.trim();
-      if (am.trim()) names.am = am.trim();
-      const descriptions: Record<string, string> = {};
-      if (descEn.trim()) descriptions.en = descEn.trim();
-      if (descAm.trim()) descriptions.am = descAm.trim();
       const api = getBrowserApi();
       if (badge) {
         return unwrap(
           await api.PATCH("/api/v1/schools/{schoolId}/badges/{badgeId}", {
             params: { path: { schoolId: school.id, badgeId: badge.id } },
             // The rule's other parameters (context, category) stay as they are.
-            body: { names, descriptions, icon, ...(criteria ? { criteria: { ...badge.criteria, ...criteria } } : {}) },
+            body: { names: compactTexts(names), descriptions: compactTexts(descriptions), icon, ...(criteria ? { criteria: { ...badge.criteria, ...criteria } } : {}) },
           }),
         );
       }
@@ -152,7 +149,7 @@ function BadgeForm({ badge, onClose }: { badge: BadgeDefinition | null; onClose:
         await api.POST("/api/v1/schools/{schoolId}/badges", {
           params: { path: { schoolId: school.id } },
           headers: { "Idempotency-Key": idempotencyKey },
-          body: { code: effectiveCode, names, descriptions, icon, criteriaType: type, ...(criteria ? { criteria } : {}) },
+          body: { code: effectiveCode, names: compactTexts(names), descriptions: compactTexts(descriptions), icon, criteriaType: type, ...(criteria ? { criteria } : {}) },
         }),
       );
     },
@@ -173,7 +170,7 @@ function BadgeForm({ badge, onClose }: { badge: BadgeDefinition | null; onClose:
       error={save.isError && Object.keys(server).length === 0 ? errorMessage(save.error, t("failed")) : null}
       onSubmit={() => {
         const next = {
-          name: !en.trim() && !am.trim(),
+          name: !hasText(names),
           code: !badge && !BADGE_CODE.test(effectiveCode),
           criteria: hasRule && (criteria === null || (type === "CATEGORY_TOTAL" && !badge && !categoryId)),
         };
@@ -182,24 +179,26 @@ function BadgeForm({ badge, onClose }: { badge: BadgeDefinition | null; onClose:
       }}
       onClose={onClose}
     >
-      <FormField label={t("nameEn")} error={local.name ? tv("required") : (server.names ?? null)}>
-        {(props) => (
-          <Input
-            {...props}
-            value={en}
-            maxLength={60}
-            onChange={(e) => {
-              setEn(e.target.value);
-              if (!badge && code === slugFromName(en)) setCode(slugFromName(e.target.value));
-            }}
-          />
-        )}
-      </FormField>
-      <FormField label={t("nameAm")} hint={t("nameHint")}>
-        {(props) => <Input {...props} value={am} maxLength={60} lang="am" onChange={(e) => setAm(e.target.value)} />}
-      </FormField>
-      <FormField label={t("descriptionEn")}>{(props) => <Input {...props} value={descEn} maxLength={300} onChange={(e) => setDescEn(e.target.value)} />}</FormField>
-      <FormField label={t("descriptionAm")}>{(props) => <Input {...props} value={descAm} maxLength={300} lang="am" onChange={(e) => setDescAm(e.target.value)} />}</FormField>
+      <LocalizedInputs
+        languages={nameLanguages}
+        values={names}
+        onChange={(next) => {
+          // while the code still follows the name, keep it following
+          if (!badge && code === suggestCode(nameLanguages, names)) setCode(suggestCode(nameLanguages, next));
+          setNames(next);
+        }}
+        label={(language) => t("nameIn", { language })}
+        maxLength={60}
+        error={local.name ? tv("required") : (server.names ?? null)}
+        hint={t("nameHint")}
+      />
+      <LocalizedInputs
+        languages={descriptionLanguages}
+        values={descriptions}
+        onChange={setDescriptions}
+        label={(language) => t("descriptionIn", { language })}
+        maxLength={300}
+      />
       {!badge ? (
         <>
           <FormField label={t("code")} hint={t("codeHint")} error={local.code ? t("codeInvalid") : (server.code ?? null)}>

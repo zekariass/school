@@ -23,10 +23,12 @@ export const emailSchema = z
 
 /**
  * Phone number in any common local or international format, normalized to E.164.
- * `defaultCountry` is the school's or user's country (spec §65), so "0911 23 45 67"
- * entered in Ethiopia becomes "+251911234567".
+ * `defaultCountry` is required (D42): the school's country, the user's, or the platform
+ * default from `GET /meta`, never a constant. "0911 23 45 67" read in Ethiopia becomes
+ * "+251911234567"; a number that starts with "+" keeps its own country. With no country (the API has not
+ * said yet) only numbers with a "+" are valid.
  */
-export function phoneSchema(defaultCountry: CountryCode = 'ET') {
+export function phoneSchema(defaultCountry: CountryCode | undefined) {
   return z
     .string({ error: 'validation.required' })
     .trim()

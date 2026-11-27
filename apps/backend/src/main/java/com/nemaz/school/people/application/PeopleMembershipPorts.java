@@ -128,7 +128,8 @@ class PeopleMembershipPorts implements SchoolMemberships, AccountMemberships, Ma
 	private void membership(List<SchoolMembership> into, MembershipType type, UUID schoolId, UUID staffId, UUID studentId,
 			UUID campusId) {
 		this.directory.school(schoolId)
-			.ifPresent((s) -> into.add(new SchoolMembership(type, schoolId, s.slug(), s.name(), staffId, studentId, campusId)));
+			.ifPresent((s) -> into.add(new SchoolMembership(type, schoolId, s.slug(), s.name(), staffId, studentId, campusId,
+					s.countryCode(), s.timezone())));
 	}
 
 	// --- ManagedAccountPolicy ---------------------------------------------------------------

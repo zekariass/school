@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.nemaz.school.academic.StructureImports;
+import com.nemaz.school.common.i18n.SupportedLocales;
 import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
 import com.nemaz.school.common.security.SchoolGate;
@@ -51,10 +52,6 @@ public class ImportTemplates {
 
 	private static final int ROWS = 2000;
 
-	private static final Locale EN = Locale.ENGLISH;
-
-	private static final Locale AM = Locale.forLanguageTag("am");
-
 	private static final Set<String> TEXT_FIELDS = Set.of("phone", "lead_teacher_phone", "student_number", "external_id", "code",
 			"date_of_birth", "guardian1_phone", "guardian2_phone", "sequence", "year", "username");
 
@@ -71,7 +68,11 @@ public class ImportTemplates {
 
 	private final TenantDirectory directory;
 
-	ImportTemplates(SchoolGate gate, ProblemMessages messages, StructureImports structure, TenantDirectory directory) {
+	private final SupportedLocales languages;
+
+	ImportTemplates(SchoolGate gate, ProblemMessages messages, StructureImports structure, TenantDirectory directory,
+			SupportedLocales languages) {
+		this.languages = languages;
 		this.gate = gate;
 		this.messages = messages;
 		this.structure = structure;
@@ -194,7 +195,7 @@ public class ImportTemplates {
 		sheet.setColumnWidth(0, 28 * 256);
 		sheet.setColumnWidth(1, 70 * 256);
 		sheet.setColumnWidth(2, 70 * 256);
-		for (Locale locale : List.of(EN, AM)) {
+		for (Locale locale : this.languages.locales()) {
 			Row title = sheet.createRow(row++);
 			var cell = title.createCell(0);
 			cell.setCellValue(this.messages.text("import.template.title", locale) + " - " + this.messages.text(

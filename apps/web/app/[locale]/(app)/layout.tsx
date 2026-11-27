@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { userPlaces } from "@school/validation/country";
+import { UserPlaceProvider } from "@/components/display-place";
 import { RealtimeMount } from "@/components/notifications/realtime-mount";
 import { Skeleton } from "@/components/ui/skeleton";
 import { requireSession } from "@/lib/server/dal";
@@ -17,13 +19,15 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
 }
 
 async function SessionGate({ children }: { children: React.ReactNode }) {
-  await requireSession();
+  const me = await requireSession();
+  // Zone and calendars of the person and of their schools, from /me (D42): never a constant.
+  const { place, schools, preference } = userPlaces(me);
   return (
-    <>
+    <UserPlaceProvider place={place} schools={schools} preference={preference}>
       {/* live notifications for everything signed-in under (app) */}
       <RealtimeMount />
       {children}
-    </>
+    </UserPlaceProvider>
   );
 }
 

@@ -5,9 +5,11 @@ import { TextInput, View } from 'react-native';
 import { useLocale, useTranslations } from 'use-intl';
 
 import { RelationshipPicker } from '@/components/family/relationship-picker';
+import { PhoneCountryPicker } from '@/components/phone-country-picker';
 import { Button, EmptyState, Screen, SegmentedControl, Text, TextField } from '@/components/ui';
 import { formatCountdown, nowMs, RESEND_COOLDOWN_SECONDS, sanitizeCode, secondsLeft } from '@/lib/auth/otp-timer';
 import { useNow } from '@/lib/auth/use-now';
+import { usePhoneCountry } from '@/lib/country/use-phone-country';
 import { FAMILY_ROOT } from '@/lib/family/keys';
 import {
   acceptInvitation,
@@ -219,11 +221,16 @@ function ContactStep({
   const [value, setValue] = useState('');
   const [fieldError, setFieldError] = useState<string>();
   const block = useBlock();
+  // The country a national number is read in: the platform default from /meta, or the pick when several are enabled (D42).
+  const phoneCountry = usePhoneCountry();
 
   const send = useMutation({
     networkMode: 'always',
     retry: false,
-    mutationFn: async (destination: ContactDestination) => ({ destination, challenge: await requestInvitationOtp(keyOf, destination) }),
+    mutationFn: async (destination: ContactDestination) => ({
+      destination,
+      challenge: await requestInvitationOtp(keyOf, destination, phoneCountry.country?.code),
+    }),
     onSuccess: ({ destination, challenge }) => onSent(destination, challenge),
     onError: (error) => {
       if (isDeadInvitation(invitationProblemOf(error))) return onDead();
@@ -233,7 +240,7 @@ function ContactStep({
   });
 
   function submit() {
-    const parsed = parseDestinationInput(value);
+    const parsed = parseDestinationInput(value, phoneCountry.regionCode);
     if (!parsed.ok) {
       setFieldError(t(parsed.key));
       return;
@@ -245,6 +252,14 @@ function ContactStep({
   const failure = send.isError ? invitationMessageFor(send.error) : null;
   return (
     <View style={{ gap: 16 }}>
+      {phoneCountry.showPicker ? (
+        <PhoneCountryPicker
+          countries={phoneCountry.countries}
+          value={phoneCountry.country?.code}
+          onChange={phoneCountry.select}
+          disabled={send.isPending}
+        />
+      ) : null}
       <TextField
         label={t('invite.contactLabel')}
         hint={t('invite.contactHint')}
@@ -270,7 +285,7 @@ function ContactStep({
       <Button
         label={block.left > 0 ? t('invite.tryAgainIn', { seconds: block.left }) : t('invite.sendCode')}
         onPress={submit}
-        loading={send.isPending}
+        loading={send.isPending || phoneCountry.loading}
         disabled={block.left > 0}
       />
     </View>

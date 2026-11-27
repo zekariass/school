@@ -10,6 +10,8 @@ import {
   toFieldErrors,
   type FieldError,
 } from "@school/validation";
+import { PhoneCountryPicker } from "@/components/phone-country-picker";
+import { usePhoneCountry } from "@/components/use-phone-country";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +33,8 @@ type Step =
       name: "code";
       /** E.164 */
       phone: string;
+      /** The country the number was entered in, sent again when the code is requested again. */
+      country: string | undefined;
       expiresAt: number;
       resendAt: number;
     };
@@ -55,11 +59,12 @@ export function SignInForm() {
   const [step, setStep] = useState<Step>({ name: "phone" });
   return step.name === "phone" ? (
     <PhoneStep
-      onSent={(phone, expiresIn) => {
+      onSent={(phone, expiresIn, country) => {
         const now = Date.now();
         setStep({
           name: "code",
           phone,
+          country,
           expiresAt: now + expiresIn * 1000,
           resendAt: now + RESEND_COOLDOWN_SECONDS * 1000,
         });
@@ -86,13 +91,14 @@ type RequestOutcome =
   | { ok: false; message: string; retryAfter: number | null };
 
 /** Asks the BFF to text a code; maps every failure to a message for the user. */
-async function requestCode(phone: string, locale: string, fallback: string): Promise<RequestOutcome> {
+async function requestCode(phone: string, locale: string, fallback: string, country?: string): Promise<RequestOutcome> {
   let response: Response;
   try {
     response = await fetch("/api/auth/otp/request", {
       method: "POST",
       headers: { "content-type": "application/json", "accept-language": locale },
-      body: JSON.stringify({ phone }),
+      // The number is E.164 by now; the country is what the person chose or the platform default (D42).
+      body: JSON.stringify({ phone, country }),
     });
   } catch {
     return { ok: false, message: fallback, retryAfter: null };
@@ -113,7 +119,7 @@ async function requestCode(phone: string, locale: string, fallback: string): Pro
   };
 }
 
-function PhoneStep({ onSent }: { onSent: (phone: string, expiresIn: number) => void }) {
+function PhoneStep({ onSent }: { onSent: (phone: string, expiresIn: number, country: string | undefined) => void }) {
   const t = useTranslations();
   const translate = t as unknown as Translate;
   const locale = useLocale();
@@ -124,21 +130,22 @@ function PhoneStep({ onSent }: { onSent: (phone: string, expiresIn: number) => v
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null);
   const [pending, setPending] = useState(false);
   const blockedFor = useSecondsLeft(blockedUntil);
+  const phoneCountry = usePhoneCountry();
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFailure(null);
-    const parsed = phoneSchema("ET").safeParse(phone);
+    const parsed = phoneSchema(phoneCountry.regionCode).safeParse(phone);
     if (!parsed.success) {
       setFieldError(toFieldErrors(parsed.error)[""] ?? { key: "validation.phone", values: {} });
       return;
     }
     setFieldError(null);
     setPending(true);
-    const outcome = await requestCode(parsed.data, locale, t("auth.requestFailed"));
+    const outcome = await requestCode(parsed.data, locale, t("auth.requestFailed"), phoneCountry.country?.code);
     setPending(false);
     if (outcome.ok) {
-      onSent(parsed.data, outcome.expiresIn);
+      onSent(parsed.data, outcome.expiresIn, phoneCountry.country?.code);
       return;
     }
     setFailure(outcome.message);
@@ -159,6 +166,14 @@ function PhoneStep({ onSent }: { onSent: (phone: string, expiresIn: number) => v
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
+          {phoneCountry.showPicker ? (
+            <PhoneCountryPicker
+              countries={phoneCountry.countries}
+              value={phoneCountry.country?.code}
+              onChange={phoneCountry.select}
+              disabled={pending}
+            />
+          ) : null}
           <div className="flex flex-col gap-2">
             <Label htmlFor={phoneId}>{t("auth.phoneNumber")}</Label>
             <Input
@@ -184,8 +199,8 @@ function PhoneStep({ onSent }: { onSent: (phone: string, expiresIn: number) => v
             ) : null}
           </div>
 
-          <Button type="submit" size="lg" disabled={pending || blockedFor > 0}>
-            {pending
+          <Button type="submit" size="lg" disabled={pending || phoneCountry.loading || blockedFor > 0}>
+            {pending || phoneCountry.loading
               ? t("common.loading")
               : blockedFor > 0
                 ? t("auth.tryAgainIn", { seconds: blockedFor })
@@ -282,7 +297,7 @@ function CodeStep({
     setResending(true);
     setFailure(null);
     setNotice(null);
-    const outcome = await requestCode(step.phone, locale, t("auth.requestFailed"));
+    const outcome = await requestCode(step.phone, locale, t("auth.requestFailed"), step.country);
     setResending(false);
     if (outcome.ok) {
       setCode("");

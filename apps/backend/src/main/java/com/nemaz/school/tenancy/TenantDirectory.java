@@ -24,9 +24,12 @@ public interface TenantDirectory {
 	record OrganizationRef(UUID id, String countryCode, String name) {
 	}
 
-	/** {@code organizationId} is null for an independent school; {@code status} is the school's status name (ACTIVE, ...). */
+	/**
+	 * {@code organizationId} is null for an independent school; {@code status} is the school's status name (ACTIVE,
+	 * ...); {@code timezone} is the school's own IANA zone ({@code schools.timezone}).
+	 */
 	record SchoolRef(UUID id, String countryCode, UUID organizationId, String name, String slug, String status,
-			String defaultLanguageCode) {
+			String defaultLanguageCode, String timezone) {
 
 		public boolean isActive() {
 			return "ACTIVE".equals(this.status);

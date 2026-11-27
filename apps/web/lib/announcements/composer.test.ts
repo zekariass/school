@@ -14,6 +14,7 @@ import {
   buildPublishedEditBody,
   buildTranslations,
   composerFromAnnouncement,
+  composerLanguages,
   composerProblems,
   draftProblems,
   hasContent,
@@ -63,7 +64,9 @@ const teacher: CapsLike = {
 const oneClassTeacher: CapsLike = { ...teacher, classes: [{ id: A, name: "Grade 1A" }] };
 const nobody: CapsLike = { ...teacher, canCompose: false, classes: [] };
 
-const blank = (caps: CapsLike) => initialComposer(caps, ZONE, NOW);
+// Invented language codes: the composer takes the languages of the school's country from the API.
+const LANGS = ["xa", "xb"] as const;
+const blank = (caps: CapsLike) => initialComposer(caps, ZONE, NOW, LANGS[0]);
 const filled = (caps: CapsLike, patch: Partial<ComposerState> = {}): ComposerState => ({ ...blank(caps), title: "Trip", body: "We go on Friday.", ...patch });
 
 describe("what the caller may choose", () => {
@@ -238,7 +241,7 @@ describe("edit after publishing (the material choice)", () => {
   });
 
   it("notices whether the text changed", () => {
-    const saved = { type: "NORMAL" as const, title: "Trip", body: "We go on Friday.", bodyLanguageCode: "en", translations: {}, requiresAcknowledgement: false };
+    const saved = { type: "NORMAL" as const, title: "Trip", body: "We go on Friday.", bodyLanguageCode: LANGS[0], translations: {}, requiresAcknowledgement: false };
     expect(textChanged(filled(manager), saved)).toBe(false);
     expect(textChanged(filled(manager, { body: "We go on Monday." }), saved)).toBe(true);
     expect(textChanged(filled(manager, { title: "  Trip  " }), saved)).toBe(false);
@@ -309,10 +312,17 @@ describe("helpers", () => {
   });
 
   it("offers translations for the other languages only, and drops a translation that becomes the text's language", () => {
-    expect(translationLanguages({ language: "en", translations: {} })).toEqual(["am"]);
-    expect(translationLanguages({ language: "en", translations: { am: { title: "", body: "" } } })).toEqual([]);
-    const state = filled(manager, { language: "en", translations: { am: { title: "a", body: "b" } } });
-    expect(withLanguage(state, "am").translations).toEqual({});
+    expect(translationLanguages({ language: "xa", translations: {} }, LANGS)).toEqual(["xb"]);
+    expect(translationLanguages({ language: "xa", translations: { xb: { title: "", body: "" } } }, LANGS)).toEqual([]);
+    const state = filled(manager, { language: "xa", translations: { xb: { title: "a", body: "b" } } });
+    expect(withLanguage(state, "xb").translations).toEqual({});
+  });
+
+  it("starts in the default language and lists the languages of the country, plus the one an old text already has", () => {
+    expect(blank(manager).language).toBe("xa");
+    expect(composerLanguages(LANGS, "xb")).toEqual(["xa", "xb"]);
+    expect(composerLanguages(LANGS, "xz")).toEqual(["xz", "xa", "xb"]);
+    expect(translationLanguages({ language: "xz", translations: {} }, LANGS)).toEqual(["xa", "xb"]);
   });
 
   it("knows when there is something to lose", () => {
@@ -334,20 +344,20 @@ describe("composerFromAnnouncement", () => {
   };
 
   it("restores the fields of a draft", () => {
-    const state = composerFromAnnouncement(saved, manager, ZONE, NOW);
+    const state = composerFromAnnouncement(saved, manager, ZONE, NOW, LANGS[0]);
     expect(state).toMatchObject({ type: "IMPORTANT", title: "Trip", language: "am", kind: "CLASS", classIds: [A, B], roles: ["GUARDIAN"], requiresAcknowledgement: true, email: true, push: false, audienceLocked: false });
   });
 
   it("locks an audience made of several kinds or different roles instead of guessing", () => {
     const mixed = { ...saved, audiences: [{ type: "SCHOOL" as const, roles: ["GUARDIAN" as const] }, { type: "CLASS" as const, classId: A, roles: ["GUARDIAN" as const] }] };
-    expect(composerFromAnnouncement(mixed, manager, ZONE, NOW).audienceLocked).toBe(true);
+    expect(composerFromAnnouncement(mixed, manager, ZONE, NOW, LANGS[0]).audienceLocked).toBe(true);
     const roles = { ...saved, audiences: [{ type: "CLASS" as const, classId: A, roles: ["GUARDIAN" as const] }, { type: "CLASS" as const, classId: B, roles: ["STAFF" as const] }] };
-    expect(composerFromAnnouncement(roles, manager, ZONE, NOW).audienceLocked).toBe(true);
+    expect(composerFromAnnouncement(roles, manager, ZONE, NOW, LANGS[0]).audienceLocked).toBe(true);
   });
 
   it("holds chosen people by id only", () => {
     const people = { ...saved, audiences: [{ type: "USER" as const, userId: A, roles: ["GUARDIAN" as const] }, { type: "USER" as const, userId: B, roles: ["GUARDIAN" as const] }] };
-    const state = composerFromAnnouncement(people, manager, ZONE, NOW);
+    const state = composerFromAnnouncement(people, manager, ZONE, NOW, LANGS[0]);
     expect(state.kind).toBe("USER");
     expect(state.people.map((p) => p.id)).toEqual([A, B]);
     expect(state.audienceLocked).toBe(false);
