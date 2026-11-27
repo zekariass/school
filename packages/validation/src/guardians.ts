@@ -62,7 +62,7 @@ export type ParsedDestination =
  * Reads what an adult typed in a single "phone or email" field: anything with an `@` is an email,
  * everything else a phone number in `country`. The server validates again.
  */
-export function parseDestinationInput(input: string, country: CountryCode = 'ET'): ParsedDestination {
+export function parseDestinationInput(input: string, country: CountryCode | undefined): ParsedDestination {
   const value = input.trim();
   if (!value) return { ok: false, key: 'validation.required' };
   if (value.includes('@')) {

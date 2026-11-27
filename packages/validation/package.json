@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./guardians": "./src/guardians.ts",
-    "./family": "./src/family.ts"
+    "./family": "./src/family.ts",
+    "./country": "./src/country.ts"
   },
   "scripts": {
     "lint": "eslint .",
