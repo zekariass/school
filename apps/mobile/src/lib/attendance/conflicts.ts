@@ -53,6 +53,9 @@ export function resolveConflict(
       payload: {
         date: op.payload.date,
         slot: op.payload.slot,
+        // The resend belongs to the same period roll: its subject (the server holds that one) and the group's filter.
+        ...(op.payload.subjectId !== undefined ? { subjectId: op.payload.subjectId } : {}),
+        ...(op.payload.groupId !== undefined ? { groupId: op.payload.groupId } : {}),
         records: settled.map(markFromEntry),
         ...(op.payload.overrideReason !== undefined ? { overrideReason: op.payload.overrideReason } : {}),
       },

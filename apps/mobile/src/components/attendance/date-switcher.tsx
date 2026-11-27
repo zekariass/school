@@ -13,19 +13,22 @@ export interface DateSwitcherProps {
   /** The school's today (from the school's zone, not the phone's). */
   today: string;
   onDate: (date: string) => void;
-  slots: readonly string[];
-  slot: string;
-  onSlot: (slot: string) => void;
+  /** The roll-call switcher; left out for screens that have none (the staff roll). */
+  slots?: readonly string[];
+  slot?: string;
+  onSlot?: (slot: string) => void;
+  /** How far the day arrows go (default: the student roll's window). */
+  window?: { canGoEarlier: (date: string, today: string) => boolean; canGoLater: (date: string, today: string) => boolean };
 }
 
 /** "Wednesday 25 November, today": the day arrows stop at what the API allows (never the future). */
-export function DateSwitcher({ date, today, onDate, slots, slot, onSlot }: DateSwitcherProps) {
+export function DateSwitcher({ date, today, onDate, slots = [], slot, onSlot, window: bounds }: DateSwitcherProps) {
   const t = useTranslations();
   const { colors, radii, spacing, minTouchTarget } = useAppTheme();
   const format = useFormatCivilDate();
   const slotLabel = useSlotLabel();
-  const earlier = canGoEarlier(date, today);
-  const later = canGoLater(date, today);
+  const earlier = (bounds?.canGoEarlier ?? canGoEarlier)(date, today);
+  const later = (bounds?.canGoLater ?? canGoLater)(date, today);
 
   return (
     <View style={{ gap: spacing[2] }}>
@@ -49,7 +52,7 @@ export function DateSwitcher({ date, today, onDate, slots, slot, onSlot }: DateS
           </Text>
         </Pressable>
       ) : null}
-      {slots.length > 1 ? (
+      {slots.length > 1 && slot !== undefined && onSlot ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing[2] }} accessibilityRole="radiogroup" accessibilityLabel={t('mobile.attendance.slot.label')}>
           {slots.map((value) => (
             <Pressable

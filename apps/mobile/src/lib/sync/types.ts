@@ -35,6 +35,13 @@ export interface AttendancePayload {
   /** School-local calendar date (`YYYY-MM-DD`): never the device's date. */
   readonly date: string;
   readonly slot: string;
+  /**
+   * A period roll (P1..P8) names its subject once, when the roll is created (a later request naming another one is
+   * a 409 `attendance.subject_mismatch`; naming one on a roll that has none is the same). Ids only.
+   */
+  readonly subjectId?: string;
+  /** The saved student group the edit is restricted to (an elective's roster). A request filter, not part of the roll. */
+  readonly groupId?: string;
   readonly records: readonly AttendanceMark[];
   /** Why a locked roll is edited (the lead teacher and managers only). */
   readonly overrideReason?: string;

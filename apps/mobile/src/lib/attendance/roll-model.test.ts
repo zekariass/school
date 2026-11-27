@@ -45,6 +45,9 @@ const roll = (students: RollStudent[], overrides: Partial<RollSnapshot> = {}): R
   locksAt: '2026-11-27T21:00:00Z',
   mayEditLocked: false,
   synthetic: false,
+  subjectId: null,
+  subjectName: null,
+  groupId: null,
   students,
   ...overrides,
 });

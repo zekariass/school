@@ -5,6 +5,7 @@ import { ActivityIndicator, RefreshControl, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
 import { SchoolAnnouncementsButton } from '@/components/announcements/school-entry';
+import { StaffAttendanceButton } from '@/components/attendance/staff-entry';
 import { ClassCard } from '@/components/class-card';
 import { PlaceholderScreen } from '@/components/placeholder-screen';
 import { ProblemBanner } from '@/components/problem-banner';
@@ -103,6 +104,8 @@ function TeacherClasses() {
           ))}
         </View>
       )}
+      {/* Only for a teacher who is also a staff-attendance manager or reader (from /me): never for teachers as such. */}
+      <StaffAttendanceButton />
     </Screen>
   );
 }

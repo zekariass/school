@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslations } from 'use-intl';
 
 import { DateSwitcher } from '@/components/attendance/date-switcher';
+import { PeriodPicker } from '@/components/attendance/period-picker';
 import { RollRow } from '@/components/attendance/roll-row';
 import { StudentSheet } from '@/components/attendance/student-sheet';
 import { styleOf } from '@/components/attendance/status-style';
@@ -22,6 +23,8 @@ import {
   rollTrust,
   type EffectiveStudent,
 } from '@/lib/attendance/roll-model';
+import { subjectChoice, subjectNameOf } from '@/lib/attendance/period';
+import { useClassGroups, useClassSubjects } from '@/lib/attendance/use-class-lists';
 import { useRoll } from '@/lib/attendance/use-roll';
 import { useRollEditor } from '@/lib/attendance/use-roll-editor';
 import { formatInstant } from '@/lib/calendar/format-instant';
@@ -30,6 +33,7 @@ import { useMyClass } from '@/lib/people/queries';
 import { usePreferences } from '@/lib/preferences/preferences-provider';
 import { useAgeText } from '@/lib/sync/age-text';
 import { isCivilDate } from '@/lib/sync/operations';
+import { isUuid } from '@/lib/sync/types';
 import { syncEngine, useAttentionOperations, usePendingOperations } from '@/lib/sync/runtime';
 import { isAttendanceOp, type AttendanceStatus } from '@/lib/sync/types';
 import { useAppTheme } from '@/lib/theme/theme-provider';
@@ -45,7 +49,7 @@ export default function ClassAttendance() {
   const insets = useSafeAreaInsets();
   const { locale, calendar } = usePreferences();
   const ageText = useAgeText();
-  const params = useLocalSearchParams<{ classId: string; date?: string; slot?: string }>();
+  const params = useLocalSearchParams<{ classId: string; date?: string; slot?: string; group?: string }>();
   const { classId } = params;
   const { cls } = useMyClass(classId);
   const schoolId = cls?.schoolId;
@@ -55,6 +59,9 @@ export default function ClassAttendance() {
   // Opened from "Open the roll" of an attendance problem: that day and slot, else the school's today.
   const [date, setDate] = useState<string | null>(params.date && isCivilDate(params.date) ? params.date : null);
   const [slot, setSlot] = useState<string | null>(params.slot && params.slot.length <= 10 ? params.slot : null);
+  // An elective's roster: a saved group of the class (a filter on the roll, not a roll of its own).
+  const [groupId, setGroupId] = useState<string | null>(params.group && isUuid(params.group) ? params.group : null);
+  const [subjectDraft, setSubjectDraft] = useState<{ rollId: string; subjectId: string | null } | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [refreshing, setRefreshing] = useState(false);
   const [sheetFor, setSheetFor] = useState<string | null>(null);
@@ -71,16 +78,21 @@ export default function ClassAttendance() {
     return () => clearInterval(timer);
   }, []);
 
-  const query = useRoll({ schoolId, classId, date, slot });
+  const query = useRoll({ schoolId, classId, date, slot, groupId });
   const { roll } = query;
   const pending = usePendingOperations();
   const attention = useAttentionOperations();
+  const subjects = useClassSubjects(schoolId, classId);
+  const groups = useClassGroups(schoolId, classId);
+  // The subject picked for a roll that does not exist yet; valid only for that date and slot.
+  const rollId = roll ? `${roll.date}|${roll.slot}` : '';
+  const subject = roll ? subjectChoice(roll, pending, subjectDraft?.rollId === rollId ? subjectDraft.subjectId : null) : { subjectId: null, locked: true, applicable: false };
 
   const students = useMemo(() => (roll ? effectiveStudents(roll, pending) : []), [roll, pending]);
   const counts = useMemo(() => countStatuses(students), [students]);
   const trust = roll && query.fetchedAt !== undefined ? rollTrust(query.fetchedAt, now, roll.synthetic, query.fromCache) : 'fresh';
   const mode = roll ? editability(roll, trust, now) : ({ kind: 'stale' } as const);
-  const editor = useRollEditor({ roll, ownerId: me.data?.id, editability: mode });
+  const editor = useRollEditor({ roll, ownerId: me.data?.id, editability: mode, subjectId: subject.subjectId, groupId });
   const readOnly = mode.kind === 'locked' || mode.kind === 'stale';
 
   const issues = attention.filter((op) => isAttendanceOp(op) && op.classId === classId).length;
@@ -204,6 +216,18 @@ export default function ClassAttendance() {
             slots={roll.slots}
             slot={roll.slot}
             onSlot={(next) => setSlot(next === roll.slots[0] ? null : next)}
+          />
+        ) : null}
+
+        {roll ? (
+          <PeriodPicker
+            subject={subject}
+            subjectName={subjectNameOf(subject.subjectId, roll, subjects.data ?? [])}
+            subjects={subjects.data ?? []}
+            onSubject={(id) => setSubjectDraft({ rollId, subjectId: id })}
+            groups={groups.data ?? []}
+            groupId={groupId}
+            onGroup={setGroupId}
           />
         ) : null}
 

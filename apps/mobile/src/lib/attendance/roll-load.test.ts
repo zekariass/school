@@ -24,6 +24,9 @@ const server = (date: string, slot = 'DAY'): RollSnapshot => ({
   locksAt: '2026-11-26T21:00:00Z',
   mayEditLocked: false,
   synthetic: false,
+  subjectId: null,
+  subjectName: null,
+  groupId: null,
   students: [{ studentId: u(101), name: 'Abel', avatarMediaId: null, avatarColor: null, record: null, suggestedStatus: null, absence: null }],
 });
 

@@ -3,8 +3,11 @@
 export const ATTENDANCE_ROOT = 'attendance';
 
 /** `date` and `slot` are null for "the school's today, first slot" (the server decides which day that is). */
-export const rollKey = (classId: string, date: string | null, slot: string | null) =>
-  [ATTENDANCE_ROOT, 'roll', classId, date ?? 'today', slot ?? 'first'] as const;
+export const rollKey = (classId: string, date: string | null, slot: string | null, groupId: string | null = null) =>
+  [ATTENDANCE_ROOT, 'roll', classId, date ?? 'today', slot ?? 'first', groupId ?? 'class'] as const;
+/** The class's active subjects (what a period roll can be taken for) and its saved student groups. */
+export const classSubjectsKey = (classId: string) => [ATTENDANCE_ROOT, 'subjects', classId] as const;
+export const classGroupsKey = (classId: string) => [ATTENDANCE_ROOT, 'groups', classId] as const;
 /** Every roll query of a class. */
 export const classRollsKey = (classId: string) => [ATTENDANCE_ROOT, 'roll', classId] as const;
 export const classAbsencesKey = (classId: string) => [ATTENDANCE_ROOT, 'absences', 'class', classId] as const;

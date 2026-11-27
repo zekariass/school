@@ -14,6 +14,9 @@ import {
 /** Per-operation payload ceiling kept well below the server's 64 KiB. */
 export const MAX_PAYLOAD_BYTES = 48 * 1024;
 
+/** P1..P8: the only slots a subject may be named for (the API refuses it elsewhere: `attendance.subject_requires_period`). */
+export const isPeriodSlot = (slot: string): boolean => /^P[1-8]$/.test(slot);
+
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 export function isCivilDate(value: unknown): value is string {
@@ -41,8 +44,10 @@ export function isValidOperation(op: NewOperation | QueuedOperation): boolean {
   if (!isUuid(op.opId) || !op.ownerId || !isUuid(op.schoolId) || !isUuid(op.classId)) return false;
   if (op.baseVersion !== null && !isCount(op.baseVersion)) return false;
   if (op.type === 'ATTENDANCE_MARK') {
-    const { date, slot, records, overrideReason } = op.payload;
+    const { date, slot, records, overrideReason, subjectId, groupId } = op.payload;
     if (!isCivilDate(date) || !slot || slot.length > 10) return false;
+    if (subjectId !== undefined && !(isUuid(subjectId) && isPeriodSlot(slot))) return false;
+    if (groupId !== undefined && !isUuid(groupId)) return false;
     if (records.length === 0 || records.length > 500) return false;
     if (new Set(records.map((record) => record.studentId)).size !== records.length) return false;
     if (!records.every(isValidMark)) return false;
@@ -72,6 +77,8 @@ export function cleanPayload<T extends NewOperation | QueuedOperation>(op: T): T
     const payload: AttendancePayload = {
       date: op.payload.date,
       slot: op.payload.slot,
+      ...(op.payload.subjectId !== undefined ? { subjectId: op.payload.subjectId } : {}),
+      ...(op.payload.groupId !== undefined ? { groupId: op.payload.groupId } : {}),
       records,
       ...(op.payload.overrideReason !== undefined ? { overrideReason: op.payload.overrideReason } : {}),
     };
@@ -86,6 +93,15 @@ export function cleanPayload<T extends NewOperation | QueuedOperation>(op: T): T
  */
 export function mergeKeyOf(op: NewOperation | QueuedOperation): string | null {
   return op.type === 'ATTENDANCE_MARK' ? `${op.ownerId}|${op.classId}|${op.payload.date}|${op.payload.slot}` : null;
+}
+
+/**
+ * Whether `incoming` may be merged into `target` (both of the same roll, see {@link mergeKeyOf}): only when they name
+ * the same subject and the same group. Otherwise the new edit becomes its own operation, queued after the older one,
+ * so the order the teacher made the edits in is the order the server sees (a student can be in two groups).
+ */
+export function canMerge(target: Pick<QueuedAttendance, 'payload'>, incoming: { readonly payload: AttendancePayload }): boolean {
+  return (target.payload.subjectId ?? null) === (incoming.payload.subjectId ?? null) && (target.payload.groupId ?? null) === (incoming.payload.groupId ?? null);
 }
 
 /**
@@ -109,6 +125,8 @@ export function mergeAttendance(existing: QueuedAttendance, incoming: Omit<Queue
   return {
     date: existing.payload.date,
     slot: existing.payload.slot,
+    ...(existing.payload.subjectId !== undefined ? { subjectId: existing.payload.subjectId } : {}),
+    ...(existing.payload.groupId !== undefined ? { groupId: existing.payload.groupId } : {}),
     records: [...byStudent.values()],
     ...(overrideReason !== undefined ? { overrideReason } : {}),
   };

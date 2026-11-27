@@ -106,7 +106,7 @@ function IssueCard({ op, studentNames, teacherNames, className }: { op: QueuedAt
           label={t('mobile.attendance.issues.openRoll')}
           onPress={() => {
             void syncEngine.dismiss(op.opId);
-            router.replace({ pathname: '/class/[classId]/attendance', params: { classId: op.classId, date: op.payload.date, slot: op.payload.slot } });
+            router.replace({ pathname: '/class/[classId]/attendance', params: { classId: op.classId, date: op.payload.date, slot: op.payload.slot, ...(op.payload.groupId ? { group: op.payload.groupId } : {}) } });
           }}
         />
         <Button variant="ghost" label={t('mobile.attendance.issues.dismiss')} onPress={() => void syncEngine.dismiss(op.opId)} />

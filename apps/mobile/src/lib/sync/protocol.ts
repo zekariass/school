@@ -34,6 +34,8 @@ export function toRequestOperation(op: QueuedOperation, deviceId: string): Reque
         classId: op.classId,
         date: op.payload.date,
         slot: op.payload.slot,
+        ...(op.payload.subjectId !== undefined ? { subjectId: op.payload.subjectId } : {}),
+        ...(op.payload.groupId !== undefined ? { groupId: op.payload.groupId } : {}),
         ...(op.payload.overrideReason !== undefined ? { overrideReason: op.payload.overrideReason } : {}),
         records: op.payload.records.map((record) => ({
           studentId: record.studentId,

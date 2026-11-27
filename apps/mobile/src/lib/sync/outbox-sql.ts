@@ -114,6 +114,8 @@ function readAttendance(value: unknown): AttendancePayload {
   return {
     date: typeof raw.date === 'string' ? raw.date : '',
     slot: typeof raw.slot === 'string' ? raw.slot : '',
+    ...(typeof raw.subjectId === 'string' ? { subjectId: raw.subjectId } : {}),
+    ...(typeof raw.groupId === 'string' ? { groupId: raw.groupId } : {}),
     records,
     ...(typeof raw.overrideReason === 'string' ? { overrideReason: raw.overrideReason } : {}),
   };
