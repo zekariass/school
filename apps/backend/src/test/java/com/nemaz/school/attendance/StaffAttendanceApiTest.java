@@ -228,7 +228,10 @@ class StaffAttendanceApiTest extends AttendanceTestSupport {
 		same.put("status", "LATE");
 		same.put("minutesLate", 12);
 		assertThat(errorCode(call(HttpMethod.POST, url, s.admin(), same, 400))).isEqualTo("staff_attendance.nothing_to_correct");
-		assertThat(this.jdbc.queryForObject("select count(*) from staff_attendance_corrections", Integer.class)).isZero();
+		// this record's corrections only: the table is shared with every other test of the context, whatever order they run in
+		assertThat(this.jdbc.queryForObject("select count(*) from staff_attendance_corrections where record_id = ?", Integer.class,
+				recordId))
+			.isZero();
 
 		JsonNode done = call(HttpMethod.POST, url, s.admin(), fix, 201);
 		assertThat(done.get("record").get("status").asString()).isEqualTo("PRESENT");
