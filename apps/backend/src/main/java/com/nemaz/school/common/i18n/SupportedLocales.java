@@ -1,22 +1,15 @@
 package com.nemaz.school.common.i18n;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,9 +29,9 @@ public class SupportedLocales {
 	/** The fallback and root bundle language. */
 	public static final String FALLBACK = "en";
 
-	private static final Logger log = LoggerFactory.getLogger(SupportedLocales.class);
+	private static final String BUNDLE_PREFIX = "messages_";
 
-	private static final Pattern BUNDLE = Pattern.compile("^messages_([A-Za-z]{2,3})\\.properties$");
+	private static final String BUNDLE_SUFFIX = ".properties";
 
 	private final List<String> codes;
 
@@ -81,19 +74,17 @@ public class SupportedLocales {
 		return supports(languageCode) ? Locale.forLanguageTag(languageCode.toLowerCase(Locale.ROOT)) : Locale.ENGLISH;
 	}
 
+	/**
+	 * The ISO 639-1 languages that have a bundle file {@code messages_<code>.properties}: each code is probed on the class
+	 * path by name, which works the same in a directory and in the packaged jar (a wildcard scan of the class path root does
+	 * not).
+	 */
 	private static List<String> detect() {
 		Set<String> found = new TreeSet<>();
-		try {
-			for (Resource resource : new PathMatchingResourcePatternResolver().getResources("classpath*:messages_*.properties")) {
-				String name = resource.getFilename();
-				Matcher matcher = (name != null) ? BUNDLE.matcher(name) : null;
-				if (matcher != null && matcher.matches()) {
-					found.add(matcher.group(1).toLowerCase(Locale.ROOT));
-				}
+		for (String code : Locale.getISOLanguages()) {
+			if (new ClassPathResource(BUNDLE_PREFIX + code + BUNDLE_SUFFIX).exists()) {
+				found.add(code);
 			}
-		}
-		catch (IOException ex) {
-			log.warn("Could not scan the message bundles: {}", ex.getMessage());
 		}
 		return new ArrayList<>(found);
 	}
