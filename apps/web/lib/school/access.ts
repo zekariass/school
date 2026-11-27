@@ -19,6 +19,8 @@ export const SP = {
   pointsRead: "school.points.read",
   attendanceManage: "school.attendance.manage",
   attendanceRead: "school.attendance.read",
+  staffAttendanceManage: "school.staff_attendance.manage",
+  staffAttendanceRead: "school.staff_attendance.read",
   feedManage: "school.feed.manage",
   announcementsManage: "school.announcements.manage",
   announcementsUrgent: "school.announcements.urgent",
@@ -103,8 +105,8 @@ export function navItems(access: SchoolAccess): NavId[] {
   if (can(SP.academic)) items.push("academic");
   // Teachers confirm and invite guardians of their own classes (the API decides how far, by lead role and school setting).
   if (can(SP.guardians) || access.isTeacher) items.push("families");
-  // Attendance dashboard and reports: teachers (their classes), attendance readers and managers.
-  if (can(SP.attendanceManage) || can(SP.attendanceRead) || access.isTeacher) items.push("attendance");
+  // Attendance dashboard and reports: teachers (their classes), attendance readers and managers; the Staff tab: staff attendance readers and managers.
+  if (can(SP.attendanceManage) || can(SP.attendanceRead) || can(SP.staffAttendanceManage) || can(SP.staffAttendanceRead) || access.isTeacher) items.push("attendance");
   // Points and badges: teachers (reports of their classes), points managers and readers.
   if (can(SP.pointsManage) || can(SP.pointsRead) || access.isTeacher) items.push("points");
   // The school feed and its approvals queue: members who work at the school (the API decides who may post).

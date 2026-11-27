@@ -1,16 +1,19 @@
 "use client";
 
-import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { EmptyNotice, ErrorNotice, LoadingRows, LoadMore } from "@/components/console/states";
+import { SelectField } from "@/components/school/fields";
 import { useSchool } from "@/components/school/school-context";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "@/i18n/navigation";
+import { activeSubjects, isPeriodSlot, subjectLabel } from "@/lib/attendance/periods";
 import { ak, fetchDashboard } from "@/lib/attendance/queries";
 import { dashboardState, visibleDashboardRows } from "@/lib/attendance/report";
 import { errorMessage } from "@/lib/console/errors";
+import { fetchSubjects, sk } from "@/lib/school/queries";
 import { cn } from "@/lib/utils";
 import { DateSlotBar } from "./date-slot-bar";
 
@@ -23,11 +26,15 @@ export function DailyDashboard() {
   const { school } = useSchool();
   const [date, setDate] = useState<string | null>(null);
   const [slot, setSlot] = useState<string | null>(null);
+  const [subjectId, setSubjectId] = useState<string | null>(null);
   const [onlyNotTaken, setOnlyNotTaken] = useState(false);
 
+  const subjects = useQuery({ queryKey: sk.subjects(school.id), queryFn: () => fetchSubjects(school.id), staleTime: 5 * 60_000, retry: false });
+  const subjectOptions = activeSubjects(subjects.data);
+
   const dashboard = useInfiniteQuery({
-    queryKey: ak.dashboard(school.id, date, slot),
-    queryFn: ({ pageParam }) => fetchDashboard(school.id, date, slot, pageParam),
+    queryKey: ak.dashboard(school.id, date, slot, subjectId),
+    queryFn: ({ pageParam }) => fetchDashboard(school.id, date, slot, pageParam, subjectId),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => page.classes.nextCursor ?? undefined,
     placeholderData: keepPreviousData,
@@ -57,8 +64,23 @@ export function DailyDashboard() {
         busy={switching}
         onDate={setDate}
         onToday={() => setDate(null)}
-        onSlot={setSlot}
+        onSlot={(next) => {
+          setSlot(next);
+          setSubjectId(null);
+        }}
       />
+
+      {isPeriodSlot(first.slot) && subjectOptions.length > 0 ? (
+        <SelectField
+          label={t("periods.subjectFilter")}
+          value={subjectId ?? ""}
+          onChange={(v) => setSubjectId(v || null)}
+          noneLabel={t("periods.anySubject")}
+          options={subjectOptions.map((s) => ({ value: s.id, label: s.name }))}
+          className="w-56"
+          disabled={switching}
+        />
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm font-medium" data-testid="dashboard-summary">
@@ -112,6 +134,11 @@ export function DailyDashboard() {
                       >
                         {row.className}
                       </Link>
+                      {subjectLabel(row) ? (
+                        <span className="block text-sm font-normal text-muted-foreground" data-testid={`dashboard-subject-${row.classId}`}>
+                          {subjectLabel(row)}
+                        </span>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       <Badge variant={state === "taken" ? "secondary" : state === "notTaken" ? "outline" : "ghost"} className={cn(state === "notTaken" && "border-warning text-foreground")}>

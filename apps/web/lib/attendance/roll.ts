@@ -137,16 +137,30 @@ export interface WriteOptions {
   overrideReason?: string;
   /** Only these students' edits (used to resend single resolved conflicts). */
   onlyStudentIds?: ReadonlySet<string>;
+  /** The period roll's subject and the group the roster was restricted to (see `periodScope`). */
+  scope?: PeriodScope;
 }
+
+/** What makes a roll a period roll: the subject (P1..P8 only) and the saved group of an elective. */
+export interface PeriodScope {
+  subjectId?: string;
+  groupId?: string;
+}
+
+const scopeFields = (scope: PeriodScope | undefined): PeriodScope => ({
+  ...(scope?.subjectId ? { subjectId: scope.subjectId } : {}),
+  ...(scope?.groupId ? { groupId: scope.groupId } : {}),
+});
 
 /** The request that saves the pending edits of a roll. `baseVersion` is the roll version the teacher read. */
 export function buildWrite(options: WriteOptions): RollRequest {
-  const { roll, drafts, markAllPresent, overrideReason, onlyStudentIds } = options;
+  const { roll, drafts, markAllPresent, overrideReason, onlyStudentIds, scope } = options;
   const scoped = onlyStudentIds ? Object.fromEntries(Object.entries(drafts).filter(([id]) => onlyStudentIds.has(id))) : drafts;
   const reason = overrideReason?.trim();
   return {
     date: roll.date,
     slot: roll.slot,
+    ...scopeFields(scope),
     ...(roll.sessionVersion != null ? { baseVersion: roll.sessionVersion } : {}),
     ...(markAllPresent ? { markAllPresent: true } : {}),
     ...(roll.locked && reason ? { overrideReason: reason.slice(0, 200) } : {}),
@@ -245,11 +259,13 @@ export function buildResolve(
   conflicts: Conflicts,
   studentIds: readonly string[],
   overrideReason?: string,
+  scope?: PeriodScope,
 ): RollRequest {
   const reason = overrideReason?.trim();
   return {
     date: roll.date,
     slot: roll.slot,
+    ...scopeFields(scope),
     ...(roll.sessionVersion != null ? { baseVersion: roll.sessionVersion } : {}),
     ...(roll.locked && reason ? { overrideReason: reason.slice(0, 200) } : {}),
     records: mineInputs(conflicts, studentIds),

@@ -55,10 +55,10 @@ describe("classAttendanceAbilities", () => {
 
 describe("attendancePageAccess", () => {
   it("shows the page to teachers, readers and managers", () => {
-    expect(attendancePageAccess(none, true)).toEqual({ canSee: true, canSeeSchoolWide: false });
-    expect(attendancePageAccess(new Set(["school.attendance.read"]), false)).toEqual({ canSee: true, canSeeSchoolWide: true });
-    expect(attendancePageAccess(new Set(["school.attendance.manage"]), false)).toEqual({ canSee: true, canSeeSchoolWide: true });
-    expect(attendancePageAccess(new Set(["class.manage"]), false)).toEqual({ canSee: false, canSeeSchoolWide: false });
+    expect(attendancePageAccess(none, true)).toMatchObject({ canSee: true, canSeeStudents: true, canSeeSchoolWide: false });
+    expect(attendancePageAccess(new Set(["school.attendance.read"]), false)).toMatchObject({ canSee: true, canSeeStudents: true, canSeeSchoolWide: true });
+    expect(attendancePageAccess(new Set(["school.attendance.manage"]), false)).toMatchObject({ canSee: true, canSeeStudents: true, canSeeSchoolWide: true });
+    expect(attendancePageAccess(new Set(["class.manage"]), false)).toMatchObject({ canSee: false, canSeeStudents: false, canSeeSchoolWide: false });
   });
 });
 

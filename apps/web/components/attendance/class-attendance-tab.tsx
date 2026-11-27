@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { classAttendanceAbilities, type ClassAttendanceAbilities } from "@/lib/attendance/access";
 import { isIsoDate } from "@/lib/attendance/dates";
 import { ak, fetchRoll, putRoll } from "@/lib/attendance/queries";
+import { periodRefusal, periodScope, refusalNeedsReload, withCreatedSubject } from "@/lib/attendance/periods";
 import { isKnownSlot } from "@/lib/attendance/slots";
 import {
   applyResult,
@@ -38,6 +39,7 @@ import type { ClassView } from "@/lib/school/queries";
 import { cn } from "@/lib/utils";
 import { ConflictPanel } from "./conflict-panel";
 import { DateSlotBar } from "./date-slot-bar";
+import { PeriodPickers, usePeriodChoices } from "./period-pickers";
 import { RollRow } from "./roll-row";
 import { STATUS_UI, useFormatInstantIn } from "./status";
 
@@ -63,6 +65,10 @@ function Roll({ cls, abilities, initialDate, initialSlot }: { cls: ClassView; ab
   // `date` and `slot` null = the API's defaults (today in the school's zone, the school's first roll call).
   const [date, setDate] = useState<string | null>(isIsoDate(initialDate) ? initialDate : null);
   const [slot, setSlot] = useState<string | null>(initialSlot && isKnownSlot(initialSlot) ? initialSlot : null);
+  // A period roll's optional subject (chosen before the roll exists) and the saved group of an elective; null = whole class.
+  const [subjectId, setSubjectId] = useState<string | null>(null);
+  const [groupId, setGroupId] = useState<string | null>(null);
+  const choices = usePeriodChoices(cls);
   // `base` is the roll the edits are measured against and the versions come from: it only follows the server
   // while there are no unsaved edits, so a refresh behind the teacher's back can never turn an edit into a silent overwrite.
   const [base, setBase] = useState<RollView | null>(null);
@@ -76,8 +82,8 @@ function Roll({ cls, abilities, initialDate, initialSlot }: { cls: ClassView; ab
   const [discard, setDiscard] = useState<null | (() => void)>(null);
 
   const roll = useQuery({
-    queryKey: ak.roll(school.id, cls.id, date, slot),
-    queryFn: () => fetchRoll(school.id, cls.id, date, slot),
+    queryKey: ak.roll(school.id, cls.id, date, slot, groupId),
+    queryFn: () => fetchRoll(school.id, cls.id, date, slot, groupId),
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -88,9 +94,9 @@ function Roll({ cls, abilities, initialDate, initialSlot }: { cls: ClassView; ab
   const fetched = roll.isPlaceholderData ? undefined : roll.data;
   const [seen, setSeen] = useState<RollView | undefined>(undefined);
   if (fetched && fetched !== seen) {
-    // A different day or roll call replaces the roll; the same one is refreshed only while nothing is unsaved.
+    // A different day, roll call or group replaces the roll; the same one is refreshed only while nothing is unsaved.
     setSeen(fetched);
-    if (!base || base.date !== fetched.date || base.slot !== fetched.slot || edits === 0) setBase(fetched);
+    if (!base || base.date !== fetched.date || base.slot !== fetched.slot || (base.groupId ?? null) !== (fetched.groupId ?? null) || edits === 0) setBase(fetched);
   }
 
   // A page with unsaved marks asks before it is closed.
@@ -130,12 +136,25 @@ function Roll({ cls, abilities, initialDate, initialSlot }: { cls: ClassView; ab
     });
   }
 
+  // A roll is one per class, date and slot: another slot loads its own roll (never touching this one), for the whole
+  // class and without the subject chosen here, which belonged to the lesson that was open.
   function changeSlot(next: string) {
     guarded(() => {
       resetEdits();
+      setSubjectId(null);
+      setGroupId(null);
       setSlot(next);
     });
   }
+
+  function changeGroup(next: string | null) {
+    guarded(() => {
+      resetEdits();
+      setGroupId(next);
+    });
+  }
+
+  const scope = base ? periodScope(base, subjectId, choices.subjects) : undefined;
 
   function refresh() {
     guarded(() => {
@@ -156,10 +175,12 @@ function Roll({ cls, abilities, initialDate, initialSlot }: { cls: ClassView; ab
     try {
       const result = await save.mutateAsync(request);
       const applied = applyResult(current, drafts, conflicts, result);
-      setBase(applied.roll);
+      // The write answer does not repeat the subject: a roll that was just created for one keeps it on screen.
+      const nextRoll = withCreatedSubject(applied.roll, !current.sessionId, scope?.subjectId, choices.subjects);
+      setBase(nextRoll);
       setDrafts(applied.drafts);
       setConflicts(applied.conflicts);
-      queryClient.setQueryData(ak.roll(school.id, cls.id, date, slot), applied.roll);
+      queryClient.setQueryData(ak.roll(school.id, cls.id, date, slot, groupId), nextRoll);
       void queryClient.invalidateQueries({ queryKey: ak.allDashboards(school.id) });
       const conflicted = conflictsOf(result).length;
       if (conflicted > 0) toast.warning(t("roll.savedConflicts", { count: conflicted }));
@@ -168,18 +189,22 @@ function Roll({ cls, abilities, initialDate, initialSlot }: { cls: ClassView; ab
         setAnnouncement(t("roll.saved"));
       }
     } catch (error) {
-      setSaveError(errorMessage(error, t("roll.loadFailed")));
+      const refusal = periodRefusal(error);
+      const detail = errorMessage(error, t("roll.loadFailed"));
+      // The roll has another subject or the group is gone: what is on screen is stale, so a refresh is offered.
+      if (refusalNeedsReload(refusal)) void queryClient.invalidateQueries({ queryKey: ak.allRolls(school.id, cls.id) });
+      setSaveError(refusalNeedsReload(refusal) ? `${detail} ${t("periods.reloadHint")}` : detail);
     }
   }
 
   function saveEdits(markAllPresent: boolean) {
     if (!base) return;
-    void send(buildWrite({ roll: base, drafts, markAllPresent, overrideReason: reason }), base);
+    void send(buildWrite({ roll: base, drafts, markAllPresent, overrideReason: reason, scope }), base);
   }
 
   function resolveMine(studentIds: string[]) {
     if (!base) return;
-    void send(buildResolve(base, conflicts, studentIds, reason), base);
+    void send(buildResolve(base, conflicts, studentIds, reason, scope), base);
   }
 
   function resolveTheirs(studentIds: string[]) {
@@ -217,6 +242,18 @@ function Roll({ cls, abilities, initialDate, initialSlot }: { cls: ClassView; ab
         onDate={(next) => changeDay(next)}
         onToday={() => changeDay(null)}
         onSlot={changeSlot}
+      />
+
+      <PeriodPickers
+        slot={base.slot}
+        sessionId={base.sessionId}
+        rollSubjectName={base.subjectName}
+        choices={choices}
+        subjectId={subjectId}
+        groupId={groupId}
+        disabled={busy}
+        onSubject={setSubjectId}
+        onGroup={changeGroup}
       />
 
       <div className="flex flex-wrap items-center gap-2">

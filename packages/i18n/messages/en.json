@@ -4223,7 +4223,9 @@
         "subtitle": "See which classes have taken attendance today, and read attendance summaries.",
         "tabs": {
           "today": "Daily dashboard",
-          "reports": "Reports"
+          "reports": "Reports",
+          "periods": "Periods",
+          "staff": "Staff"
         },
         "notForYou": "Attendance is for teachers and attendance managers."
       },
@@ -4406,6 +4408,155 @@
         "notify": {
           "title": "Tell parents about these marks",
           "description": "Parents with notifications on are told when their child gets one of these marks. An empty list turns the notifications off."
+        }
+      },
+      "periods": {
+        "subject": "Subject",
+        "noSubject": "No subject",
+        "subjectHint": "Optional. It cannot be changed once the roll is taken.",
+        "group": "Student group",
+        "wholeClass": "Whole class",
+        "groupHint": "Take the roll for one saved group, for example an elective.",
+        "groupOption": "{name} ({count})",
+        "subjectFilter": "Subject",
+        "anySubject": "Any subject",
+        "reloadHint": "Refresh the roll and try again."
+      },
+      "periodReport": {
+        "class": "Class",
+        "allClasses": "All classes",
+        "chooseClass": "Choose a class",
+        "slot": "Roll call",
+        "allSlots": "All roll calls",
+        "subject": "Subject",
+        "allSubjects": "All subjects",
+        "from": "From",
+        "to": "To",
+        "rangeHint": "Leave the dates empty for the last 30 days. Dates are school dates.",
+        "export": "Download CSV",
+        "exported": "The report was downloaded.",
+        "exportFailed": "We couldn't download the report.",
+        "badRange": "Choose a start date that is not after the end date, at most 400 days apart.",
+        "needClass": "Choose a class to see the report.",
+        "loadFailed": "We couldn't load the report.",
+        "empty": "No rolls were taken for this choice.",
+        "caption": "Attendance marks per class, roll call and subject",
+        "classColumn": "Class",
+        "noSubject": "No subject",
+        "rolls": "Rolls",
+        "marked": "Marks",
+        "present": "Present",
+        "absent": "Absent",
+        "late": "Late",
+        "excused": "Excused",
+        "leftEarly": "Left early",
+        "minutesLate": "Minutes late"
+      },
+      "export": {
+        "retryIn": "Try again in {minutes} min {seconds} s."
+      },
+      "staff": {
+        "notForYou": "Staff attendance is for school administrators who manage or read it.",
+        "date": {
+          "label": "Date",
+          "today": "Today",
+          "prev": "Previous day",
+          "next": "Next day",
+          "zone": "School time: {zone}"
+        },
+        "hint": "Mark each person who has no record for this day, then save. A saved record changes only through a correction with a reason.",
+        "readOnly": "You can read staff attendance but not change it.",
+        "summaryLabel": "Staff attendance of the day",
+        "count": {
+          "staff": "Staff",
+          "unmarked": "Not recorded"
+        },
+        "status": {
+          "PRESENT": "Present",
+          "ABSENT": "Absent",
+          "LATE": "Late",
+          "HALF_DAY": "Half day",
+          "EXCUSED": "Excused"
+        },
+        "none": "There is nobody on the staff roll for this day.",
+        "listLabel": "Staff roll",
+        "pickStatus": "Mark for {name}",
+        "pending": "{count, plural, one {# mark not saved} other {# marks not saved}}",
+        "unmarked": "{count, plural, one {# person has no record yet} other {# people have no record yet}}",
+        "allRecorded": "Everybody has a record for this day.",
+        "markRest": "Mark the rest present",
+        "markRestHelp": "Marks everybody without a record present. Records that already exist stay as they are.",
+        "save": "Save marks",
+        "saving": "Saving…",
+        "saved": "{created, plural, one {# record saved} other {# records saved}}, {existing, plural, one {# already existed and stayed as it was} other {# already existed and stayed as they were}}.",
+        "saveFailed": "We couldn't save the marks.",
+        "loadFailed": "We couldn't load staff attendance.",
+        "notRecorded": "Not recorded",
+        "minutesLate": "Minutes late",
+        "minutesInvalid": "Enter a whole number from 1 to 600.",
+        "note": "Note (at most 200 characters)",
+        "notePlaceholder": "A short note",
+        "disabled": {
+          "title": "Staff attendance is switched off",
+          "body": "This school has not turned on staff attendance. An administrator can turn it on in the school settings."
+        },
+        "featureOff": {
+          "title": "Attendance is not part of this school's plan",
+          "body": "Staff attendance is available when the attendance feature is on for the school."
+        },
+        "denied": {
+          "title": "You can't open staff attendance",
+          "body": "Staff attendance is private. Only people who were given access to it can open it."
+        },
+        "history": {
+          "button": "History",
+          "corrected": "{count, plural, one {Corrected # time} other {Corrected # times}}",
+          "recorded": "Recorded {when}",
+          "none": "This record has not been corrected.",
+          "loadFailed": "We couldn't load the history.",
+          "change": "{from} to {to}",
+          "minutes": "{minutes} min"
+        },
+        "correct": {
+          "button": "Correct",
+          "title": "Correct the record of {name}",
+          "description": "A correction is added to the history and cannot be removed.",
+          "status": "New status",
+          "reason": "Reason for the correction",
+          "reasonHint": "Required. At most 200 characters.",
+          "submit": "Save correction",
+          "saved": "The correction was saved.",
+          "failed": "We couldn't save the correction.",
+          "nothingChanged": "Change the status, the minutes or the note first."
+        },
+        "reports": {
+          "title": "Summaries",
+          "kind": "Kind of summary",
+          "monthly": "By month",
+          "daily": "By day",
+          "month": "Month",
+          "from": "From",
+          "to": "To",
+          "dailyHint": "Counts of each school day that has records. Dates are school dates.",
+          "export": "Download CSV",
+          "exported": "The summary was downloaded.",
+          "exportFailed": "We couldn't download the summary.",
+          "badMonth": "Choose a month.",
+          "badRange": "Choose a start date that is not after the end date, at most 400 days apart.",
+          "loadFailed": "We couldn't load the summary.",
+          "empty": "There are no records for this choice.",
+          "monthlyCaption": "Staff attendance per person for the month",
+          "dailyCaption": "Staff attendance per school day",
+          "name": "Name",
+          "role": "Role",
+          "date": "Date",
+          "marked": "Days recorded",
+          "present": "Present",
+          "absent": "Absent",
+          "late": "Late",
+          "halfDay": "Half day",
+          "excused": "Excused",
+          "minutesLate": "Minutes late"
         }
       }
     },
