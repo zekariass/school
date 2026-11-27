@@ -1,13 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, PaletteIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { EmptyNotice, ErrorNotice, LoadingRows } from "@/components/console/states";
 import { AttendanceHistory } from "@/components/attendance/attendance-history";
 import { StudentAvatar } from "@/components/school/student-avatar";
 import { StudentPointsView } from "@/components/points/student-points-view";
 import { Link } from "@/i18n/navigation";
+import { familyPortfolioPath } from "@/lib/portfolio/paths";
 import { errorMessage } from "@/lib/console/errors";
 import { fetchMyChildren, familyKeys } from "@/lib/family/queries";
 import { canSeeChildAttendance } from "@/lib/attendance/access";
@@ -52,6 +53,16 @@ export function ChildDetail({ studentId }: { studentId: string }) {
         <StudentAvatar id={child.studentId} name={child.displayName} mediaId={child.avatar?.id} config={child.avatarConfig} size={64} />
         <h1 className="min-w-0 truncate text-3xl font-bold">{child.displayName}</h1>
       </header>
+      {child.permissions.canViewAcademics ? (
+        <Link
+          href={familyPortfolioPath(child.studentId)}
+          className="inline-flex min-h-11 items-center gap-2 self-start rounded-xl border px-4 text-sm font-semibold hover:bg-accent"
+          data-testid="child-portfolio-link"
+        >
+          <PaletteIcon className="size-4" aria-hidden />
+          {t("portfolioLink", { name: child.givenName || child.displayName })}
+        </Link>
+      ) : null}
       {!child.permissions.canViewAcademics ? (
         <EmptyNotice>{t("noAcademics")}</EmptyNotice>
       ) : child.schools.length === 0 ? (

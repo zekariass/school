@@ -25,6 +25,18 @@ export async function fetchMediaUrl(mediaId: string, variant: MediaVariantName) 
 }
 
 /**
+ * A one-time signed link to a document's original (a PDF). The API never signs an image original. The link is opened
+ * at once and never stored.
+ */
+export async function fetchOriginalUrl(mediaId: string) {
+  return unwrap(
+    await getBrowserApi().GET("/api/v1/media/{id}/url", {
+      params: { path: { id: mediaId }, query: { variant: "ORIGINAL" } },
+    }),
+  );
+}
+
+/**
  * A fresh signed link for an image variant. It is reused for up to 4 minutes (and never
  * past the link's own expiry); the API lets browsers cache the response for the same time.
  */

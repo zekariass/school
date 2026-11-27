@@ -84,6 +84,7 @@ export type NavId =
   | "attendance"
   | "points"
   | "feed"
+  | "portfolio"
   | "announcements"
   | "messages"
   | "messageReview"
@@ -108,6 +109,8 @@ export function navItems(access: SchoolAccess): NavId[] {
   if (can(SP.pointsManage) || can(SP.pointsRead) || access.isTeacher) items.push("points");
   // The school feed and its approvals queue: members who work at the school (the API decides who may post).
   if (canOpenFeed(access)) items.push("feed");
+  // The school portfolio gallery: members who work at the school. Reviewing and quick capture live on the class page.
+  if (canOpenPortfolio(access)) items.push("portfolio");
   // Announcements: members who work at the school read the school's list and, per the API's capabilities, write their own.
   if (canOpenAnnouncements(access)) items.push("announcements");
   // Messages: teachers, other staff and moderators (the API decides what each may start). Guardians use the family tabs.
@@ -125,6 +128,11 @@ export function navItems(access: SchoolAccess): NavId[] {
 /** The school feed page: teachers, other staff and school feed managers. */
 export function canOpenFeed(access: SchoolAccess): boolean {
   return access.isTeacher || access.isStaff || access.permissions.has(SP.feedManage);
+}
+
+/** The school's portfolio gallery page: teachers and other staff (the API decides what the gallery shows to whom). */
+export function canOpenPortfolio(access: SchoolAccess): boolean {
+  return access.isTeacher || access.isStaff;
 }
 
 /** The school's announcements section: teachers, other staff and announcement managers (guardians use the inbox). */
@@ -205,6 +213,7 @@ export const NAV_PATH: Record<NavId, string> = {
   attendance: "attendance",
   points: "points",
   feed: "feed",
+  portfolio: "portfolio",
   announcements: "announcements",
   messages: "messages",
   messageReview: "messages/review",

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useId, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/lib/console/errors";
-import { acceptAttribute, maxMegabytes, policyFor, typeLabels, validateFile, type FileProblem, type MediaPurpose } from "@/lib/media/policies";
+import { acceptAttribute, maxMegabytes, policyFor, restrictPolicy, typeLabels, validateFile, type FileProblem, type MediaPurpose, type MediaView } from "@/lib/media/policies";
 import { useMediaPolicies } from "@/lib/media/queries";
 import { UploadError, uploadMedia } from "@/lib/media/upload";
 import { IDLE, isBusy, uploadReducer, type UploadFailure } from "@/lib/media/upload-state";
@@ -16,20 +16,22 @@ interface ImageUploaderProps {
   context?: { type: "USER" | "SCHOOL" | "ORGANIZATION" | "CLASS" | "CONVERSATION"; id: string };
   hasImage: boolean;
   /** Called with the READY media; attach it to its owner (set the avatar, the logo, ...) and resolve when done. */
-  onUploaded: (mediaId: string) => Promise<void>;
+  onUploaded: (mediaId: string, media: MediaView) => Promise<void>;
   /** Called to remove the current image; omit to hide the remove button. */
   onRemove?: () => Promise<void>;
   labels: { choose: string; change: string; remove: string };
   disabled?: boolean;
   /** Keeps the "JPEG, PNG up to 10 MB" line for screen readers only (tight layouts such as a composer). */
   compact?: boolean;
+  /** Narrows the purpose's allowed file types (e.g. a PDF-only document); the API still decides. */
+  allowedMimeTypes?: readonly string[];
 }
 
 /**
  * Choose a file, validate it with the rules from `GET /media/policies`, upload it with
  * progress and hand the READY media to `onUploaded`. Shows what happens and what went wrong.
  */
-export function ImageUploader({ purpose, context, hasImage, onUploaded, onRemove, labels, disabled, compact }: ImageUploaderProps) {
+export function ImageUploader({ purpose, context, hasImage, onUploaded, onRemove, labels, disabled, compact, allowedMimeTypes }: ImageUploaderProps) {
   const t = useTranslations("media");
   const inputId = useId();
   const input = useRef<HTMLInputElement>(null);
@@ -37,7 +39,8 @@ export function ImageUploader({ purpose, context, hasImage, onUploaded, onRemove
   const [state, dispatch] = useReducer(uploadReducer, IDLE);
   const [problem, setProblem] = useState<string | null>(null);
   const policies = useMediaPolicies();
-  const policy = policies.data ? policyFor(policies.data, purpose) : undefined;
+  const basePolicy = policies.data ? policyFor(policies.data, purpose) : undefined;
+  const policy = basePolicy && allowedMimeTypes ? restrictPolicy(basePolicy, allowedMimeTypes) : basePolicy;
   const busy = isBusy(state);
 
   function describe(file: FileProblem): string {
@@ -79,7 +82,7 @@ export function ImageUploader({ purpose, context, hasImage, onUploaded, onRemove
         onStage: (stage) => dispatch({ type: "stage", stage }),
         onProgress: (loaded, total) => dispatch({ type: "progress", loaded, total }),
       });
-      await onUploaded(media.id);
+      await onUploaded(media.id, media);
       dispatch({ type: "ready", mediaId: media.id });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {

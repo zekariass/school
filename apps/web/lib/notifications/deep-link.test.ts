@@ -64,6 +64,21 @@ describe("resolveDeepLink", () => {
     });
   });
 
+  describe("portfolio links", () => {
+    const schoolId = "0198b3a2-7c1e-7b34-9f4d-2a6c8e1d5f01";
+    const itemId = "0198b3a2-7c1e-7b34-9f4d-2a6c8e1d5f0a";
+
+    it("opens the item under the notification's school", () => {
+      expect(resolveDeepLink({ path: `/portfolio/items/${itemId}` }, { schoolId })).toBe(`/portfolio/items/${schoolId}/${itemId}`);
+    });
+
+    it("needs the school and a strict id, otherwise just marks the item read", () => {
+      expect(resolveDeepLink({ path: `/portfolio/items/${itemId}` })).toBeNull();
+      expect(resolveDeepLink({ path: `/portfolio/items/${itemId}` }, { schoolId: "../x" })).toBeNull();
+      expect(resolveDeepLink({ path: "/portfolio/items/not-an-id" }, { schoolId })).toBe("/portfolio/items/not-an-id");
+    });
+  });
+
   describe("announcement links", () => {
     const schoolId = "0198b3a2-7c1e-7b34-9f4d-2a6c8e1d5f01";
     const id = "0198b3a2-7c1e-7b34-9f4d-2a6c8e1d5f09";

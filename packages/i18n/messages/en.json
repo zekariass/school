@@ -2649,7 +2649,8 @@
     },
     "studentApp": {
       "title": "Students sign in with the School app",
-      "body": "Students use the School app on their phone or tablet. Ask your teacher for your class code, then open the app and sign in with it."
+      "body": "Students use the School app on their phone or tablet. Ask your teacher for your class code, then open the app and sign in with it.",
+      "portfolioLink": "My portfolio"
     },
     "teacherRole": {
       "LEAD": "Lead teacher",
@@ -3086,7 +3087,8 @@
         "toolkit": "Toolkit",
         "attendance": "Attendance",
         "absences": "Absences",
-        "feed": "Feed"
+        "feed": "Feed",
+        "portfolio": "Portfolio"
       }
     },
     "roster": {
@@ -5845,6 +5847,319 @@
           "description": "Only the people who answered yes or maybe (PARTICIPANTS), or everybody who can see the event (EVERYONE: guardians and staff)."
         }
       }
+    },
+    "portfolio": {
+      "status": {
+        "DRAFT": "Draft",
+        "SUBMITTED": "Waiting for review",
+        "CHANGES_REQUESTED": "Changes asked for",
+        "APPROVED": "Approved",
+        "REJECTED": "Not accepted",
+        "ARCHIVED": "Archived"
+      },
+      "visibility": {
+        "STUDENT_TEACHER": "Student and teachers",
+        "GUARDIANS": "Student, teachers and family",
+        "CLASS": "The class",
+        "SCHOOL": "The whole school"
+      },
+      "types": {
+        "TEXT": "Writing",
+        "PHOTO": "Photo",
+        "DRAWING": "Drawing",
+        "SCAN": "Scan",
+        "DOCUMENT": "Document",
+        "AUDIO": "Audio",
+        "VIDEO": "Video"
+      },
+      "card": {
+        "untitled": "Untitled",
+        "featured": "Featured",
+        "withheldShort": "Files hidden",
+        "withheld": "The files are hidden until the families have agreed.",
+        "withheldOthers": "Hidden from others until the families have agreed.",
+        "comments": "{count, plural, one {# comment} other {# comments}}",
+        "changesAsked": "Changes were asked for."
+      },
+      "form": {
+        "loading": "Loading…",
+        "unavailable": "This form is not available",
+        "loadFailed": "We couldn't load the form. Please try again.",
+        "newTitle": "Add to my portfolio",
+        "newHelp": "Save it as a draft, or send it to your teacher to review.",
+        "editTitle": "Edit my work",
+        "editHelp": "Change what you need, then save it or send it again.",
+        "captureTitle": "Add work for a student",
+        "captureHelp": "The work is added to the student's portfolio and approved at once.",
+        "student": "Student",
+        "studentPlaceholder": "Choose a student",
+        "type": "What kind of work is it?",
+        "typeFixed": "Kind of work: {type}",
+        "title": "Title",
+        "titlePlaceholder": "A short name for this work",
+        "text": "Writing",
+        "count": "{count} of {max}",
+        "description": "Description (optional)",
+        "reflection": "Reflection: what was learned? (optional)",
+        "reflectionHint": "{count} of {max}",
+        "class": "Class",
+        "noClass": "No class",
+        "subject": "Subject",
+        "noSubject": "No subject",
+        "workDate": "Date of the work",
+        "audience": "Who can see it",
+        "audienceHelp": "Up to: {cap} (set by the school).",
+        "files": {
+          "photo": "Photos",
+          "scan": "Scan (a picture or a PDF)",
+          "document": "Document (PDF)"
+        },
+        "fileAlt": "File {number}",
+        "pdf": "PDF",
+        "removeFile": "Remove file {number}",
+        "remove": "Remove",
+        "addFile": "Add a file",
+        "fileLimit": "At most {max} files.",
+        "othersAppear": "Other children appear in the files",
+        "othersAppearHint": "Leave this on unless only this student is shown. Tag the other children below.",
+        "tags": "Other children in the files",
+        "tagsHelp": "Tag every other child who appears. Each one needs their family's media consent before the work is shown beyond the family.",
+        "confirmLabel": "No other child appears in these files without permission.",
+        "confirmHelp": "Needed when the files are shown beyond the family and no child is tagged.",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "saveDraft": "Save as draft",
+        "submit": "Send for review",
+        "sendAgain": "Send again for review",
+        "capture": "Add to portfolio",
+        "saved": "Saved.",
+        "submitted": "Sent for review.",
+        "captured": "Added to the portfolio.",
+        "failed": "We couldn't save this. Please try again.",
+        "rosterFailed": "We couldn't load the children of the class."
+      },
+      "problems": {
+        "titleRequired": "Give the work a title.",
+        "titleTooLong": "The title is too long (at most 120 characters).",
+        "descriptionTooLong": "The description is too long (at most 1000 characters).",
+        "reflectionTooLong": "The reflection is too long (at most 1000 characters).",
+        "textRequired": "Write something first.",
+        "textTooLong": "The writing is too long (at most 5000 characters).",
+        "filesRequired": "Add at least one file first.",
+        "tooManyFiles": "Too many files (at most 10).",
+        "tooManyTags": "Too many children tagged (at most 20).",
+        "studentRequired": "Choose a student.",
+        "note": {
+          "required": "Write a short note for the student.",
+          "tooLong": "The note is too long (at most 500 characters)."
+        }
+      },
+      "gate": {
+        "missingTitle": "Some children do not have media consent",
+        "confirmTitle": "Please confirm who appears in the files",
+        "students": "Children without consent",
+        "unnamed": "{count, plural, one {1 child (the name is shown only to the class teachers)} other {# children (names are shown only to the class teachers)}}",
+        "missingAdviceAuthor": "Remove the tag of these children, or ask the school to record their consent. Your text and files are kept.",
+        "missingAdviceReviewer": "You can approve it for a narrower audience, ask for changes, or ask the school to record consent. Nothing was changed.",
+        "untag": "Remove these tags",
+        "confirmLabel": "I confirm that no child without media consent appears in these files.",
+        "confirmAdviceReviewer": "The student has not confirmed who appears in the files. Ask for changes so they can confirm or tag the children. Nothing was changed."
+      },
+      "media": {
+        "withheldTitle": "The files are hidden",
+        "withheldBody": "The families of the children in them have not all agreed to media being shared yet. The writing and details are shown.",
+        "warningTitle": "These files are hidden from others",
+        "warningBody": "You can see them, but other people cannot until every child in them has media consent.",
+        "pictures": "{count, plural, one {1 picture} other {# pictures}}",
+        "open": "Open picture {number} of {total}",
+        "alt": "Picture {number} of {total}",
+        "viewer": "Picture viewer",
+        "document": "Document {number} of {total}",
+        "openDocument": "Open",
+        "openFailed": "We couldn't open the document."
+      },
+      "item": {
+        "back": "Back",
+        "gone": "This item is not available.",
+        "untitled": "Untitled",
+        "featured": "Featured",
+        "byTeacher": "Added by a teacher",
+        "capped": "Chosen: {chosen}. Shown to: {shown}, the most this school allows.",
+        "note": {
+          "CHANGES_REQUESTED": "Changes asked for",
+          "REJECTED": "Not accepted",
+          "APPROVED": "Note from the teacher"
+        },
+        "description": "About this work",
+        "reflection": "What was learned",
+        "tagged": "Other children in the files",
+        "taggedUnnamed": "A child"
+      },
+      "actions": {
+        "label": "Actions for this item",
+        "review": "Review",
+        "edit": "Edit",
+        "submit": "Send for review",
+        "resubmit": "Send again for review",
+        "feature": "Feature",
+        "unfeature": "Remove from featured",
+        "archive": "Archive",
+        "unarchive": "Restore",
+        "delete": "Delete",
+        "failed": "That did not work. Please try again.",
+        "done": {
+          "submit": "Sent for review.",
+          "feature": "Featured.",
+          "unfeature": "Removed from featured.",
+          "unarchive": "Restored.",
+          "archive": "Archived.",
+          "delete": "Deleted."
+        },
+        "confirm": {
+          "delete": {
+            "title": "Delete this item?",
+            "body": "The item and its files are removed for everyone. This cannot be undone."
+          },
+          "archive": {
+            "title": "Archive this item?",
+            "body": "It is hidden from everyone except the student and the teachers. A teacher can restore it."
+          }
+        }
+      },
+      "review": {
+        "title": "Review this work",
+        "help": "The student reads your note. Families and classmates see the work only after you approve it.",
+        "decision": "Your decision",
+        "decisions": {
+          "APPROVE": "Approve",
+          "REQUEST_CHANGES": "Ask for changes",
+          "REJECT": "Do not accept"
+        },
+        "decisionHelp": {
+          "APPROVE": "The work is shown to the audience below.",
+          "REQUEST_CHANGES": "The student can edit it and send it again.",
+          "REJECT": "The student cannot send it again."
+        },
+        "audience": "Show it to",
+        "audienceHelp": "You can choose the audience the student chose, or a narrower one.",
+        "note": "Note for the student",
+        "noteOptional": "Note for the student (optional)",
+        "noteHelp": "{count} of {max}",
+        "cancel": "Cancel",
+        "failed": "We couldn't save your decision. Please try again.",
+        "done": {
+          "APPROVE": "Approved.",
+          "REQUEST_CHANGES": "Changes asked for.",
+          "REJECT": "Not accepted."
+        },
+        "send": {
+          "APPROVE": "Approve",
+          "REQUEST_CHANGES": "Ask for changes",
+          "REJECT": "Do not accept"
+        }
+      },
+      "history": {
+        "title": "History",
+        "failed": "We couldn't load the history.",
+        "empty": "Nothing has happened yet.",
+        "by": "By {name}",
+        "roles": {
+          "STUDENT": "The student",
+          "TEACHER": "A teacher",
+          "GUARDIAN": "A parent"
+        },
+        "actions": {
+          "CAPTURED": "Added by a teacher",
+          "SUBMITTED": "Sent for review",
+          "APPROVED": "Approved",
+          "CHANGES_REQUESTED": "Changes asked for",
+          "REJECTED": "Not accepted",
+          "ARCHIVED": "Archived",
+          "UNARCHIVED": "Restored",
+          "FEATURED": "Featured",
+          "UNFEATURED": "Removed from featured",
+          "DELETED": "Deleted"
+        }
+      },
+      "comments": {
+        "title": "Comments",
+        "privacy": "Only the student, their family and their teachers can see these comments.",
+        "loadFailed": "We couldn't load the comments.",
+        "empty": "No comments yet. Be the first to say something kind.",
+        "you": "You",
+        "roles": {
+          "TEACHER": "Teacher",
+          "GUARDIAN": "Parent",
+          "STUDENT": "Student"
+        },
+        "hidden": "A teacher hid this comment.",
+        "hide": "Hide",
+        "delete": "Delete",
+        "deleteTitle": "Delete your comment?",
+        "deleteBody": "The comment is removed for everyone.",
+        "deleteFailed": "We couldn't delete the comment.",
+        "deleted": "Comment deleted.",
+        "write": "Write a comment",
+        "placeholder": "Say something kind about this work",
+        "count": "{count} of {max}",
+        "send": "Send comment",
+        "failed": "We couldn't send your comment. Please try again.",
+        "retryAfter": "Try again in {seconds} seconds.",
+        "problems": {
+          "empty": "Write a comment first.",
+          "tooLong": "The comment is too long (at most 500 characters)."
+        },
+        "hideTitle": "Hide this comment?",
+        "hideBody": "The comment stays as a hidden note. Only its author and the teachers can read it.",
+        "reason": "Why are you hiding it?",
+        "reasonRequired": "Give a reason.",
+        "cancel": "Cancel",
+        "hiddenDone": "Comment hidden.",
+        "hideFailed": "We couldn't hide the comment."
+      },
+      "student": {
+        "title": "My portfolio",
+        "subtitle": "My own work: writing, photos, scans and documents.",
+        "notStudent": "This page is for students. Families see their child's portfolio under My children.",
+        "school": "School",
+        "new": "Add to my portfolio",
+        "createOff": "Adding to portfolios is switched off at your school for now.",
+        "unavailable": "We couldn't load your portfolio.",
+        "tabs": {
+          "mine": "My work",
+          "class": "My class",
+          "school": "My school"
+        },
+        "filter": "Show my work that is",
+        "all": "All",
+        "mineEmpty": "You have not added any work yet.",
+        "mineFailed": "We couldn't load your work.",
+        "class": "Class",
+        "galleryHelp": "Approved work that the school has shared with everyone here.",
+        "classGalleryEmpty": "No work has been shared with the class yet.",
+        "schoolGalleryEmpty": "No work has been shared with the school yet.",
+        "galleryFailed": "We couldn't load the gallery.",
+        "noClasses": "You are not in a class yet."
+      },
+      "classTab": {
+        "unavailable": "We couldn't load the portfolios of this class.",
+        "captureHelp": "Add a student's work from your phone or computer, such as a photo of something they made.",
+        "capture": "Add work for a student",
+        "queue": "To review",
+        "queueHelp": "Work the students sent in, oldest first.",
+        "queueEmpty": "Nothing is waiting for review.",
+        "queueFailed": "We couldn't load the review list.",
+        "gallery": "Class gallery",
+        "galleryHelp": "Approved work that the school lets the whole class see.",
+        "galleryEmpty": "No work has been shared with the class yet.",
+        "galleryFailed": "We couldn't load the gallery."
+      },
+      "schoolPage": {
+        "title": "School portfolio gallery",
+        "subtitle": "Approved work that the school lets everyone at the school see.",
+        "empty": "No work has been shared with the school yet.",
+        "failed": "We couldn't load the gallery."
+      }
     }
   },
   "family": {
@@ -6256,7 +6571,18 @@
         "confirm": "Delete",
         "done": "The event was deleted."
       }
-    }
+    },
+    "portfolio": {
+      "title": "Portfolio",
+      "subtitle": "The work of your children that their teachers have approved. Open an item to read it and leave an encouraging comment.",
+      "filter": "Show work of",
+      "allChildren": "All children",
+      "empty": "No approved work to show yet. When a teacher approves your child's work, it appears here.",
+      "failed": "We couldn't load the portfolio.",
+      "loadFailed": "We couldn't load your children.",
+      "noChildren": "No child's portfolio is available to you."
+    },
+    "portfolioLink": "{name}'s portfolio"
   },
   "invite": {
     "pageTitle": "Connect with your child's school",
