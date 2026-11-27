@@ -38,17 +38,6 @@ export const GROUP_STATUS_LABEL = {
   REJECTED: 'mobile.messaging.groupStatus.rejected',
 } as const;
 
-export const REPORT_REASON_LABEL = {
-  INAPPROPRIATE: 'mobile.messaging.report.reason.inappropriate',
-  BULLYING: 'mobile.messaging.report.reason.bullying',
-  PRIVACY: 'mobile.messaging.report.reason.privacy',
-  SAFETY: 'mobile.messaging.report.reason.safety',
-  SPAM: 'mobile.messaging.report.reason.spam',
-  OTHER: 'mobile.messaging.report.reason.other',
-} as const;
-
-export const REPORT_REASONS = ['INAPPROPRIATE', 'BULLYING', 'PRIVACY', 'SAFETY', 'SPAM', 'OTHER'] as const;
-
 export const ROLE_LABEL = {
   OWNER: 'mobile.messaging.people.role.owner',
   MODERATOR: 'mobile.messaging.people.role.moderator',

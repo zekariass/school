@@ -11,6 +11,7 @@ import { Banner } from '@/components/messaging/banner';
 import { Composer } from '@/components/messaging/composer';
 import { MessageBubble, PendingMessage } from '@/components/messaging/message-bubble';
 import { MessageOptions } from '@/components/messaging/message-options';
+import { ReportSheet } from '@/components/moderation/report-sheet';
 import { useParticipantText } from '@/components/messaging/use-participant-text';
 import { ProblemBanner } from '@/components/problem-banner';
 import { Button, EmptyState, Text } from '@/components/ui';
@@ -24,7 +25,7 @@ import { afterHoursKey, conversationKey, inboxKey, messagesKey } from '@/lib/mes
 import { openConversation } from '@/lib/messaging/live-status';
 import { upsertMessage, type MessageData } from '@/lib/messaging/pages';
 import { useConversation, useConversationPolling, useMessages, useMessagingCapabilities } from '@/lib/messaging/queries';
-import { blockMember, deleteMessage, deleteReaction, editMessage, fetchMessage, hideMessage, putReaction, reportMessage, unhideMessage } from '@/lib/messaging/requests';
+import { blockMember, deleteMessage, deleteReaction, editMessage, fetchMessage, hideMessage, putReaction, unhideMessage } from '@/lib/messaging/requests';
 import { markConversationRead, outbox, refreshLatest, useOutboxEntries } from '@/lib/messaging/runtime';
 import { buildTimeline, type TimelineItem } from '@/lib/messaging/timeline';
 import type { ConversationDetail, MessageItem } from '@/lib/messaging/types';
@@ -89,6 +90,8 @@ function Conversation({ detail, conversationId }: { detail: ConversationDetail; 
 
   const [reply, setReply] = useState<{ id: string; author: string } | null>(null);
   const [options, setOptions] = useState<MessageItem | null>(null);
+  // The message being reported (its id only): the shared sheet, not part of the options sheet.
+  const [reporting, setReporting] = useState<string | null>(null);
   const [scheduledFor, setScheduledFor] = useState<string | null>(null);
   const afterHours = useQuery({ queryKey: afterHoursKey(conversationId), queryFn: () => null, enabled: false });
 
@@ -179,10 +182,7 @@ function Conversation({ detail, conversationId }: { detail: ConversationDetail; 
         await deleteMessage(conversationId, options!.id);
         putMessage(await fetchMessage(conversationId, options!.id));
       },
-      report: async (reason: Parameters<typeof reportMessage>[2], note: string) => {
-        await reportMessage(conversationId, options!.id, reason, note || undefined);
-        Alert.alert(t('mobile.messaging.report.thanksTitle'), t('mobile.messaging.report.thanksBody'));
-      },
+      report: () => options && setReporting(options.id),
       block: async () => {
         const memberId = options?.sender?.memberId;
         if (!memberId) return;
@@ -201,7 +201,7 @@ function Conversation({ detail, conversationId }: { detail: ConversationDetail; 
         putMessage(await fetchMessage(conversationId, options!.id));
       },
     }),
-    [client, conversationId, options, personText, putMessage, setReply, t, viewer],
+    [client, conversationId, options, personText, putMessage, setReply, setReporting, t, viewer],
   );
 
   const toggleReaction = useCallback(
@@ -348,6 +348,7 @@ function Conversation({ detail, conversationId }: { detail: ConversationDetail; 
           handlers={handlers}
         />
       ) : null}
+      <ReportSheet target={reporting ? { type: 'MESSAGE', id: reporting, schoolId: summary.schoolId } : null} onClose={() => setReporting(null)} />
     </SafeAreaView>
   );
 }

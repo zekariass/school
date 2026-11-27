@@ -8,6 +8,7 @@ import { useTranslations } from 'use-intl';
 
 import { PostCard } from '@/components/feed/post-card';
 import { usePostMenu } from '@/components/feed/post-menu';
+import { ReportSheet } from '@/components/moderation/report-sheet';
 import { ProblemBanner } from '@/components/problem-banner';
 import { Button, EmptyState, Text, TextField } from '@/components/ui';
 import { ApiRequestError, problemOf } from '@/lib/api-error';
@@ -15,6 +16,7 @@ import { useFormatInstant } from '@/lib/calendar/use-format-instant';
 import { commentsKey } from '@/lib/feed/keys';
 import { shouldLookUpSchools } from '@/lib/feed/notification-school';
 import { authorLabel } from '@/lib/feed/post-model';
+import { canReportComment } from '@/lib/moderation/visibility';
 import { updatePostEverywhere, useComments, useFeedCapabilities, usePostAnywhere, usePostQuery } from '@/lib/feed/queries';
 import { createComment, deleteComment, markPostSeen } from '@/lib/feed/requests';
 import type { CommentView } from '@/lib/feed/types';
@@ -99,6 +101,8 @@ function CommentsList({
   const { query, comments } = useComments(post.schoolId, post.id);
 
   const [draft, setDraft] = useState('');
+  // The comment being reported (its id only): the shared report sheet.
+  const [reporting, setReporting] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<{ message: string; offline: boolean } | null>(null);
   const attempt = useRef<{ text: string; key: string } | null>(null);
@@ -136,7 +140,7 @@ function CommentsList({
       <FlatList
         data={post.status === 'PUBLISHED' ? comments : []}
         keyExtractor={(comment) => comment.id}
-        renderItem={({ item }) => <CommentRow comment={item} post={post} />}
+        renderItem={({ item }) => <CommentRow comment={item} post={post} onReport={() => setReporting(item.id)} />}
         ListHeaderComponent={header}
         contentContainerStyle={{ padding: spacing[5], gap: spacing[3] }}
         onEndReachedThreshold={0.5}
@@ -180,11 +184,12 @@ function CommentsList({
           </View>
         )
       ) : null}
+      <ReportSheet target={reporting ? { type: 'POST_COMMENT', id: reporting, schoolId: post.schoolId } : null} onClose={() => setReporting(null)} />
     </KeyboardAvoidingView>
   );
 }
 
-function CommentRow({ comment, post }: { comment: CommentView; post: { schoolId: string; id: string } }) {
+function CommentRow({ comment, post, onReport }: { comment: CommentView; post: { schoolId: string; id: string }; onReport: () => void }) {
   const t = useTranslations();
   const { colors, radii, spacing } = useAppTheme();
   const format = useFormatInstant();
@@ -221,9 +226,10 @@ function CommentRow({ comment, post }: { comment: CommentView; post: { schoolId:
       </View>
       {comment.status === 'HIDDEN' ? <Text variant="caption">{t('mobile.feed.comments.hiddenNote')}</Text> : null}
       <Text selectable>{comment.body}</Text>
-      {comment.canDelete ? (
-        <Button variant="ghost" fullWidth={false} label={t('mobile.feed.menu.delete')} onPress={remove} />
-      ) : null}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] }}>
+        {canReportComment(comment) ? <Button variant="ghost" fullWidth={false} label={t('mobile.moderation.action')} onPress={onReport} /> : null}
+        {comment.canDelete ? <Button variant="ghost" fullWidth={false} label={t('mobile.feed.menu.delete')} onPress={remove} /> : null}
+      </View>
     </View>
   );
 }

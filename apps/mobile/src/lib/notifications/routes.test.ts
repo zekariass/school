@@ -173,6 +173,25 @@ describe('the messaging', () => {
   });
 });
 
+describe('reporting (M13c)', () => {
+  const HOME = '/(guardian)/home';
+  it('a reporter notice carries no path: nothing opens', () => {
+    // REPORT_ACKNOWLEDGED / REPORT_REVIEWED are sent without path or data
+    expect(routeForPath(undefined, HOME, {})).toBeNull();
+    expect(routeForPath(null, HOME, { notificationId: 'n1' })).toBeNull();
+  });
+  it('the moderation and safeguarding paths of moderators and leads are web screens: the phone stays put', () => {
+    for (const path of ['/moderation', '/moderation/cases/1', '/s/riverside/moderation', '/s/riverside/moderation/', '/safeguarding', '/s/riverside/safeguarding/incidents']) {
+      expect(routeForPath(path, '/(teacher)/classes'), path).toBeNull();
+      expect(routeForPath(path, HOME), path).toBeNull();
+    }
+  });
+  it('does not mistake other paths for moderation', () => {
+    expect(routeForPath('/notifications', HOME)).toBe('/notifications');
+    expect(routeForPath('/settings', HOME)).toBe('/settings');
+  });
+});
+
 describe('notification data', () => {
   it('reads path and id from plain data', () => {
     expect(pathFromNotificationData({ path: '/notifications', notificationId: 'n1' })).toBe('/notifications');
