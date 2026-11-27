@@ -7,7 +7,7 @@ Guidance for AI agents and developers working in this repository.
 - Product spec: `docs/Education_Platform.md`
 - Resolved inconsistencies and confirmed decisions (D1–D40): `docs/Spec_Review.md`. Where they conflict, these override the spec.
 - Schema: `docs/Database_Design.md`. Migrations must match it; update the doc in the same change if the schema must differ.
-- Delivery order: `docs/Implementation_Plan.md`. Work milestone by milestone and keep its "definition of done".
+- Delivery order: `docs/Implementation_Plan.md`. Part A is the implementer's guide (workflow, migration numbering, definition of done, as-built template), part B the status of every milestone, part C the updates needed in built code. Work milestone by milestone, keep the definition of done, and update the status, the as-built note and part C in the same PR.
 
 ## Framework versions are newer than most training data
 
