@@ -57,6 +57,7 @@ function StudentHome() {
       <PushPromptCard />
       <Text variant="title">{name ? t('mobile.student.greeting', { name }) : t('mobile.student.greetingNoName')}</Text>
       <CalendarEntry />
+      <PortfolioEntry />
 
       {classes.isPending ? (
         <View style={{ paddingVertical: spacing[8] }}>
@@ -119,6 +120,31 @@ function CalendarEntry() {
         </Text>
         <Text variant="caption" style={{ color: colors.accentForeground }}>
           {t('mobile.calendar.entry.body')}
+        </Text>
+      </View>
+      <SymbolView name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' } as SymbolViewProps['name']} size={18} tintColor={colors.accentForeground} />
+    </Pressable>
+  );
+}
+
+/** The portfolio has no tab (five at most): a card on the home screen opens the student's own work. */
+function PortfolioEntry() {
+  const t = useTranslations();
+  const { colors, radii, spacing, minTouchTarget } = useAppTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t('mobile.portfolio.entry.title')}
+      accessibilityHint={t('mobile.portfolio.entry.body')}
+      onPress={() => router.push('/portfolio/mine')}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[3], minHeight: minTouchTarget + 16, padding: spacing[4], borderRadius: radii['2xl'], backgroundColor: colors.accent }}>
+      <SymbolView name={{ ios: 'photo.on.rectangle.angled', android: 'photo_library', web: 'photo_library' } as SymbolViewProps['name']} size={32} tintColor={colors.accentForeground} />
+      <View style={{ flex: 1 }}>
+        <Text variant="heading" style={{ color: colors.accentForeground }}>
+          {t('mobile.portfolio.entry.title')}
+        </Text>
+        <Text variant="caption" style={{ color: colors.accentForeground }}>
+          {t('mobile.portfolio.entry.body')}
         </Text>
       </View>
       <SymbolView name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' } as SymbolViewProps['name']} size={18} tintColor={colors.accentForeground} />

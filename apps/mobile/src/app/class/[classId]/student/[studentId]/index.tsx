@@ -4,6 +4,7 @@ import { Alert, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
 import { Avatar } from '@/components/avatar';
+import { CaptureForStudentButton } from '@/components/portfolio/class-actions';
 import { ProblemBanner } from '@/components/problem-banner';
 import { Button, Card, EmptyState, Screen, Text } from '@/components/ui';
 import { api } from '@/lib/api';
@@ -132,6 +133,8 @@ export default function StudentProfile() {
           fallbackBody={t(forbidden ? 'mobile.classes.forbiddenBody' : 'mobile.classes.actionFailed')}
         />
       ) : null}
+
+      <CaptureForStudentButton schoolId={cls.schoolId} classId={cls.id} studentId={entry.id} />
 
       {editable ? (
         <View style={{ gap: spacing[3] }}>

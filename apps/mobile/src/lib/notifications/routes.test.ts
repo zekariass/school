@@ -38,6 +38,25 @@ describe('routeForPath', () => {
     expect(routeForPath('/children', HOME, { studentId: '../../x', date: '2026-11-25' })).toBe(HOME);
     expect(routeForPath('/children', '/(teacher)/classes', { studentId, date: '2026-11-25' })).toBe('/(teacher)/classes');
   });
+  describe('the portfolio', () => {
+    const itemId = '6d1d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    const schoolId = '3a9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
+    it('opens an item for every role, with the school when the notification names it', () => {
+      expect(routeForPath(`/portfolio/items/${itemId}`, HOME)).toBe(`/portfolio/item/${itemId}`);
+      expect(routeForPath(`/portfolio/items/${itemId}`, '/(student)/home', { schoolId })).toBe(`/portfolio/item/${itemId}?schoolId=${schoolId}`);
+      expect(routeForPath(`/portfolio/items/${itemId}`, '/(teacher)/classes', { body: { schoolId } })).toBe(`/portfolio/item/${itemId}?schoolId=${schoolId}`);
+    });
+    it('never follows a bad id, a bad school, a longer path or a missing role', () => {
+      expect(routeForPath('/portfolio/items/not-an-id', HOME)).toBeNull();
+      expect(routeForPath(`/portfolio/items/${itemId}/comments`, HOME)).toBeNull();
+      expect(routeForPath(`/portfolio/items/${itemId}/../x`, HOME)).toBeNull();
+      expect(routeForPath(`/portfolio/items/${itemId}`, null)).toBeNull();
+      expect(routeForPath(`/portfolio/items/${itemId}`, HOME, { schoolId: '../../x' })).toBe(`/portfolio/item/${itemId}`);
+    });
+    it('puts nothing about the item in the route but its id', () => {
+      expect(routeForPath(`/portfolio/items/${itemId}`, HOME, { schoolId, title: 'My secret drawing', body: 'x' })).toBe(`/portfolio/item/${itemId}?schoolId=${schoolId}`);
+    });
+  });
   describe('the feed', () => {
     const postId = '2c1d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';
     const schoolId = '3a9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed';

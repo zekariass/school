@@ -88,6 +88,14 @@ export default function ChildPoints() {
         </Card>
       ) : null}
 
+      {canView ? (
+        <Button
+          variant="secondary"
+          label={t('mobile.portfolio.child.open', { name: firstName })}
+          onPress={() => router.push({ pathname: '/portfolio/child/[studentId]', params: { studentId: child.studentId } })}
+        />
+      ) : null}
+
       <Button
         variant="ghost"
         label={t('mobile.attendance.guardian.open', { name: firstName })}

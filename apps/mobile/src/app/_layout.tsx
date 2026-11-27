@@ -125,6 +125,8 @@ function RootNavigator() {
         <Stack.Protected guard={signedIn}>
           {/* The feed (M8): class and school feeds, a post, a story, the composer, my posts, approvals. */}
           <Stack.Screen name="feed" />
+          {/* The portfolio (M12): a student's own work, one item, the composer, a teacher's quick capture and review queue, a guardian's child page. */}
+          <Stack.Screen name="portfolio" />
           {/* The communications centre (M10): the announcements inbox, one announcement, the composer, my announcements, the report. */}
           <Stack.Screen name="announcements" />
           {/* Messaging (M9): one conversation, its people, starting a conversation or a group, scheduled messages, blocked people. */}
