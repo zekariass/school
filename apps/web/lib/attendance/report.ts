@@ -58,9 +58,12 @@ export function visibleDashboardRows<T extends { taken?: boolean; students?: num
   return onlyNotTaken ? rows.filter((r) => dashboardState(r) === "notTaken") : [...rows];
 }
 
-/** Query of the dashboard: the school-local date (omitted means today there) and the slot (omitted: the school's first). */
-export function dashboardQuery(date: string | null, slot: string | null): { date?: string; slot?: string } {
-  return { ...(date && isIsoDate(date) ? { date } : {}), ...(slot ? { slot } : {}) };
+/**
+ * Query of the dashboard: the school-local date (omitted means today there), the slot (omitted: the school's first)
+ * and optionally a subject (only the classes that have it and the rolls taken for it).
+ */
+export function dashboardQuery(date: string | null, slot: string | null, subjectId?: string | null): { date?: string; slot?: string; subjectId?: string } {
+  return { ...(date && isIsoDate(date) ? { date } : {}), ...(slot ? { slot } : {}), ...(subjectId ? { subjectId } : {}) };
 }
 
 /** Sum of the numeric counters of report rows. */

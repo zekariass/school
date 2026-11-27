@@ -38,15 +38,24 @@ export function classAttendanceAbilities(cls: AttendanceClassLike, permissions: 
 }
 
 export interface AttendancePageAccess {
-  /** The dashboard and reports: teachers (their classes) and attendance readers and managers. */
+  /** The page at all: students' attendance (below) or the staff tab. */
   canSee: boolean;
+  /** The dashboard, the reports and the Periods tab: teachers (their classes) and attendance readers and managers. */
+  canSeeStudents: boolean;
   /** The school-wide report (no class chosen) and a student filter without a class need `school.attendance.read|manage`. */
   canSeeSchoolWide: boolean;
+  /** The Staff tab: `school.staff_attendance.read|manage`. Never a teacher, whatever else they hold. */
+  canSeeStaff: boolean;
+  /** Marking staff and correcting their records: `school.staff_attendance.manage`. */
+  canManageStaff: boolean;
 }
 
 export function attendancePageAccess(permissions: ReadonlySet<string>, isTeacher: boolean): AttendancePageAccess {
   const canSeeSchoolWide = permissions.has(SP.attendanceRead) || permissions.has(SP.attendanceManage);
-  return { canSee: canSeeSchoolWide || isTeacher, canSeeSchoolWide };
+  const canManageStaff = permissions.has(SP.staffAttendanceManage);
+  const canSeeStaff = canManageStaff || permissions.has(SP.staffAttendanceRead);
+  const canSeeStudents = canSeeSchoolWide || isTeacher;
+  return { canSee: canSeeStudents || canSeeStaff, canSeeStudents, canSeeSchoolWide, canSeeStaff, canManageStaff };
 }
 
 /** Guardians see their child's attendance history only with `can_view_academics`. */

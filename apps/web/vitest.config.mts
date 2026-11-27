@@ -7,7 +7,8 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["**/*.test.ts"],
+    // `.test.tsx` renders components to static markup with react-dom/server (no DOM needed).
+    include: ["**/*.test.ts", "**/*.test.tsx"],
     exclude: ["node_modules/**", ".next/**"],
   },
 });
