@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { acceptAttribute, maxMegabytes, policyFor, typeLabels, validateFile, type MediaPolicies, type PurposePolicy } from "./policies";
+import { acceptAttribute, maxMegabytes, policyFor, restrictPolicy, typeLabels, validateFile, type MediaPolicies, type PurposePolicy } from "./policies";
 
 const MB = 1024 * 1024;
 
@@ -59,5 +59,20 @@ describe("policy helpers", () => {
 
   it("labels MIME types for people", () => {
     expect(typeLabels(["image/jpeg", "video/mp4", "text/csv"])).toEqual(["JPEG", "MP4", "text/csv"]);
+  });
+});
+
+describe("restrictPolicy", () => {
+  it("keeps only the allowed types, with their limits", () => {
+    const pdfOnly = restrictPolicy(mixed, ["application/pdf"]);
+    expect(pdfOnly.maxBytesByMimeType).toEqual({ "application/pdf": 25 * MB });
+    expect(acceptAttribute(pdfOnly)).toBe("application/pdf");
+    expect(validateFile({ type: "image/jpeg", size: 1000 }, pdfOnly)).toMatchObject({ code: "type", types: ["PDF"] });
+    expect(validateFile({ type: "application/pdf", size: 1000 }, pdfOnly)).toBeNull();
+  });
+
+  it("does not change the original policy", () => {
+    restrictPolicy(mixed, ["image/jpeg"]);
+    expect(Object.keys(mixed.maxBytesByMimeType)).toHaveLength(2);
   });
 });

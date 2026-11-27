@@ -36,6 +36,15 @@ export function policyFor(policies: MediaPolicies, purpose: MediaPurpose): Purpo
   return policies.purposes.find((p) => p.purpose === purpose);
 }
 
+/**
+ * The policy narrowed to some MIME types (a portfolio photo takes images, a document a PDF, though the purpose takes
+ * both). The API checks again; this only keeps the file picker and the pre-check honest.
+ */
+export function restrictPolicy(policy: PurposePolicy, allowed: readonly string[]): PurposePolicy {
+  const keep = new Set(allowed.map((m) => m.toLowerCase()));
+  return { ...policy, maxBytesByMimeType: Object.fromEntries(Object.entries(policy.maxBytesByMimeType).filter(([mime]) => keep.has(mime.toLowerCase()))) };
+}
+
 /** The `accept` attribute of a file input. */
 export function acceptAttribute(policy: PurposePolicy): string {
   return Object.keys(policy.maxBytesByMimeType).join(",");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canModerateMessages, canOpenMessages, canReviewMessages, canManageAnnouncements, canOpenAnnouncements, canOpenApprovals, canOpenFeed, canPostSchoolWide, canSendUrgentAnnouncements, isStudentOnly, isTeacherOnly, navItems, schoolAccess, type MeLike, canManageCalendar, canOpenCalendar } from "./access";
+import { canModerateMessages, canOpenMessages, canReviewMessages, canManageAnnouncements, canOpenAnnouncements, canOpenApprovals, canOpenFeed, canPostSchoolWide, canSendUrgentAnnouncements, isStudentOnly, isTeacherOnly, navItems, schoolAccess, type MeLike, canManageCalendar, canOpenCalendar, canOpenPortfolio } from "./access";
 
 const ADMIN = [
   "school.read",
@@ -48,7 +48,7 @@ describe("navItems", () => {
   });
 
   it("gives teachers the dashboard, their classes and the families queue", () => {
-    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "attendance", "points", "feed", "announcements", "messages", "calendar"]);
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toEqual(["dashboard", "myClasses", "families", "attendance", "points", "feed", "portfolio", "announcements", "messages", "calendar"]);
   });
 
   it("shows Policies only with the policies permission", () => {
@@ -90,7 +90,7 @@ describe("navItems", () => {
       scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["class.manage"] }],
       memberships: [{ type: "TEACHER", schoolSlug: "sunrise" }],
     };
-    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "attendance", "points", "feed", "announcements", "messages", "calendar"]);
+    expect(navItems(schoolAccess(both, "sunrise"))).toEqual(["dashboard", "classes", "families", "attendance", "points", "feed", "portfolio", "announcements", "messages", "calendar"]);
   });
 });
 
@@ -105,6 +105,14 @@ describe("the school feed", () => {
     expect(navItems(schoolAccess(student, "sunrise"))).not.toContain("feed");
     expect(navItems(schoolAccess(manager, "moon"))).not.toContain("feed");
     expect(canOpenFeed(schoolAccess(student, "sunrise"))).toBe(false);
+  });
+
+  it("shows the portfolio gallery to teachers and other staff, not to students or strangers", () => {
+    expect(navItems(schoolAccess(teacher, "sunrise"))).toContain("portfolio");
+    expect(navItems(schoolAccess(staff, "sunrise"))).toContain("portfolio");
+    expect(navItems(schoolAccess(student, "sunrise"))).not.toContain("portfolio");
+    expect(navItems(schoolAccess(teacher, "moon"))).not.toContain("portfolio");
+    expect(canOpenPortfolio(schoolAccess(student, "sunrise"))).toBe(false);
   });
 
   it("lets only feed managers post school-wide", () => {

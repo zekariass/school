@@ -16,6 +16,7 @@ import { fetchClass, sk } from "@/lib/school/queries";
 import { ClassAbsencesTab } from "@/components/attendance/class-absences-tab";
 import { ClassAttendanceTab } from "@/components/attendance/class-attendance-tab";
 import { ClassFeedTab } from "@/components/feed/class-feed-tab";
+import { ClassPortfolioTab } from "@/components/portfolio/class-portfolio-tab";
 import { ClassPointsTab } from "@/components/points/class-points-tab";
 import { ClassToolkitTab } from "@/components/points/toolkit/class-toolkit-tab";
 import { ClassCodesTab } from "./class-codes";
@@ -51,6 +52,7 @@ export function ClassDetail({ classId, initialTab, initialDate, initialSlot }: {
   const attendance = classAttendanceAbilities(data, permissions);
   const available = new Set<string>([
     "feed",
+    "portfolio",
     ...(points.canUse ? ["points", "toolkit"] : []),
     ...(attendance.canView ? ["attendance", "absences"] : []),
     "roster",
@@ -118,6 +120,9 @@ export function ClassDetail({ classId, initialTab, initialDate, initialSlot }: {
           <TabsTrigger value="feed" className="min-h-10 flex-none px-4" data-testid="tab-feed">
             {t("tabs.feed")}
           </TabsTrigger>
+          <TabsTrigger value="portfolio" className="min-h-10 flex-none px-4" data-testid="tab-portfolio">
+            {t("tabs.portfolio")}
+          </TabsTrigger>
           <TabsTrigger value="roster" className="min-h-10 flex-none px-4">
             {t("tabs.roster")}
           </TabsTrigger>
@@ -168,6 +173,9 @@ export function ClassDetail({ classId, initialTab, initialDate, initialSlot }: {
             <ClassAbsencesTab cls={data} />
           </TabsContent>
         ) : null}
+        <TabsContent value="portfolio" className="pt-4">
+          <ClassPortfolioTab classId={classId} />
+        </TabsContent>
         <TabsContent value="roster" className="pt-4">
           <ClassRosterTab cls={data} abilities={abilities} />
         </TabsContent>

@@ -2373,7 +2373,8 @@
     },
     "studentApp": {
       "title": "ተማሪዎች በSchool መተግበሪያ ይገባሉ",
-      "body": "ተማሪዎች School መተግበሪያን በስልካቸው ወይም በታብሌታቸው ይጠቀማሉ። የክፍል ኮዳችሁን ከመምህራችሁ ጠይቁ፣ ከዚያ መተግበሪያውን ከፍታችሁ በኮዱ ግቡ።"
+      "body": "ተማሪዎች School መተግበሪያን በስልካቸው ወይም በታብሌታቸው ይጠቀማሉ። የክፍል ኮዳችሁን ከመምህራችሁ ጠይቁ፣ ከዚያ መተግበሪያውን ከፍታችሁ በኮዱ ግቡ።",
+      "portfolioLink": "የሥራ ስብስቤ"
     },
     "teacherRole": {
       "LEAD": "ዋና መምህር",
@@ -2810,7 +2811,8 @@
         "toolkit": "መሣሪያዎች",
         "attendance": "ተገኝነት",
         "absences": "መቅረቶች",
-        "feed": "ዜና"
+        "feed": "ዜና",
+        "portfolio": "የሥራ ስብስብ"
       }
     },
     "roster": {
@@ -5569,6 +5571,319 @@
           "description": "አዎ ወይም ምናልባት ብለው የመለሱ ሰዎች ብቻ (PARTICIPANTS)፣ ወይም ዝግጅቱን ማየት የሚችሉ ሁሉ (EVERYONE፦ አሳዳጊዎችና ሠራተኞች)።"
         }
       }
+    },
+    "portfolio": {
+      "status": {
+        "DRAFT": "ረቂቅ",
+        "SUBMITTED": "ግምገማ በመጠበቅ ላይ",
+        "CHANGES_REQUESTED": "ማስተካከያ ተጠይቋል",
+        "APPROVED": "ተፈቅዷል",
+        "REJECTED": "አልተቀበለም",
+        "ARCHIVED": "ተቀምጧል"
+      },
+      "visibility": {
+        "STUDENT_TEACHER": "ተማሪውና መምህራን",
+        "GUARDIANS": "ተማሪው፣ መምህራንና ቤተሰብ",
+        "CLASS": "ክፍሉ",
+        "SCHOOL": "መላው ትምህርት ቤት"
+      },
+      "types": {
+        "TEXT": "ጽሑፍ",
+        "PHOTO": "ፎቶ",
+        "DRAWING": "ስዕል",
+        "SCAN": "የተቃኘ ገጽ",
+        "DOCUMENT": "ሰነድ",
+        "AUDIO": "ድምጽ",
+        "VIDEO": "ቪዲዮ"
+      },
+      "card": {
+        "untitled": "ርዕስ የለውም",
+        "featured": "ተመራጭ",
+        "withheldShort": "ፋይሎች ተደብቀዋል",
+        "withheld": "ቤተሰቦች እስኪስማሙ ድረስ ፋይሎቹ ተደብቀዋል።",
+        "withheldOthers": "ቤተሰቦች እስኪስማሙ ድረስ ከሌሎች ተደብቋል።",
+        "comments": "{count, plural, one {# አስተያየት} other {# አስተያየቶች}}",
+        "changesAsked": "ማስተካከያ ተጠይቋል።"
+      },
+      "form": {
+        "loading": "በመጫን ላይ…",
+        "unavailable": "ይህ ቅጽ አይገኝም",
+        "loadFailed": "ቅጹ አልተጫነም። እባክዎ እንደገና ይሞክሩ።",
+        "newTitle": "ወደ ስብስቤ ጨምር",
+        "newHelp": "እንደ ረቂቅ ያስቀምጡት፣ ወይም ለመምህርዎ ለግምገማ ይላኩት።",
+        "editTitle": "ሥራዬን አስተካክል",
+        "editHelp": "የሚያስፈልገውን ይለውጡ፣ ከዚያ ያስቀምጡት ወይም እንደገና ይላኩት።",
+        "captureTitle": "ለተማሪ ሥራ ጨምር",
+        "captureHelp": "ሥራው ወደ ተማሪው ስብስብ ይጨመራል፣ ወዲያውኑም ይፈቀዳል።",
+        "student": "ተማሪ",
+        "studentPlaceholder": "ተማሪ ይምረጡ",
+        "type": "ምን ዓይነት ሥራ ነው?",
+        "typeFixed": "የሥራው ዓይነት፦ {type}",
+        "title": "ርዕስ",
+        "titlePlaceholder": "ለዚህ ሥራ አጭር ስም",
+        "text": "ጽሑፍ",
+        "count": "{count} ከ{max}",
+        "description": "መግለጫ (አማራጭ)",
+        "reflection": "ማሰላሰል፦ ምን ተማሩ? (አማራጭ)",
+        "reflectionHint": "{count} ከ{max}",
+        "class": "ክፍል",
+        "noClass": "ክፍል የለም",
+        "subject": "የትምህርት ዓይነት",
+        "noSubject": "የትምህርት ዓይነት የለም",
+        "workDate": "የሥራው ቀን",
+        "audience": "ማን ሊያየው ይችላል",
+        "audienceHelp": "እስከ፦ {cap} (በትምህርት ቤቱ የተወሰነ)።",
+        "files": {
+          "photo": "ፎቶዎች",
+          "scan": "የተቃኘ ገጽ (ምስል ወይም PDF)",
+          "document": "ሰነድ (PDF)"
+        },
+        "fileAlt": "ፋይል {number}",
+        "pdf": "PDF",
+        "removeFile": "ፋይል {number}ን አስወግድ",
+        "remove": "አስወግድ",
+        "addFile": "ፋይል ጨምር",
+        "fileLimit": "ቢበዛ {max} ፋይሎች።",
+        "othersAppear": "ሌሎች ልጆች በፋይሎቹ ውስጥ ይታያሉ",
+        "othersAppearHint": "ይህ ተማሪ ብቻ ካልታየ በስተቀር ይህን አብርተው ይተዉት። ሌሎቹን ልጆች ከታች ይጥቀሱ።",
+        "tags": "በፋይሎቹ ውስጥ ያሉ ሌሎች ልጆች",
+        "tagsHelp": "የሚታዩ ሌሎች ልጆችን ሁሉ ይጥቀሱ። ሥራው ከቤተሰብ ውጭ ከመታየቱ በፊት እያንዳንዳቸው የቤተሰባቸውን የሚዲያ ፈቃድ ይፈልጋሉ።",
+        "confirmLabel": "ያለ ፈቃድ ሌላ ልጅ በእነዚህ ፋይሎች ውስጥ አይታይም።",
+        "confirmHelp": "ፋይሎቹ ከቤተሰብ ውጭ ሲታዩና ማንም ልጅ ካልተጠቀሰ ያስፈልጋል።",
+        "cancel": "ሰርዝ",
+        "save": "ለውጦችን አስቀምጥ",
+        "saveDraft": "እንደ ረቂቅ አስቀምጥ",
+        "submit": "ለግምገማ ላክ",
+        "sendAgain": "እንደገና ለግምገማ ላክ",
+        "capture": "ወደ ስብስቡ ጨምር",
+        "saved": "ተቀምጧል።",
+        "submitted": "ለግምገማ ተልኳል።",
+        "captured": "ወደ ስብስቡ ተጨምሯል።",
+        "failed": "ማስቀመጥ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+        "rosterFailed": "የክፍሉ ልጆች አልተጫኑም።"
+      },
+      "problems": {
+        "titleRequired": "ለሥራው ርዕስ ይስጡ።",
+        "titleTooLong": "ርዕሱ በጣም ረጅም ነው (ቢበዛ 120 ፊደላት)።",
+        "descriptionTooLong": "መግለጫው በጣም ረጅም ነው (ቢበዛ 1000 ፊደላት)።",
+        "reflectionTooLong": "ማሰላሰሉ በጣም ረጅም ነው (ቢበዛ 1000 ፊደላት)።",
+        "textRequired": "መጀመሪያ አንድ ነገር ይጻፉ።",
+        "textTooLong": "ጽሑፉ በጣም ረጅም ነው (ቢበዛ 5000 ፊደላት)።",
+        "filesRequired": "መጀመሪያ ቢያንስ አንድ ፋይል ይጨምሩ።",
+        "tooManyFiles": "ፋይሎቹ በጣም ብዙ ናቸው (ቢበዛ 10)።",
+        "tooManyTags": "የተጠቀሱ ልጆች በጣም ብዙ ናቸው (ቢበዛ 20)።",
+        "studentRequired": "ተማሪ ይምረጡ።",
+        "note": {
+          "required": "ለተማሪው አጭር ማስታወሻ ይጻፉ።",
+          "tooLong": "ማስታወሻው በጣም ረጅም ነው (ቢበዛ 500 ፊደላት)።"
+        }
+      },
+      "gate": {
+        "missingTitle": "አንዳንድ ልጆች የሚዲያ ፈቃድ የላቸውም",
+        "confirmTitle": "በፋይሎቹ ውስጥ ማን እንዳለ እባክዎ ያረጋግጡ",
+        "students": "ፈቃድ የሌላቸው ልጆች",
+        "unnamed": "{count, plural, one {1 ልጅ (ስሙ ለክፍሉ መምህራን ብቻ ይታያል)} other {# ልጆች (ስሞቹ ለክፍሉ መምህራን ብቻ ይታያሉ)}}",
+        "missingAdviceAuthor": "የእነዚህን ልጆች መለያ ያስወግዱ፣ ወይም ትምህርት ቤቱ ፈቃዳቸውን እንዲመዘግብ ይጠይቁ። ጽሑፍዎና ፋይሎችዎ እንደተጠበቁ ናቸው።",
+        "missingAdviceReviewer": "ለጠባብ ታዳሚ መፍቀድ፣ ማስተካከያ መጠየቅ፣ ወይም ትምህርት ቤቱ ፈቃድ እንዲመዘግብ መጠየቅ ይችላሉ። ምንም አልተለወጠም።",
+        "untag": "እነዚህን መለያዎች አስወግድ",
+        "confirmLabel": "በእነዚህ ፋይሎች ውስጥ የሚዲያ ፈቃድ የሌለው ልጅ እንደሌለ አረጋግጣለሁ።",
+        "confirmAdviceReviewer": "ተማሪው በፋይሎቹ ውስጥ ማን እንዳለ አላረጋገጠም። እንዲያረጋግጥ ወይም ልጆቹን እንዲጠቅስ ማስተካከያ ይጠይቁ። ምንም አልተለወጠም።"
+      },
+      "media": {
+        "withheldTitle": "ፋይሎቹ ተደብቀዋል",
+        "withheldBody": "በውስጣቸው ያሉ ልጆች ቤተሰቦች ሁሉ ሚዲያ እንዲጋራ ገና አልተስማሙም። ጽሑፉና ዝርዝሩ ይታያሉ።",
+        "warningTitle": "እነዚህ ፋይሎች ከሌሎች ተደብቀዋል",
+        "warningBody": "እርስዎ ማየት ይችላሉ፣ ሌሎች ግን በውስጣቸው ያሉ ልጆች ሁሉ የሚዲያ ፈቃድ እስኪኖራቸው ድረስ አይችሉም።",
+        "pictures": "{count, plural, one {1 ምስል} other {# ምስሎች}}",
+        "open": "ምስል {number} ከ{total} ክፈት",
+        "alt": "ምስል {number} ከ{total}",
+        "viewer": "የምስል ማሳያ",
+        "document": "ሰነድ {number} ከ{total}",
+        "openDocument": "ክፈት",
+        "openFailed": "ሰነዱን መክፈት አልተቻለም።"
+      },
+      "item": {
+        "back": "ተመለስ",
+        "gone": "ይህ ሥራ አይገኝም።",
+        "untitled": "ርዕስ የለውም",
+        "featured": "ተመራጭ",
+        "byTeacher": "በመምህር የተጨመረ",
+        "capped": "የተመረጠው፦ {chosen}። የሚታየው ለ፦ {shown}፣ ይህ ትምህርት ቤት የሚፈቅደው ከፍተኛው ነው።",
+        "note": {
+          "CHANGES_REQUESTED": "ማስተካከያ ተጠይቋል",
+          "REJECTED": "አልተቀበለም",
+          "APPROVED": "ከመምህሩ የተላከ ማስታወሻ"
+        },
+        "description": "ስለዚህ ሥራ",
+        "reflection": "የተማሩት",
+        "tagged": "በፋይሎቹ ውስጥ ያሉ ሌሎች ልጆች",
+        "taggedUnnamed": "አንድ ልጅ"
+      },
+      "actions": {
+        "label": "ለዚህ ሥራ የሚደረጉ ነገሮች",
+        "review": "ገምግም",
+        "edit": "አስተካክል",
+        "submit": "ለግምገማ ላክ",
+        "resubmit": "እንደገና ለግምገማ ላክ",
+        "feature": "ተመራጭ አድርግ",
+        "unfeature": "ከተመራጮች አስወግድ",
+        "archive": "አስቀምጥ",
+        "unarchive": "መልስ",
+        "delete": "አጥፋ",
+        "failed": "አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+        "done": {
+          "submit": "ለግምገማ ተልኳል።",
+          "feature": "ተመራጭ ሆኗል።",
+          "unfeature": "ከተመራጮች ተወግዷል።",
+          "unarchive": "ተመልሷል።",
+          "archive": "ተቀምጧል።",
+          "delete": "ጠፍቷል።"
+        },
+        "confirm": {
+          "delete": {
+            "title": "ይህን ሥራ ይጥፋ?",
+            "body": "ሥራውና ፋይሎቹ ለሁሉም ይወገዳሉ። ይህን መመለስ አይቻልም።"
+          },
+          "archive": {
+            "title": "ይህን ሥራ ልቀመጥ?",
+            "body": "ከተማሪውና ከመምህራን በስተቀር ለሁሉም ይደበቃል። መምህር መልሶ ሊያመጣው ይችላል።"
+          }
+        }
+      },
+      "review": {
+        "title": "ይህን ሥራ ገምግም",
+        "help": "ተማሪው ማስታወሻዎን ያነባል። ቤተሰቦችና የክፍል ጓደኞች ሥራውን የሚያዩት ከፈቀዱ በኋላ ብቻ ነው።",
+        "decision": "ውሳኔዎ",
+        "decisions": {
+          "APPROVE": "ፍቀድ",
+          "REQUEST_CHANGES": "ማስተካከያ ጠይቅ",
+          "REJECT": "አትቀበል"
+        },
+        "decisionHelp": {
+          "APPROVE": "ሥራው ከታች ለተመረጠው ታዳሚ ይታያል።",
+          "REQUEST_CHANGES": "ተማሪው አስተካክሎ እንደገና ሊልከው ይችላል።",
+          "REJECT": "ተማሪው እንደገና ሊልከው አይችልም።"
+        },
+        "audience": "ለማን ይታይ",
+        "audienceHelp": "ተማሪው የመረጠውን ታዳሚ ወይም ጠባብ የሆነውን መምረጥ ይችላሉ።",
+        "note": "ለተማሪው ማስታወሻ",
+        "noteOptional": "ለተማሪው ማስታወሻ (አማራጭ)",
+        "noteHelp": "{count} ከ{max}",
+        "cancel": "ሰርዝ",
+        "failed": "ውሳኔዎ አልተቀመጠም። እባክዎ እንደገና ይሞክሩ።",
+        "done": {
+          "APPROVE": "ተፈቅዷል።",
+          "REQUEST_CHANGES": "ማስተካከያ ተጠይቋል።",
+          "REJECT": "አልተቀበለም።"
+        },
+        "send": {
+          "APPROVE": "ፍቀድ",
+          "REQUEST_CHANGES": "ማስተካከያ ጠይቅ",
+          "REJECT": "አትቀበል"
+        }
+      },
+      "history": {
+        "title": "ታሪክ",
+        "failed": "ታሪኩ አልተጫነም።",
+        "empty": "እስካሁን ምንም አልተደረገም።",
+        "by": "በ{name}",
+        "roles": {
+          "STUDENT": "ተማሪው",
+          "TEACHER": "መምህር",
+          "GUARDIAN": "ወላጅ"
+        },
+        "actions": {
+          "CAPTURED": "በመምህር ተጨምሯል",
+          "SUBMITTED": "ለግምገማ ተልኳል",
+          "APPROVED": "ተፈቅዷል",
+          "CHANGES_REQUESTED": "ማስተካከያ ተጠይቋል",
+          "REJECTED": "አልተቀበለም",
+          "ARCHIVED": "ተቀምጧል",
+          "UNARCHIVED": "ተመልሷል",
+          "FEATURED": "ተመራጭ ሆኗል",
+          "UNFEATURED": "ከተመራጮች ተወግዷል",
+          "DELETED": "ጠፍቷል"
+        }
+      },
+      "comments": {
+        "title": "አስተያየቶች",
+        "privacy": "እነዚህን አስተያየቶች ተማሪው፣ ቤተሰቡና መምህራኑ ብቻ ማየት ይችላሉ።",
+        "loadFailed": "አስተያየቶቹ አልተጫኑም።",
+        "empty": "እስካሁን አስተያየት የለም። ደግ ነገር በመናገር የመጀመሪያው ይሁኑ።",
+        "you": "እርስዎ",
+        "roles": {
+          "TEACHER": "መምህር",
+          "GUARDIAN": "ወላጅ",
+          "STUDENT": "ተማሪ"
+        },
+        "hidden": "መምህር ይህን አስተያየት ደብቋል።",
+        "hide": "ደብቅ",
+        "delete": "አጥፋ",
+        "deleteTitle": "አስተያየትዎ ይጥፋ?",
+        "deleteBody": "አስተያየቱ ለሁሉም ይወገዳል።",
+        "deleteFailed": "አስተያየቱን ማጥፋት አልተቻለም።",
+        "deleted": "አስተያየቱ ጠፍቷል።",
+        "write": "አስተያየት ይጻፉ",
+        "placeholder": "ስለዚህ ሥራ ደግ ነገር ይናገሩ",
+        "count": "{count} ከ{max}",
+        "send": "አስተያየት ላክ",
+        "failed": "አስተያየትዎ አልተላከም። እባክዎ እንደገና ይሞክሩ።",
+        "retryAfter": "ከ{seconds} ሰከንድ በኋላ እንደገና ይሞክሩ።",
+        "problems": {
+          "empty": "መጀመሪያ አስተያየት ይጻፉ።",
+          "tooLong": "አስተያየቱ በጣም ረጅም ነው (ቢበዛ 500 ፊደላት)።"
+        },
+        "hideTitle": "ይህ አስተያየት ይደበቅ?",
+        "hideBody": "አስተያየቱ እንደ ተደበቀ ማስታወሻ ይቀራል። ጸሐፊውና መምህራን ብቻ ሊያነቡት ይችላሉ።",
+        "reason": "ለምን እየደበቁት ነው?",
+        "reasonRequired": "ምክንያት ይስጡ።",
+        "cancel": "ሰርዝ",
+        "hiddenDone": "አስተያየቱ ተደብቋል።",
+        "hideFailed": "አስተያየቱን መደበቅ አልተቻለም።"
+      },
+      "student": {
+        "title": "የሥራ ስብስቤ",
+        "subtitle": "የራሴ ሥራዎች፦ ጽሑፎች፣ ፎቶዎች፣ የተቃኙ ገጾችና ሰነዶች።",
+        "notStudent": "ይህ ገጽ ለተማሪዎች ነው። ቤተሰቦች የልጃቸውን የሥራ ስብስብ ከ\"ልጆቼ\" ስር ያያሉ።",
+        "school": "ትምህርት ቤት",
+        "new": "ወደ ስብስቤ ጨምር",
+        "createOff": "ወደ ስብስብ መጨመር በትምህርት ቤትዎ ለጊዜው ዝግ ነው።",
+        "unavailable": "ስብስብዎ አልተጫነም።",
+        "tabs": {
+          "mine": "ሥራዎቼ",
+          "class": "ክፍሌ",
+          "school": "ትምህርት ቤቴ"
+        },
+        "filter": "ሥራዎቼን አሳይ",
+        "all": "ሁሉም",
+        "mineEmpty": "እስካሁን ምንም ሥራ አልጨመሩም።",
+        "mineFailed": "ሥራዎችዎ አልተጫኑም።",
+        "class": "ክፍል",
+        "galleryHelp": "ትምህርት ቤቱ እዚህ ላሉ ሁሉ ያጋራቸው የተፈቀዱ ሥራዎች።",
+        "classGalleryEmpty": "ለክፍሉ እስካሁን ምንም ሥራ አልተጋራም።",
+        "schoolGalleryEmpty": "ለትምህርት ቤቱ እስካሁን ምንም ሥራ አልተጋራም።",
+        "galleryFailed": "ማሳያው አልተጫነም።",
+        "noClasses": "እስካሁን በምንም ክፍል ውስጥ አይደሉም።"
+      },
+      "classTab": {
+        "unavailable": "የዚህ ክፍል የሥራ ስብስቦች አልተጫኑም።",
+        "captureHelp": "የተማሪን ሥራ ከስልክዎ ወይም ከኮምፒውተርዎ ይጨምሩ፣ ለምሳሌ የሠሩትን ነገር ፎቶ።",
+        "capture": "ለተማሪ ሥራ ጨምር",
+        "queue": "የሚገመገም",
+        "queueHelp": "ተማሪዎች የላኳቸው ሥራዎች፣ የቆዩት መጀመሪያ።",
+        "queueEmpty": "ምንም ግምገማ የሚጠብቅ ነገር የለም።",
+        "queueFailed": "የግምገማ ዝርዝሩ አልተጫነም።",
+        "gallery": "የክፍል ማሳያ",
+        "galleryHelp": "ትምህርት ቤቱ መላው ክፍል እንዲያይ የፈቀደላቸው የተፈቀዱ ሥራዎች።",
+        "galleryEmpty": "ለክፍሉ እስካሁን ምንም ሥራ አልተጋራም።",
+        "galleryFailed": "ማሳያው አልተጫነም።"
+      },
+      "schoolPage": {
+        "title": "የትምህርት ቤቱ የሥራ ማሳያ",
+        "subtitle": "ትምህርት ቤቱ ሁሉም እንዲያይ የፈቀደላቸው የተፈቀዱ ሥራዎች።",
+        "empty": "ለትምህርት ቤቱ እስካሁን ምንም ሥራ አልተጋራም።",
+        "failed": "ማሳያው አልተጫነም።"
+      }
     }
   },
   "family": {
@@ -5980,7 +6295,18 @@
         "confirm": "አጥፋ",
         "done": "ዝግጅቱ ጠፍቷል።"
       }
-    }
+    },
+    "portfolio": {
+      "title": "የሥራ ስብስብ",
+      "subtitle": "መምህራን የፈቀዱላቸው የልጆችዎ ሥራዎች። ሥራውን ለማንበብና የሚያበረታታ አስተያየት ለመጻፍ ይክፈቱት።",
+      "filter": "የሚታዩ ሥራዎች የ",
+      "allChildren": "ሁሉም ልጆች",
+      "empty": "እስካሁን የሚታይ የተፈቀደ ሥራ የለም። መምህር የልጅዎን ሥራ ሲፈቅድ እዚህ ይታያል።",
+      "failed": "የሥራ ስብስቡ አልተጫነም።",
+      "loadFailed": "ልጆችዎ አልተጫኑም።",
+      "noChildren": "ምንም የልጅ የሥራ ስብስብ አይገኝልዎትም።"
+    },
+    "portfolioLink": "የ{name} የሥራ ስብስብ"
   },
   "invite": {
     "pageTitle": "ከልጅዎ ትምህርት ቤት ጋር ይገናኙ",
