@@ -1,6 +1,8 @@
 # Multi-Country Multi-Tenant Education, Community & Tutoring Platform
 *Updated working specification — 20 November 2026. This revision preserves the original multi-country, multi-tenant architecture and adds product requirements for student portfolios, school-wide communications, SIS imports, teacher tools, curriculum alignment, tutor insights, AI Tutor Copilot, student-facing AI tutoring, and strengthened safeguarding. The revised phase descriptions in Sections 112–117 and the additions in Sections 123–133 form the updated working specification.*
 
+> **Read with §135 (26 November 2026).** The product scope was revised: there are **no online courses, recorded or hosted video, tutor bookings, sessions, reviews, payouts or commissions, and no Student AI Tutor or Tutor Copilot**; the tutor marketplace is a **paid tutor directory** with platform messaging; the school AI assistant is deferred; attendance is manual and QR; transfer is a status. Older sections still describe the original scope in places; **wherever they mention the removed items, §134 and §135 apply**, and the sections with normative rules about them carry a banner.
+
 ## 1. Product Overview
 The platform is a **mobile-first, multi-country, multi-tenant education ecosystem** connecting schools, teachers, students, parents/guardians, and independent tutors.
 
@@ -181,6 +183,8 @@ Examples:
 - Country-specific rules
 
 # 4. Major Product Domains
+
+> **Revised (26 November 2026, §135). Courses, live and recorded learning, tutoring sessions, marketplace payouts and the AI tutoring domains are removed; the tutor domain is a directory.**
 The platform should be divided into the following domains:
 
 01\. Identity & Authentication
@@ -936,6 +940,8 @@ B = 80–89
 Another school can use a completely different system.
 
 # 27. Student Progress
+
+> **Revised (26 November 2026, D33). There is no course progress; progress is attendance, assignments, grades, assessment results, points, achievements, portfolio and teacher feedback.**
 Students and authorized parents/guardians can see:
 
 - Attendance
@@ -2647,6 +2653,8 @@ This applies to:
 - Class points
 
 # 83. Course Authorization
+
+> **Removed (26 November 2026, D33). There are no courses.**
 Course access is independent from school class membership.
 
 A student sees course content only if:
@@ -2938,6 +2946,8 @@ SMS
 Users should have notification preferences.
 
 # 94. Database — High-Level Structure
+
+> **Superseded (26 November 2026). The schema is `Database_Design.md`; the course, live-session, booking, order, payout and AI groups below are not built (D32–D34).**
 GLOBAL
 
 ├── countries
@@ -3159,6 +3169,8 @@ PLATFORM
 └── moderation_cases
 
 # 95. School vs Marketplace Data
+
+> **Revised (26 November 2026, §135). The marketplace world is only the tutor directory (profiles, listings, inquiries, listing subscriptions); it never holds school data.**
 These two worlds should remain conceptually separate.
 
 SCHOOL WORLD
@@ -3228,6 +3240,8 @@ Video infrastructure
 but the business rules remain separate.
 
 # 96. Recommended Spring Boot Structure
+
+> **Revised (26 November 2026). There are no `courses`, `video`, `marketplace` (bookings), `finance` (payouts) or `ai` modules; the tutor directory is a `tutors` module and school fees a `fees` module (Implementation Plan).**
 com.platform
 
 │
@@ -3513,6 +3527,8 @@ Only authorized content returned
 This must apply to every endpoint.
 
 # 101. Course Security Rule
+
+> **Removed (26 November 2026, D33). There are no courses.**
 Course content should similarly be filtered server-side.
 
 A student can access:
@@ -3567,6 +3583,8 @@ Class messages
 School events
 
 # 103. School Data and Marketplace Data
+
+> **Stands, with the directory of §135: a school never sees a family's tutor inquiries, and a tutor never sees school data.**
 A parent's access to a child's school record should not automatically expose:
 
 Tutor marketplace history
@@ -4000,6 +4018,8 @@ Complex school ERP features (Section 134.7 adds a fee ledger and cash book only;
 Start with strong boundaries inside a modular monolith.
 
 # 120. Final Product Architecture
+
+> **Revised (26 November 2026, §135): school platform plus tutor directory; no learning marketplace or AI tutoring.**
 GLOBAL PLATFORM
 
 │
@@ -4085,6 +4105,8 @@ Payments
 Video
 
 # 121. Core Access Model
+
+> **Revised (26 November 2026, D33): course enrollment and course content access are removed.**
 The most important rule for the platform is:
 
 USER
@@ -4132,6 +4154,8 @@ USER
 This is the fundamental separation that keeps the system secure and understandable.
 
 # 122. Final Product Definition
+
+> **Revised (26 November 2026, §135): the product is a school platform (classroom, families, school operations and fees) plus a paid tutor directory.**
 The platform can ultimately be described as:
 
 > **A multi-country, multi-tenant African education ecosystem combining school management, ClassDojo-style student engagement, parent–teacher communication, classroom communities, digital school libraries, online courses, live and pre-recorded tutoring, personal tutor discovery, video learning, attendance, payments, and calendar functionality in one mobile-first platform.**
@@ -4255,6 +4279,8 @@ Provide lightweight tools that reduce classroom administration and are fast to u
 Keep these tools lightweight and integrated into the teacher’s class view. Do not create a separate classroom app or build complex analytics into the first release.
 
 # 127. Curriculum & Learning Standards
+
+> **Revised (26 November 2026, D33, D34): the mentions of online courses, AI lesson planning and the student AI tutor no longer apply; curriculum tagging serves assignments, assessments, questions, lesson plans and portfolio items.**
 
 Curriculum alignment is a shared foundation for school learning, online courses, tutor recommendations, AI lesson planning and the student AI tutor. It must be configurable by country and education system, and must support school-specific variations.
 
@@ -4450,6 +4476,8 @@ Country-specific privacy, child-protection, education and consumer requirements 
 
 # 132. Updated Domain and Technical Boundaries
 
+> **Revised (26 November 2026, D32, D34): `tutoring_insights`, `ai.tutor_copilot` and `ai.student_tutor` are removed; a `tutors` (directory) and a `fees` boundary are added.**
+
 Retain the modular monolith and the shared infrastructure described in the original document. Add the following first-class domain boundaries rather than scattering their rules across generic school, marketplace or AI services:
 
 - curriculum: education systems, curriculum versions, subjects, topics, objectives and assessment rubrics.
@@ -4618,8 +4646,8 @@ The product is a **school platform** (classroom, families, school operations, fe
 ## 135.1 Tutor directory
 
 - **Tutors list themselves.** A tutor profile has a headline, bio, years of experience, subjects and levels, languages, a delivery mode (in person, or online with the tutor's own tools), **area-level locations** (city, sub-city or woreda, never an address), a **weekly availability pattern** shown as information (nothing is reserved), an informational rate, and a verified badge.
-- **Families find tutors.** Authenticated **guardians and independent adult learners (verified adults)** can search by subject, level, language, area or city, in-person or online, price range, day of the week and verified status. **Student accounts have no directory.** Search and profiles never show a phone number, e-mail address, exact address or document.
-- **Families message tutors** through the platform: a guardian or an adult learner starts a conversation, the tutor replies, and either side can block or report. **Students under 18 never contact a tutor** (owner decision), and a tutor can never start a conversation. The tutor sees the family's role label ("Parent" or "Learner"), the child's **age band** and the subject, never a name, school or photo unless the guardian writes it. Rules and limits: Messaging_Rules R14.
+- **Families find tutors.** **Verified adults** (a phone verified by OTP and a date of birth showing 18 or over, or a guardian link verified by a school) can search by subject, level, language, area or city, in-person or online, price range, day of the week and verified status. **Student accounts have no directory.** Search and profiles never show a phone number, e-mail address, exact address or document.
+- **Families message tutors** through the platform: a verified adult starts a conversation, for a child or for themself (no school link is needed), the tutor replies, and either side can block or report. **Students under 18 never contact a tutor** (owner decision), and a tutor can never start a conversation. The tutor sees the family's role label ("Parent" or "Learner"), the child's **age band** and the subject, never a name, school or photo unless the guardian writes it. Rules and limits: Messaging_Rules R14.
 - **Verification before listing.** A platform review checks identity and qualifications (and, where the country requires it, police clearance) and the listing text and photo. Documents are private to platform reviewers.
 - **No bookings, sessions, lesson payments, reviews, ratings, commissions or payouts.** Lessons are arranged between the family and the tutor outside the platform, and the product says so plainly. Reviews can be reconsidered later; nothing in the platform proves that a lesson happened, so ratings would not be trustworthy.
 - **No school data for tutors.** A tutor never sees grades, attendance, portfolios, class membership or school messages, and a school never sees a family's tutor inquiries (§85, §103).
