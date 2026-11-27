@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.nemaz.school.support.CountryPolicies;
 import com.nemaz.school.IntegrationTest;
 import com.nemaz.school.common.error.ApiException;
 import com.nemaz.school.identity.application.PhoneInputs;
@@ -44,7 +45,7 @@ class CountryConfigTest extends ImportTestSupport {
 
 	@BeforeEach
 	void enableKenya() {
-		this.jdbc.update("update countries set status = 'ENABLED' where code = 'KE'");
+		CountryPolicies.enable(this.jdbc, "KE");
 		this.platformAdmin = this.personas.platformAdmin();
 	}
 
@@ -52,9 +53,7 @@ class CountryConfigTest extends ImportTestSupport {
 	void restoreCountries() {
 		this.jdbc.update("delete from settings where key = 'platform.default_country'");
 		this.jdbc.update("update countries set status = 'ENABLED' where code = 'ET'");
-		this.jdbc.update("update countries set status = 'DRAFT' where code = 'KE'");
-		this.jdbc.update("delete from policy_versions where policy_document_id in (select id from policy_documents where country_code = 'KE')");
-		this.jdbc.update("delete from policy_documents where country_code = 'KE'");
+		CountryPolicies.disable(this.jdbc, "KE");
 	}
 
 	// --- /meta ------------------------------------------------------------------------------
@@ -205,13 +204,17 @@ class CountryConfigTest extends ImportTestSupport {
 	void legalTextOfAnotherCountryIsNeverServed() throws Exception {
 		UUID kenya = this.personas.newSchoolIn("KE", "Policy school KE");
 
-		// Ethiopia has its seeded text; Kenya has none: a clear refusal, not the Ethiopian text
+		// Ethiopia has its seeded text; Kenya has only TERMS and PRIVACY (enough to be enabled): the other documents are
+		// refused clearly, never answered with the Ethiopian text
 		JsonNode et = call(HttpMethod.GET, "/api/v1/policies/TERMS?country=ET&lang=en", null, null, 200);
 		assertThat(et.get("countryCode").asString()).isEqualTo("ET");
-		for (String url : new String[] { "/api/v1/policies/TERMS?country=KE", "/api/v1/policies/MEDIA_PUBLICATION?schoolId=" + kenya }) {
+		for (String url : new String[] { "/api/v1/policies/ACCOUNT_PARTICIPATION?country=KE", "/api/v1/policies/MEDIA_PUBLICATION?schoolId=" + kenya }) {
 			JsonNode refused = call(HttpMethod.GET, url, null, null, 404);
 			assertThat(refused.get("code").asString()).as(url).isEqualTo("policy.country_not_available");
 		}
+		// what Kenya does have is its own text
+		assertThat(call(HttpMethod.GET, "/api/v1/policies/TERMS?country=KE&lang=en", null, null, 200).get("countryCode").asString())
+			.isEqualTo("KE");
 		// without a school or a country the platform default decides (Ethiopia here), by data
 		assertThat(call(HttpMethod.GET, "/api/v1/policies/PRIVACY", null, null, 200).get("countryCode").asString()).isEqualTo("ET");
 

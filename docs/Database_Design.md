@@ -179,7 +179,7 @@ create table countries (
   phone_country_code      text not null,         -- +251
   address_format          jsonb not null,        -- labels per admin level per language, required levels, postal rules
   name_format             jsonb,                 -- labels for given/middle/family name (R-37)
-  status                  text not null default 'DRAFT', -- DRAFT|ENABLED|DISABLED
+  status                  text not null default 'DRAFT', -- DRAFT|ENABLED|DISABLED; ENABLED needs published TERMS and PRIVACY (trigger, D42)
   launched_at             timestamptz
   -- + std
 );

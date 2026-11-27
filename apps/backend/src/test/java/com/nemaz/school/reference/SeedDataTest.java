@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.nemaz.school.support.CountryPolicies;
 import com.nemaz.school.IntegrationTest;
 import com.nemaz.school.tenancy.application.ValueSchemaValidator;
 import org.junit.jupiter.api.Test;
@@ -210,7 +211,7 @@ class SeedDataTest {
 		int regions = count("administrative_areas");
 		int definitions = count("setting_definitions");
 		int entitlements = count("plan_entitlements");
-		this.jdbc.update("update countries set status = 'ENABLED' where code = 'KE'");
+		CountryPolicies.enable(this.jdbc, "KE");
 		this.jdbc.update("update languages set is_enabled = false where code = 'ti'");
 		this.jdbc.update("update feature_definitions set default_enabled = true where key = 'payments'");
 		this.jdbc.update("update setting_definitions set default_value = 'false' where key = 'engagement.needs_work.enabled'");
@@ -241,7 +242,7 @@ class SeedDataTest {
 			assertThat(entitled("SCHOOL_FREE")).doesNotContain("payments");
 		}
 		finally {
-			this.jdbc.update("update countries set status = 'DRAFT' where code = 'KE'");
+			CountryPolicies.disable(this.jdbc, "KE");
 			this.jdbc.update("update languages set is_enabled = true where code = 'ti'");
 		}
 	}

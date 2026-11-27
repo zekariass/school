@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.nemaz.school.support.CountryPolicies;
 import com.nemaz.school.IntegrationTest;
 import com.nemaz.school.subscriptions.SubscriptionAssigned;
 import org.junit.jupiter.api.Test;
@@ -134,7 +135,7 @@ class PlatformSchoolApiTest extends ApiTestSupport {
 
 	@Test
 	void organizationMustBelongToTheSchoolsCountry() throws Exception {
-		this.jdbc.update("update countries set status = 'ENABLED' where code = 'KE'");
+		CountryPolicies.enable(this.jdbc, "KE");
 		try {
 			UUID kenyanOrg = newOrganization("KE");
 			httpPost(URL, SCHOOLS, with(schoolBody(uniqueSlug("mismatch")), "organizationId", kenyanOrg.toString()))
@@ -150,7 +151,7 @@ class PlatformSchoolApiTest extends ApiTestSupport {
 				.andExpect(jsonPath("$.languages", hasSize(1)));
 		}
 		finally {
-			this.jdbc.update("update countries set status = 'DRAFT' where code = 'KE'");
+			CountryPolicies.disable(this.jdbc, "KE");
 		}
 	}
 
