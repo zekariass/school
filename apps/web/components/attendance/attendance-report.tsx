@@ -18,6 +18,7 @@ import { errorMessage } from "@/lib/console/errors";
 import { saveBlob } from "@/lib/points/queries";
 import { fetchClasses, fetchRoster, fetchStudents, sk } from "@/lib/school/queries";
 import { useDebounced } from "@/lib/school/use-debounced";
+import { ExportError } from "./export-error";
 
 /**
  * Attendance marks per student and class over school-local dates, for teachers (a class they teach) and for
@@ -92,11 +93,7 @@ export function AttendanceReport() {
           {t("export")}
         </Button>
       </div>
-      {exportCsv.isError ? (
-        <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm font-medium text-destructive" data-testid="export-error">
-          {errorMessage(exportCsv.error, t("exportFailed"))}
-        </p>
-      ) : null}
+      {exportCsv.isError ? <ExportError error={exportCsv.error} fallback={t("exportFailed")} /> : null}
 
       {!rangeOk ? (
         <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm font-medium text-destructive">
