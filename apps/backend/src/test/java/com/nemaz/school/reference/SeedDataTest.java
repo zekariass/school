@@ -131,14 +131,14 @@ class SeedDataTest {
 		this.jdbc.query("select key, default_enabled from feature_definitions",
 				(RowCallbackHandler) (rs) -> defaults.put(rs.getString(1), rs.getBoolean(2)));
 		assertThat(defaults).containsKeys("attendance", "points", "feed", "messaging", "announcements", "calendar",
-				"portfolio", "library", "assignments", "courses", "marketplace", "tutoring", "payments", "ai_copilot",
-				"ai_student_tutor");
+				"portfolio", "library", "assignments", "payments");
+		// the flags of the removed scope (D32-D40) are gone: the migration deleted them and the seeds do not list them
+		assertThat(defaults).doesNotContainKeys("courses", "marketplace", "tutoring", "ai_copilot", "ai_student_tutor");
 		assertThat(defaults).containsEntry("attendance", true)
 			.containsEntry("points", true)
 			.containsEntry("feed", true)
 			.containsEntry("messaging", true)
-			.containsEntry("marketplace", false)
-			.containsEntry("ai_copilot", false);
+			.containsEntry("payments", false);
 	}
 
 	@Test
@@ -192,12 +192,15 @@ class SeedDataTest {
 
 		assertThat(entitled("SCHOOL_FREE")).contains("attendance", "points", "feed", "messaging", "announcements",
 				"calendar")
-			.doesNotContain("library", "courses", "marketplace", "ai_copilot");
-		assertThat(entitled("SCHOOL_BASIC")).contains("library", "assignments").doesNotContain("courses");
-		assertThat(entitled("SCHOOL_STANDARD")).contains("courses").doesNotContain("marketplace");
-		assertThat(entitled("SCHOOL_PREMIUM")).contains("marketplace", "tutoring", "payments", "ai_copilot")
-			.doesNotContain("ai_student_tutor");
-		assertThat(entitled("ENTERPRISE")).contains("ai_student_tutor");
+			.doesNotContain("library", "payments");
+		assertThat(entitled("SCHOOL_BASIC")).contains("library", "assignments").doesNotContain("payments");
+		assertThat(entitled("SCHOOL_STANDARD")).contains("library", "assignments").doesNotContain("payments");
+		assertThat(entitled("SCHOOL_PREMIUM")).contains("payments");
+		assertThat(entitled("ENTERPRISE")).contains("payments");
+		assertThat(this.jdbc.queryForObject(
+				"select count(*) from plan_entitlements where feature_key in ('courses', 'marketplace', 'tutoring', 'ai_copilot', 'ai_student_tutor')",
+				Integer.class))
+			.isZero();
 		assertThat(limit("SCHOOL_FREE", "max_students")).isEqualTo(100L);
 		assertThat(limit("ENTERPRISE", "max_students")).isNull();
 	}
@@ -209,9 +212,9 @@ class SeedDataTest {
 		int entitlements = count("plan_entitlements");
 		this.jdbc.update("update countries set status = 'ENABLED' where code = 'KE'");
 		this.jdbc.update("update languages set is_enabled = false where code = 'ti'");
-		this.jdbc.update("update feature_definitions set default_enabled = true where key = 'marketplace'");
+		this.jdbc.update("update feature_definitions set default_enabled = true where key = 'payments'");
 		this.jdbc.update("update setting_definitions set default_value = 'false' where key = 'engagement.needs_work.enabled'");
-		this.jdbc.update("update plan_entitlements set enabled = true where feature_key = 'ai_copilot'"
+		this.jdbc.update("update plan_entitlements set enabled = true where feature_key = 'payments'"
 				+ " and plan_id = (select id from subscription_plans where code = 'SCHOOL_FREE')");
 		try {
 			for (String script : List.of("R__10_reference_data.sql", "R__20_definitions.sql", "R__30_subscription_plans.sql")) {
@@ -228,14 +231,14 @@ class SeedDataTest {
 			assertThat(this.jdbc.queryForObject("select is_enabled from languages where code = 'ti'", Boolean.class))
 				.isFalse();
 			// ... code-owned definitions are put back (DO UPDATE)
-			assertThat(this.jdbc.queryForObject("select default_enabled from feature_definitions where key = 'marketplace'",
+			assertThat(this.jdbc.queryForObject("select default_enabled from feature_definitions where key = 'payments'",
 					Boolean.class))
 				.isFalse();
 			assertThat(this.jdbc.queryForObject(
 					"select default_value::text from setting_definitions where key = 'engagement.needs_work.enabled'",
 					String.class))
 				.isEqualTo("true");
-			assertThat(entitled("SCHOOL_FREE")).doesNotContain("ai_copilot");
+			assertThat(entitled("SCHOOL_FREE")).doesNotContain("payments");
 		}
 		finally {
 			this.jdbc.update("update countries set status = 'DRAFT' where code = 'KE'");
@@ -254,6 +257,33 @@ class SeedDataTest {
 		assertThatThrownBy(() -> this.jdbc.update(
 				"insert into subscriptions (plan_id, subscriber_type, school_id, status) select id, 'SCHOOL', null, 'ACTIVE' from subscription_plans limit 1"))
 			.isInstanceOf(DataIntegrityViolationException.class);
+	}
+
+	@Test
+	void theCheckConstraintsOfTheRemovedScopeNoLongerAcceptItsValues() {
+		// V14_01: no course events, no recording or transcription policies or consents, no course/tutor-review/AI targets
+		assertThatThrownBy(() -> this.jdbc.update(
+				"insert into policy_documents (policy_type, country_code, title) values ('RECORDING', 'ET', 'x')"))
+			.isInstanceOf(DataIntegrityViolationException.class)
+			.hasMessageContaining("policy_documents_policy_type_check");
+		assertThatThrownBy(() -> this.jdbc.update(
+				"insert into policy_documents (policy_type, country_code, title) values ('TRANSCRIPTION', 'ET', 'x')"))
+			.isInstanceOf(DataIntegrityViolationException.class)
+			.hasMessageContaining("policy_documents_policy_type_check");
+		for (String type : List.of("COURSE", "TUTOR_REVIEW", "AI_OUTPUT")) {
+			assertThatThrownBy(() -> this.jdbc.update(
+					"insert into moderation_cases (queue, target_type, target_id) values ('PLATFORM', ?, ?)", type, UUID.randomUUID()))
+				.isInstanceOf(DataIntegrityViolationException.class)
+				.hasMessageContaining("moderation_cases_target_type_check");
+		}
+		assertThat(this.jdbc.queryForObject(
+				"select pg_get_constraintdef(oid) from pg_constraint where conname = 'events_scope_type_check'", String.class))
+			.doesNotContain("COURSE")
+			.contains("INVITEES");
+		assertThat(this.jdbc.queryForObject(
+				"select count(*) from information_schema.columns where table_name = 'events' and column_name = 'course_id'",
+				Integer.class))
+			.isZero();
 	}
 
 	@Test

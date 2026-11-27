@@ -33,6 +33,11 @@ class SchoolTime {
 		return zone(ref.schoolId(), ref.campusId());
 	}
 
+	/** The zone of a campus (else of the school) by ids, for records that carry a campus but no class. */
+	ZoneId zoneOf(UUID schoolId, UUID campusId) {
+		return zone(schoolId, campusId);
+	}
+
 	ZoneId zoneOfSchool(UUID schoolId) {
 		return zone(schoolId, null);
 	}

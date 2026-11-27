@@ -7,7 +7,7 @@
  * never deletes. Text is plain text.</li>
  * <li><b>The calendar API returns a union (R-17):</b> every {@link CalendarSource} contributes the items of its own source,
  * already filtered by the caller's access. The sources of this module are the events, the school's holidays and the
- * academic year and period boundaries; later milestones (assignments, live sessions, tutoring) add theirs by declaring a
+ * academic year and period boundaries; later milestones (assignment due dates, M17, and the published timetable, M37) add theirs by declaring a
  * {@code CalendarSource} bean, with no change here.</li>
  * <li><b>Access</b> goes through {@code academic.ClassAccess} and its rules, {@code guardians.GuardianAccess} (parent
  * meetings: the guardians' links are re-checked at every read) and the permission {@code school.calendar.manage}.</li>

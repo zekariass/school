@@ -19,12 +19,7 @@ insert into feature_definitions (key, description, default_enabled) values
   ('portfolio',       'Student portfolios', true),
   ('library',         'Digital library (P2)', false),
   ('assignments',     'Assignments, assessment and grading (P2)', false),
-  ('courses',         'Courses and video (P3)', false),
-  ('marketplace',     'Tutor marketplace (P4)', false),
-  ('tutoring',        'Tutoring sessions and bookings (P4)', false),
   ('payments',        'Payments and school fees (P3, P5)', false),
-  ('ai_copilot',      'AI Tutor Copilot (P6)', false),
-  ('ai_student_tutor','Student AI Tutor (P6)', false),
   ('max_students',    'Capacity entitlement: maximum active students (limit_value)', true),
   ('storage_bytes',   'Capacity entitlement: media storage in bytes (limit_value)', true)
 on conflict (key) do update
@@ -68,6 +63,9 @@ from (values
    '{"type": "array", "items": {"type": "string", "enum": ["PRESENT", "ABSENT", "LATE", "EXCUSED", "LEFT_EARLY"]}, "maxItems": 5}',
    '["ABSENT", "LATE"]',
    'The marks that notify the child''s guardians (an empty list turns the notifications off)'),
+  ('attendance.staff.enabled', 'attendance',
+   '{"type": "boolean"}', 'false',
+   'Staff attendance is on: managers mark staff for a day and staff read their own records (never any colleague''s). No leave, pay or HR data'),
   ('guardians.auto_verify_invite', 'guardians',
    '{"type": "boolean"}', 'false',
    'A guardian accepting a school invite counts as verification (otherwise school staff verify)'),

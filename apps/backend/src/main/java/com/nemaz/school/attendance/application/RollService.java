@@ -108,7 +108,7 @@ public class RollService {
 	// --- reading ----------------------------------------------------------------------------
 
 	@Transactional(readOnly = true)
-	public AttendanceRollView roll(CurrentUser user, UUID schoolId, UUID classId, LocalDate date, String slot) {
+	public AttendanceRollView roll(CurrentUser user, UUID schoolId, UUID classId, LocalDate date, String slot, UUID groupId) {
 		ClassRef ref = this.access.readableClass(user, schoolId, classId);
 		ZoneId zone = this.time.zoneOf(ref);
 		List<String> slots = this.settings.slots(schoolId);
@@ -119,6 +119,7 @@ public class RollService {
 		LocalDate day = (date != null) ? date : this.time.today(zone);
 		Instant locksAt = locksAt(schoolId, day, zone);
 		boolean locked = !this.time.now().isBefore(locksAt);
+		Set<UUID> groupMembers = (groupId != null) ? groupMembers(schoolId, classId, groupId) : null;
 		Optional<SessionRow> session = session(classId, day, effectiveSlot);
 		Map<UUID, RecordRow> records = new HashMap<>();
 		session.ifPresent((s) -> records(s.id()).forEach((r) -> records.put(r.studentId(), r)));
@@ -126,6 +127,10 @@ public class RollService {
 			.studentIdsDuring(classId, this.time.startOf(day, zone), this.time.endOf(day, zone)));
 		// A student who has a record stays on the roll even if the class membership data says otherwise.
 		eligible.addAll(records.keySet());
+		if (groupMembers != null) {
+			// An elective's group: the roll shows its members only (another group's marks of the same roll stay out of sight).
+			eligible.retainAll(groupMembers);
+		}
 		Map<UUID, PersonCard> cards = this.access.people().cards(eligible);
 		boolean notes = this.access.mayReadNotes(user, ref);
 		Map<UUID, ReportRow> reports = reportsCovering(schoolId, eligible, day);
@@ -146,7 +151,9 @@ public class RollService {
 		}
 		students.sort(Comparator.comparing((AttendanceRollStudent s) -> s.displayName().toLowerCase())
 			.thenComparing(AttendanceRollStudent::studentId));
-		return new AttendanceRollView(classId, day, effectiveSlot, slots, session.map(SessionRow::id).orElse(null),
+		UUID subjectId = session.map(SessionRow::subjectId).orElse(null);
+		return new AttendanceRollView(classId, day, effectiveSlot, slots, subjectId,
+				(subjectId != null) ? subjectName(subjectId) : null, groupId, session.map(SessionRow::id).orElse(null),
 				session.map(SessionRow::version).orElse(null), session.map(SessionRow::takenBy).orElse(null),
 				session.map(SessionRow::takenAt).orElse(null), locked, locksAt, this.access.mayOverrideLock(user, ref),
 				zone.getId(), students, AttendanceCounts.of(students.size(), tally));
@@ -206,18 +213,32 @@ public class RollService {
 				throw ApiException.badRequest("attendance.override_reason_required");
 			}
 		}
-		Set<UUID> eligible = this.access.memberships()
-			.studentIdsDuring(classId, this.time.startOf(date, zone), this.time.endOf(date, zone));
+		if (cmd.subjectId() != null) {
+			requirePeriodSubject(schoolId, classId, slot, cmd.subjectId());
+		}
+		Set<UUID> eligible = new HashSet<>(this.access.memberships()
+			.studentIdsDuring(classId, this.time.startOf(date, zone), this.time.endOf(date, zone)));
 		for (AttendanceMarkInput in : listed) {
 			if (!eligible.contains(in.studentId())) {
 				throw ApiException.conflict("attendance.student_not_in_class");
 			}
 		}
-		if (cmd.subjectId() != null && !subjectExists(schoolId, cmd.subjectId())) {
-			throw ApiException.badRequest("attendance.invalid_subject");
+		if (cmd.groupId() != null) {
+			Set<UUID> groupMembers = groupMembers(schoolId, classId, cmd.groupId());
+			for (AttendanceMarkInput in : listed) {
+				if (!groupMembers.contains(in.studentId())) {
+					throw ApiException.conflict("attendance.student_not_in_group");
+				}
+			}
+			eligible.retainAll(groupMembers);
 		}
 		AdvisoryLocks.acquire(this.jdbc, "attendance:" + classId + ":" + date + ":" + slot);
 		Optional<SessionRow> existingSession = session(classId, date, slot);
+		if (cmd.subjectId() != null && existingSession.isPresent()
+				&& !cmd.subjectId().equals(existingSession.get().subjectId())) {
+			// One roll per class, date and slot: it belongs to the subject it was created for (nothing is overwritten).
+			throw ApiException.conflict("attendance.subject_mismatch");
+		}
 		Map<UUID, RecordRow> existing = new HashMap<>();
 		existingSession.ifPresent((s) -> records(s.id()).forEach((r) -> existing.put(r.studentId(), r)));
 		Map<UUID, UUID> acknowledged = acknowledgedReports(schoolId, eligible, date);
@@ -344,7 +365,7 @@ public class RollService {
 			.param("op", ctx.clientOperationId())
 			.param("now", Timestamp.from(this.time.now()))
 			.update();
-		return new SessionRow(id, schoolId, classId, date, slot, 0, user.userId(), ctx.recordedAt());
+		return new SessionRow(id, schoolId, classId, date, slot, subjectId, 0, user.userId(), ctx.recordedAt());
 	}
 
 	private int touch(UUID sessionId) {
@@ -415,13 +436,14 @@ public class RollService {
 
 	private Optional<SessionRow> session(UUID classId, LocalDate date, String slot) {
 		return this.jdbc.sql("""
-				select id, school_id, class_id, attendance_date, slot, version, taken_by, taken_at from attendance_sessions
+				select id, school_id, class_id, attendance_date, slot, subject_id, version, taken_by, taken_at from attendance_sessions
 				where class_id = :c and attendance_date = :d and slot = :s""")
 			.param("c", classId)
 			.param("d", java.sql.Date.valueOf(date))
 			.param("s", slot)
 			.query((rs, i) -> new SessionRow(Rows.uuid(rs, "id"), Rows.uuid(rs, "school_id"), Rows.uuid(rs, "class_id"),
-					Rows.date(rs, "attendance_date"), rs.getString("slot"), rs.getInt("version"), Rows.uuid(rs, "taken_by"),
+					Rows.date(rs, "attendance_date"), rs.getString("slot"), Rows.uuid(rs, "subject_id"), rs.getInt("version"),
+						Rows.uuid(rs, "taken_by"),
 					Rows.instant(rs, "taken_at")))
 			.optional();
 	}
@@ -440,12 +462,46 @@ public class RollService {
 				Rows.uuid(rs, "absence_report_id"));
 	}
 
-	private boolean subjectExists(UUID schoolId, UUID subjectId) {
-		return this.jdbc.sql("select exists (select 1 from subjects where id = :id and school_id = :s)")
-			.param("id", subjectId)
+	/**
+	 * A period roll's subject: one of the class's active subjects (400 {@code attendance.invalid_subject}), and only for
+	 * the periods P1..P8 (400 {@code attendance.subject_requires_period}).
+	 */
+	private void requirePeriodSubject(UUID schoolId, UUID classId, String slot, UUID subjectId) {
+		boolean taught = this.jdbc.sql("""
+				select exists (select 1 from class_subjects cs join subjects s on s.id = cs.subject_id and s.school_id = cs.school_id
+				               where cs.class_id = :class and cs.subject_id = :subject and cs.school_id = :school and s.is_active)""")
+			.param("class", classId)
+			.param("subject", subjectId)
+			.param("school", schoolId)
+			.query(Boolean.class)
+			.single();
+		if (!taught) {
+			throw ApiException.badRequest("attendance.invalid_subject");
+		}
+		if (!slot.matches("P[1-8]")) {
+			throw ApiException.badRequest("attendance.subject_requires_period");
+		}
+	}
+
+	private String subjectName(UUID subjectId) {
+		return this.jdbc.sql("select name from subjects where id = :id").param("id", subjectId).query(String.class).optional().orElse(null);
+	}
+
+	/** The members of a saved student group of the class (an elective's group); 400 {@code attendance.invalid_group} otherwise. */
+	private Set<UUID> groupMembers(UUID schoolId, UUID classId, UUID groupId) {
+		boolean known = this.jdbc.sql("select exists (select 1 from student_groups where id = :g and class_id = :c and school_id = :s)")
+			.param("g", groupId)
+			.param("c", classId)
 			.param("s", schoolId)
 			.query(Boolean.class)
 			.single();
+		if (!known) {
+			throw ApiException.badRequest("attendance.invalid_group");
+		}
+		return new HashSet<>(this.jdbc.sql("select student_id from student_group_members where group_id = :g")
+			.param("g", groupId)
+			.query(UUID.class)
+			.list());
 	}
 
 	/** Reports covering the date for the students, SUBMITTED or ACKNOWLEDGED; an acknowledged one wins over a submitted one. */
@@ -502,7 +558,7 @@ public class RollService {
 
 	// --- internal shapes --------------------------------------------------------------------
 
-	record SessionRow(UUID id, UUID schoolId, UUID classId, LocalDate date, String slot, int version, UUID takenBy,
+	record SessionRow(UUID id, UUID schoolId, UUID classId, LocalDate date, String slot, UUID subjectId, int version, UUID takenBy,
 			Instant takenAt) {
 	}
 

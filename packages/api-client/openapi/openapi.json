@@ -1,7 +1,7 @@
 {
   "openapi" : "3.1.0",
   "info" : {
-    "description" : "Multi-tenant school, family, learning and tutoring platform API. Errors are RFC 9457 problem details (application/problem+json) with a stable `code`.",
+    "description" : "Multi-tenant school, family and tutor-directory platform API. Errors are RFC 9457 problem details (application/problem+json) with a stable `code`.",
     "title" : "School API",
     "version" : "v1"
   },
@@ -8364,6 +8364,14 @@
           }
         }, {
           "in" : "query",
+          "name" : "subjectId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
           "name" : "cursor",
           "required" : false,
           "schema" : {
@@ -8400,8 +8408,177 @@
             "description" : "Error (RFC 9457 problem details)"
           }
         },
-        "summary" : "The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot, students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403",
+        "summary" : "The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot (with subjectId: only the classes that have the subject and only rolls taken for it), students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403",
         "tags" : [ "attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/period-report" : {
+      "get" : {
+        "operationId" : "getAttendancePeriodReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "slot",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "subjectId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPagePeriodReportRow"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The per-period summary: marks counted per class, slot and subject over from..to (school-local dates, inclusive, default the last 30 days, at most 400), keyset paged in class name, slot, subject order. slot and subjectId narrow it; rolls taken without a subject have none. With classId: teachers of that class and school.attendance.read/manage; without: school.attendance.read/manage (403 for everybody else who sees the school, 404 for the rest). 400 attendance.invalid_slot",
+        "tags" : [ "attendance-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/period-report.csv" : {
+      "get" : {
+        "operationId" : "exportAttendancePeriodReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "classId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "slot",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "subjectId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/csv" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The per-period summary as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized. Audited (attendance.period_report.export), rate limited with the other attendance exports (10 per 10 minutes, 429 attendance.export_rate_limited), at most 50000 rows",
+        "tags" : [ "attendance-reports" ]
       }
     },
     "/api/v1/schools/{schoolId}/attendance/report" : {
@@ -9165,6 +9342,14 @@
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "in" : "query",
+          "name" : "groupId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
         } ],
         "responses" : {
           "200" : {
@@ -9188,7 +9373,7 @@
             "description" : "Error (RFC 9457 problem details)"
           }
         },
-        "summary" : "The roll of a class for a school-local date (default today) and slot (default the school's first): every student who belonged to the class that day with their record, suggestedStatus (EXCUSED for an acknowledged absence report) and the absence-report annotation (reason and note only for the lead, co and subject teachers and attendance managers). ACTIVE teachers of the class, class managers and school.attendance.read/manage (403 for students and guardians who see the class, 404 for everybody else)",
+        "summary" : "The roll of a class for a school-local date (default today) and slot (default the school's first): every student who belonged to the class that day (only the members of the saved student group groupId, an elective's group, when given) with their record, the subject of a period roll (P1..P8), suggestedStatus (EXCUSED for an acknowledged absence report) and the absence-report annotation (reason and note only for the lead, co and subject teachers and attendance managers). ACTIVE teachers of the class, class managers and school.attendance.read/manage (403 for students and guardians who see the class, 404 for everybody else)",
         "tags" : [ "attendance" ]
       },
       "put" : {
@@ -9242,7 +9427,7 @@
             "description" : "Error (RFC 9457 problem details)"
           }
         },
-        "summary" : "Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage",
+        "summary" : "Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, a subject that is not one of the class's (400 attendance.invalid_subject) or is given for a slot that is not a period (400 attendance.subject_requires_period) or differs from the roll's own (409 attendance.subject_mismatch), a group that is not the class's (400 attendance.invalid_group), a student outside the group (409 attendance.student_not_in_group), locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage",
         "tags" : [ "attendance" ]
       }
     },
@@ -16566,6 +16751,590 @@
         "tags" : [ "staff" ]
       }
     },
+    "/api/v1/schools/{schoolId}/staff-attendance/days/{date}" : {
+      "get" : {
+        "operationId" : "getStaffAttendanceDay",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "date",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "campusId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffDayRoll"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The staff roll of a school-local day: ACTIVE staff (and anybody who already has a record that day) with the day's record, keyset paged by name, optionally one campus. school.staff_attendance.read/manage (403 staff_attendance.access_denied for other members of the school, 404 for people who cannot see it); 403 staff_attendance.disabled while the school setting attendance.staff.enabled is off",
+        "tags" : [ "staff-attendance" ]
+      },
+      "put" : {
+        "operationId" : "markStaffAttendanceDay",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "date",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StaffDayRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffDayResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Marks staff for a school-local day (manual): records lists staff (PRESENT, ABSENT, LATE with minutesLate 1 to 600, HALF_DAY, EXCUSED, an optional note of at most 200 characters), markRestPresent marks every other ACTIVE staff member of the day without a record PRESENT. A staff member who already has a record keeps it (outcome EXISTS): change it with a correction. Everything is validated first: unknown staff 404 staff_attendance.staff_not_found, staff who are not ACTIVE 409 staff_attendance.staff_not_active, a day that has not started in the staff member's campus or school time zone 409 staff_attendance.date_in_future, more than 62 days back 400 staff_attendance.date_too_old, 400 for duplicates, too many records (500) or bad minutes. Audited. school.staff_attendance.manage",
+        "tags" : [ "staff-attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff-attendance/me" : {
+      "get" : {
+        "operationId" : "listMyStaffAttendance",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageStaffRecordView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The caller's own staff attendance records (any ACTIVE staff member of the school), newest first, keyset paged, optionally from..to. 403 staff_attendance.access_denied for members who are not staff, 404 for people who cannot see the school",
+        "tags" : [ "staff-attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff-attendance/records" : {
+      "get" : {
+        "operationId" : "listStaffAttendance",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "staffId",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageStaffRecordView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Staff attendance records over from..to (school-local dates, inclusive, default the last 30 days, at most 400), newest first, keyset paged; staffId narrows to one staff member. school.staff_attendance.read/manage only: a teacher or any other member gets 403 staff_attendance.access_denied (their own records are under /me)",
+        "tags" : [ "staff-attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff-attendance/records/{recordId}" : {
+      "get" : {
+        "operationId" : "getStaffAttendanceRecord",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "recordId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffRecordDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "One record with its corrections: school.staff_attendance.read/manage and the staff member the record belongs to. Anybody else, a colleague included, gets 404 staff_attendance.record_not_found",
+        "tags" : [ "staff-attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff-attendance/records/{recordId}/corrections" : {
+      "post" : {
+        "operationId" : "correctStaffAttendance",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "recordId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StaffCorrectionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffRecordDetail"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Corrects a record: the new status (minutesLate only with LATE) and optionally a new note, with the required reason (at most 200 characters) and the record's version (expectedVersion; 409 staff_attendance.version_conflict when it changed). The correction is appended (never edited or deleted) and audited; 400 staff_attendance.nothing_to_correct when nothing changes. school.staff_attendance.manage",
+        "tags" : [ "staff-attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff-attendance/reports/daily" : {
+      "get" : {
+        "operationId" : "getStaffAttendanceDailyReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffDailyReport"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Staff attendance counted per school-local day over from..to (default the last 30 days, at most 93): one row per day that has records. school.staff_attendance.read/manage",
+        "tags" : [ "staff-attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff-attendance/reports/daily.csv" : {
+      "get" : {
+        "operationId" : "exportStaffAttendanceDailyReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/csv" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The daily summary as a CSV download (UTF-8 with a byte order mark, CRLF, headers in the caller's language). Audited (staff_attendance.report.export), rate limited (10 per 10 minutes, 429 staff_attendance.export_rate_limited). school.staff_attendance.read/manage",
+        "tags" : [ "staff-attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff-attendance/reports/monthly" : {
+      "get" : {
+        "operationId" : "getStaffAttendanceMonthlyReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "month",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StaffMonthlyReport"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Staff attendance counted per staff member for a month (month=yyyy-MM, default the school's current month; 400 staff_attendance.invalid_month): ACTIVE staff and anybody with a record that month, keyset paged by name. school.staff_attendance.read/manage",
+        "tags" : [ "staff-attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff-attendance/reports/monthly.csv" : {
+      "get" : {
+        "operationId" : "exportStaffAttendanceMonthlyReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "month",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/csv" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The monthly summary as a CSV download, with the same rules as the daily one (audited, rate limited, at most 50000 rows). school.staff_attendance.read/manage",
+        "tags" : [ "staff-attendance" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/staff/{staffId}" : {
       "get" : {
         "operationId" : "getStaff",
@@ -19689,6 +20458,11 @@
               "type" : "string"
             }
           },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The subject filter that was asked for, if any"
+          },
           "timeZone" : {
             "type" : "string"
           },
@@ -19894,6 +20668,11 @@
             "format" : "date",
             "description" : "School-local calendar date (the school's or campus's time zone), not in the future beyond a small tolerance"
           },
+          "groupId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Restricts this request to the members of a saved student group of the class (an elective's group): only they may be marked and markAllPresent covers only them. Not stored with the roll"
+          },
           "markAllPresent" : {
             "type" : "boolean",
             "description" : "Mark everyone without a record present (see the description above)"
@@ -19921,7 +20700,7 @@
           "subjectId" : {
             "type" : "string",
             "format" : "uuid",
-            "description" : "Subject of a period roll (optional; only used when the roll is created)"
+            "description" : "Subject of a period roll (P1..P8 only; one of the class's subjects). Set when the roll is created; a later request naming another subject is refused (409 attendance.subject_mismatch)"
           }
         },
         "required" : [ "date" ]
@@ -19959,7 +20738,7 @@
       },
       "AttendanceRollView" : {
         "type" : "object",
-        "description" : "The roll of a class for a date and slot: every student who belonged to the class that day, with the record (if any) and the absence-report annotation",
+        "description" : "The roll of a class for a date and slot: every student who belonged to the class that day (or of the requested group), with the record (if any) and the absence-report annotation",
         "properties" : {
           "classId" : {
             "type" : "string",
@@ -19971,6 +20750,11 @@
           "date" : {
             "type" : "string",
             "format" : "date"
+          },
+          "groupId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The group the roster was restricted to, if one was asked for"
           },
           "locked" : {
             "type" : "boolean",
@@ -20006,6 +20790,13 @@
             "items" : {
               "$ref" : "#/components/schemas/AttendanceRollStudent"
             }
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "subjectName" : {
+            "type" : "string"
           },
           "takenAt" : {
             "type" : "string",
@@ -22974,6 +23765,22 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPagePeriodReportRow" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PeriodReportRow"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPagePortfolioCommentView" : {
         "type" : "object",
         "properties" : {
@@ -23102,6 +23909,54 @@
         },
         "required" : [ "items" ]
       },
+      "CursorPageStaffDayEntry" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StaffDayEntry"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageStaffMonthlySummaryRow" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StaffMonthlySummaryRow"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageStaffRecordView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StaffRecordView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
       "CursorPageStaffView" : {
         "type" : "object",
         "properties" : {
@@ -23203,6 +24058,14 @@
           "students" : {
             "type" : "integer",
             "format" : "int32"
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The subject the roll was taken for (a period roll), if any"
+          },
+          "subjectName" : {
+            "type" : "string"
           },
           "taken" : {
             "type" : "boolean"
@@ -25255,7 +26118,7 @@
           },
           "targetType" : {
             "type" : "string",
-            "enum" : [ "POST", "POST_COMMENT", "STORY", "MESSAGE", "USER", "PORTFOLIO_ITEM", "TUTOR_PROFILE", "COURSE", "TUTOR_REVIEW", "LIBRARY_RESOURCE", "MEDIA", "AI_OUTPUT" ],
+            "enum" : [ "POST", "POST_COMMENT", "STORY", "MESSAGE", "USER", "PORTFOLIO_ITEM", "TUTOR_PROFILE", "LIBRARY_RESOURCE", "MEDIA" ],
             "minLength" : 1
           }
         },
@@ -25760,6 +26623,69 @@
           }
         },
         "required" : [ "childFirstName", "linkId", "requestedAt", "status" ]
+      },
+      "PeriodReportRow" : {
+        "type" : "object",
+        "description" : "Marks of one class in one slot (and subject, for a period roll) over the range",
+        "properties" : {
+          "absent" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "className" : {
+            "type" : "string"
+          },
+          "excused" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "late" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "leftEarly" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "marked" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "present" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rolls" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Rolls taken in the range"
+          },
+          "slot" : {
+            "type" : "string"
+          },
+          "students" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Distinct students marked"
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The subject of a period roll; null for rolls taken without one"
+          },
+          "subjectName" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "classId", "className", "slot" ]
       },
       "PermissionChange" : {
         "type" : "object",
@@ -28554,6 +29480,389 @@
           }
         },
         "required" : [ "consentType", "decision", "method", "policyVersionId" ]
+      },
+      "StaffCorrectionRequest" : {
+        "type" : "object",
+        "description" : "Correct a staff record: the new status (and minutes late, only with LATE), optionally a new note (omit to keep it, send an empty text to clear it) and the reason, which is required and kept in the append-only corrections. expectedVersion is the record's version you read",
+        "properties" : {
+          "expectedVersion" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "note" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "reason" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "HALF_DAY", "EXCUSED" ]
+          }
+        },
+        "required" : [ "expectedVersion", "reason", "status" ]
+      },
+      "StaffCorrectionView" : {
+        "type" : "object",
+        "properties" : {
+          "correctedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "correctedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "newMinutesLate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "newStatus" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "HALF_DAY", "EXCUSED" ]
+          },
+          "oldMinutesLate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "oldStatus" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "HALF_DAY", "EXCUSED" ]
+          },
+          "reason" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "correctedAt", "correctedBy", "id", "newStatus", "oldStatus", "reason" ]
+      },
+      "StaffDailyReport" : {
+        "type" : "object",
+        "description" : "One row per school-local day that has records, oldest first",
+        "properties" : {
+          "from" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "rows" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StaffDailySummaryRow"
+            }
+          },
+          "to" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "from", "rows", "to" ]
+      },
+      "StaffDailySummaryRow" : {
+        "type" : "object",
+        "properties" : {
+          "absent" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "excused" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "halfDay" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "late" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "marked" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "present" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "date" ]
+      },
+      "StaffDayEntry" : {
+        "type" : "object",
+        "description" : "A staff member on the day's roll, with the day's record when there is one",
+        "properties" : {
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "jobTitle" : {
+            "type" : "string"
+          },
+          "record" : {
+            "$ref" : "#/components/schemas/StaffRecordView"
+          },
+          "staffId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "staffType" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayName", "staffId", "staffType" ]
+      },
+      "StaffDayRequest" : {
+        "type" : "object",
+        "description" : "Mark staff for one school-local day. records: the staff to mark; markRestPresent additionally marks every other ACTIVE staff member of the day who has no record PRESENT. A staff member who already has a record for the day is left as it is (EXISTS): changing it is a correction with a reason",
+        "properties" : {
+          "markRestPresent" : {
+            "type" : "boolean"
+          },
+          "records" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StaffMarkInput"
+            },
+            "maxItems" : 500,
+            "minItems" : 0
+          }
+        }
+      },
+      "StaffDayResult" : {
+        "type" : "object",
+        "properties" : {
+          "created" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "existing" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "outcomes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StaffMarkOutcome"
+            }
+          }
+        },
+        "required" : [ "date", "outcomes" ]
+      },
+      "StaffDayRoll" : {
+        "type" : "object",
+        "description" : "The staff roll of a school-local day: ACTIVE staff (and anybody who already has a record that day), keyset paged by name",
+        "properties" : {
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "staff" : {
+            "$ref" : "#/components/schemas/CursorPageStaffDayEntry"
+          },
+          "timeZone" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "date", "staff", "timeZone" ]
+      },
+      "StaffMarkInput" : {
+        "type" : "object",
+        "properties" : {
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Minutes late, 1 to 600, only with LATE"
+          },
+          "note" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "staffId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "HALF_DAY", "EXCUSED" ]
+          }
+        },
+        "required" : [ "staffId", "status" ]
+      },
+      "StaffMarkOutcome" : {
+        "type" : "object",
+        "description" : "CREATED: the record was written. EXISTS: the staff member already had a record for the day, which stays as it is",
+        "properties" : {
+          "outcome" : {
+            "type" : "string"
+          },
+          "record" : {
+            "$ref" : "#/components/schemas/StaffRecordView"
+          },
+          "staffId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "outcome", "record", "staffId" ]
+      },
+      "StaffMonthlyReport" : {
+        "type" : "object",
+        "properties" : {
+          "month" : {
+            "type" : "string"
+          },
+          "staff" : {
+            "$ref" : "#/components/schemas/CursorPageStaffMonthlySummaryRow"
+          }
+        },
+        "required" : [ "month", "staff" ]
+      },
+      "StaffMonthlySummaryRow" : {
+        "type" : "object",
+        "description" : "A staff member's days in a month, counted per status",
+        "properties" : {
+          "absent" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "excused" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "halfDay" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "jobTitle" : {
+            "type" : "string"
+          },
+          "late" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "marked" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "present" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "staffId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "staffType" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayName", "staffId", "staffType" ]
+      },
+      "StaffRecordDetail" : {
+        "type" : "object",
+        "properties" : {
+          "corrections" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StaffCorrectionView"
+            }
+          },
+          "record" : {
+            "$ref" : "#/components/schemas/StaffRecordView"
+          }
+        },
+        "required" : [ "corrections", "record" ]
+      },
+      "StaffRecordView" : {
+        "type" : "object",
+        "properties" : {
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "corrections" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "How many corrections the record has"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "method" : {
+            "type" : "string",
+            "description" : "MANUAL; the QR methods arrive with M7e"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "recordedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "recordedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "staffId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "staffName" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "HALF_DAY", "EXCUSED" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "date", "id", "method", "recordedAt", "recordedBy", "staffId", "staffName", "status" ]
       },
       "StaffView" : {
         "type" : "object",

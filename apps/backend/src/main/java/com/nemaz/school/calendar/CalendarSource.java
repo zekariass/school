@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * One source of the union calendar (R-17). The calendar module asks every bean of this type for the items of the
- * caller's window and merges them; a source of a later milestone (assignment due dates, live sessions, tutoring sessions)
+ * caller's window and merges them; a source of a later milestone (assignment due dates, M17, and the published timetable, M37)
  * is a bean in its own module and needs no change in this one.
  *
  * <p>

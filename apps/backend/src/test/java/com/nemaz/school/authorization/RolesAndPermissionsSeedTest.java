@@ -53,7 +53,8 @@ class RolesAndPermissionsSeedTest {
 				Permissions.SCHOOL_STAFF_MANAGE, Permissions.SCHOOL_STUDENTS_MANAGE, Permissions.CLASS_MANAGE,
 				Permissions.SCHOOL_IMPORT_MANAGE, Permissions.SCHOOL_GUARDIANS_MANAGE, Permissions.SCHOOL_POLICIES_MANAGE,
 				Permissions.SCHOOL_POINTS_MANAGE, Permissions.SCHOOL_POINTS_READ, Permissions.SCHOOL_ATTENDANCE_MANAGE,
-				Permissions.SCHOOL_ATTENDANCE_READ, Permissions.SCHOOL_FEED_MANAGE, Permissions.SCHOOL_ANNOUNCEMENTS_MANAGE,
+				Permissions.SCHOOL_ATTENDANCE_READ, Permissions.SCHOOL_STAFF_ATTENDANCE_MANAGE, Permissions.SCHOOL_STAFF_ATTENDANCE_READ,
+				Permissions.SCHOOL_FEED_MANAGE, Permissions.SCHOOL_ANNOUNCEMENTS_MANAGE,
 			Permissions.SCHOOL_ANNOUNCEMENTS_URGENT, Permissions.SCHOOL_MESSAGING_MODERATE, Permissions.SCHOOL_MESSAGING_REVIEW, Permissions.SCHOOL_CALENDAR_MANAGE,
 			Permissions.SCHOOL_MODERATION_MANAGE, Permissions.SCHOOL_PORTFOLIOS_REVIEW);
 		// A campus administrator reads the school and manages the classes of its own campus (M3a).

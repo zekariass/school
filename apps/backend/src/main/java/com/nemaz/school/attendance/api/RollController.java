@@ -42,16 +42,16 @@ public class RollController {
 
 	@GetMapping("/api/v1/schools/{schoolId}/classes/{classId}/attendance")
 	@Operation(operationId = "getClassAttendance",
-			summary = "The roll of a class for a school-local date (default today) and slot (default the school's first): every student who belonged to the class that day with their record, suggestedStatus (EXCUSED for an acknowledged absence report) and the absence-report annotation (reason and note only for the lead, co and subject teachers and attendance managers). ACTIVE teachers of the class, class managers and school.attendance.read/manage (403 for students and guardians who see the class, 404 for everybody else)")
+			summary = "The roll of a class for a school-local date (default today) and slot (default the school's first): every student who belonged to the class that day (only the members of the saved student group groupId, an elective's group, when given) with their record, the subject of a period roll (P1..P8), suggestedStatus (EXCUSED for an acknowledged absence report) and the absence-report annotation (reason and note only for the lead, co and subject teachers and attendance managers). ACTIVE teachers of the class, class managers and school.attendance.read/manage (403 for students and guardians who see the class, 404 for everybody else)")
 	public AttendanceRollView roll(@PathVariable UUID schoolId, @PathVariable UUID classId,
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-			@RequestParam(required = false) String slot) {
-		return this.rolls.roll(CurrentUser.require(), schoolId, classId, date, slot);
+			@RequestParam(required = false) String slot, @RequestParam(required = false) UUID groupId) {
+		return this.rolls.roll(CurrentUser.require(), schoolId, classId, date, slot, groupId);
 	}
 
 	@PutMapping("/api/v1/schools/{schoolId}/classes/{classId}/attendance")
 	@Operation(operationId = "takeClassAttendance",
-			summary = "Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage")
+			summary = "Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, a subject that is not one of the class's (400 attendance.invalid_subject) or is given for a slot that is not a period (400 attendance.subject_requires_period) or differs from the roll's own (409 attendance.subject_mismatch), a group that is not the class's (400 attendance.invalid_group), a student outside the group (409 attendance.student_not_in_group), locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage")
 	public ResponseEntity<AttendanceWriteResult> take(@PathVariable UUID schoolId, @PathVariable UUID classId,
 			@Valid @RequestBody AttendanceRollRequest request) {
 		AttendanceWriteResult result = this.rolls.write(CurrentUser.require(), schoolId, classId, request);
@@ -71,12 +71,12 @@ public class RollController {
 
 	@GetMapping("/api/v1/schools/{schoolId}/attendance/dashboard")
 	@Operation(operationId = "getAttendanceDashboard",
-			summary = "The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot, students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403")
+			summary = "The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot (with subjectId: only the classes that have the subject and only rolls taken for it), students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403")
 	public AttendanceDashboard dashboard(@PathVariable UUID schoolId,
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-			@RequestParam(required = false) String slot, @RequestParam(required = false) String cursor,
-			@RequestParam(required = false) Integer limit) {
-		return this.views.dashboard(CurrentUser.require(), schoolId, date, slot, cursor, limit);
+			@RequestParam(required = false) String slot, @RequestParam(required = false) UUID subjectId,
+			@RequestParam(required = false) String cursor, @RequestParam(required = false) Integer limit) {
+		return this.views.dashboard(CurrentUser.require(), schoolId, date, slot, subjectId, cursor, limit);
 	}
 
 }
