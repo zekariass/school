@@ -206,7 +206,7 @@ class ConfigurationResolutionTest extends TenancyTestSupport {
 
 		this.subscriptions.assignToSchool(school, new AssignSubscription("SCHOOL_BASIC", null, null), null);
 		assertThat(this.features.isEnabled("library", school)).isTrue(); // plan entitles, flag enables
-		assertThat(this.features.isEnabled("courses", school)).isFalse(); // plan does not include courses
+		assertThat(this.features.isEnabled("payments", school)).isFalse(); // plan does not include payments
 		this.configuration.setFeatureOverride("library", SettingScope.school(school), false, null, null);
 		assertThat(this.features.isEnabled("library", school)).isFalse(); // plan entitles, flag disables
 

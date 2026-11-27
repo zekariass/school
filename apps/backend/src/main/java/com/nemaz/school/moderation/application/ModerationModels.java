@@ -20,7 +20,7 @@ public final class ModerationModels {
 			Report something you can see. Details are optional plain text (up to 1,000 characters) and are never copied into \
 			events, logs, audit rows or notifications.""")
 	public record ReportRequest(@NotBlank @Schema(allowableValues = { "POST", "POST_COMMENT", "STORY", "MESSAGE", "USER",
-			"PORTFOLIO_ITEM", "TUTOR_PROFILE", "COURSE", "TUTOR_REVIEW", "LIBRARY_RESOURCE", "MEDIA", "AI_OUTPUT" }) String targetType,
+			"PORTFOLIO_ITEM", "TUTOR_PROFILE", "LIBRARY_RESOURCE", "MEDIA" }) String targetType,
 			@NotNull UUID targetId, @NotBlank @Schema(allowableValues = { "SPAM", "HARASSMENT", "INAPPROPRIATE",
 					"SAFETY_CONCERN", "COPYRIGHT", "PRIVACY", "INACCURATE", "OTHER" }) String reasonCode,
 			String details) {
