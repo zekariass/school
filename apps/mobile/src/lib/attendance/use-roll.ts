@@ -17,6 +17,8 @@ export interface UseRollInput {
   date: string | null;
   /** Null: the school's first slot. */
   slot: string | null;
+  /** Null: the whole class; else a saved group (an elective's roster). */
+  groupId?: string | null;
 }
 
 export interface UseRollResult {
@@ -37,12 +39,12 @@ export interface UseRollResult {
  * today) the class list. The cached copy is shown at once while the server is being asked. Never persisted by
  * TanStack: the offline copy is the owner-scoped table of `lib/offline`.
  */
-export function useRoll({ schoolId, classId, date, slot }: UseRollInput): UseRollResult {
+export function useRoll({ schoolId, classId, date, slot, groupId = null }: UseRollInput): UseRollResult {
   const owner = useOfflineOwner();
   const enabled = !!schoolId && !!classId;
 
   const query = useQuery<LoadedRoll>({
-    queryKey: rollKey(classId ?? '', date, slot),
+    queryKey: rollKey(classId ?? '', date, slot, groupId),
     enabled,
     staleTime: (q) => (q.state.data?.fromCache ? 0 : 30_000),
     queryFn: () =>
@@ -50,14 +52,18 @@ export function useRoll({ schoolId, classId, date, slot }: UseRollInput): UseRol
         {
           cache: offlineCache,
           now: () => Date.now(),
-          fetchRoll: (wantedDate, wantedSlot) =>
+          fetchRoll: (wantedDate, wantedSlot, wantedGroup) =>
             request(async () =>
               rollFromApi(
                 unwrap(
                   await api.GET('/api/v1/schools/{schoolId}/classes/{classId}/attendance', {
                     params: {
                       path: { schoolId: schoolId!, classId: classId! },
-                      query: { ...(wantedDate ? { date: wantedDate } : {}), ...(wantedSlot ? { slot: wantedSlot } : {}) },
+                      query: {
+                        ...(wantedDate ? { date: wantedDate } : {}),
+                        ...(wantedSlot ? { slot: wantedSlot } : {}),
+                        ...(wantedGroup ? { groupId: wantedGroup } : {}),
+                      },
                     },
                   }),
                 ),
@@ -65,17 +71,17 @@ export function useRoll({ schoolId, classId, date, slot }: UseRollInput): UseRol
               ),
             ),
         },
-        { schoolId: schoolId!, classId: classId!, date, slot },
+        { schoolId: schoolId!, classId: classId!, date, slot, groupId },
       ),
   });
 
   // Something to show while the server is being asked (or cannot be).
-  const seedKey = `${classId}|${date ?? 'today'}|${slot ?? 'first'}`;
+  const seedKey = `${classId}|${date ?? 'today'}|${slot ?? 'first'}|${groupId ?? 'class'}`;
   const [seed, setSeed] = useState<{ key: string; cached: Cached<RollSnapshot> } | null>(null);
   useEffect(() => {
     if (!enabled || owner === null) return;
     let live = true;
-    void rollFromOfflineCache({ cache: offlineCache, now: () => Date.now() }, { schoolId: schoolId!, classId: classId!, date, slot })
+    void rollFromOfflineCache({ cache: offlineCache, now: () => Date.now() }, { schoolId: schoolId!, classId: classId!, date, slot, groupId })
       .then((loaded) => {
         if (live && loaded) setSeed({ key: seedKey, cached: loaded });
       })
@@ -83,7 +89,7 @@ export function useRoll({ schoolId, classId, date, slot }: UseRollInput): UseRol
     return () => {
       live = false;
     };
-  }, [enabled, owner, schoolId, classId, date, slot, seedKey]);
+  }, [enabled, owner, schoolId, classId, date, slot, groupId, seedKey]);
 
   const current = query.data ?? (seed?.key === seedKey ? seed.cached : undefined);
   return {

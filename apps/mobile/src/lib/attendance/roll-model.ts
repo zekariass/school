@@ -1,6 +1,6 @@
 import type { components } from '@school/api-client';
 
-import { parseRollState } from '@/lib/sync/operations';
+import { isPeriodSlot, parseRollState } from '@/lib/sync/operations';
 import {
   isAttendanceOp,
   isAttendanceStatus,
@@ -62,6 +62,11 @@ export interface RollSnapshot {
   readonly students: readonly RollStudent[];
   /** Built from the class list, not from the server: no marks, no hints, no version. */
   readonly synthetic: boolean;
+  /** The subject this roll was created for (period rolls only; null: none, or not known offline). */
+  readonly subjectId: string | null;
+  readonly subjectName: string | null;
+  /** The saved group the roster was restricted to (null: the whole class). Never part of the cached roll. */
+  readonly groupId: string | null;
 }
 
 type ApiRoll = components['schemas']['AttendanceRollView'];
@@ -92,6 +97,9 @@ export function rollFromApi(view: ApiRoll, schoolId: string): RollSnapshot {
     locksAt: view.locksAt ?? null,
     mayEditLocked: view.mayEditLocked === true,
     synthetic: false,
+    subjectId: view.subjectId ?? null,
+    subjectName: view.subjectName ?? null,
+    groupId: view.groupId ?? null,
     students: view.students.map((student) => {
       const color = student.avatarConfig?.color;
       return {
@@ -137,6 +145,9 @@ export function syntheticRoll(input: {
     locksAt: null,
     mayEditLocked: false,
     synthetic: true,
+    subjectId: null,
+    subjectName: null,
+    groupId: null,
     students: input.roster.map((student) => ({
       studentId: student.id,
       name: student.name,
@@ -243,6 +254,10 @@ export function editOperation(input: {
   roll: RollSnapshot;
   marks: readonly AttendanceMark[];
   overrideReason?: string | undefined;
+  /** The period roll's subject (see `subjectChoice`): carried only on a period slot. */
+  subjectId?: string | null | undefined;
+  /** The saved group the screen is restricted to. */
+  groupId?: string | null | undefined;
 }): NewOperation {
   return {
     type: 'ATTENDANCE_MARK',
@@ -254,6 +269,8 @@ export function editOperation(input: {
     payload: {
       date: input.roll.date,
       slot: input.roll.slot,
+      ...(input.subjectId && isPeriodSlot(input.roll.slot) ? { subjectId: input.subjectId } : {}),
+      ...(input.groupId ? { groupId: input.groupId } : {}),
       records: input.marks,
       ...(input.overrideReason ? { overrideReason: input.overrideReason } : {}),
     },

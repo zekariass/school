@@ -105,6 +105,16 @@ describe('sqlOutboxStorage', () => {
     expect(rows[1]).toMatchObject({ type: 'POINT_AWARD', attempts: 3, nextAttemptAt: 99, payload: { wholeClass: false, points: null } });
   });
 
+  it('keeps the subject and group of a period roll through insert, a merged payload and a reload (ids only, no new column)', async () => {
+    const { raw, store } = await storage();
+    await store.insert({ ...op('ATTENDANCE_MARK', 1), ...roll(1, [mark(1)], { slot: 'P2', subjectId: u(700), groupId: u(800) }), createdAt: 100, attempts: 0, nextAttemptAt: 0, status: 'PENDING' } as QueuedOperation);
+    expect((await store.load())[0]).toMatchObject({ payload: { slot: 'P2', subjectId: u(700), groupId: u(800) } });
+    await store.updatePayload(u(1), { payload: { date: '2026-11-25', slot: 'P2', subjectId: u(700), groupId: u(800), records: [{ studentId: u(102), status: 'ABSENT' }] }, baseVersion: 2 });
+    expect((await store.load())[0]).toMatchObject({ payload: { slot: 'P2', subjectId: u(700), groupId: u(800), records: [{ studentId: u(102) }] } });
+    const columns = (raw.prepare('PRAGMA table_info(outbox_operations)').all() as { name: string }[]).map((c) => c.name);
+    expect(columns).not.toContain('subject_id');
+  });
+
   it('writes the known fields of a payload only: a note can not reach the disk', async () => {
     const { raw, store } = await storage();
     const sneaky = op('ATTENDANCE_MARK', 1);

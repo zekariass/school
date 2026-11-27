@@ -2,6 +2,7 @@ import {
   cleanPayload,
   conflictFromState,
   isValidOperation,
+  canMerge,
   mergeAttendance,
   mergeKeyOf,
   mergeNotes,
@@ -181,6 +182,8 @@ export class SyncEngine {
       .reverse()
       .find((item) => item.status === 'PENDING' && mergeKeyOf(item) === key);
     if (!target || !isAttendanceOp(target) || target.attempts > 0 || this.inFlight.has(target.opId)) return false;
+    // The same roll but another subject or group: its own operation, after the older one.
+    if (!canMerge(target, incoming)) return false;
 
     const payload = mergeAttendance(target, { ...incoming, type: 'ATTENDANCE_MARK', payload: incoming.payload });
     const candidate = { ...target, payload };

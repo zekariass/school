@@ -75,7 +75,7 @@ export function award(n: number, overrides: Partial<Extract<NewOperation, { type
 export function roll(
   n: number,
   records: AttendanceMark[] = [mark(1)],
-  overrides: { baseVersion?: number | null; date?: string; slot?: string; classId?: string; overrideReason?: string } = {},
+  overrides: { baseVersion?: number | null; date?: string; slot?: string; classId?: string; overrideReason?: string; subjectId?: string; groupId?: string } = {},
 ): NewOperation {
   return {
     type: 'ATTENDANCE_MARK',
@@ -87,6 +87,8 @@ export function roll(
     payload: {
       date: overrides.date ?? '2026-11-25',
       slot: overrides.slot ?? 'DAY',
+      ...(overrides.subjectId ? { subjectId: overrides.subjectId } : {}),
+      ...(overrides.groupId ? { groupId: overrides.groupId } : {}),
       records,
       ...(overrides.overrideReason ? { overrideReason: overrides.overrideReason } : {}),
     },

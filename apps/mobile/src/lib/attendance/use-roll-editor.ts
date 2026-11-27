@@ -42,8 +42,15 @@ const success = () => void Haptics.notificationAsync(Haptics.NotificationFeedbac
  * What a teacher does on the roll: every change becomes (or joins) a queued operation at once, so it shows
  * immediately, survives the app closing, and goes out as soon as the network allows.
  */
-export function useRollEditor(input: { roll: RollSnapshot | undefined; ownerId: string | undefined; editability: Editability }): RollEditor {
-  const { roll, ownerId, editability } = input;
+export function useRollEditor(input: {
+  roll: RollSnapshot | undefined;
+  ownerId: string | undefined;
+  editability: Editability;
+  /** A period roll's subject for the next edit (`subjectChoice`) and the saved group the screen shows. */
+  subjectId?: string | null;
+  groupId?: string | null;
+}): RollEditor {
+  const { roll, ownerId, editability, subjectId = null, groupId = null } = input;
   const [overrideReason, setOverrideReason] = useState('');
   const known = overrideReason.trim();
   const needsReason = editability.kind === 'override' && known.length === 0;
@@ -56,13 +63,21 @@ export function useRollEditor(input: { roll: RollSnapshot | undefined; ownerId: 
       const reason = (reasonNow ?? known).trim();
       if (editability.kind === 'override' && reason.length === 0) return 'needs-reason';
       const outcome = await syncEngine.enqueue(
-        editOperation({ opId: newOpId(), ownerId, roll, marks, ...(editability.kind === 'override' ? { overrideReason: reason.slice(0, 500) } : {}) }),
+        editOperation({
+          opId: newOpId(),
+          ownerId,
+          roll,
+          marks,
+          subjectId,
+          groupId,
+          ...(editability.kind === 'override' ? { overrideReason: reason.slice(0, 500) } : {}),
+        }),
         notes ? { volatile: { notes } } : {},
       );
       if (outcome === 'queued' || outcome === 'merged') requestFlush();
       return outcome;
     },
-    [roll, ownerId, editability.kind, known],
+    [roll, ownerId, editability.kind, known, subjectId, groupId],
   );
 
   const tap = useCallback(

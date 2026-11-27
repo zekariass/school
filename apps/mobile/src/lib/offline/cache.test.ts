@@ -242,7 +242,9 @@ describe('OfflineCache', () => {
 
 describe('what stays out of the cache', () => {
   it('has no kind for a student record, a login code, a note or a signed media link', () => {
-    expect(Object.keys(MAX_AGE_MS).sort()).toEqual(['categories', 'classes', 'roll', 'rollmeta', 'roster', 'templates', 'totals']);
+    // `subjects` (ids and names of the class's subjects) and `groups` (a saved group's id, name and member ids) are
+    // M7d's: neither holds anything about a child beyond ids. Staff attendance has no kind: it is online only.
+    expect(Object.keys(MAX_AGE_MS).sort()).toEqual(['categories', 'classes', 'groups', 'roll', 'rollmeta', 'roster', 'subjects', 'templates', 'totals']);
   });
 });
 

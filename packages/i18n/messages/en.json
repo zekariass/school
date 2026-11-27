@@ -666,6 +666,95 @@
         "PM": "Afternoon",
         "period": "Period {number}"
       },
+      "period": {
+        "subject": "Subject",
+        "subjectHint": "Choose the subject before the first mark. The roll keeps it.",
+        "subjectIs": "Subject: {subject}",
+        "noSubject": "No subject",
+        "group": "Group",
+        "groupHint": "Show only the students of a saved group, for example an elective.",
+        "wholeClass": "Whole class"
+      },
+      "staff": {
+        "title": "Staff attendance",
+        "entry": "Staff attendance",
+        "entryNamed": "Staff attendance: {school}",
+        "school": "School",
+        "summary": "Present {present}, absent {absent}, late {late}, half day {halfDay}, excused {excused}, not marked {unmarked}",
+        "notMarked": "Not marked",
+        "minutesLate": "{minutes} min late",
+        "readOnly": "You can read this roll but not change it.",
+        "loadMore": "Show more",
+        "empty": {
+          "title": "Nobody on the staff roll",
+          "body": "There is no staff member to mark on this day."
+        },
+        "disabled": {
+          "title": "Staff attendance is switched off",
+          "body": "This school has not turned on staff attendance. An administrator can switch it on in the school settings on the web."
+        },
+        "featureOff": {
+          "title": "Attendance is not switched on",
+          "body": "The attendance feature is not switched on for this school."
+        },
+        "denied": {
+          "title": "You can't open this",
+          "body": "Your account may not see staff attendance for this school."
+        },
+        "notFound": {
+          "title": "School not found",
+          "body": "This school is not available to your account."
+        },
+        "noSchools": {
+          "title": "Staff attendance is for school administrators",
+          "body": "You need permission to read or record staff attendance."
+        },
+        "errors": {
+          "loadTitle": "We couldn't load the staff roll",
+          "loadBody": "Check your connection and try again.",
+          "saveTitle": "We couldn't save that",
+          "saveBody": "Check your connection and try again."
+        },
+        "markRest": {
+          "button": "Mark everyone else present",
+          "confirmTitle": "Mark everyone else present?",
+          "confirmBody": "Everybody on the roll who has no record for this day is marked present. Records that already exist are not changed.",
+          "confirm": "Mark present"
+        },
+        "result": {
+          "saved": "Saved.",
+          "rest": "Marked: {created}. Already had a record: {existing}.",
+          "exists": "This person already had a record. It stays as it was."
+        },
+        "sheet": {
+          "status": "Status",
+          "minutesLate": "Minutes late",
+          "minutesOption": "{minutes} minutes",
+          "minutesCustom": "Other number of minutes",
+          "minutesError": "Enter a number from 1 to 600.",
+          "note": "Note (optional)",
+          "noteHint": "Staff attendance managers can read it. Keep it short.",
+          "save": "Save",
+          "recorded": "Recorded"
+        },
+        "correct": {
+          "title": "Correct this record",
+          "hint": "A correction keeps the earlier entry in the history.",
+          "reason": "Reason (required)",
+          "reasonHint": "Say why the record was wrong, up to 200 characters.",
+          "submit": "Save correction",
+          "unchanged": "Change the status, the minutes or the note first.",
+          "reasonMissing": "Write the reason for the correction."
+        },
+        "history": {
+          "title": "History",
+          "empty": "No corrections yet.",
+          "line": "{when}: {from} to {to}. {reason}"
+        },
+        "status": {
+          "HALF_DAY": "Half day"
+        }
+      },
       "lock": {
         "lockedTitle": "This roll is locked",
         "lockedBody": "It locked on {time}. Only the lead teacher and attendance managers can change it now.",

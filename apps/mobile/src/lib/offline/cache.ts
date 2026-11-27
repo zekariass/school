@@ -18,7 +18,7 @@ import { firstNameOf } from '@/lib/people/roster';
  * - A class the teacher no longer teaches is purged on the next successful refresh of their class list.
  */
 
-export type CacheKind = 'classes' | 'roster' | 'roll' | 'rollmeta' | 'categories' | 'totals' | 'templates';
+export type CacheKind = 'classes' | 'roster' | 'roll' | 'rollmeta' | 'categories' | 'totals' | 'templates' | 'subjects' | 'groups';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -31,6 +31,8 @@ export const MAX_AGE_MS: Readonly<Record<CacheKind, number>> = {
   categories: 30 * DAY,
   totals: 7 * DAY,
   templates: 30 * DAY,
+  subjects: 30 * DAY,
+  groups: 30 * DAY,
 };
 
 /** Rolls kept per class (the newest ones). */
@@ -227,6 +229,10 @@ export function rollToCache(roll: RollSnapshot): RollSnapshot {
     locksAt: roll.locksAt,
     mayEditLocked: roll.mayEditLocked,
     synthetic: false,
+    // A group's view of the roll is never cached on its own (see `loadRoll`): `groupId` is always null here.
+    subjectId: roll.subjectId,
+    subjectName: roll.subjectName,
+    groupId: null,
     students: roll.students.map(rollStudentToCache),
   };
 }
@@ -278,6 +284,9 @@ export function rollFromCache(data: unknown): RollSnapshot | null {
     locksAt: stringOrNull(raw.locksAt),
     mayEditLocked: raw.mayEditLocked === true,
     synthetic: false,
+    subjectId: isUuid(raw.subjectId) ? raw.subjectId : null,
+    subjectName: stringOrNull(raw.subjectName),
+    groupId: null,
     students,
   };
 }
@@ -294,4 +303,51 @@ export function rollMetaFromCache(data: unknown): RollMeta | null {
   return slots.length > 0 ? { timeZone: raw.timeZone, slots } : null;
 }
 
+/**
+ * The cache entry of a roll: one per class, date and slot (the server's identity of a roll). A saved group is only a
+ * filter on that roll, so a group's view is never stored under a key of its own: it would drift from the real roll.
+ */
 export const rollEntryKey = (date: string, slot: string): string => `${date}|${slot}`;
+
+// --- what a period roll needs besides the roll: the class's subjects and its saved groups ---------------------
+
+/** A subject a period roll may be taken for (catalogue data: an id and a name, nothing about a child). */
+export interface CachedSubject {
+  readonly id: string;
+  readonly name: string;
+}
+
+export function subjectsToCache(subjects: readonly CachedSubject[]): CachedSubject[] {
+  return subjects.map((subject) => ({ id: subject.id, name: subject.name }));
+}
+
+export function subjectsFromCache(data: unknown): CachedSubject[] | null {
+  if (!Array.isArray(data)) return null;
+  return data.flatMap((raw): CachedSubject[] => {
+    const entry = asRecord(raw);
+    return isUuid(entry.id) && typeof entry.name === 'string' ? [{ id: entry.id, name: entry.name }] : [];
+  });
+}
+
+/**
+ * A saved student group of the class (an elective's roster). Kept as id, name and member ids so that an elective's roll
+ * can be taken offline from the class roll; the ids alone say nothing without the roster.
+ */
+export interface CachedGroup {
+  readonly id: string;
+  readonly name: string;
+  readonly studentIds: readonly string[];
+}
+
+export function groupsToCache(groups: readonly CachedGroup[]): CachedGroup[] {
+  return groups.map((group) => ({ id: group.id, name: group.name, studentIds: [...group.studentIds] }));
+}
+
+export function groupsFromCache(data: unknown): CachedGroup[] | null {
+  if (!Array.isArray(data)) return null;
+  return data.flatMap((raw): CachedGroup[] => {
+    const entry = asRecord(raw);
+    if (!isUuid(entry.id) || typeof entry.name !== 'string' || !Array.isArray(entry.studentIds)) return [];
+    return [{ id: entry.id, name: entry.name, studentIds: entry.studentIds.filter(isUuid) }];
+  });
+}
