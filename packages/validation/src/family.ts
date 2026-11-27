@@ -82,6 +82,14 @@ export function isVersionOutdatedProblem(problem: { code?: string } | null | und
   return problem?.code === "consent.version_outdated" || (status === 409 && problem?.code === undefined);
 }
 
+/**
+ * True when the country has no consent or policy text (D42): 404 on a policy read, 409 on a decision. Never a
+ * reason to show another country's document or to treat it as "no version yet": the screen shows the API's message.
+ */
+export function isCountryNotAvailableProblem(problem: { code?: string } | null | undefined): boolean {
+  return problem?.code === "policy.country_not_available";
+}
+
 /** True when the child can no longer be decided for (the link ended or was restricted meanwhile). */
 export function isChildGoneProblem(problem: { code?: string } | null | undefined): boolean {
   return problem?.code === "consent.child_not_found";

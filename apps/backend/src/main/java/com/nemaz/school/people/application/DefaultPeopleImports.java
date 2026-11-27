@@ -160,7 +160,7 @@ class DefaultPeopleImports implements PeopleImports {
 	@Override
 	public NewStaffResult addStaff(UUID schoolId, UUID actorId, NewStaff s) {
 		Provisioned p = this.staff.addForImport(actorId, schoolId,
-				new AddStaff(s.phone(), s.email(), "ET", s.givenName(), s.familyName(), s.displayName(),
+				new AddStaff(s.phone(), s.email(), null, s.givenName(), s.familyName(), s.displayName(),
 						StaffType.valueOf(s.staffType()), s.jobTitle(), null, s.campusId(), null, null),
 				s.externalRef());
 		return new NewStaffResult(p.staffId(), p.userId(), p.accountCreated());

@@ -19,6 +19,7 @@ import { useMessagesPlace } from "./messages-context";
 import { MessageList } from "./message-list";
 import { PersonBadge, useConversationTitle, usePersonText } from "./person-name";
 import { useCapabilities, useConversation, useDocumentHidden, useMembers, useMessages } from "./use-messaging";
+import { useDisplayPlace, useSchoolPlace } from "@/components/display-context";
 import { useMessageTime } from "./use-message-time";
 import type { Message } from "@/lib/messaging/types";
 
@@ -38,7 +39,11 @@ export function ConversationView({ conversationId }: { conversationId: string })
   const members = useMembers(conversationId, summary?.myRole === "OBSERVER" && summary.type === "DIRECT");
   const title = useConversationTitle();
   const { participant } = usePersonText();
-  const time = useMessageTime(capabilities.data?.timeZone);
+  // The conversation's school clock: its capabilities, else the place /me gave for that school, else the page's (D42).
+  const schoolPlace = useSchoolPlace(summary?.schoolId);
+  const pagePlace = useDisplayPlace();
+  const messageZone = capabilities.data?.timeZone ?? schoolPlace?.timeZone ?? pagePlace?.timeZone;
+  const time = useMessageTime(messageZone);
   const hidden = useDocumentHidden();
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [now, setNow] = useState(() => new Date());
@@ -123,16 +128,16 @@ export function ConversationView({ conversationId }: { conversationId: string })
         <BannerView key={notice.kind} banner={notice} />
       ))}
 
-      {messages.isPending ? <LoadingRows rows={4} /> : null}
+      {messages.isPending || (messages.isSuccess && !messageZone) ? <LoadingRows rows={4} /> : null}
       {messages.isError ? <ErrorNotice message={errorMessage(messages.error, t("conversation.loadFailed"))} onRetry={() => void messages.refetch()} /> : null}
-      {messages.isSuccess ? (
+      {messages.isSuccess && messageZone ? (
         <MessageList
           conversationId={conversationId}
           messages={ordered}
           hasOlder={!!messages.hasNextPage}
           loadingOlder={messages.isFetchingNextPage}
           onLoadOlder={() => void messages.fetchNextPage()}
-          timeZone={capabilities.data?.timeZone ?? "Africa/Addis_Ababa"}
+          timeZone={messageZone}
           time={time}
           now={now}
           direct={direct}

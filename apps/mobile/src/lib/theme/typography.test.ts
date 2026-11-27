@@ -6,6 +6,9 @@ describe('typography', () => {
   it('uses the Ethiopic face for Amharic and Nunito otherwise', () => {
     expect(scriptForLocale('am')).toBe('ethiopic');
     expect(scriptForLocale('en')).toBe('latin');
+    // chosen by the script of the language, so a language the app has no catalog for is Latin
+    expect(scriptForLocale('am-ET')).toBe('ethiopic');
+    expect(scriptForLocale('sw')).toBe('latin');
     expect(textStyleFor('body', 'en', 'ios').fontFamily).toBe('Nunito-Regular');
     expect(textStyleFor('body', 'am', 'android').fontFamily).toBe('NotoSansEthiopic_400Regular');
   });

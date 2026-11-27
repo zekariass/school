@@ -21,7 +21,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         {
           action: 'VIEW',
           autoVerify: true,
-          data: ['en', 'am'].map((language) => ({ scheme: 'https', host, pathPrefix: `/${language}/invite` })),
+          // Any language segment: the web serves the page under each language the apps ship (`@school/i18n`), and
+          // `+native-intent` only accepts a path that really is an invitation link.
+          data: [{ scheme: 'https', host, pathPattern: '/.*/invite/.*' }],
           category: ['BROWSABLE', 'DEFAULT'],
         },
       ],

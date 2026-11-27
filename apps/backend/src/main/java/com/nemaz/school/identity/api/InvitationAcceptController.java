@@ -11,7 +11,7 @@ import com.nemaz.school.identity.application.Destination.Channel;
 import com.nemaz.school.identity.application.Emails;
 import com.nemaz.school.identity.application.IdentityProperties;
 import com.nemaz.school.identity.application.InvitationSignInService;
-import com.nemaz.school.identity.application.PhoneNumbers;
+import com.nemaz.school.identity.application.PhoneInputs;
 import com.nemaz.school.identity.application.TokenService.TokenPair;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -46,7 +46,10 @@ public class InvitationAcceptController {
 
 	private final IdentityProperties props;
 
-	InvitationAcceptController(InvitationSignInService invitations, IdentityProperties props) {
+	private final PhoneInputs phones;
+
+	InvitationAcceptController(InvitationSignInService invitations, IdentityProperties props, PhoneInputs phones) {
+		this.phones = phones;
 		this.invitations = invitations;
 		this.props = props;
 	}
@@ -87,14 +90,14 @@ public class InvitationAcceptController {
 		return new InvitationKey(hasToken ? token.trim() : null, hasCode ? code.trim() : null);
 	}
 
-	private static Optional<Destination> destination(String phone, String email, String country) {
+	private Optional<Destination> destination(String phone, String email, String country) {
 		boolean hasPhone = phone != null && !phone.isBlank();
 		boolean hasEmail = email != null && !email.isBlank();
 		if (hasPhone == hasEmail) {
 			return Optional.empty();
 		}
 		if (hasPhone) {
-			return PhoneNumbers.toE164(phone, country).map((p) -> new Destination(Channel.SMS, p));
+			return this.phones.toE164(phone, country).map((p) -> new Destination(Channel.SMS, p));
 		}
 		return Emails.normalize(email).map((e) -> new Destination(Channel.EMAIL, e));
 	}

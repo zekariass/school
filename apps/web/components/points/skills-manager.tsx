@@ -9,6 +9,7 @@ import { EmptyNotice, ErrorNotice, LoadingRows } from "@/components/console/stat
 import { useSubmit } from "@/components/console/use-submit";
 import { FormDialog } from "@/components/school/form-dialog";
 import { SelectField } from "@/components/school/fields";
+import { LocalizedInputs } from "@/components/school/localized-fields";
 import { useSchool } from "@/components/school/school-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import {
 } from "@/lib/points/categories";
 import { SKILL_ICON_CHOICES } from "@/lib/points/icons";
 import { fetchCategories, pk, type PointCategory } from "@/lib/points/queries";
+import { compactTexts, hasText, inputLanguages } from "@/lib/school/localized";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "./category-icon";
 
@@ -159,8 +161,9 @@ function CategoryForm({ scope, category, onClose }: { scope: SkillsScope; catego
   const t = useTranslations("school.points.skills.form");
   const tv = useTranslations("school.validation");
   const { school } = useSchool();
-  const [en, setEn] = useState(category?.names.en ?? "");
-  const [am, setAm] = useState(category?.names.am ?? "");
+  // One input per language of the school's country (D42), plus any language the saved skill already has.
+  const [names, setNames] = useState<Record<string, string>>(() => ({ ...category?.names }));
+  const nameLanguages = inputLanguages(school.country.languageCodes, category?.names);
   const [pointsText, setPointsText] = useState(String(category?.defaultPoints ?? 1));
   const [polarity, setPolarity] = useState<"POSITIVE" | "NEEDS_WORK">(category?.polarity ?? "POSITIVE");
   const [context, setContext] = useState<"CLASS" | "HOME">(category?.context === "HOME" ? "HOME" : "CLASS");
@@ -170,13 +173,10 @@ function CategoryForm({ scope, category, onClose }: { scope: SkillsScope; catego
 
   const save = useSubmit({
     mutationFn: async (_: void, idempotencyKey) => {
-      const names: Record<string, string> = {};
-      if (en.trim()) names.en = en.trim();
-      if (am.trim()) names.am = am.trim();
       const defaultPoints = Number(pointsText);
       const api = getBrowserApi();
       if (category) {
-        const body = { names, icon, color, defaultPoints };
+        const body = { names: compactTexts(names), icon, color, defaultPoints };
         return scope.kind === "class"
           ? unwrap(
               await api.PATCH("/api/v1/schools/{schoolId}/classes/{classId}/point-categories/{categoryId}", {
@@ -191,7 +191,7 @@ function CategoryForm({ scope, category, onClose }: { scope: SkillsScope; catego
               }),
             );
       }
-      const body = { names, icon, color, defaultPoints, polarity, ...(scope.kind === "school" ? { context } : {}) };
+      const body = { names: compactTexts(names), icon, color, defaultPoints, polarity, ...(scope.kind === "school" ? { context } : {}) };
       return scope.kind === "class"
         ? unwrap(
             await api.POST("/api/v1/schools/{schoolId}/classes/{classId}/point-categories", {
@@ -224,18 +224,21 @@ function CategoryForm({ scope, category, onClose }: { scope: SkillsScope; catego
       error={save.isError && Object.keys(server).length === 0 ? errorMessage(save.error, t("failed")) : null}
       onSubmit={() => {
         const points = Number(pointsText);
-        const next = { name: !en.trim() && !am.trim(), points: !Number.isInteger(points) || points < 1 || points > 10 };
+        const next = { name: !hasText(names), points: !Number.isInteger(points) || points < 1 || points > 10 };
         setLocalError(next);
         if (!next.name && !next.points) save.mutate();
       }}
       onClose={onClose}
     >
-      <FormField label={t("nameEn")} error={localError.name ? tv("required") : (server.names ?? null)}>
-        {(props) => <Input {...props} value={en} maxLength={60} onChange={(e) => setEn(e.target.value)} />}
-      </FormField>
-      <FormField label={t("nameAm")} hint={t("nameHint")}>
-        {(props) => <Input {...props} value={am} maxLength={60} lang="am" onChange={(e) => setAm(e.target.value)} />}
-      </FormField>
+      <LocalizedInputs
+        languages={nameLanguages}
+        values={names}
+        onChange={setNames}
+        label={(language) => t("nameIn", { language })}
+        maxLength={60}
+        error={localError.name ? tv("required") : (server.names ?? null)}
+        hint={t("nameHint")}
+      />
       <FormField label={t("points")} error={localError.points ? t("pointsInvalid") : (server.defaultPoints ?? null)}>
         {(props) => (
           <Input {...props} type="number" inputMode="numeric" min={1} max={10} value={pointsText} onChange={(e) => setPointsText(e.target.value)} className="w-28" />

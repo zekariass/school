@@ -2,9 +2,10 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, Loader2Icon, SirenIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { languageLabel } from "@school/i18n";
 import { useFormatInstantIn } from "@/components/attendance/status";
 import { EmptyNotice, ErrorNotice, LoadingRows } from "@/components/console/states";
 import { PageHeader } from "@/components/school/page-header";
@@ -16,7 +17,6 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
-  LANGUAGES,
   MAX_BODY,
   MAX_TITLE,
   allowedTypes,
@@ -24,6 +24,7 @@ import {
   buildDraftUpdateBody,
   buildPublishedEditBody,
   composerFromAnnouncement,
+  composerLanguages,
   composerProblems,
   draftProblems,
   hasContent,
@@ -79,7 +80,17 @@ export function ComposerView({ announcementId }: { announcementId?: string }) {
   } else if ((!caps.data.canCompose && !announcementId) || (existing.data && !existing.data.can.edit)) {
     body = <EmptyNotice>{t("noAccess")}</EmptyNotice>;
   } else {
-    body = <ComposerForm key={existing.data?.id ?? "new"} schoolId={school.id} base={base} caps={caps.data} existing={existing.data} />;
+    body = (
+      <ComposerForm
+        key={existing.data?.id ?? "new"}
+        schoolId={school.id}
+        base={base}
+        caps={caps.data}
+        existing={existing.data}
+        languages={school.country.languageCodes}
+        defaultLanguage={school.country.defaultLanguageCode}
+      />
+    );
   }
 
   return (
@@ -94,7 +105,23 @@ export function ComposerView({ announcementId }: { announcementId?: string }) {
   );
 }
 
-function ComposerForm({ schoolId, base, caps, existing }: { schoolId: string; base: string; caps: CapsLike; existing?: Announcement }) {
+function ComposerForm({
+  schoolId,
+  base,
+  caps,
+  existing,
+  languages,
+  defaultLanguage,
+}: {
+  schoolId: string;
+  base: string;
+  caps: CapsLike;
+  existing?: Announcement;
+  /** The languages of the school's country (D42): what an announcement can be written and translated in. */
+  languages: readonly string[];
+  defaultLanguage: string;
+}) {
+  const locale = useLocale();
   const t = useTranslations("school.announcements.composer");
   const tp = useTranslations("school.announcements.composer.problems");
   const tt = useTranslations("school.announcements");
@@ -105,7 +132,7 @@ function ComposerForm({ schoolId, base, caps, existing }: { schoolId: string; ba
   const mode: "create" | "editDraft" | "editPublished" = !existing ? "create" : existing.status === "PUBLISHED" ? "editPublished" : "editDraft";
   const [state, setState] = useState<ComposerState>(() => {
     const now = new Date();
-    return normalizeForCaps(existing ? composerFromAnnouncement(existing, caps, zone, now) : initialComposer(caps, zone, now), caps);
+    return normalizeForCaps(existing ? composerFromAnnouncement(existing, caps, zone, now, defaultLanguage) : initialComposer(caps, zone, now, defaultLanguage), caps);
   });
   const [material, setMaterial] = useState<boolean | null>(null);
   const [changeNote, setChangeNote] = useState("");
@@ -255,12 +282,12 @@ function ComposerForm({ schoolId, base, caps, existing }: { schoolId: string; ba
           label={t("language")}
           value={state.language}
           onChange={(value) => setState((s) => withLanguage(s, value))}
-          options={LANGUAGES.map((l) => ({ value: l, label: t(`languages.${l}`) }))}
+          options={composerLanguages(languages, state.language).map((l) => ({ value: l, label: languageLabel(l, locale) }))}
           className="w-56"
           disabled={pending}
         />
 
-        <Translations state={state} setState={setState} disabled={pending} />
+        <Translations state={state} setState={setState} languages={languages} disabled={pending} />
       </section>
 
       {mode === "editPublished" ? (
@@ -426,9 +453,10 @@ function TypeChoice({ type, selected, onSelect }: { type: AnnouncementType; sele
   );
 }
 
-function Translations({ state, setState, disabled }: { state: ComposerState; setState: React.Dispatch<React.SetStateAction<ComposerState>>; disabled: boolean }) {
+function Translations({ state, setState, languages, disabled }: { state: ComposerState; setState: React.Dispatch<React.SetStateAction<ComposerState>>; languages: readonly string[]; disabled: boolean }) {
   const t = useTranslations("school.announcements.composer");
-  const available = translationLanguages(state);
+  const locale = useLocale();
+  const available = translationLanguages(state, languages);
   const entries = Object.entries(state.translations);
   if (entries.length === 0 && available.length === 0) return null;
   return (
@@ -438,7 +466,7 @@ function Translations({ state, setState, disabled }: { state: ComposerState; set
         <p className="text-xs text-muted-foreground">{t("translationsHelp")}</p>
       </div>
       {entries.map(([code, value]) => {
-        const name = code === "en" || code === "am" ? t(`languages.${code}`) : code;
+        const name = languageLabel(code, locale);
         return (
           <div key={code} className="flex flex-col gap-2 rounded-xl border p-3" data-testid={`translation-${code}`}>
             <Input
@@ -493,7 +521,7 @@ function Translations({ state, setState, disabled }: { state: ComposerState; set
             onClick={() => setState((s) => ({ ...s, translations: { ...s.translations, [code]: { title: "", body: "" } } }))}
             data-testid={`add-translation-${code}`}
           >
-            {t("addTranslation", { language: code === "en" || code === "am" ? t(`languages.${code}`) : code })}
+            {t("addTranslation", { language: languageLabel(code, locale) })}
           </Button>
         ))}
       </div>

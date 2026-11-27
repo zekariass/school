@@ -48,7 +48,7 @@ public class PolicyController {
 
 	@GetMapping("/api/v1/policies/{policyType}")
 	@Operation(operationId = "getPolicy",
-			summary = "The current text of a policy (public): the school's own document if it has a published version, else the country default (country, default ET); in lang, else English, else any language. 404 policy.not_found")
+			summary = "The current text of a policy (public): the school's own document if it has a published version, else the default of the country (the `country` parameter, else the platform default country); legal text of another country is never served: 404 policy.country_not_available when the resolved country has none; in lang, else English, else any language. 404 policy.not_found")
 	public PolicyView read(@PathVariable ConsentType policyType, @RequestParam(required = false) UUID schoolId,
 			@RequestParam(required = false) @Pattern(regexp = "^[A-Za-z]{2}$") String country,
 			@RequestParam(required = false) @Size(max = 8) String lang) {

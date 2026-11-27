@@ -3,7 +3,8 @@
  * the API checks every call, answers 404 to people who may not see a link and 403 to those who
  * may not change it.
  */
-import { emailSchema, phoneSchema, type CountryCode } from "@school/validation";
+import { emailSchema, phoneSchema } from "@school/validation";
+import { asCountryCode } from "@school/validation/country";
 import { SP, type SchoolAccess } from "./access";
 
 export interface FamilyAbilities {
@@ -137,11 +138,14 @@ export type ContactFormResult =
   | { ok: true; contact: { phone: string } | { email: string } }
   | { ok: false; field: "phone" | "email"; key: "validation.phone" | "validation.email" | "validation.required" };
 
-/** The one phone (E.164) or email of an invitation or a new guardian, as the API wants it. */
-export function readContact(values: ContactFormValues, country: CountryCode = "ET"): ContactFormResult {
+/**
+ * The one phone (E.164) or email of an invitation or a new guardian, as the API wants it. `country` is the
+ * school's country code (D42): the national number is read in it, a number with "+" keeps its own.
+ */
+export function readContact(values: ContactFormValues, country: string): ContactFormResult {
   if (values.via === "SMS") {
     if (!values.phone.trim()) return { ok: false, field: "phone", key: "validation.required" };
-    const parsed = phoneSchema(country).safeParse(values.phone);
+    const parsed = phoneSchema(asCountryCode(country)).safeParse(values.phone);
     return parsed.success ? { ok: true, contact: { phone: parsed.data } } : { ok: false, field: "phone", key: "validation.phone" };
   }
   if (!values.email.trim()) return { ok: false, field: "email", key: "validation.required" };

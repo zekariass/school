@@ -2,8 +2,8 @@ package com.nemaz.school.notifications.application;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
+import com.nemaz.school.common.i18n.SupportedLocales;
 import com.nemaz.school.notifications.LocalizedText;
 
 import org.springframework.context.MessageSource;
@@ -14,18 +14,18 @@ import org.springframework.stereotype.Component;
 @Component
 class NotificationRenderer {
 
-	private static final Set<String> LANGUAGES = Set.of("en", "am");
-
 	private final MessageSource messages;
 
-	NotificationRenderer(MessageSource messages) {
+	private final SupportedLocales supported;
+
+	NotificationRenderer(MessageSource messages, SupportedLocales supported) {
 		this.messages = messages;
+		this.supported = supported;
 	}
 
 	/** The locale to write to a user in: their preferred language when supported, else English. */
-	static Locale localeOf(String languageCode) {
-		return (languageCode != null && LANGUAGES.contains(languageCode)) ? Locale.forLanguageTag(languageCode)
-				: Locale.ENGLISH;
+	Locale localeOf(String languageCode) {
+		return this.supported.localeOf(languageCode);
 	}
 
 	Rendered render(String messageKey, List<Object> args, Locale locale) {

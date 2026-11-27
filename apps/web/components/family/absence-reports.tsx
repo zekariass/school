@@ -7,9 +7,9 @@ import { useState } from "react";
 import { ak, cancelAbsence, fetchStudentAbsences, reportAbsence, type AbsenceReport } from "@/lib/attendance/queries";
 import { buildAbsenceRequest, canCancel, hasErrors, isReason, isReportStatus, MAX_ABSENCE_NOTE, REASONS, validateAbsenceForm, type AbsenceForm, type AbsenceFormErrors } from "@/lib/attendance/absence";
 import { localDateIn } from "@/lib/attendance/dates";
-import { DISPLAY_TIME_ZONE } from "@/lib/format-instant";
 import { errorMessage, fieldErrors } from "@/lib/console/errors";
 import { useFormatDate } from "@/components/calendar-preference";
+import { useDisplayPlace, useSchoolPlace } from "@/components/display-context";
 import { FormField } from "@/components/console/form-field";
 import { EmptyNotice, ErrorNotice, LoadingRows, LoadMore } from "@/components/console/states";
 import { useSubmit } from "@/components/console/use-submit";
@@ -22,9 +22,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const emptyForm = (): AbsenceForm => {
-  // The family's own calendar day is a good starting point; the API checks the school's window.
-  const today = localDateIn(DISPLAY_TIME_ZONE, new Date());
+const emptyForm = (timeZone: string): AbsenceForm => {
+  // The school's calendar day is a good starting point; the API checks the school's window.
+  const today = localDateIn(timeZone, new Date());
   return { fromDate: today, toDate: today, reasonCode: "", note: "" };
 };
 
@@ -138,7 +138,11 @@ function ReportRow({ report, onWithdraw }: { report: AbsenceReport; onWithdraw: 
 
 function AbsenceFormDialog({ schoolId, studentId, childName, onClose }: { schoolId: string; studentId: string; childName: string; onClose: () => void }) {
   const t = useTranslations("family.absence");
-  const [form, setForm] = useState<AbsenceForm>(emptyForm);
+  // The day is the child's school's (from /me's memberships), else the person's own place; UTC only if neither is known.
+  const schoolZone = useSchoolPlace(schoolId)?.timeZone;
+  const pageZone = useDisplayPlace()?.timeZone;
+  const zone = schoolZone ?? pageZone ?? "UTC";
+  const [form, setForm] = useState<AbsenceForm>(() => emptyForm(zone));
   const [errors, setErrors] = useState<AbsenceFormErrors>({});
 
   const submit = useSubmit({
@@ -158,7 +162,7 @@ function AbsenceFormDialog({ schoolId, studentId, childName, onClose }: { school
   }
 
   function send() {
-    const found = validateAbsenceForm(form, localDateIn(DISPLAY_TIME_ZONE, new Date()));
+    const found = validateAbsenceForm(form, localDateIn(zone, new Date()));
     setErrors(found);
     if (!hasErrors(found)) submit.mutate(buildAbsenceRequest(form));
   }

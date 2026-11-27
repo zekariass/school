@@ -5,6 +5,7 @@ import { useTranslations } from 'use-intl';
 import { isSystemMessage, messageImages, messageText } from '@/lib/messaging/derive';
 import type { OutboxEntry } from '@/lib/messaging/outbox';
 import type { FeedMediaItem } from '@/lib/feed/types';
+import { useDisplayZone } from '@/lib/country/place';
 import { messageTimeText } from '@/lib/messaging/time';
 import type { ActingAs, MessageItem } from '@/lib/messaging/types';
 import { usePreferences } from '@/lib/preferences/preferences-provider';
@@ -45,6 +46,7 @@ function Bubble({
   const t = useTranslations();
   const { colors, radii, spacing, minTouchTarget } = useAppTheme();
   const { locale } = usePreferences();
+  const zone = useDisplayZone();
   const personText = useParticipantText();
   const [viewing, setViewing] = useState<number | null>(null);
 
@@ -63,7 +65,7 @@ function Bubble({
   const images = messageImages(message);
   const tombstone = message.status === 'DELETED' || message.status === 'HIDDEN';
   const author = personText(message.sender, viewer);
-  const time = messageTimeText(message.sentAt ?? message.scheduledFor, now, locale);
+  const time = messageTimeText(message.sentAt ?? message.scheduledFor, now, locale, zone);
   const media: FeedMediaItem[] = images.map((image, index) => ({ mediaId: image.mediaId, kind: 'IMAGE', sortOrder: index, variants: [...image.variants] as FeedMediaItem['variants'] }));
   const bubbleColors = mine ? { bg: colors.accent, fg: colors.accentForeground } : { bg: colors.card, fg: colors.foreground };
 

@@ -108,8 +108,9 @@ export function canAskAnswers(form: Pick<EventForm, 'kind' | 'repeat'>): boolean
 
 // --- zones --------------------------------------------------------------------------------------------------------
 
+// A short list of widely used zones after the ones that matter to this person (the event's, the school's, the
+// account's, their countries' defaults from /me, the phone's). No country is favoured here (D42).
 const COMMON_ZONES = [
-  'Africa/Addis_Ababa',
   'Africa/Nairobi',
   'Africa/Cairo',
   'Africa/Lagos',
@@ -125,7 +126,7 @@ const COMMON_ZONES = [
   'UTC',
 ];
 
-/** The zones the form offers, the event's own first, then the school's, the account's, the phone's, then common ones. */
+/** The zones the form offers, the event's own first, then the school's, the account's, their countries', the phone's, then common ones. */
 export function zoneChoices(preferred: readonly (string | null | undefined)[]): string[] {
   const zones: string[] = [];
   for (const zone of [...preferred, ...COMMON_ZONES]) {

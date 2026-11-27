@@ -12,7 +12,6 @@ import { Button, Screen, SegmentedControl, Text } from '@/components/ui';
 import { Chips } from '@/components/feed/chips';
 import { bucketItems, daysWithEntries } from '@/lib/calendar/bucket';
 import { eachDay } from '@/lib/calendar/civil';
-import { CALENDAR_PREFERENCES } from '@/lib/calendar/format-instant';
 import {
   AGENDA_STEP_DAYS,
   DEFAULT_WEEK_START,
@@ -51,7 +50,7 @@ export function CalendarScreen({ standalone = false }: { standalone?: boolean })
   const t = useTranslations();
   const tx = useLooseT();
   const { colors, spacing } = useAppTheme();
-  const { calendar, setCalendar, locale } = usePreferences();
+  const { calendar, calendars, setCalendar, locale } = usePreferences();
   const { activeRole } = useSession();
   const context = useLabelContext();
   const today = useToday();
@@ -140,12 +139,14 @@ export function CalendarScreen({ standalone = false }: { standalone?: boolean })
           <Button variant="ghost" fullWidth={false} label={t('mobile.calendar.today')} accessibilityHint={dateHeading(today, calendar, locale)} onPress={() => setAnchor(today)} />
         </View>
 
-        <SegmentedControl
-          accessibilityLabel={t('calendar.label')}
-          value={calendar}
-          onChange={setCalendar}
-          options={CALENDAR_PREFERENCES.map((value) => ({ value, label: t(`calendar.${value}`) }))}
-        />
+        {calendars.length > 1 ? (
+          <SegmentedControl
+            accessibilityLabel={t('calendar.label')}
+            value={calendar}
+            onChange={setCalendar}
+            options={calendars.map((value) => ({ value, label: t(`calendar.${value}`) }))}
+          />
+        ) : null}
 
         <ToggleChips
           accessibilityLabel={t('mobile.calendar.source.label')}

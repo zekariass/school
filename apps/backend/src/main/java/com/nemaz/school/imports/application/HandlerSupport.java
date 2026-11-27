@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.nemaz.school.imports.application.RowHandler.Draft;
+import com.nemaz.school.imports.application.RowHandler.JobContext;
 import com.nemaz.school.imports.domain.DateParser;
 import com.nemaz.school.imports.domain.PhoneNormalizer;
 
@@ -44,8 +45,8 @@ final class HandlerSupport {
 	}
 
 	/** The phone in E.164, with the problem recorded on the draft (an error, or a warning when {@code lenient}). */
-	static String phone(Draft draft, String column, String raw, boolean lenient) {
-		PhoneNormalizer.Result result = PhoneNormalizer.normalize(raw);
+	static String phone(JobContext ctx, Draft draft, String column, String raw, boolean lenient) {
+		PhoneNormalizer.Result result = PhoneNormalizer.normalize(raw, ctx.country().code(), ctx.country().phoneCountryCode());
 		if (result.errorCode() != null) {
 			if (lenient) {
 				draft.warn(column, result.errorCode());

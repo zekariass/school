@@ -8,13 +8,12 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 /**
- * Phone numbers to E.164 with libphonenumber: national formats ({@code 0911 22 33 44}) are
- * read in the given country (Ethiopia by default), international ones ({@code +254...}) as
- * written. Only numbers valid for their region are accepted.
+ * Phone numbers to E.164 with libphonenumber: national formats ({@code 0911 22 33 44}) are read in the given country,
+ * international ones ({@code +254...}) as written. Only numbers valid for their region are accepted. There is no default
+ * country here: callers pass the country that applies (a school's, or {@link PhoneInputs} for the platform default); with
+ * none, only numbers with a {@code +} prefix are accepted.
  */
 public final class PhoneNumbers {
-
-	public static final String DEFAULT_COUNTRY = "ET";
 
 	private static final PhoneNumberUtil UTIL = PhoneNumberUtil.getInstance();
 
@@ -25,8 +24,7 @@ public final class PhoneNumbers {
 		if (raw == null || raw.isBlank() || raw.length() > 32) {
 			return Optional.empty();
 		}
-		String region = (countryCode != null && !countryCode.isBlank()) ? countryCode.toUpperCase(Locale.ROOT)
-				: DEFAULT_COUNTRY;
+		String region = (countryCode != null && !countryCode.isBlank()) ? countryCode.toUpperCase(Locale.ROOT) : null;
 		try {
 			PhoneNumber number = UTIL.parse(raw.trim(), region);
 			if (!UTIL.isValidNumber(number)) {

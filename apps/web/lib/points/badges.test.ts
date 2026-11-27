@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { asBadgeType, badgeCriteria, BADGE_CODE, slugFromName } from "./badges";
+import { asBadgeType, badgeCriteria, BADGE_CODE, slugFromName, suggestCode } from "./badges";
 
 describe("badgeCriteria", () => {
   const fields = { threshold: "50", days: "5", categoryId: "" };
@@ -29,6 +29,12 @@ describe("codes", () => {
     expect(slugFromName("  Café  ")).toBe("cafe");
     expect(slugFromName("123")).toBe("");
     expect(slugFromName("አማርኛ")).toBe("");
+  });
+
+  it("suggests a code from the first language whose name makes one", () => {
+    expect(suggestCode(["xa", "xb"], { xa: "አማርኛ", xb: "Super Helper" })).toBe("super_helper");
+    expect(suggestCode(["xa", "xb"], { xa: "Kindness", xb: "Super Helper" })).toBe("kindness");
+    expect(suggestCode(["xa"], {})).toBe("");
   });
 
   it("matches the API's code format", () => {

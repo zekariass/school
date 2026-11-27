@@ -11,11 +11,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.nemaz.school.messaging.domain.OfficeHours;
+import com.nemaz.school.tenancy.CountryResolver;
 import com.nemaz.school.tenancy.FeatureService;
 import com.nemaz.school.tenancy.SettingScope;
 import com.nemaz.school.tenancy.SettingsService;
 
-import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,18 +53,16 @@ public class MessagingSettings {
 
 	static final String TRANSLATION = "messaging.translation.enabled";
 
-	private static final ZoneId DEFAULT_ZONE = ZoneId.of("Africa/Addis_Ababa");
-
 	private final SettingsService settings;
 
 	private final FeatureService features;
 
-	private final JdbcClient jdbc;
+	private final CountryResolver countries;
 
-	MessagingSettings(SettingsService settings, FeatureService features, JdbcClient jdbc) {
+	MessagingSettings(SettingsService settings, FeatureService features, CountryResolver countries) {
 		this.settings = settings;
 		this.features = features;
-		this.jdbc = jdbc;
+		this.countries = countries;
 	}
 
 	/** The settings the SQL of {@link Eligibility} needs, one row per school. */
@@ -124,19 +122,9 @@ public class MessagingSettings {
 			.map((h) -> new OfficeHours(h.days(), LocalTime.parse(h.start()), LocalTime.parse(h.end())));
 	}
 
-	/** The school's time zone (default Africa/Addis_Ababa when it is missing or unknown). */
+	/** The school's time zone (its country's default zone when the school's own is missing or unknown). */
 	public ZoneId zone(UUID schoolId) {
-		String zone = this.jdbc.sql("select timezone from schools where id = :id")
-			.param("id", schoolId)
-			.query(String.class)
-			.optional()
-			.orElse(null);
-		try {
-			return (zone != null) ? ZoneId.of(zone) : DEFAULT_ZONE;
-		}
-		catch (DateTimeException ex) {
-			return DEFAULT_ZONE;
-		}
+		return this.countries.schoolZone(schoolId);
 	}
 
 }

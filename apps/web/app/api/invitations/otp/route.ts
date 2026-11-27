@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   const upstream = await postInvitation(
     "otp",
-    { ...input.key, phone: input.phone, email: input.email, country: "ET" },
+    { ...input.key, phone: input.phone, email: input.email, country: input.country },
     localeFromRequest(request),
   );
   if (!upstream) return problemResponse(request, "bff_upstream_unavailable", 502);

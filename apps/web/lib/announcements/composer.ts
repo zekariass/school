@@ -18,10 +18,6 @@ export type RecipientRole = "GUARDIAN" | "STUDENT" | "STAFF";
 export type Timing = "now" | "schedule" | "draft";
 export type Channel = "IN_APP" | "PUSH" | "EMAIL" | "SMS";
 
-/** The languages announcements can be written in (the platform's enabled languages). */
-export const LANGUAGES = ["en", "am"] as const;
-export type Language = (typeof LANGUAGES)[number];
-
 /** A person chosen for an announcement. The name is only for the chip; it is never sent. */
 export interface ChosenPerson {
   id: string;
@@ -101,12 +97,13 @@ export function defaultKind(caps: Pick<CapsLike, "schoolWide" | "classes">): Aud
 
 // --- state ---------------------------------------------------------------------------------
 
-export function initialComposer(caps: CapsLike, timeZone: string, now: Date): ComposerState {
+/** `defaultLanguage` is the school's country's default language (D42): a new announcement starts in it. */
+export function initialComposer(caps: CapsLike, timeZone: string, now: Date, defaultLanguage: string): ComposerState {
   return {
     type: "NORMAL",
     title: "",
     body: "",
-    language: "en",
+    language: defaultLanguage,
     translations: {},
     kind: defaultKind(caps),
     campusIds: [],
@@ -154,9 +151,20 @@ export function withLanguage(state: ComposerState, language: string): ComposerSt
   return { ...state, language, translations };
 }
 
+/**
+ * The languages the author can write in: those of the school's country (`country.languageCodes`), and the
+ * language an existing announcement already has even when the country no longer lists it.
+ */
+export function composerLanguages(countryLanguages: readonly string[], current: string): string[] {
+  return countryLanguages.includes(current) ? [...countryLanguages] : [current, ...countryLanguages];
+}
+
 /** The other languages a translation can be added for. */
-export function translationLanguages(state: Pick<ComposerState, "language" | "translations">): string[] {
-  return LANGUAGES.filter((l) => l !== state.language && !(l in state.translations));
+export function translationLanguages(
+  state: Pick<ComposerState, "language" | "translations">,
+  countryLanguages: readonly string[],
+): string[] {
+  return countryLanguages.filter((l) => l !== state.language && !(l in state.translations));
 }
 
 export function withKind(state: ComposerState, kind: AudienceKind): ComposerState {
@@ -369,8 +377,14 @@ interface AnnouncementLike {
  * The form state of a saved announcement. When its audience is not one kind with one set of roles (made elsewhere,
  * say) the form shows it and keeps it as it is instead of guessing.
  */
-export function composerFromAnnouncement(a: AnnouncementLike, caps: CapsLike, timeZone: string, now: Date): ComposerState {
-  const base = initialComposer(caps, timeZone, now);
+export function composerFromAnnouncement(
+  a: AnnouncementLike,
+  caps: CapsLike,
+  timeZone: string,
+  now: Date,
+  defaultLanguage: string,
+): ComposerState {
+  const base = initialComposer(caps, timeZone, now, defaultLanguage);
   const audiences = a.audiences ?? [];
   const kinds = new Set(audiences.map((x) => x.type));
   const roleKey = (x: AudienceView) => [...x.roles].sort().join(",");
@@ -382,7 +396,7 @@ export function composerFromAnnouncement(a: AnnouncementLike, caps: CapsLike, ti
     type: a.type,
     title: a.title,
     body: a.body ?? "",
-    language: a.bodyLanguageCode ?? "en",
+    language: a.bodyLanguageCode ?? defaultLanguage,
     translations: Object.fromEntries(Object.entries(a.translations ?? {}).map(([k, v]) => [k, { title: v.title, body: v.body }])),
     kind: first?.type ?? base.kind,
     campusIds: audiences.flatMap((x) => (x.type === "CAMPUS" && x.campusId ? [x.campusId] : [])),

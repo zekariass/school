@@ -15,8 +15,10 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The per-country emergency text of the reporting screens (docs/Safeguarding_Rules.md decision 10): configurable data, in the
- * caller's language (English when the language has no text). The Ethiopian text is a placeholder flagged {@code reviewed: false}
- * until the owner supplies the final wording and numbers.
+ * caller's language (English when the language has no text). The text of a placeholder country is flagged
+ * {@code reviewed: false} until the owner supplies the final wording and numbers. The country is always asked for explicitly
+ * and a country without a row answers 404 {@code safety.emergency_info_not_found}: safety numbers of another country are never
+ * served instead (they would send a child to the wrong helpline).
  */
 @Service
 public class EmergencyInfoService {

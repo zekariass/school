@@ -1,4 +1,5 @@
 import { typography } from '@school/design-tokens';
+import { scriptOfLocale } from '@school/i18n';
 
 export type FontWeightName = 'regular' | 'semibold' | 'bold' | 'extrabold';
 export type FontScript = 'latin' | 'ethiopic';
@@ -23,9 +24,9 @@ const FONT_FAMILIES = {
   },
 } as const satisfies Record<FontScript, Record<FontWeightName, Record<FontPlatform, string>>>;
 
-/** Amharic UI text uses Noto Sans Ethiopic first; everything else uses Nunito. */
+/** A language written in the Ethiopic script uses Noto Sans Ethiopic first; everything else uses Nunito. Chosen by the script of the language (`@school/i18n`), not by its code. */
 export function scriptForLocale(locale: string): FontScript {
-  return locale === 'am' ? 'ethiopic' : 'latin';
+  return scriptOfLocale(locale) === 'Ethi' ? 'ethiopic' : 'latin';
 }
 
 export function fontFamilyFor(script: FontScript, weight: FontWeightName, platform: FontPlatform): string {

@@ -3,8 +3,9 @@ import {
   availableActions,
   decisionState,
   isChildGoneProblem,
+  isCountryNotAvailableProblem,
   isVersionOutdatedProblem,
-  mediaOutcome,
+mediaOutcome,
   openDecisionCount,
   orderedChildItems,
   teacherNames,
@@ -88,6 +89,11 @@ describe("problems", () => {
     expect(isVersionOutdatedProblem({ code: "consent.child_not_found" }, 404)).toBe(false);
     expect(isVersionOutdatedProblem(null, 409)).toBe(true);
     expect(isVersionOutdatedProblem(null, 500)).toBe(false);
+    // a country without text is its own problem (409 on a decision): never read as a stale version
+    expect(isVersionOutdatedProblem({ code: "policy.country_not_available" }, 409)).toBe(false);
+    expect(isCountryNotAvailableProblem({ code: "policy.country_not_available" })).toBe(true);
+    expect(isCountryNotAvailableProblem({ code: "policy.not_found" })).toBe(false);
+    expect(isCountryNotAvailableProblem(undefined)).toBe(false);
   });
 
   it("recognizes a child that can no longer be decided for", () => {

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import com.nemaz.school.identity.domain.AccountType;
 import com.nemaz.school.identity.domain.User;
 import com.nemaz.school.identity.domain.UserStatus;
 import com.nemaz.school.media.MediaSummary;
+import com.nemaz.school.reference.CountryConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -59,7 +61,8 @@ public class MeController {
 	@GetMapping
 	@Operation(operationId = "getMe", summary = "The signed-in user, their roles and permissions per scope")
 	public MeResponse get() {
-		return MeResponse.from(this.me.get(CurrentUser.require(), LocaleContextHolder.getLocale()));
+		return MeResponse.from(this.me.get(CurrentUser.require(), LocaleContextHolder.getLocale()),
+				LocaleContextHolder.getLocale());
 	}
 
 	@PatchMapping
@@ -68,20 +71,22 @@ public class MeController {
 	public MeResponse update(@Valid @RequestBody UpdateMeRequest r) {
 		return MeResponse.from(this.me.update(CurrentUser.require(),
 				new ProfileChange(r.displayName(), r.preferredLanguageCode(), r.timezone(), r.calendarPreference()),
-				LocaleContextHolder.getLocale()));
+				LocaleContextHolder.getLocale()), LocaleContextHolder.getLocale());
 	}
 
 	@PutMapping("/avatar")
 	@Operation(operationId = "setMyAvatar",
 			summary = "Use a READY AVATAR upload of mine as my avatar (the previous file is deleted)")
 	public MeResponse setAvatar(@Valid @RequestBody SetAvatarRequest r) {
-		return MeResponse.from(this.me.setAvatar(CurrentUser.require(), r.mediaId(), LocaleContextHolder.getLocale()));
+		return MeResponse.from(this.me.setAvatar(CurrentUser.require(), r.mediaId(), LocaleContextHolder.getLocale()),
+				LocaleContextHolder.getLocale());
 	}
 
 	@DeleteMapping("/avatar")
 	@Operation(operationId = "clearMyAvatar", summary = "Remove my avatar and delete its file")
 	public MeResponse clearAvatar() {
-		return MeResponse.from(this.me.clearAvatar(CurrentUser.require(), LocaleContextHolder.getLocale()));
+		return MeResponse.from(this.me.clearAvatar(CurrentUser.require(), LocaleContextHolder.getLocale()),
+				LocaleContextHolder.getLocale());
 	}
 
 	@PutMapping("/password")
@@ -146,9 +151,12 @@ public class MeController {
 			@NotNull List<RoleAssignmentSummary> roleAssignments,
 			@NotNull @Schema(description = "Permissions merged per scope, from all roles held there") List<ScopePermissions> scopes,
 			@Schema(description = "READY avatar; ask /media/{id}/url for a signed link") MediaSummary avatar,
-			@NotNull @Schema(description = "ACTIVE school memberships as teacher, student or other staff (not administrative roles, which are in roleAssignments); clients build navigation and the mobile role from them") List<SchoolMembership> memberships) {
+			@NotNull @Schema(description = "ACTIVE school memberships as teacher, student or other staff (not administrative roles, which are in roleAssignments); clients build navigation and the mobile role from them") List<SchoolMembership> memberships,
+			@Schema(description = "users.home_country_code: the country the person chose or was registered in; absent when unknown") String homeCountryCode,
+			@NotNull @Schema(description = "The country that applies to this person where no school is meant: their home country, else the platform default country") CountryConfig country,
+			@NotNull @Schema(description = "Configurations of `country` and of the countries of the memberships' schools: look up membership.countryCode here (calendars, languages, calling code)") List<CountryConfig> countries) {
 
-		static MeResponse from(Me me) {
+		static MeResponse from(Me me, Locale locale) {
 			User u = me.user();
 			Map<AccessScope, ScopeAccumulator> byScope = new LinkedHashMap<>();
 			for (AssignmentView v : me.assignments()) {
@@ -163,7 +171,9 @@ public class MeController {
 					u.getFamilyName(), u.getEmail(), u.getEmailVerifiedAt() != null, u.getPhoneE164(),
 					u.getPhoneVerifiedAt() != null, u.getUsername(), u.getPreferredLanguageCode(), u.getTimezone(),
 					u.getCalendarPreference(), u.getStatus(), me.hasPassword(), u.getLastLoginAt(),
-					me.assignments().stream().map(RoleAssignmentSummary::from).toList(), scopes, me.avatar(), me.memberships());
+					me.assignments().stream().map(RoleAssignmentSummary::from).toList(), scopes, me.avatar(), me.memberships(),
+					u.getHomeCountryCode(), CountryConfig.of(me.country(), locale.getLanguage()),
+					me.countries().stream().map((c) -> CountryConfig.of(c, locale.getLanguage())).toList());
 		}
 
 	}

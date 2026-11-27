@@ -50,7 +50,7 @@ public class ReportController {
 	@GetMapping("/api/v1/safety/emergency-info")
 	@Operation(operationId = "getEmergencyInfo", summary = """
 			The country's safety text for the reporting screens ('if a child is in danger contact ...'), in your language. \
-			reviewed false means the wording is a placeholder the owner has not approved; the Ethiopian default is exactly that.""")
+			reviewed false means the wording is a placeholder the owner has not approved. The country is required; a country with no text answers 404 safety.emergency_info_not_found (the text of another country is never served instead).""")
 	public EmergencyInfoView emergencyInfo(@RequestParam String country) {
 		return this.emergency.forCountry(country);
 	}

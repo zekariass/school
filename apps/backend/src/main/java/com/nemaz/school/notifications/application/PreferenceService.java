@@ -47,8 +47,11 @@ public class PreferenceService {
 
 	private final Clock clock;
 
+	private final UserZones zones;
+
 	PreferenceService(NotificationTypeStore types, PreferenceStore store, UserDirectory users,
-			NotificationRenderer renderer, Clock clock) {
+			NotificationRenderer renderer, Clock clock, UserZones zones) {
+		this.zones = zones;
 		this.types = types;
 		this.store = store;
 		this.users = users;
@@ -109,7 +112,7 @@ public class PreferenceService {
 	@Transactional(readOnly = true)
 	public SettingsView settings(UUID userId) {
 		Settings settings = this.store.settings(userId);
-		ZoneId zone = PushFanout.zone(this.users.preferences(List.of(userId)).get(userId));
+		ZoneId zone = this.zones.zone(this.users.preferences(List.of(userId)).get(userId));
 		return new SettingsView(settings.quietHoursStart(), settings.quietHoursEnd(), settings.digestMode(),
 				zone.getId());
 	}

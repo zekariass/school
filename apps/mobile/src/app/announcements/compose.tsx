@@ -22,7 +22,9 @@ import {
   confirmationFor,
   editBlockedReason,
   editFromView,
+  contentLanguages,
   initialComposer,
+  initialContentLanguage,
   isDirty,
   keyAfterFailure,
   keyFor,
@@ -42,11 +44,12 @@ import { createAnnouncement, previewAudience, publish, schedule, unschedule, upd
 import { ANNOUNCEMENT_TYPES, isUrgentType, type AnnouncementCapabilities, type AnnouncementType, type AnnouncementView, type PublishMode } from '@/lib/announcements/types';
 import { ApiRequestError } from '@/lib/api-error';
 import { formatInstant } from '@/lib/calendar/format-instant';
+import { usePlaceOfSchool } from '@/lib/country/place';
 import { defaultPick, scheduleProblem, toInstant } from '@/lib/feed/schedule';
 import { useClock } from '@/lib/feed/use-clock';
 import { usePreferences } from '@/lib/preferences/preferences-provider';
 import { useAppTheme } from '@/lib/theme/theme-provider';
-import { SUPPORTED_LOCALES, isSupportedLocale } from '@school/i18n';
+import { languageLabel } from '@school/i18n';
 
 type Params = { schoolId: string; classId?: string; announcementId?: string };
 
@@ -128,7 +131,17 @@ function Composer({ schoolId, classId, caps, existing }: { schoolId: string; cla
   const start = useMemo<ComposerState | null>(() => (existing ? composerFromAnnouncement(existing, caps) : initialComposer(caps, classId)), [existing, caps, classId]);
   const [state, dispatch] = useReducer(composerReducer, start ?? initialComposer(caps, classId));
   const [opened] = useState(state);
-  const [language, setLanguage] = useState(existing?.bodyLanguageCode && isSupportedLocale(existing.bodyLanguageCode) ? existing.bodyLanguageCode : locale);
+  // The languages of the school's country (D42): what the text can be written in; never a list in code.
+  const place = usePlaceOfSchool(schoolId);
+  const countryLanguages = place?.languageCodes ?? [];
+  const [language, setLanguage] = useState(() =>
+    initialContentLanguage({
+      saved: existing?.bodyLanguageCode,
+      uiLocale: locale,
+      countryLanguages,
+      defaultLanguage: place?.defaultLanguageCode ?? locale,
+    }),
+  );
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<unknown>(null);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
@@ -293,12 +306,14 @@ function Composer({ schoolId, classId, caps, existing }: { schoolId: string; cla
               style={{ minHeight: 160, textAlignVertical: 'top' }}
             />
             <Text variant="caption">{t('mobile.announcements.compose.plainTextNote')}</Text>
-            <SegmentedControl
-              accessibilityLabel={t('mobile.announcements.compose.languageLabel')}
-              value={language}
-              onChange={(value) => isSupportedLocale(value) && setLanguage(value)}
-              options={SUPPORTED_LOCALES.map((item) => ({ value: item.code, label: item.nativeName }))}
-            />
+            {contentLanguages(countryLanguages, language).length > 1 ? (
+              <SegmentedControl
+                accessibilityLabel={t('mobile.announcements.compose.languageLabel')}
+                value={language}
+                onChange={setLanguage}
+                options={contentLanguages(countryLanguages, language).map((code) => ({ value: code, label: languageLabel(code, locale) }))}
+              />
+            ) : null}
           </View>
 
           <AudiencePicker caps={caps} schoolId={schoolId} value={state.audience} onChange={(value) => dispatch({ type: 'audience', value })} />

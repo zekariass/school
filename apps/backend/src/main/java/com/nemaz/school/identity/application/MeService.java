@@ -30,7 +30,9 @@ import com.nemaz.school.media.MediaContext;
 import com.nemaz.school.media.MediaPurpose;
 import com.nemaz.school.media.MediaService;
 import com.nemaz.school.media.MediaSummary;
+import com.nemaz.school.reference.CountryInfo;
 import com.nemaz.school.reference.ReferenceData;
+import com.nemaz.school.tenancy.CountryResolver;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -72,10 +74,13 @@ public class MeService {
 
 	private final Clock clock;
 
+	private final CountryResolver countryResolver;
+
 	MeService(UserRepository users, PasswordCredentialRepository credentials, RoleAssignments roleAssignments,
 			ReferenceData reference, UserSnapshotCache snapshots, AuthSessionStore sessions, TokenService tokens,
 			PasswordEncoder encoder, AuditLog audit, MediaService media, List<AccountMemberships> memberships,
-			Clock clock) {
+			Clock clock, CountryResolver countryResolver) {
+		this.countryResolver = countryResolver;
 		this.users = users;
 		this.credentials = credentials;
 		this.roleAssignments = roleAssignments;
@@ -170,9 +175,18 @@ public class MeService {
 	private Me me(User user, Locale locale) {
 		MediaSummary avatar = (user.getAvatarMediaId() != null) ? this.media.summary(user.getAvatarMediaId()).orElse(null)
 				: null;
+		List<SchoolMembership> schools = this.memberships.stream().flatMap((m) -> m.activeFor(user.getId()).stream()).toList();
+		CountryInfo country = this.countryResolver.forUser(user.getHomeCountryCode()).country();
+		Map<String, CountryInfo> countries = new LinkedHashMap<>();
+		countries.put(country.code(), country);
+		for (SchoolMembership school : schools) {
+			if (!countries.containsKey(school.countryCode())) {
+				this.reference.findCountry(school.countryCode()).ifPresent((c) -> countries.put(c.code(), c));
+			}
+		}
 		return new Me(user, this.credentials.existsById(user.getId()),
-				this.roleAssignments.activeAssignments(user.getId(), locale), avatar,
-				this.memberships.stream().flatMap((m) -> m.activeFor(user.getId()).stream()).toList());
+				this.roleAssignments.activeAssignments(user.getId(), locale), avatar, schools, country,
+				List.copyOf(countries.values()));
 	}
 
 	/**
@@ -226,8 +240,12 @@ public class MeService {
 			String calendarPreference) {
 	}
 
+	/**
+	 * {@code country} is the country that applies to the user (their home country, else the platform default);
+	 * {@code countries} are the configurations of that country and of the countries of the user's school memberships.
+	 */
 	public record Me(User user, boolean hasPassword, List<AssignmentView> assignments, MediaSummary avatar,
-			List<SchoolMembership> memberships) {
+			List<SchoolMembership> memberships, CountryInfo country, List<CountryInfo> countries) {
 	}
 
 }

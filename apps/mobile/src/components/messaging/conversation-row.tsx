@@ -7,6 +7,7 @@ import { useTranslations } from 'use-intl';
 import { inboxTitle, isObserving, previewOf, unreadText } from '@/lib/messaging/derive';
 import { GROUP_KIND_LABEL } from '@/lib/messaging/labels';
 import type { ConversationSummary } from '@/lib/messaging/types';
+import { useDisplayZone } from '@/lib/country/place';
 import { messageTimeText } from '@/lib/messaging/time';
 import { usePreferences } from '@/lib/preferences/preferences-provider';
 import { useAppTheme } from '@/lib/theme/theme-provider';
@@ -27,6 +28,7 @@ function Row({ item, now }: { item: ConversationSummary; now: number }) {
   const t = useTranslations();
   const { colors, radii, spacing, minTouchTarget } = useAppTheme();
   const { locale } = usePreferences();
+  const zone = useDisplayZone();
   const personText = useParticipantText();
   const observing = isObserving(item);
   const title = inboxTitle(item);
@@ -52,7 +54,7 @@ function Row({ item, now }: { item: ConversationSummary; now: number }) {
           ? t('mobile.messaging.inbox.previewPhoto')
           : t('mobile.messaging.inbox.previewNone');
   const unread = unreadText(item.unreadCount);
-  const when = messageTimeText(item.lastMessage?.sentAt ?? item.activityAt, now, locale);
+  const when = messageTimeText(item.lastMessage?.sentAt ?? item.activityAt, now, locale, zone);
   const pending = item.status === 'PENDING_APPROVAL';
 
   const a11y = [

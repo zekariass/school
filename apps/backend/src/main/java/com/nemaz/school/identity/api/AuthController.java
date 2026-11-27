@@ -9,7 +9,7 @@ import com.nemaz.school.identity.application.IdentityProperties;
 import com.nemaz.school.identity.application.LoginCodeSignInService;
 import com.nemaz.school.identity.application.OtpSignInService;
 import com.nemaz.school.identity.application.PasswordSignInService;
-import com.nemaz.school.identity.application.PhoneNumbers;
+import com.nemaz.school.identity.application.PhoneInputs;
 import com.nemaz.school.identity.application.TokenService;
 import com.nemaz.school.identity.application.TokenService.TokenPair;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,8 +51,11 @@ public class AuthController {
 
 	private final IdentityProperties props;
 
+	private final PhoneInputs phones;
+
 	AuthController(OtpSignInService otp, PasswordSignInService passwords, LoginCodeSignInService loginCodes,
-			TokenService tokens, IdentityProperties props) {
+			TokenService tokens, IdentityProperties props, PhoneInputs phones) {
+		this.phones = phones;
 		this.otp = otp;
 		this.passwords = passwords;
 		this.loginCodes = loginCodes;
@@ -115,14 +118,14 @@ public class AuthController {
 	}
 
 	/** Exactly one of phone or email, well-formed. */
-	private static java.util.Optional<Destination> destination(String phone, String email, String country) {
+	private java.util.Optional<Destination> destination(String phone, String email, String country) {
 		boolean hasPhone = phone != null && !phone.isBlank();
 		boolean hasEmail = email != null && !email.isBlank();
 		if (hasPhone == hasEmail) {
 			return java.util.Optional.empty();
 		}
 		if (hasPhone) {
-			return PhoneNumbers.toE164(phone, country).map((p) -> new Destination(Channel.SMS, p));
+			return this.phones.toE164(phone, country).map((p) -> new Destination(Channel.SMS, p));
 		}
 		return Emails.normalize(email).map((e) -> new Destination(Channel.EMAIL, e));
 	}
@@ -135,7 +138,7 @@ public class AuthController {
 					pair.refreshTokenExpiresIn(), "Bearer"));
 	}
 
-	@Schema(description = "Set exactly one of phone or email. National phone formats are read in `country` (default ET).")
+	@Schema(description = "Set exactly one of phone or email. National phone formats are read in `country` (ISO code; when absent, the platform default country).")
 	public record OtpRequest(@Size(max = 32, message = "validation.tooLong") String phone,
 			@Size(max = 254, message = "validation.tooLong") String email,
 			@Pattern(regexp = COUNTRY, message = "validation.invalid") String country) {

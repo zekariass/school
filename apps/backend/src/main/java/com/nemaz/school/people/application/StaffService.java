@@ -15,6 +15,7 @@ import com.nemaz.school.audit.AuditLog;
 import com.nemaz.school.audit.AuditOutcome;
 import com.nemaz.school.authorization.RoleAssignments;
 import com.nemaz.school.common.error.ApiException;
+import com.nemaz.school.common.i18n.SupportedLocales;
 import com.nemaz.school.common.id.Ids;
 import com.nemaz.school.common.pagination.CursorPage;
 import com.nemaz.school.common.pagination.Cursors;
@@ -112,11 +113,14 @@ public class StaffService {
 
 	private final Clock clock;
 
+	private final SupportedLocales languages;
+
 	StaffService(JdbcClient jdbc, UserAccounts accounts, UserDirectory users, RoleAssignments roles,
 			ClassMemberships classes, TenantDirectory directory, SchoolGate gate, NotificationService notifications,
 			MediaService media, MessageSource messages, SmsSender sms, EmailSender email,
 			@Qualifier("applicationTaskExecutor") TaskExecutor executor, AuditLog audit,
-			ApplicationEventPublisher events, Clock clock) {
+			ApplicationEventPublisher events, Clock clock, SupportedLocales languages) {
+		this.languages = languages;
 		this.jdbc = jdbc;
 		this.accounts = accounts;
 		this.users = users;
@@ -186,7 +190,8 @@ public class StaffService {
 		String language = (r.preferredLanguage() != null && !r.preferredLanguage().isBlank()) ? r.preferredLanguage()
 				: school.defaultLanguageCode();
 		ProvisionedUser person = this.accounts.findOrCreateVerified(new ProvisionRequest(r.phone(), r.email(),
-				r.country(), r.givenName(), r.familyName(), r.displayName(), language));
+				(r.country() != null) ? r.country() : school.countryCode(), r.givenName(), r.familyName(), r.displayName(),
+				language));
 		boolean already = this.jdbc.sql("""
 				select exists (select 1 from school_staff where school_id = :s and user_id = :u and status in ('INVITED', 'ACTIVE'))""")
 			.param("s", schoolId)
@@ -448,7 +453,7 @@ public class StaffService {
 	private LocalizedText staffTypeLabel(StaffType type) {
 		String key = "staff.type." + type.name().toLowerCase(Locale.ROOT);
 		Map<String, String> labels = new HashMap<>();
-		for (String language : List.of("en", "am")) {
+		for (String language : this.languages.codes()) {
 			labels.put(language, this.messages.getMessage(key, null, Locale.forLanguageTag(language)));
 		}
 		return LocalizedText.of(labels);

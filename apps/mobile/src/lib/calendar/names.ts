@@ -1,4 +1,5 @@
 import { ETHIOPIAN_WEEKDAYS, ethiopianMonthName } from '@school/calendar';
+import { scriptOfLocale } from '@school/i18n';
 
 import type { CalendarPreference } from './format-instant';
 
@@ -27,10 +28,10 @@ export function weekdayName(weekday: number, locale: string): string {
   return ETHIOPIAN_WEEKDAYS[lang(locale)][((weekday % 7) + 7) % 7] ?? '';
 }
 
-/** A short column heading: three letters in English, two Ethiopic letters in Amharic (Ethiopic is one UTF-16 unit per letter). */
+/** A short column heading: three letters, or two for a language in the Ethiopic script (one UTF-16 unit per letter). */
 export function weekdayShort(weekday: number, locale: string): string {
   const name = weekdayName(weekday, locale);
-  return lang(locale) === 'am' ? name.slice(0, 2) : name.slice(0, 3);
+  return scriptOfLocale(locale) === 'Ethi' ? name.slice(0, 2) : name.slice(0, 3);
 }
 
 /** "November 2026" / "Hidar 2019" (the era is left out of a heading). */

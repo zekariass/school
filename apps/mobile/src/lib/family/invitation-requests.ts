@@ -33,11 +33,14 @@ export interface InvitationChallenge {
   expiresIn: number;
 }
 
-/** Sends the one-time code to the phone or email of the adult accepting the invitation. */
-export function requestInvitationOtp(key: InvitationKey, destination: ContactDestination): Promise<InvitationChallenge> {
+/**
+ * Sends the one-time code to the phone or email of the adult accepting the invitation. `country` is the one a national
+ * number was entered in (D42); absent means the platform default on the API side.
+ */
+export function requestInvitationOtp(key: InvitationKey, destination: ContactDestination, country?: string): Promise<InvitationChallenge> {
   return request(async () => {
     const accepted = unwrap(
-      await authApi.POST('/api/v1/invitations/otp', { body: { ...key, country: 'ET', ...destination } }),
+      await authApi.POST('/api/v1/invitations/otp', { body: { ...key, ...(country ? { country } : {}), ...destination } }),
     );
     return { codeLength: accepted.codeLength, expiresIn: accepted.expiresIn };
   });
@@ -58,7 +61,6 @@ export function acceptInvitation(input: AcceptInput): Promise<IssuedTokens> {
       await authApi.POST('/api/v1/invitations/accept', {
         body: {
           ...input.key,
-          country: 'ET',
           ...input.destination,
           otpCode: input.otpCode,
           ...(input.displayName ? { displayName: input.displayName } : {}),

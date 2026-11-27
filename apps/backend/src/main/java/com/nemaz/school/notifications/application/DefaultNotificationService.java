@@ -52,9 +52,12 @@ class DefaultNotificationService implements NotificationService {
 
 	private final RealtimePublisher realtime;
 
+	private final UserZones zones;
+
 	DefaultNotificationService(NotificationTypeStore types, NotificationStore store, UserDirectory users,
 			NotificationRenderer renderer, ApplicationEventPublisher events, Clock clock, PreferenceStore preferences,
-			DeliveryStore deliveries, RealtimePublisher realtime) {
+			DeliveryStore deliveries, RealtimePublisher realtime, UserZones zones) {
+		this.zones = zones;
 		this.realtime = realtime;
 		this.preferences = preferences;
 		this.deliveries = deliveries;
@@ -87,7 +90,7 @@ class DefaultNotificationService implements NotificationService {
 			if (preferences == null) {
 				continue;
 			}
-			Locale locale = NotificationRenderer.localeOf(preferences.languageCode());
+			Locale locale = this.renderer.localeOf(preferences.languageCode());
 			NotificationRenderer.Rendered text = rendered.computeIfAbsent(locale,
 					(l) -> this.renderer.render(request.messageKey(), request.args(), l));
 			rows.add(new NotificationRow(Ids.newId(), userId, type.code(), request.schoolId(), text.title(),
@@ -137,7 +140,7 @@ class DefaultNotificationService implements NotificationService {
 		Map<UUID, PreferenceStore.QuietHours> hours = this.preferences.quietHours(userIds);
 		Map<UUID, UserPreferences> prefs = this.users.preferences(hours.keySet());
 		hours.forEach((userId, window) -> QuietHoursPolicy
-			.endOfQuietHours(now, PushFanout.zone(prefs.get(userId)), window.start(), window.end())
+			.endOfQuietHours(now, this.zones.zone(prefs.get(userId)), window.start(), window.end())
 			.ifPresent((end) -> ends.put(userId, end)));
 		return ends;
 	}

@@ -1,15 +1,13 @@
 /**
  * Times printed in a conversation: the time of day for today's messages, the short date and the time for older ones. Gregorian
- * `Intl` in an explicit time zone (the app's display zone, never the phone's by accident).
+ * `Intl` in an explicit time zone: the school's, else the person's (D42), never the phone's by accident.
  */
-
-import { DISPLAY_TIME_ZONE } from '@/lib/i18n/locale';
 
 function dayKey(ms: number, timeZone: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms));
 }
 
-export function messageTimeText(instant: string | undefined, nowMs: number, locale: string, timeZone: string = DISPLAY_TIME_ZONE): string {
+export function messageTimeText(instant: string | undefined, nowMs: number, locale: string, timeZone: string): string {
   if (!instant) return '';
   const ms = Date.parse(instant);
   if (Number.isNaN(ms)) return '';
