@@ -1,42 +1,120 @@
 # Implementation Plan
 
-*Version 1, 24 November 2026.*
+*Version 2, 27 November 2026. Version 1 was dated 24 November 2026. Version 2 adds an implementer's guide (part A), a status dashboard (part B), a backlog of updates to code that is already built (part C), and a full specification for every milestone that is still open. The scope is the one revised on 26 November 2026 (decisions D32–D40).*
 
-This plan builds on three documents:
-- [Education_Platform.md](Education_Platform.md), the product specification
-- [Spec_Review.md](Spec_Review.md), with decisions D1–D7 confirmed (D8–D13 for guardians and consent, D14–D40 for school operations and the scope revision, 26 November 2026)
-- [Database_Design.md](Database_Design.md), the schema
+This plan is written so that **any engineer or AI model can pick up a milestone and implement it without other context**. Read part A once. Then read the milestone you are given, and the documents it points to.
 
-Section references: § is the specification, R-xx is a spec-review finding, and DB §x is a section of the database design.
+**Status legend** (used in part B and on every milestone heading):
+
+| Mark | Meaning |
+|---|---|
+| ✅ **Done** | Merged to `main`. The "As built" notes under the milestone describe exactly what exists. |
+| 🟡 **Partly done** | Some slices are merged; the milestone says what is left. |
+| 🔧 **Needs update** | Built, but part C lists changes it needs (scope revision, follow-ups or gaps). |
+| ⬜ **To do** | Not started. The milestone section is the specification. |
+| ⏸ **Deferred** | Designed, but not scheduled. Do not build without an owner decision. |
+| ✖ **Removed** | Out of scope (D32–D40). Do not build. |
 
 ---
 
-## 0. How to read this plan
+# Part A — Implementer's guide
 
-- **Order:** Phase 0 (foundation), then Phases 1 to 5 (with 2b), following the spec roadmap (§112–§117) as revised on 26 November 2026 (D32–D40): the payment core and school fees are Phase 3, the tutor marketplace is a paid **directory** (Phase 4), there is no online-course, video or AI phase, and the school AI assistant is deferred. The phases are 0, 1, 2, 2b, 3, 4 and 5.
-- **Phases contain milestones (M), and milestones contain numbered steps.** Steps within a milestone run in order. Milestones marked *parallel* can overlap.
-- **Every feature milestone is a vertical slice.** It includes:
-  - migration
-  - domain and service
-  - authorization policy
-  - API
-  - generated client
-  - web UI
-  - mobile UI
-  - tests
-  - English and Amharic strings
-  - audit and analytics events
-- **Estimates are rough.** They assume about 5 engineers: 2 backend, 1 web, 1–2 mobile, plus a part-time designer and QA. Re-plan once the team is known.
+## A1. Sources of truth (read in this order)
 
-### Definition of done for every slice
-1. The Flyway migration matches Database_Design and applies cleanly to a fresh database and to the previous release.
-2. The service enforces authorization on the server, through the `authorization` module.
-3. Each endpoint has an **allow/deny test** for every relevant role: student, teacher, subject teacher, guardian, restricted guardian, unrelated guardian, tutor, school admin, and admin of another school.
-4. The OpenAPI spec is updated, the TypeScript client is regenerated, and CI fails if it has drifted.
-5. Web and mobile screens are done in English and Amharic, with loading, empty, error and offline states, and meet accessibility basics.
-6. Mutations write `audit_logs`. Domain events go to `outbox_events`. Notifications use `notification_types`.
-7. Analytics events for the §133 release gates are emitted.
-8. The module README describes its rules and settings keys.
+| Document | What it is | Wins over |
+|---|---|---|
+| `CLAUDE.md` (repository root) | Conventions every change must follow (modules, errors, events, jobs, authorization, privacy rules per feature, tests, git). **Read it fully before any change.** | Everything about *how* to write code |
+| `docs/Spec_Review.md` | Confirmed decisions D1–D40 and the review findings R-xx | The specification |
+| `docs/Education_Platform.md` | Product specification. §134 (school operations) and §135 (scope revision) win over older sections | Older sections of itself |
+| `docs/Database_Design.md` | The schema. A migration must match it; if it must differ, update this document in the same change ("As built" note) | Older migrations' comments |
+| `docs/Implementation_Plan.md` | This file: what to build, in which order, and what is done | Nothing above |
+| Rule books: `docs/Messaging_Rules.md`, `docs/Safeguarding_Rules.md`, `docs/Portfolio_Rules.md` | Owner-reviewed rules with named tests for the most child-safety-critical modules | The plan, for those modules |
+| `docs/ops/Runbook.md`, `docs/ops/Hosting_Options.md`, `docs/ops/sms-provider-adapter.md` | Operations, deployment, the SMS adapter checklist | — |
+| `apps/web/AGENTS.md`, `apps/mobile/AGENTS.md` | Framework notes: Next.js 16 and Expo SDK 58 are newer than most training data | Your memory of those frameworks |
+
+If two documents disagree, follow the "wins over" column and **report the conflict** in your PR. If the design is **silent**, choose the **most restrictive** behaviour for children's data and access, implement it, and record it as "added by the implementer" in the milestone's as-built note (and in the rule book, for messaging, safeguarding or portfolios).
+
+## A2. Repository map
+
+| Path | Contents |
+|---|---|
+| `apps/backend` | Spring Boot 4.2, Java 25, Maven. Package `com.nemaz.school.<module>`; each module has `api`, `application`, `domain`, `infrastructure` (Spring Modulith; `ModularityTest` enforces the boundaries). Modules today: `academic`, `attendance`, `audit`, `authorization`, `calendar`, `common`, `communications`, `consent`, `engagement`, `feed`, `guardians`, `identity`, `imports`, `media`, `messaging`, `moderation`, `notifications`, `people`, `portfolio`, `realtime`, `reference`, `safeguarding`, `subscriptions`, `sync`, `system`, `tenancy` |
+| `apps/backend/src/main/resources/db/migration` | Flyway: versioned `V<major>_<nn>__<name>.sql` and repeatable seeds `R__10_reference_data`, `R__20_definitions` (features, settings), `R__30_subscription_plans`, `R__40_roles_permissions`, `R__50_notification_types`, `R__60_policies`, `R__70_engagement_templates` |
+| `apps/web` | Next.js 16 (App Router, `app/[locale]/…`, next-intl, BFF under `/api/bff`, shadcn/ui) |
+| `apps/mobile` | Expo SDK 58 (Expo Router in `src/app`, logic in `src/lib`, SQLite offline store, TanStack Query) |
+| `packages/api-client` | `openapi/openapi.json` (exported from the backend) and the generated TypeScript client. **Generated: never edit by hand** |
+| `packages/i18n` | Message catalogs `en.json` and `am.json` (identical keys and placeholders, enforced by a test) |
+| `packages/design-tokens`, `packages/validation`, `packages/calendar`, `packages/classroom-toolkit`, `packages/config` | Shared source-only TypeScript (no React Native or Next.js imports) |
+| `infra/` | Local Docker Compose: Postgres 18 (:5442), Redis (:6390), S3-compatible storage (:8343), Mailpit (:1035/:8035) |
+
+## A3. How to implement a milestone, step by step
+
+1. **Pick the milestone and check its status** in part B. Implement only what is marked ⬜, 🟡 or 🔧. If it depends on a milestone that is not done, stop and say so.
+2. **Read:** `CLAUDE.md`; the milestone section; every DB section, spec section, decision and rule book it cites; the as-built notes of the milestones it builds on (they describe the real APIs, which sometimes differ from the original design).
+3. **Branch** from an up-to-date `main`: `m<number>/<short-name>` for features (e.g. `m7d/staff-attendance`), `docs/<topic>` for documentation, `fix/<topic>` for fixes. Work in your own git worktree when several agents work at once.
+4. **Ports and databases when several agents run in parallel:** Postgres (:5442) and Redis (:6390) are shared; give each agent its own database `school_<tag>`, an API port from 8180 upwards, a web port from 3100 upwards and a Metro port from 8081 upwards. Check which are taken before you start.
+5. **Backend first** (when the milestone has one):
+   - **Migration.** Use the **next free major version after the highest existing `V` file** (today the highest is `V13_02`; the next new milestone uses `V14_01`, and so on in delivery order). **Do not name a migration after the milestone number**: Flyway refuses a version lower than one already applied, and milestones are not delivered in numeric order. Seeds (features, settings, permissions, roles, notification types, policies) go into the matching `R__` file. School-owned tables carry `school_id` with composite foreign keys (DB §1).
+   - **Module code.** Follow `CLAUDE.md` exactly: `ApiException` with a stable snake_case code plus `error.<code>` in both `messages.properties` and `messages_am.properties`; `@PreAuthorize("@authz.school(...)")` or `AccessControl`; actors from `CurrentUser`; `Clock` and `Ids.newId()`; keyset pagination (`CursorPage`); events published inside the transaction and consumed by idempotent `@ApplicationModuleListener`s; jobs with `@Scheduled` plus `@SchedulerLock("<module>.<job>")` returning `void` or an object, never a primitive; `AuditLog.record(...)` for every mutation (no secrets, mask phones and e-mails); `@Idempotent` on create endpoints.
+   - **Cross-module access** only through another module's top-level package (ports, events, SPIs). Never reach into another module's `application` or `infrastructure`.
+   - **Tests** (`@IntegrationTest`, Testcontainers, real users from `support.Personas`): allow/deny for **every** role the milestone lists, including another school's administrator; add every new endpoint to `AuthorizationMatrixTest`; abuse cases where the milestone lists them; `MutableClock` reset after moving time.
+6. **API contract:** run `npm run openapi:export -w school-backend`, then `npm run codegen`, and commit both `openapi.json` and the generated client. CI fails on drift.
+7. **Web and mobile** from the generated client. Follow the per-feature privacy rules in `CLAUDE.md` (what may be stored, logged or put in URLs). Every string is an i18n key in `en.json` **and** `am.json`; mobile `mobile.*` messages are **plural-free** (Hermes has no `Intl.PluralRules`).
+8. **Run the checks** and make them pass: `npm run lint typecheck test` (or the filtered equivalents) and, for the backend, the full `npm run test -w school-backend` (or at least the module's tests plus `ModularityTest`, `MessagesTest`, `NotificationTypesSeedTest`, `RolesAndPermissionsSeedTest`, `OpenApiSpecTest`, `AuthorizationMatrixTest`). Web changes that touch layouts must also pass `npm run build -w school-web` (`cacheComponents` violations only show there).
+9. **Update the documents in the same PR:**
+   - In this plan: add an **"As built"** note under the milestone (template in A5), change its status mark in part B and on its heading, and add new follow-ups to part C.
+   - In `Database_Design.md`: an "As built" note with every deviation from the DDL.
+   - In `CLAUDE.md`: a short conventions paragraph if the milestone adds a module or a cross-cutting rule (look at the existing ones for messaging, feed or attendance).
+   - In `Spec_Review.md`: any new decision the owner made.
+10. **Pull request:** one PR per milestone slice (backend, web and mobile may be separate PRs, as in M7a/b/c). Required CI checks: `js`, `backend`, `migrations`. Describe what was built, what was not, the decisions you made, and how you verified it. **Never merge your own PR without the owner's approval**, and never push to `main`.
+
+## A4. Definition of done (every slice)
+
+1. The Flyway migration matches `Database_Design.md` (or the DB document has an as-built note) and applies to a fresh database and on top of the previous release.
+2. Authorization is enforced on the server (`authorization` module, `AccessControl`, `ClassAccess`, `GuardianAccess`). The client never filters sensitive data.
+3. Each endpoint has an **allow/deny test** for every relevant role: student, teacher (lead, co, subject, assistant), guardian, custody-restricted guardian, unrelated guardian, tutor, school administrator, campus administrator, **administrator of another school**, and the special roles the milestone names (safeguarding lead, platform moderator, bursar, finance manager…).
+4. The OpenAPI snapshot and the generated client are updated (CI fails on drift).
+5. Web and mobile screens exist in English and Amharic, with loading, empty, error and offline states, and meet accessibility basics (labels, contrast, dynamic type, `prefers-reduced-motion`).
+6. Mutations write `audit_logs` (ids, codes and counts only: never secrets, children's free text or health data). Domain events go through the Spring Modulith outbox (`event_publication`). Notifications use registered `notification_types` with generic texts.
+7. Analytics events for the §133 release gates are emitted (once M14 has the analytics pipeline).
+8. The module README (`apps/backend/src/main/java/com/nemaz/school/<module>/README.md` or the `package-info.java`) describes its rules, settings keys and permissions.
+9. The documents of A3 step 9 are updated.
+
+## A5. Template for an "As built" note
+
+```markdown
+**As built: M<n><slice> <title> (<date>, <backend only | web | mobile>).** Steps <list> of the milestone; <what is not in this slice>.
+- **Migration / module:** `V<major>_<nn>__<name>.sql`; module `<name>` (public API: …).
+- **API:** endpoints with permissions and error codes.
+- **Rules:** the decisions that matter, including every "added by the implementer" choice.
+- **Settings, permissions, notification types, feature flag.**
+- **Tests:** what is covered (counts, matrices, abuse cases).
+- **Not done / follow-ups:** each item also goes into part C.
+```
+
+## A6. Security-critical work and model guidance
+
+Some milestones protect children, money or identity. They need the most capable model and a second review:
+
+| Milestone | Why | Model |
+|---|---|---|
+| M7e QR check-in | Credentials, replay | Sonnet high; the lead reviews credentials and check-in endpoints |
+| M13b–d moderation screens and platform admin | Child safety, account locks, support access | Opus for M13d (support view and locks); Sonnet high for the screens |
+| M15 Hardening & pilot launch | Threat model, penetration-test fixes, authorization audit | **Opus** for the security review |
+| M21 Data governance | Erasure and export of children's data | Opus |
+| M22 Payment core, M31b, M31c | Money, webhooks, third-party verification | **Opus** |
+| M27 Tutor inquiries | Adults contacting families; child safety | **Opus** |
+| All others | — | Sonnet high (Sonnet medium for research and mechanical work) |
+
+The lead (a human or the coordinating model) reviews every security-sensitive diff before the PR is opened: authorization, public endpoints, anything that stores, logs or sends children's data, money and tokens.
+
+## A7. Product rules that apply everywhere (summary of `CLAUDE.md`)
+
+- Authorization is server-side only; tenant isolation through `school_id` and composite foreign keys; a school-scoped endpoint answers 404 to those who cannot see the school or object and 403 to members without the permission.
+- Children's data: no names, notes, health data or free text in URLs, logs, analytics, audit metadata, events or push texts; ids only in paths; media of students needs media-publication consent; signed media links are never persisted.
+- No hard-coded UI text; validation messages are `validation.*` keys; Amharic texts need native-speaker review before release.
+- Instants are `timestamptz` (UTC); dates are Gregorian `date`; the Ethiopian calendar is display-only through `@school/calendar`; every date calculation uses an explicit time zone (the school's for school data).
+- ClassDojo is a UX benchmark only: never copy its brand, characters, illustrations or copy.
 
 ### UI benchmark rule (ClassDojo)
 ClassDojo is a reference for **patterns and quality** only:
@@ -47,15 +125,206 @@ ClassDojo is a reference for **patterns and quality** only:
 - the teacher toolkit
 - a friendly, rounded, high-contrast visual style
 
-We don't copy its trademarks, monster characters, illustrations, sounds or copy text. The product gets **its own** avatar system and brand (step 0.5).
+We don't copy its trademarks, monster characters, illustrations, sounds or copy text. The product gets **its own** avatar system and brand (M0.5).
 
 ---
 
+# Part B — Status dashboard (27 November 2026)
+
+PR numbers refer to `github.com/zekariass/school/pull/<n>`. The order in which to do the remaining work is **B2**; the owner decisions it needs are **B3**.
+
+## B1. Status of every milestone
+
+| Milestone | Status | Delivered by | What is left |
+|---|---|---|---|
+| **Phase 0 — Foundation** | | | |
+| M0.1 Developer environment | ✅ Done | #1, #2 | — |
+| M0.2 Monorepo structure | ✅ Done | #1, #2 | — |
+| M0.3 Backend skeleton | ✅ Done | #1, #2 | — |
+| M0.4 Web skeleton | ✅ Done | #3 | — |
+| M0.5 Design system & brand | 🟡 Partly done | `packages/design-tokens` | Brand identity, avatar system and illustrations need a **designer** (not an agent task) |
+| M0.6 Mobile skeleton | ✅ Done | #12 | — |
+| M0.7 CI & container images | ✅ Done | #4, #10 | — |
+| **Phase 1 — School & family MVP** | | | |
+| M1 Platform core | ✅ Done 🔧 | #13, #14, #15 | Part C: U-08, U-09, U-10 |
+| M1.5 Staging environment | 🟡 Partly done | #29 | Deployment needs the owner's hosting account, domain and credentials (`docs/ops/Hosting_Options.md`) |
+| M2 Media, notifications & real-time | ✅ Done 🔧 | #16, #17, #38 | Part C: U-11 (malware scanning, **before M17**), U-12 |
+| M3 School setup, people & classes | ✅ Done 🔧 | #19, #20 | Part C: U-13 (year-end rollover, **before the first school year ends**) |
+| M4 Roster import | ✅ Done 🔧 | #21, #24 | Part C: U-14 |
+| M5 Families, guardians & consent | ✅ Done 🔧 | #22, #23, #25 | Part C: U-15, U-16 |
+| M6 Points, badges & toolkit | ✅ Done 🔧 | #26, #27, #28, #30 | Part C: U-17, U-30 |
+| M7 Attendance with offline sync | ✅ Done 🔧 | #32, #33, #34 | Part C: U-18; per-period rolls and staff attendance are M7d |
+| M7d Per-period & staff attendance, reports | ⬜ To do | — | Whole milestone (B2 step 2) |
+| M7e QR check-in | ⬜ To do | — | Whole milestone (B2 step 4) |
+| M8 Class Story, School Story & feed | ✅ Done 🔧 | #35, #36, #37 | Part C: U-19, U-30 |
+| M9 Messaging | ✅ Done 🔧 | #42, #45, #46 | Part C: U-20; the tutor conversation type is M27 |
+| M10 School communications centre | ✅ Done 🔧 | #39, #40, #41 | Part C: U-21 (SMS adapter needs the provider) |
+| M11 Calendar & events | ✅ Done 🔧 | #44, #47, #48 | Part C: U-22, U-05 |
+| M12 Student portfolios (basic) | 🟡 Partly done | #50 (backend) | **M12b web, M12c mobile** (B2 step 3) |
+| M13 Moderation, safeguarding & platform admin | 🟡 Partly done | #49 (rule book), #51 (backend) | **M13b web, M13c mobile, M13d platform administration** (B2 steps 5–6) |
+| M14 Localization, low-data & release-gate instrumentation | ⬜ To do | (catalogs exist; #18 review pack) | Whole milestone (B2 step 7) |
+| M15 Hardening & pilot launch | ⬜ To do | — | Whole milestone; needs M1.5 deployed and the pre-pilot items of part C (B2 step 9) |
+| **Phase 2 — School learning** | | | |
+| M16 Curriculum foundation | ⬜ To do | — | Whole milestone |
+| M17 Assignments & submissions | ⬜ To do | — | Needs U-11 first |
+| M18 Assessment, grading & quizzes | ⬜ To do | — | — |
+| M19 Digital library | ⬜ To do | — | — |
+| M20 Portfolios (full) | ⬜ To do | — | — |
+| M21 Data governance | ⬜ To do | — | — |
+| **Phase 2b — School operations** | | | |
+| M35 Student numbers, ID cards & transferred status | ⬜ To do | — | — |
+| M37 Timetable & annual academic plan | ⬜ To do | — | — |
+| M39 Lesson planning | ⬜ To do | — | Ministry of Education format from the owner |
+| M40 Assessment plans, marklists, results & ranking | ⬜ To do | — | Needs M18 |
+| M41 Report cards & transcripts | ⬜ To do | — | Needs M40 |
+| M42 Question banks & secure exams | ⬜ To do | — | Needs M18 |
+| **Phase 3 — Payments & school fees** | | | |
+| M22 Payment core | ⬜ To do | — | Payment provider decision |
+| M31a Fee structures, schedules & invoicing | ⬜ To do | — | — |
+| M31b Pay in the app, cash & receipts | ⬜ To do | — | Needs M22 |
+| M31c Verify external payments (Veritas) | ⬜ To do | — | Veritas terms and plan first |
+| M31d Fee reports | ⬜ To do | — | — |
+| **Phase 4 — Tutor directory** | | | |
+| M25 Tutor onboarding & verification | ⬜ To do | — | — |
+| M26 Directory profile & search | ⬜ To do | — | — |
+| M27 Inquiries, listing subscription & safety | ⬜ To do | — | Needs M22 and M13 (platform queue) |
+| **Phase 5 — Platform billing & reconciliation** | | | |
+| M29 Reconciliation | ⬜ To do | — | Needs M22 |
+| M31 School subscription billing | ⬜ To do | — | Needs M22 |
+| **Not scheduled** | | | |
+| M38 Timetable generator | ⏸ Deferred | — | Owner decision (D40) |
+| M43 School AI assistant | ⏸ Deferred | — | Owner decision (D34) |
+| M23, M24, M28, M30, M32, M33, M34, M36 | ✖ Removed | — | Do not build (D32–D34, D39) |
+| **Scope-revision cleanup of built code** | 🔧 Needs update | — | Part C: U-01 to U-07 (one small PR) |
+
+
+## B2. Recommended order of the remaining work
+
+Work through the steps in order. A step may start when its **"Starts when"** condition holds, and the next step depends on its **"Done when"**. Steps marked **‖** run in parallel with the step above them, given a separate agent or engineer and, for backend work, a separate database and ports (A3 step 4). Owner decisions are listed in B3; start them now, because they take longer than the code.
+
+| # | Step | Why here | Starts when | Done when | Model |
+|---|---|---|---|---|---|
+| 0 | **Merge the open documentation PRs** (#53 consistency fixes, #54 this plan) | Every later step reads these documents | Now | Both merged | — |
+| 1 | **Scope-revision cleanup** (part C1: U-01 to U-06), one small backend PR | Removes the unused values of the old scope (feature flags, moderation targets, event scope, consent types) before new migrations build on them; the smallest possible change, a good first task | Step 0 | CI green, part C1 rows removed | Sonnet medium |
+| 2 | **M7d** Per-period attendance, staff attendance, reports | Schools use attendance every day; it builds directly on the finished M7 and needs no owner decision | Step 1 merged (to avoid migration clashes) | Exit criteria of M7d | Sonnet high |
+| 3 ‖ | **M12b + M12c** Portfolio web and mobile | The backend (M12a) is finished and waiting; frontend-only work, so it runs beside the backend work of steps 2 and 4 | Step 0 | Exit criteria of M12b and M12c | Sonnet high |
+| 4 | **M7e** QR check-in | Needs M7d's staff attendance records; the credentials need a careful review | Step 2 merged | Exit criteria of M7e | Sonnet high, lead review |
+| 5 ‖ | **M13b + M13c** Reporting and moderation screens | Families must be able to report before the pilot; the backend (M13a) is finished; frontend-only | Step 0 | Exit criteria of M13b and M13c | Sonnet high |
+| 6 | **M13d** Platform administration | Support staff need user search, locks, the audit viewer and system health to run a pilot | Steps 4 and 5 merged | Exit criteria of M13d | **Opus** |
+| 7 | **M14** Localization, low data, analytics | A pass over **all** Phase 1 screens, so it comes after they exist; needs the analytics-store decision (B3) | Steps 2–6 merged | Exit criteria of M14 | Sonnet high |
+| 8 ‖ | **Pre-pilot items** (part C2: U-08 SMS, U-09 Amharic review, U-10 legal review, U-11 malware scanning if documents are enabled, U-15 universal links, U-23 device testing, U-24 deployment) | Mostly owner-driven; they block the pilot, not the code, so they run beside steps 1–7. Device testing (U-23) repeats after every mobile step | Owner decisions of B3 | Every C2 row closed | Sonnet for U-11, U-15; people for the rest |
+| 9 | **M15** Hardening and pilot launch | The gate to real families: threat model, penetration test, authorization audit, load test, privacy, operations, app stores | Steps 7 and 8 done | The pilot is live with no open high finding | **Opus** for the security review |
+| 10 | **Pilot evaluation** (4–6 weeks of use, §133 release gates) | Prove regular use before building more (§112). Fix what the pilot finds first | Step 9 | Release gates reviewed with the owner | — |
+| 10 ‖ | **U-13 Year-end rollover** (promote classes and students to the next year) | Must exist **before the pilot schools' first school year ends**, whatever else is in progress | Step 9 | Tested on a copy of a pilot school | Sonnet high |
+| 11 | **M16** Curriculum foundation | Phase 2 and 2b tag everything with curriculum objectives | Step 10 (design may start during the pilot) | Exit criteria of M16 | Sonnet high |
+| 12 | **M17** Assignments, then **M18** Assessment and quizzes | The core of school learning; M18 is the base of M40–M42 | Step 11; M17 also needs U-11 | Exit criteria of M17, M18 | Sonnet high |
+| 12 ‖ | **M19** Digital library | Independent of M17 and M18 | Step 11 | Exit criteria of M19 | Sonnet high |
+| 12 ‖ | **M35** Student numbers, ID cards, transferred status | Independent of Phase 2; needs M7e for the card's QR | Step 4 | Exit criteria of M35 | Sonnet high |
+| 12 ‖ | **M37** Timetable and annual plan | Independent of Phase 2; per-period rolls (M7d) then link to the timetable | Step 10 | Exit criteria of M37 | Sonnet high |
+| 13 | **M40** Assessment plans, marklists, results and ranking, then **M41** Report cards and transcripts | Need M18; report cards are what schools ask for at term end, so time M41 before the first term ends after the pilot | M18 merged; for M41 also the PDF-engine decision and the Ministry of Education format (B3) | Exit criteria of M40, M41 | Sonnet high, lead review of the verify endpoint |
+| 13 ‖ | **M39** Lesson planning | Needs M37 (timetable entries) and M16 (objectives) | M37 and M16 merged; the Ministry format (B3) | Exit criteria of M39 | Sonnet high |
+| 13 ‖ | **M42** Question banks and secure exams | Needs M18's quiz engine | M18 merged | Exit criteria of M42 | Sonnet high, lead review of answer secrecy |
+| 14 | **M20** Portfolios (full), **M21** Data governance | M20 needs M16 and M18 (tags, rubrics); M21 must exist before data has been held long enough to need purging, and before any erasure request | M16, M18 merged | Exit criteria of M20, M21 | Sonnet high (M20), **Opus** (M21) |
+| 15 | **M22** Payment core | Base of fees and of the tutor listing fee; needs the payment-provider decision and a deployed staging for webhooks | Provider chosen (B3), U-24 done | Exit criteria of M22 | **Opus** |
+| 15 ‖ | **M31a** Fee structures, schedules, invoicing | Needs no payment provider, so it may start **earlier** (any time after step 10) if the owner wants fees sooner | Step 10 | Exit criteria of M31a | Sonnet high |
+| 16 | **M31b** Pay in the app, cash, receipts, then **M31c** Veritas verification, then **M31d** Fee reports | Money paths in dependency order; M31c needs the Veritas terms checked | M22 and M31a merged; Veritas terms (B3) before M31c | Exit criteria of each | **Opus** (M31b, M31c), Sonnet (M31d) |
+| 17 | **M25** Tutor onboarding, **M26** directory and search, then **M27** inquiries and paid listing | The tutor directory is a separate product line; it needs M22 (listing fee) and M13a (platform moderation) | M22 merged; listing price and legal view (B3) before M27 | Exit criteria of each | Sonnet high (M25, M26), **Opus** (M27) |
+| 18 | **M29** Reconciliation, **M31** School subscription billing | Platform money operations once real payments flow | M22 merged and payments in use | Exit criteria of each | Sonnet high |
+| — | **Follow-ups** of part C3 (U-12, U-14, U-16 to U-22, U-25 to U-30) | Improvements; slot them into quiet weeks or into the milestone that touches the same module | Any time after step 9 | Row removed from part C | Sonnet |
+| — | **Not scheduled:** M38 Timetable generator, M43 School AI assistant | Deferred by the owner (D40, D34) | Only on an owner decision | — | — |
+
+**If only one agent or engineer is available,** follow the numbers and skip the ‖ markers: 0, 1, 2, 3, 4, 5, 6, 7, 9 (with step 8 done by the owner meanwhile), 10, then 11 onwards.
+
+**If the owner wants fees before Phase 2,** move steps 15–16 to right after step 10. Only M22 needs the payment-provider decision, and M31a needs nothing.
+
+## B3. Owner decisions needed, and by when
+
+| Decision | Needed before | Where it is described |
+|---|---|---|
+| Hosting, domain, storage region (EU or default R2), Expo/EAS account | Step 8 (U-24), so before M15 | `docs/ops/Hosting_Options.md`, provider table at the end of this plan |
+| SMS provider for Ethiopia | Step 8 (U-08) | `docs/ops/sms-provider-adapter.md` |
+| Native Amharic reviewers | Now (U-09 is the longest item) | `docs/i18n/REVIEWING.md` |
+| Legal review of policy texts and privacy notice; data processing agreements | Step 8 (U-10), step 9 | Spec_Review D8, M15 step 4 |
+| Analytics store | Step 7 (M14) | Provider table |
+| Answers to the open questions of the rule books (messaging, safeguarding, portfolio) | Before the pilot, ideally | The "Open questions" sections of `docs/Messaging_Rules.md`, `docs/Safeguarding_Rules.md`, `docs/Portfolio_Rules.md` |
+| Ethiopian curriculum source and licence | Step 11 (M16) | M16 step 2 |
+| Ministry of Education lesson-plan and report-card formats; national or per-school grading and promotion rules | Step 13 (M39, M41) | Spec_Review open item 1 |
+| Payment provider for in-app payment | Step 15 (M22) | Provider table |
+| Veritas terms, privacy policy, plan and who pays | Step 16 (M31c) | Spec_Review open item 2 |
+| Tutor listing price and trial; legal view on a public directory of tutors for children; tutor terms | Step 17 (M27) | Spec_Review open items 4–5 |
+| Whether to bring fees forward (steps 15–16 before Phase 2) | After step 10 | D16, D37 |
+
+---
+
+# Part C — Updates needed in code that is already built
+
+Each item has an id, the milestone it comes from, what to change, and **when** it must be done. Close an item by removing its row in the PR that does it and saying so in the PR description.
+
+**When:** **Now** = small and independent, do it soon; **Pre-pilot** = must be done before M15 launches with real families; **Before Mx** = a later milestone depends on it; **Later** = improvement, do when convenient.
+
+### C1. Scope-revision cleanup (D32–D40) — one small backend PR, Sonnet
+
+| Id | Where | Change | When |
+|---|---|---|---|
+| U-01 | `R__20_definitions.sql`, `R__30_subscription_plans.sql`, tests | Remove the unused feature flags `courses`, `marketplace`, `tutoring`, `ai_copilot`, `ai_student_tutor` and their plan entitlements (including the `ai_copilot` credit limit of `SCHOOL_PREMIUM`). A repeatable seed cannot delete by itself: add an explicit `delete from plan_entitlements …; delete from feature_overrides …; delete from feature_definitions where key in (…)` at the top of the repeatable file (or a versioned migration). Add `tutor_directory` and `school_fees` when M25 and M31a start, not now | Now |
+| U-02 | New migration on `moderation_cases` and `content_reports`, `moderation.TargetTypes` | Remove the target types `COURSE`, `TUTOR_REVIEW`, `AI_OUTPUT` from the check constraint (`V13_01`) and from the Java list; keep `TUTOR_PROFILE` (used by M27) | Now |
+| U-03 | New migration on `events` | Remove `COURSE` from the `scope_type` check (`V11_01`) and drop `course_id` if it exists | Now |
+| U-04 | `policy_documents`, `consent_records` checks (`V5_02`), `R__60` | Remove `RECORDING` and `TRANSCRIPTION` from the policy and consent types (nothing records). Keep `AI_PROCESSING` (reserved for the deferred assistant). Do not add `LOCATION_CHECKIN` (D38) or `TRANSFER_RECORDS` (D39) | Now |
+| U-05 | `calendar/CalendarSource.java`, `calendar/package-info.java` | Comments name "live sessions, tutoring sessions" as future sources; replace with "assignment due dates (M17) and the published timetable (M37)" | Now |
+| U-06 | `system/openapi/OpenApiConfig.java` | API description says "school, family, learning and tutoring platform"; change to "school, family and tutor-directory platform" (then export the spec and run codegen) | Now |
+| U-07 | `subscriptions` (Java enums `SubscriberType`, `PlanAudience`; `TUTOR_PRO` plan) | **Keep.** Used by M27 (listing subscription). Only check that nothing else assumes tutor bookings | Before M27 |
+
+### C2. Pre-pilot items (block M15)
+
+| Id | Where | Change | When |
+|---|---|---|---|
+| U-08 | `identity` (M1) | A real **SMS provider adapter** for Ethiopia (production cannot start without `SCHOOL_SMS_PROVIDER`; checklist `docs/ops/sms-provider-adapter.md`); owner chooses the provider | Pre-pilot |
+| U-09 | i18n (all) | **Native-speaker review of every Amharic string** (`docs/i18n/REVIEWING.md`, about 1,000 strings and growing) | Pre-pilot |
+| U-10 | `consent` (D8) | **Legal review** of the seeded policy texts (Proclamation 1321/2024); they are draft placeholders | Pre-pilot |
+| U-11 | `media` (M2) | **Malware scanning** of uploaded documents (ClamAV or a managed scanner; the `QUARANTINED` status exists). Images are re-encoded, but PDFs and documents (portfolio documents, submissions, library) are not | **Before M17**, and pre-pilot if portfolio documents are on |
+| U-15 | `apps/web` (M5b) | Serve the universal-link files (`apple-app-site-association`, `assetlinks.json`) so invitation links open the app | Pre-pilot |
+| U-23 | `apps/mobile` (all) | **Test on real devices**: no screen of the mobile app has been tapped by a person (simulators could not be driven); camera QR scan, SQLite migrations on Hermes, offline start, push, deep links | Pre-pilot |
+| U-24 | Hosting (M1.5) | Deploy staging and production once the owner has chosen hosting, domain and the storage region (EU or default R2); Expo/EAS account link for push | Pre-pilot |
+
+### C3. Functional follow-ups by area
+
+| Id | Area (milestone) | Change | When |
+|---|---|---|---|
+| U-12 | Media (M2) | An attempt counter for failing media events; a storage quota against `storage_bytes` entitlements; clients refresh an expired upload ticket | Later |
+| U-13 | People and classes (M3, M4) | **Year-end rollover**: promote classes and students to the next academic year (new classes, memberships ended as PROMOTED, history kept); bulk login-code issuing for several classes; enforce and expose `must_change` on `/me` | **Before the end of the first school year** |
+| U-14 | Roster import (M4) | Import academic years and periods; XLSX error report; check username availability during validation; retention of staged guardian contacts | Later |
+| U-16 | Guardians and consent (M5) | Invitation expiry job; `relationshipType` on `POST /invitations/accept`; a guardian's own view of their links (and self-unlink); `CONSENT_EVIDENCE` media purpose for scanned paper consent; push-to-open of `GUARDIAN_LINK_REQUESTED` on mobile | Later |
+| U-17 | Engagement (M6) | Revoke a badge; per-category balances in the projection; the public ranking endpoint stays off (D2/D26 spirit) unless the owner asks | Later |
+| U-18 | Attendance (M7) | Decision notification to the guardian who reported an absence; expiry of stale SUBMITTED reports; a time zone on `ChildSchool` (guardian form defaults); campus-administrator reports; attendance import; a teacher's attendance summary; building a roll for a class never opened online | M7d covers per-period rolls; the rest Later |
+| U-19 | Feed (M8) | A "hide comment" button for moderators (API exists); school-scope contributions; history access for former class members (`classes.former_member_history_access`); delete orphan uploads removed from a composer; author notification when consent changes through a guardian-link change | Later |
+| U-20 | Messaging (M9) | The owner's open questions in `docs/Messaging_Rules.md` (staff-staff DIRECT, student-student observers, guardian names, assistants, reviewer breadth, retention, voice notes); message search; read-by lists for groups | Owner decisions, then Later |
+| U-21 | Announcements (M10) | A real SMS adapter (with U-08); attachments (needs a media purpose and policy); retention job; mark the notification read when the announcement opens; campus and chosen-people audiences on mobile; revisions and CSV on mobile | SMS pre-pilot if announcements by SMS are promised; the rest Later |
+| U-22 | Calendar (M11) | Campus and grade-level events on mobile; a native date-time picker; an hourly week view; per-event reminders; ICS export | Later |
+| U-25 | Realtime (M6, M7, M8) | Push changes to open screens: the points grid, an attendance roll another teacher edits, new feed posts (today they refresh on pull or on open) | Later |
+| U-26 | Portfolio (M12a) | Share an approved item to the class story (deferred: needs a media copy operation that keeps the feed consent gate); the erasure hook `PortfolioItemService.erase` wired to M21; audio and video items stay out (D33 has no hosted video; audio is an owner decision) | With M20 / M21 |
+| U-27 | Moderation (M13a) | Automatic release of evidence holds by the owners' retention jobs (M21); report hooks for portfolio items and announcements (`ReportTarget` beans in `portfolio` and `communications`) | With M13b / M21 |
+| U-28 | Platform console (M1c) | Search in the school and country pickers (they load the first 100); a batched user lookup for the admin list; web screens for password sign-in and e-mail codes | Later |
+| U-29 | Identity (M1) | Federated sign-in (Google, Apple; table exists); e-mail verification flows | Later |
+| U-30 | Mobile points and feed (M6c, M8c) | The leaderboard view stays off unless a school enables it; notes on awards; offline undo of a sent award; routine ticks across devices; student contributions on the web | Later |
+
+---
+# Part D — Milestones by phase
+
+- **Order:** Phase 0, then Phases 1, 2, 2b, 3, 4 and 5, following the spec roadmap (§112–§117) as revised on 26 November 2026 (D32–D40). Payments and school fees are Phase 3, the tutor directory is Phase 4, and there is no online-course, video or AI phase. Milestones marked *parallel* can overlap; inside a milestone, steps run in order.
+- **Every feature milestone is a vertical slice:** migration, domain and service, authorization policy, API, generated client, web UI, mobile UI, tests, English and Amharic strings, audit and analytics events. Large milestones are delivered as slices (backend `a`, web `b`, mobile `c`), each its own PR.
+- **Estimates are rough**, for about five engineers (two backend, one web, one or two mobile, a part-time designer and QA) or the equivalent agents. Re-plan when the team is known.
+- **Each milestone heading carries its status.** Done milestones keep their "As built" notes: they are the documentation of the system as it exists, and later milestones must build on them, not on the original sketch.
+
 ## Phase 0 — Foundation (≈ 3–4 weeks)
+
+**Status:** ✅ Done except M0.5 (needs a designer)
 
 Goal: every app builds, runs and deploys an empty "hello" release through CI, on the final architecture.
 
 ### M0.1 Developer environment (D1)
+
+**Status:** ✅ Done (#1, #2)
+
 1. Install **JDK 25**. Create `~/.m2/toolchains.xml` with a `jdk` entry for version 25 that points at its home. Verify with `./mvnw -v` and `./mvnw verify` in `apps/backend`.
 2. Correct the README so the toolchain setup is documented, not described as "already configured".
 3. Add `infra/docker-compose.yml` with:
@@ -71,6 +340,9 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
    - Spring Boot 4.2: reference documentation
 
 ### M0.2 Monorepo structure
+
+**Status:** ✅ Done (#1, #2)
+
 1. Create the shared packages:
 
    | Package | Purpose |
@@ -86,6 +358,9 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 3. Add a root `CLAUDE.md` / `AGENTS.md` with the conventions from this plan.
 
 ### M0.3 Backend skeleton (`com.nemaz.school`)
+
+**Status:** ✅ Done (#1, #2)
+
 1. **Module layout** (§96, §132). One top-level package per module, each with `api` (controllers and DTOs), `application` (services), `domain` (entities and policies) and `infrastructure` subpackages:
    - Platform: `identity`, `authorization`, `tenancy`, `reference`, `people`, `academic`
    - Classroom: `attendance`, `engagement`, `media`, `social`, `messaging`, `communications`, `notifications`, `calendar`
@@ -133,6 +408,9 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 - **Local ports:** API 8180, web 3100, chosen to avoid clashing with other local projects.
 
 ### M0.4 Web skeleton (`apps/web`, Next.js 16)
+
+**Status:** ✅ Done (#3)
+
 1. Replace the starter page. Set up the App Router route groups:
    - `(marketing)`
    - `(auth)`
@@ -152,6 +430,9 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 - **Local setup:** the web app runs on port 3100 and reads the API origin from `API_ORIGIN` (default `http://localhost:8180` outside production).
 
 ### M0.5 Design system & brand (designer, parallel)
+
+**Status:** 🟡 Partly done: `packages/design-tokens` exists; brand, avatar system and illustrations need a designer
+
 1. Build a token set inspired by the benchmark: bright primary, soft secondary palette, 12–20 px rounded radii, generous touch targets of 44 px or more, playful but legible typography in both Ethiopic and Latin scripts.
 2. Create **original** student avatar characters and an avatar builder (`student_profiles.avatar_config`).
 3. Design key screens in Figma first:
@@ -164,10 +445,13 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 4. Build a component library in web (shadcn-based) and mobile with matching names: Avatar, PointBubble, SkillTile, StoryCard, ChildSwitcher, EmptyState and RoleTabBar.
 
 ### M0.6 Mobile skeleton (`apps/mobile`, Expo SDK 58)
+
+**Status:** ✅ Done (#12)
+
 1. Remove the template screens. Create Expo Router groups `(auth)`, `(teacher)`, `(guardian)`, `(student)` and later `(tutor)`. A role switcher handles users with several roles (§6).
 2. Install the needed packages with `npx expo install`:
    - secure token storage (`expo-secure-store`)
-   - local database (`expo-sqlite`, for the offline store, M1.7)
+   - local database (`expo-sqlite`, for the offline store, M7)
    - `expo-notifications`
    - `expo-image-picker`
    - `expo-camera` (QR login)
@@ -192,6 +476,9 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 - **Known local issue:** a checkout under an iCloud-synced folder (Desktop or Documents) breaks the iOS code signing step, because iCloud adds `com.apple.FinderInfo` extended attributes to files. Keep the repo outside iCloud folders.
 
 ### M0.7 CI & container images
+
+**Status:** ✅ Done (#4, #10)
+
 1. Set up GitHub Actions:
    - **backend:** JDK 25, `mvnw verify`, Testcontainers
    - **web:** lint, typecheck, build
@@ -216,9 +503,14 @@ Goal: every app builds, runs and deploys an empty "hello" release through CI, on
 
 ## Phase 1 — School & family MVP (≈ 7–9 months)
 
+**Status:** 🟡 Mostly done: M1–M11 done; M7d, M7e, M12b/c, M13b–d, M14, M15 open
+
 Scope: §112. Milestones M1 and M2 are the platform core and come first. From M3 onward, backend, web and mobile work on each slice in parallel.
 
 ### M1 Platform core (≈ 4 weeks)
+
+**Status:** ✅ Done (#13, #14, #15) · 🔧 part C: U-08, U-28, U-29
+
 Tables: DB §4.1–4.3, §4.19, settings and features in §4.2, plans in §4.20.
 
 1. **Reference data migration and seed:**
@@ -294,6 +586,9 @@ Tables: DB §4.1–4.3, §4.19, settings and features in §4.2, plans in §4.20.
 - **Known edge:** if a refresh response is lost in transit after the server rotated the token, the next refresh reports `auth.session_revoked` and the user signs in again; inherent to rotation without a grace window (same consideration as the web caveat above).
 
 ### M1.5 Staging environment (≈ 1–2 weeks, moved from M0.7)
+
+**Status:** 🟡 Partly done (#29): deployment waits for the owner's hosting, domain and credentials (U-24)
+
 Do this once sign-in works (end of M1), so there is something worth showing and real-environment issues surface early: HTTPS, `Secure` cookies, CORS and domains.
 
 Prerequisites (owner decisions):
@@ -327,6 +622,9 @@ Steps:
 - **Observability:** ECS JSON logs in deployed profiles; OTLP stays opt-in; Sentry (`sentry-spring-boot-4-starter`) is off unless `SENTRY_DSN` is set and sends no request data, users, breadcrumbs or personal data. Mobile: `eas.json` gained `staging` and channels; the owner still has to run `eas init`.
 
 ### M2 Media, notifications & real-time infrastructure (≈ 3 weeks, parallel with late M1)
+
+**Status:** ✅ Done (#16, #17, #38) · 🔧 part C: U-11, U-12
+
 Tables: DB §4.9 and §4.13.
 
 1. **Media:**
@@ -370,6 +668,9 @@ Tables: DB §4.9 and §4.13.
 - **Mobile:** notifications screen (pull to refresh, infinite scroll, tap marks read and follows `data.path` only for known routes), bell with badge on the tab screens and the no-app-role screen, Settings -> Notifications (OS permission status, push toggles per type, quiet hours), `expo-notifications` (config plugin, Android channel `default`, foreground banners, tap routing, an explanation card shown after sign-in before the OS prompt; the device is registered on sign-in/token change and deleted on sign-out before the tokens are cleared) and a STOMP client over React Native's WebSocket using the existing single-flight access-token path (reconnect on foreground and after a refresh). EAS is not linked yet, so there is no `projectId` and registration is skipped (dev-only log). New native module: the dev client must be rebuilt. Notification queries are not persisted.
 
 ### M3 School setup, people & classes (≈ 3 weeks)
+
+**Status:** ✅ Done (#19, #20) · 🔧 part C: U-13
+
 Tables: DB §4.4 (without tutor) and §4.5.
 
 1. Academic years and periods, grade levels, subjects, campuses: admin CRUD with validation (no overlapping periods; one current year).
@@ -430,6 +731,9 @@ Tables: DB §4.4 (without tutor) and §4.5.
 - **Not verified:** the camera scan (simulators have none; scan handling is unit-tested), Android (bundled, not run), dark/Amharic screens beyond the ones captured, Amharic wording (drafts).
 
 ### M4 Roster import (≈ 2 weeks, parallel with M5)
+
+**Status:** ✅ Done (#21, #24) · 🔧 part C: U-14
+
 Tables: DB §4.15.
 
 1. Upload a CSV or XLSX file (stored as `media`, purpose IMPORT_FILE). The backend parses it with Apache POI for XLSX and a CSV parser for CSV.
@@ -467,6 +771,9 @@ Tables: DB §4.15.
 - **Not done / follow-ups:** no component tests (the web test setup is node-only: the pure logic is tested); the Amharic text needs a native speaker; a pre-commit count of staged parent contacts; XLSX error report; guardian UI (M5 web); a "with warnings" row filter (warnings are shown on the rows, the filter is server side by status only).
 
 ### M5 Families: guardian linking, permissions & consent (≈ 3 weeks)
+
+**Status:** ✅ Done (#22, #23, #25) · 🔧 part C: U-10, U-15, U-16
+
 Tables: `student_guardians` and `invitations` from DB §4.4, plus DB §4.18 (policy documents, versions and consent records).
 
 1. **Invitation flows:**
@@ -517,6 +824,9 @@ Tables: `student_guardians` and `invitations` from DB §4.4, plus DB §4.18 (pol
 - **Gaps and follow-ups:** `POST /invitations/accept` has no `relationshipType`, so a new parent who connects with a printed code is recorded as OTHER (the school can edit it; signed-in redeem does send it); the child's full name is shown to guardians in consent (`childName`) but only first names for waiting requests; no UI yet for guardians to see or leave their own link; the family screens have no push-to-open for `GUARDIAN_LINK_REQUESTED` on mobile (administrator notification, web only); web universal-link files are not served; Amharic strings need native review.
 
 ### M6 Classroom engagement: points, badges & toolkit (≈ 3 weeks)
+
+**Status:** ✅ Done (#26, #27, #28, #30) · 🔧 part C: U-17, U-25, U-30
+
 Tables: DB §4.7, §4.8, and `student_groups` in §4.5.
 
 1. **Point categories:**
@@ -580,6 +890,9 @@ Tables: DB §4.7, §4.8, and `student_groups` in §4.5.
 - **Not done:** a student's own web sign-in (students sign in with a class code or password on mobile; the web page works for a student who has a session, tested with a password session), realtime refresh of the grid when another teacher awards, drag-and-drop ordering of skills (up/down only for routine steps; skills keep `sortOrder` from the API), the public ranking.
 
 ### M7 Attendance with offline sync (≈ 3 weeks)
+
+**Status:** ✅ Done (#32, #33, #34) · 🔧 part C: U-18, U-25
+
 Tables: DB §4.6.
 
 1. **Attendance API:** take or update a roll (`attendance_sessions` plus `attendance_records`). Slots are configured per school. Sessions lock after a configurable window.
@@ -634,6 +947,11 @@ Tables: DB §4.6.
 - **Not done / for M7c:** realtime refresh of a roll another teacher is editing, per-student attendance notes that survive an app restart (deliberately not stored), an attendance summary for the teacher, offline absence-report inbox, a way to build a roll for a class whose roll was never opened online (the zone is only known from the first roll answer: `MyClass` has no time zone), the guardian's notification-preference screen for attendance, Amharic review.
 
 ### M7d Per-period attendance, staff attendance & attendance reports (≈ 2 weeks, after M7c)
+
+**Status:** ⬜ To do
+
+**Depends on:** M7 (done); M37 later adds the timetable link of period rolls. **Read first:** DB §4.6 and §4.34, the M7a/b/c as-built notes, spec §134.5.
+
 Tables: DB §4.34 (`staff_attendance_*`), DB §4.6. Spec §134.5. Decisions D17, D20. **No new hardware or consent type.**
 
 1. **Per-period rolls.** The roll already carries `slot` (`P1..P8`) and `subject_id` (M7a). Make them usable: the web and mobile roll can choose a slot and subject, the roster is the class's members on that date (a subject group of an elective uses `student_groups`), the dashboard and reports show period rolls, and a school enables slots with `attendance.slots`. Once M37 exists, a period roll is created **from a timetable entry** (`attendance_sessions.timetable_entry_id`) and a teacher sees "my lessons today".
@@ -645,6 +963,11 @@ Tables: DB §4.34 (`staff_attendance_*`), DB §4.6. Spec §134.5. Decisions D17,
 **Exit:** a school takes attendance per period and reports it; a manager records staff attendance for a month and exports it.
 
 ### M7e Attendance QR check-in (≈ 2 weeks, after M7d; Sonnet high, the lead reviews the credential and check-in endpoints)
+
+**Status:** ⬜ To do
+
+**Depends on:** M7d (staff records), M7 (`RollService`, sync outbox). **Read first:** DB §4.34, spec §134.5, D17, D19, D38, the M7a and M7b as-built notes.
+
 Tables: DB §4.34. Spec §134.5. Decisions D17, D19, D38. **Scope: manual marking (already built) and QR only.** NFC, RFID, GPS, kiosks and gate readers are not part of the product; no location is requested or stored anywhere in attendance.
 
 1. **Credential service.** `attendance_credentials`: a 128-bit random token printed as a QR on a **credential sheet** (printed like the login-code sheets) until M35 prints it on the ID card, stored as an HMAC with a server pepper kept in the secrets store (rotation procedure documented), revocable with a reason, one live credential per student or staff member. A credential carries no personal data and is never the login code of D6. A scan answers the scanning teacher with **first name and avatar only**.
@@ -658,6 +981,9 @@ Tables: DB §4.34. Spec §134.5. Decisions D17, D19, D38. **Scope: manual markin
 **Exit:** a pilot class uses the rotating QR for a week with no roll conflicts; a student card scanned by a teacher marks the student present; a lost card is revoked and its next scan is refused and visible.
 
 ### M8 Class Story, School Story & feed (≈ 3 weeks)
+
+**Status:** ✅ Done (#35, #36, #37) · 🔧 part C: U-19, U-25
+
 Tables: DB §4.10.
 
 1. **Posts:**
@@ -723,6 +1049,9 @@ Tables: DB §4.10.
 - **Not done / follow-ups:** the student feed was built and typechecked but not driven in a browser (students sign in on the phone); student contributions on the web; grouping stories per author; uploads removed from a composer before sending stay as orphan `POST` media until the media retention removes them (no delete call yet); comment translation shares the post's setting but is only exercised against the 503 path; realtime refresh of the feed; Amharic strings need native review (`school.feed.*`, `family.feed.*`, `nav.feed`).
 
 ### M9 Messaging (≈ 3–4 weeks)
+
+**Status:** ✅ Done (#42, #45, #46) · 🔧 part C: U-20 (tutor conversations are M27)
+
 Tables: DB §4.11.
 
 1. **Conversation types:** DIRECT, GROUP, CLASS and SCHOOL. A parent↔teacher thread carries `context_student_id`.
@@ -779,6 +1108,9 @@ Tables: DB §4.11.
 - **Not done:** the student-facing screens exist in the web only for a student who has a web session (students sign in on the phone); students cannot start a conversation from the web (no directory by design); no typing indicators, no message search, no per-message translation smoke test with a provider, Amharic texts need native review.
 
 ### M10 School communications centre (≈ 2 weeks)
+
+**Status:** ✅ Done (#39, #40, #41) · 🔧 part C: U-21
+
 Tables: DB §4.12.
 
 1. Compose an announcement with an explicit audience: school, campus, grade, class or specific users, and target roles.
@@ -827,6 +1159,9 @@ Tables: DB §4.12.
 - **Not done:** attachments (the API has none yet), chosen people and campus audiences on the phone, revisions history, the CSV report, a student-facing check with a class login code, an iOS time-sensitive interruption level and an Android urgent channel from the server, and the Amharic strings need a native speaker's review.
 
 ### M11 Calendar & events (≈ 1–2 weeks)
+
+**Status:** ✅ Done (#44, #47, #48) · 🔧 part C: U-05, U-22
+
 Tables: DB §4.14.
 
 1. Native events with scope, recurrence rules (RRULE) and RSVP. Parent-meeting events have `regarding_student_id`.
@@ -865,9 +1200,12 @@ Tables: DB §4.14.
 - **Not built (open):** drag-and-drop, an hour axis in the week view, a week-start preference, a printable calendar, a per-campus time zone default in the form (it uses the school's), editing the audience of an event, the guardian child filter for staff.
 
 ### M12 Student portfolios — basic (≈ 2 weeks)
+
+**Status:** 🟡 Partly done: backend M12a (#50); **M12b web and M12c mobile to do** (below)
+
 Tables: DB §4.16 (without collections).
 
-1. **Students create items:** photo, drawing (an in-app canvas), document scan, text, short video or audio, with a reflection field.
+1. **Students create items:** photo, drawing (an in-app canvas), document scan, text, with a reflection field. (Short video is not built, D33; audio is an owner decision.)
 2. **Teacher quick capture** from the class view (§126).
 3. **Review workflow:** submitted → approved, changes requested or rejected, with history in `portfolio_approvals`.
 4. **Visibility:** resolved from school settings and item visibility. Guardians see approved items and can leave encouraging comments.
@@ -888,7 +1226,29 @@ Tables: DB §4.16 (without collections).
 - **Tests:** 108 in `portfolio` (visibility matrix of 6 statuses x 4 audiences x 17 people for single reads and lists, the cap, live guardian links, consent gate and withdrawal, tagged children and the creator's confirmation, media access per status and persona, every legal and illegal transition, the history trigger, quick capture, comments, notifications, listener redelivery, share deferral, lists and paging, the no-text canary test) and 27 endpoint cases in `AuthorizationMatrixTest` (369 cases in all). Smoke-tested over HTTP on a separate database and port with real presigned uploads: create, submit, changes requested, resubmit, approve; the guardian sees it only after approval; cap raised to CLASS, a classmate sees it only with consent; consent withdrawn, files withheld (own guardian, student and teacher keep them); teacher quick capture; comments; a custody-restricted guardian loses everything at once.
 - **Not done / follow-ups:** web and mobile screens (M12b/M12c), audio and video, sharing to the class story, the data-subject erasure workflow (the hook is `PortfolioItemService.erase`), retention of tombstones and the append-only history, a way for a creator to confirm an approved item whose audience was widened later, collections, feedback and rubrics (P2), the mobile in-app drawing canvas (client side). Open product/legal questions are listed at the end of `docs/Portfolio_Rules.md`.
 
+#### Remaining work of M12 (status 🟡: backend done in M12a)
+
+The API is final (`openapi.json`, M12a as-built above). The rule book `docs/Portfolio_Rules.md` is the specification of every screen: show only what the API returns (`capabilities`, status, effective visibility, `mediaWithheld`), never filter on the client.
+
+**M12b Portfolio on the web (⬜ To do, ≈ 1.5 weeks, Sonnet high)**
+- *Read first:* `docs/Portfolio_Rules.md` P1–P8, the M12a as-built note, `CLAUDE.md` web conventions (feed and media rules apply the same way).
+- *Screens:* the student's own portfolio (create TEXT, PHOTO, SCAN, DOCUMENT with title, description, reflection, class and subject; draft, submit, edit after changes requested); the class review queue for reviewing teachers (approve, request changes with a note, reject, feature, archive); the class and school gallery (APPROVED items only); the guardian's child page (`GET /me/portfolio`) with comments; the item page with history for reviewers; the quick-capture flow from the class page (§126).
+- *Privacy:* titles, reflections, notes and comments live in TanStack memory only (short `gcTime`), never in URLs (ids only), storage, logs or the document title; images through `<MediaImage>`; the consent-gate errors (`portfolio.media_consent_missing`, `portfolio.media_confirmation_required`) are explained inline without losing the text or files.
+- *i18n:* `school.portfolio.*`, `family.portfolio.*` (plural-free for `family.*`).
+- *Tests:* vitest for the pure logic (status moves offered, visibility labels, the consent-gate parser), Playwright on the real UI for one student, one reviewer and one guardian.
+- *Exit:* a student submits an item, the lead teacher approves it, the guardian sees it and comments.
+
+**M12c Portfolio on mobile (⬜ To do, ≈ 1.5 weeks, Sonnet high)**
+- *Screens:* the student app (capture with the camera or a document scan; text items; a drawing canvas is optional and client-side only), the teacher quick capture from the class view, the review queue, the guardian child page with comments.
+- *Privacy:* queries under a private `portfolio` root, kept out of the persisted cache (`lib/query/persistence.ts`, one tested predicate), `gcTime` a few minutes; drafts live in the screen's state only (no SQLite, no AsyncStorage); photos converted to JPEG and shrunk before upload (`lib/media/upload.ts`); `mobile.portfolio.*` plural-free with the catalog test.
+- *Exit:* the M12b exit on a phone, plus an offline open that shows "needs a connection" instead of stale items.
+
+**Not in M12 (moved):** sharing to the class story (U-26), collections, objective tags and rubric feedback (M20), audio and video (D33 and owner decision).
+
 ### M13 Moderation, safeguarding & platform admin (≈ 2–3 weeks)
+
+**Status:** 🟡 Partly done: rule book (#49), backend M13a (#51); **M13b web, M13c mobile, M13d platform administration to do** (below)
+
 Tables: DB §4.17.
 
 1. A "Report" action on posts, comments, stories, messages and users creates `content_reports`, which are grouped into `moderation_cases`.
@@ -917,84 +1277,128 @@ Tables: DB §4.17.
 - **Open questions (product, legal, child safety):** see "Added by the implementer" in `docs/Safeguarding_Rules.md`, in particular: student class messaging is ON by default (the lead rule blocks only the switch-on); authors can still edit the text of a reported feed post; retention of hidden content by its owners; the Amharic texts; the emergency wording; whether an administrator without a staff row may raise a concern.
 - **Not done:** web and mobile screens, S7 platform administration (user search, support view, health), automatic release of the evidence hold by the owners' retention jobs, the erasure/export workflow, portfolio and announcement reports (their modules do not exist yet or have no report hook).
 
-### M14 Localization, low-data & release-gate instrumentation (≈ 2 weeks, ongoing from M3)
-1. Complete Amharic UI strings and get them reviewed by native speakers. Add Afaan Oromo, Tigrinya and Somali catalogs as translations become available, with a per-school language list (§110).
-2. **Low-data pass:**
-   - image variants everywhere
-   - pagination limits
-   - compressed requests
-   - "data saver" mode (no autoplay, thumbnails only)
-   - measure payload sizes on 3G profiles
-3. **Analytics events for the §133 gates:**
-   - weekly active teachers
-   - classes created
-   - import success
-   - guardian link completion
-   - announcement read rate
-   - attendance completion time
-   - offline sync success
-   - report response time
+#### Remaining work of M13 (status 🟡: rule book and backend done in M13a)
 
-   Send them to a privacy-respecting analytics store. Analytics are not used to profile children.
-4. **Accessibility:** screen-reader labels, dynamic type, colour contrast.
+The specification is `docs/Safeguarding_Rules.md` (owner-confirmed) and the M13a as-built note above. Who may see the reporter, the reported content, and incidents is decided by the API; screens must never show more than it returns.
 
-### M15 Hardening & pilot launch (≈ 3–4 weeks)
-1. **Security:**
-   - threat model
-   - dependency and container scanning
-   - OWASP ASVS L2 checklist
-   - external penetration test focused on authorization, IDOR and tenant isolation
-2. **Authorization audit:** generate the role × endpoint matrix from the tests, then review it manually against DB §5.
-3. **Load test:** pilot-scale traffic plus 10× headroom, covering feed, messaging and attendance sync. Tune indexes and set up partitioning.
-4. **Privacy:**
-   - publish the privacy notice
-   - review data processing agreements (R2, FCM, SMS and translation providers)
-   - review Ethiopian data-protection requirements with counsel (§131)
-5. **Operations:** runbooks, on-call, alerting, backup and restore drill, incident process.
-6. **Launch:**
-   - app store submissions (EAS)
-   - staged rollout
-   - pilot schools onboarded with training material for teachers and parents in Amharic and English
-7. Review the release gates after 4–6 weeks of pilot use before starting Phase 2 (§112 says: prove regular use first).
+**M13b Reporting and moderation on the web (⬜ To do, ≈ 2 weeks, Sonnet high)**
+- *Screens:* a "Report" action on posts, comments, stories, messages and users (reason list from the API, optional details ≤ 1,000 characters, the generic thank-you); the school moderation queue (`school.moderation.manage`: filters, assign, the case page with the audited case-bound content read, decisions NO_ACTION, HIDE, REMOVE, WARN_USER, SUSPEND_USER, ESCALATE with a reason of 10–500 characters, reopen, restore, lift suspension, refer up); the platform queue for `platform.moderation.manage`; the safeguarding area for leads only (`school.safeguarding.read/manage`: incidents, notes, status, assignment, referral, guardian-informed record, legal hold); the emergency information page.
+- *Privacy:* case content and incident narratives are fetched per view and never cached beyond the view (`gcTime` 0 for content reads), never in URLs, titles, toasts or logs; reporter identity shown only when the API sends it.
+- *Also:* the report hooks for portfolio items and announcements (U-27) if their modules are ready.
+- *Exit:* a guardian reports a comment, a school moderator hides it, a safeguarding lead escalates a second case into an incident, and an administrator cannot see the incident.
+
+**M13c Reporting and moderation on mobile (⬜ To do, ≈ 1.5 weeks, Sonnet high)**
+- The "Report" action everywhere content is shown (feed, stories, messages, people); the reporter's notifications (`REPORT_ACKNOWLEDGED`, `REPORT_REVIEWED`); a read-only case list for school moderators is optional (the queue is a web task). Students' reports get the child-friendly texts and the "talk to a trusted adult" line from the API. Nothing about cases or incidents is persisted on the device.
+
+**M13d Platform administration (⬜ To do, ≈ 2 weeks, **Opus** for the support view and locks)**
+Step 4 of M13 and `docs/Safeguarding_Rules.md` S7:
+1. **User search** by exact phone, e-mail or id only (no free-text browsing), masked results; lock and unlock with a reason (every session revoked through `TokenService`; audited).
+2. **Schools, plans and features** screens on the existing M1 endpoints.
+3. **Audit-log viewer:** filters by actor, action, target, school and time; rows carry no text, so none is shown.
+4. **Support view** (`SUPPORT_AGENT`): read-only, time-boxed, audited view of one account (status, memberships, devices, recent audit events about the account, notification delivery status) opened with a mandatory reason; never messages, posts, portfolio, narratives, children's names beyond the account's own, or secrets; every open is an audit row visible to platform administrators.
+5. **System health:** readiness, last run and result of each scheduled job, incomplete event publications, failed notification deliveries, failed import jobs; no personal data.
+6. *Tests:* allow/deny for PLATFORM_ADMIN, PLATFORM_MODERATOR, SUPPORT_AGENT, a school administrator (refused), the time box, the mandatory reason, the absence of content in support responses (schema test).
+*Exit:* platform staff can find an account by phone, lock it, and open a support view whose every use is audited.
+
+### M14 Localization, low-data & release-gate instrumentation (⬜ To do, ≈ 2 weeks, Sonnet medium/high)
+
+**Goal:** the pilot works in Amharic and English on slow networks, and the release gates of §133 can be measured without profiling children.
+
+**Depends on:** all Phase 1 slices that add screens (it is a pass over them). **Read first:** `packages/i18n`, `docs/i18n/REVIEWING.md`, §69–§72, §110–§111, §133.
+
+1. **Languages.** Every catalog key exists in `en.json` and `am.json` (the catalog test enforces it); hand the Amharic catalog to native reviewers (U-09) and apply their corrections; per-school language list (§110); add Afaan Oromo, Tigrinya and Somali catalogs only when translations exist (a missing language falls back to English, never to keys).
+2. **Low-data pass:** image variants everywhere (THUMB/SMALL in lists); page-size limits; compressed responses (gzip/br at the edge); a "data saver" setting per user (thumbnails only, no autoplay, fewer prefetches); measure payload sizes per screen on a 3G profile and record a budget table in this section.
+3. **Analytics pipeline:** choose the store (provider decision: self-hosted or EU-region product analytics, no child profiling); events carry an event name, a school id, a role and counts, **never** a child's id, name or content; events for: weekly active teachers, classes created, roster import success, guardian link completion, announcement read rate, attendance completion time, offline sync success, report response time, portfolio participation.
+4. **Accessibility:** screen-reader labels on every interactive element, dynamic type on mobile, colour contrast of the design tokens (WCAG 2.2 AA on web), `prefers-reduced-motion` respected everywhere.
+5. *Tests:* the catalog tests; a lint rule or test that no analytics call passes a student id or free text; payload-size snapshots for the main screens.
+*Exit:* a pilot teacher and guardian can use every Phase 1 screen in Amharic on a 3G profile, and the release-gate dashboard shows real numbers from staging.
+
+### M15 Hardening & pilot launch (⬜ To do, ≈ 3–4 weeks, Opus for the security review)
+
+**Goal:** launch the pilot with real schools and families safely. **Depends on:** M1.5 deployed (U-24), every pre-pilot item of part C (U-08, U-09, U-10, U-11 if documents are on, U-15, U-23), M12b/c, M13b–d, M14.
+
+1. **Security:** a written threat model; dependency and container scanning in CI; the OWASP ASVS level 2 checklist; an **external penetration test** focused on authorization, IDOR and tenant isolation, with every finding fixed or accepted in writing.
+2. **Authorization audit:** generate the role × endpoint matrix from `AuthorizationMatrixTest` and review it by hand against DB §5.
+3. **Load test:** pilot-scale traffic plus 10× headroom for the feed, messaging and attendance sync; tune indexes; enable partitioning where DB §6 says so.
+4. **Privacy:** publish the privacy notice and terms (U-10); data processing agreements with every processor (storage, push, SMS, translation if enabled); review the Ethiopian data-protection requirements with counsel (§131).
+5. **Operations:** runbooks (`docs/ops/Runbook.md`), on-call, alerting, a backup and restore drill, an incident process, the secrets inventory and rotation.
+6. **Launch:** app-store submissions through EAS, a staged rollout, pilot schools onboarded with training material for teachers and parents in Amharic and English.
+7. **Release-gate review** after 4–6 weeks of pilot use (§133) before Phase 2 starts.
+*Exit:* the pilot is live, the penetration test has no open high finding, and the restore drill has been done once.
 
 ---
 
-## Phase 2 — School learning (≈ 4–5 months)
+## Phase 2 — School learning (⬜ To do, ≈ 4–5 months)
 
-Scope: §113, §124 (full) and §127. Tables: DB §4.21–4.23, plus the P2 columns (`grade_levels.academic_level_id`, `subjects.curriculum_subject_id`, `schools.education_system_id`).
+Scope: §113, §124 (full) and §127. Tables: DB §4.21–4.23, the P2 parts of §4.16 and §4.18, plus the P2 columns `grade_levels.academic_level_id`, `subjects.curriculum_subject_id` and `schools.education_system_id`. Order: M16 first (tags are used everywhere), then M17 and M19 in parallel, then M18, M20 and M21.
 
-### M16 Curriculum foundation
-1. Education systems, curriculum versions, levels, subjects, topics and objectives. A platform-admin editor, plus CSV import of the Ethiopian national curriculum (with source, license and owner recorded).
-2. A school adopts a curriculum version and maps its grades and subjects to it.
-3. A tagging component (pick objectives) that can be reused in assignments, assessments, questions, lessons, portfolio items and resources.
+### M16 Curriculum foundation (⬜ To do, ≈ 3 weeks, Sonnet high)
+**Goal:** a versioned national curriculum that schools adopt and that every learning object can be tagged against. **Read first:** §127, DB §4.21, R-15.
+1. **Module `curriculum`** with `education_systems`, `curriculum_versions` (effective dates), `academic_levels`, `curriculum_subjects`, `curriculum_topics`, `learning_objectives`, and the P2 columns above.
+2. **Platform-admin editor** (permission `platform.curriculum.manage`) and a **CSV import** of the Ethiopian national curriculum with source, licence and owner recorded per version (owner open item: the official source and licence).
+3. **Adoption and mapping:** `school_curriculum_adoptions` (a school adopts a version) and the mapping of the school's grades and subjects to curriculum levels and subjects (`school.curriculum.manage`, administrators).
+4. **Tagging service** over `curriculum_mappings` with `target_type` ASSIGNMENT, ASSESSMENT, QUIZ_QUESTION, BANK_QUESTION, LESSON_PLAN, PORTFOLIO_ITEM, LIBRARY_RESOURCE, ACTIVITY_TEMPLATE; the owning module authorizes the tag (a tag is never readable without the target); a reusable objective picker on web and mobile.
+5. **Evidence and mastery:** `learning_evidence` (from results, quiz attempts, portfolio) and `mastery_records`, which **only a teacher** writes (§127: evidence is not mastery). Evidence is never shown to classmates.
+6. *Tests:* version effective dates, adoption per school, tag authorization through the target, mastery writes refused to non-teachers, allow/deny matrix.
+*Exit:* a pilot school adopts the Ethiopian curriculum and a teacher tags an activity template with objectives.
 
-### M17 Assignments & submissions
-1. Assignments scoped to a class, with attachments, targets, scheduling, due dates and late policy.
-2. Student submissions: text, photos and files. Offline drafts. Guardians can help young children submit (`submitted_by`).
-3. Teacher review: return, request resubmission, feedback. Notifications for NEW_ASSIGNMENT and returned work. Due dates appear on the calendar.
+### M17 Assignments & submissions (⬜ To do, ≈ 3–4 weeks, Sonnet high; **needs U-11 malware scanning**)
+**Goal:** homework and classwork with submissions and teacher review. **Read first:** §24, DB §4.22 (assignments part), R-15, `CLAUDE.md` media rules.
+1. **Assignments** scoped to a class (`assignments`, `assignment_attachments`, `assignment_targets` for some students), with publish time, due date, late policy, attempts and submission types; created by the class's LEAD, CO and SUBJECT teachers (subject teachers for their subject).
+2. **Submissions** (`assignment_submissions`, `submission_attachments`): text, photos and documents (new media purposes `ASSIGNMENT` and `SUBMISSION` with policies owned by the module); `submitted_by` records a guardian helping a young child (ACTIVE, unrestricted link, `can_view_academics`); idempotent by `client_op_id`.
+3. **Teacher review:** return with feedback, request resubmission, mark missing or excused; notifications `NEW_ASSIGNMENT`, `ASSIGNMENT_RETURNED`, `ASSIGNMENT_DUE_SOON` (generic texts, never the title or a child's name).
+4. **Calendar:** a `CalendarSource` bean `ASSIGNMENT` (due dates; R-17).
+5. **Offline on mobile:** a student may write a draft offline. The draft (text and photo files) is stored **owner-scoped** on the device, wiped at sign-out, never synced elsewhere, and sent with the same `client_op_id` when online (a privacy decision recorded in the as-built note; if the owner prefers memory-only drafts, use the messaging outbox pattern instead).
+6. **Visibility:** the student, their own guardians (`can_view_academics`, not restricted) and the class's teachers; never classmates.
+7. *Tests:* subject-teacher limits, late policy, a guardian submitting for a child, a classmate refused, malware-flagged files never served, idempotent resubmission, allow/deny matrix.
+*Exit:* a teacher sets homework, a student submits a photo from the phone (also after being offline), and the teacher returns it with feedback.
 
-### M18 Assessment, grading & quizzes
-1. Grading schemes and bands (templates per country, overrides per school), and rubrics.
-2. Assessments: offline exams and participation, or graded assignments or quizzes. A gradebook grid on web with keyboard entry. Subject teachers are limited to their own subject.
-3. **Shared quiz engine:** question types, attempts, auto-grading, and manual grading for essays. Correct answers are never sent to students before results are released.
-4. Result publication, `period_grades` computed from weights, teacher overrides, and parent access to published results. **Report cards are not issued in M18:** the immutable, verifiable report card and the transcript are M41, and assessment plans, marklists, semester results and ranking are M40 (M40 and M41 extend M18's tables; M18 must keep results unpublished-by-default so M40's workflow can wrap them).
-5. Learning evidence comes from results. Mastery is recorded only by teachers (§127).
+### M18 Assessment, grading & quizzes (⬜ To do, ≈ 4 weeks, Sonnet high)
+**Goal:** grading schemes, assessments, results, a gradebook and the shared quiz engine. **Read first:** §25–§26, DB §4.22 (grading, assessments, quizzes), R-15.
+1. **Grading schemes and bands** (templates per country seeded in a repeatable seed, overrides per school) and rubrics (`assessment_rubrics`, `rubric_criteria`, `rubric_levels`).
+2. **Assessments and results** (`assessments`, `assessment_results`, `assessment_result_rubric_scores`): offline exams, participation, graded assignments or quizzes; a **gradebook grid** on the web with keyboard entry; subject teachers limited to their subject; results stay unpublished by default.
+3. **Shared quiz engine** (`quizzes`, `quiz_questions`, `quiz_attempts`, `quiz_attempt_answers`): question types, attempts, auto-grading, manual grading of essays. **Correct answers are never sent to student or guardian clients before release**: a separate DTO and an architecture test that fails if a student-facing DTO has a `correctAnswer` property.
+4. **Publication** of results to students and guardians (`can_view_academics`), `period_grades` computed from weights with teacher overrides. **Report cards are M41**, assessment plans, marklists and ranking are M40.
+5. **Evidence:** results feed `learning_evidence` (M16); mastery is never automatic.
+6. *Tests:* answer secrecy (architecture test and API test), subject limits, unpublished results invisible to families, weighting, allow/deny matrix.
+*Exit:* a teacher gives an online quiz and an offline test, results are published, and a guardian sees them.
 
-### M19 Digital library
-1. Resources with ownership, licence and a rights attestation (§35). A takedown workflow through moderation.
-2. Access rules (R-06), evaluated on the server. Browse by grade and subject, with search (`pg_trgm`).
-3. Reader and viewer (PDF, audio, video) with low-data streaming. Downloads only where allowed.
+### M19 Digital library (⬜ To do, ≈ 3 weeks, Sonnet high)
+**Goal:** shared classroom resources with ownership and access rules. **Read first:** §33–§35, §84, DB §4.23, R-06.
+1. **Resources** (`library_resources`, `resource_categories`, `resource_collections`, `resource_collection_items`) with owner, licence and a **rights attestation** (§35); files are documents, images and audio (media purpose `LIBRARY`) or external links; **no hosted video** (D33).
+2. **Access rules** (`resource_access_rules`: PUBLIC, SCHOOL, GRADE_LEVEL, CLASS, USER, with audience roles), evaluated **in SQL** for lists and single reads (one predicate, like `FeedVisibility`).
+3. **Browse and search** by grade and subject (curriculum tags from M16), `pg_trgm` title search.
+4. **Reader and viewer** (PDF, images, audio) with low-data streaming; downloads only where the licence allows.
+5. **Takedown** through moderation: a `ReportTarget` bean for `LIBRARY_RESOURCE` (M13a SPI); a copyright report hides the resource until decided.
+6. *Tests:* the access-rule matrix (single reads equal lists), licence-controlled downloads, takedown, allow/deny matrix.
+*Exit:* a teacher shares a PDF with their grade, students of that grade read it on a slow network, and another school cannot see it.
 
-### M20 Portfolios (full) & teacher preparation
-1. Collections, objective tags, formal teacher feedback with rubrics, and featured work.
-2. Lesson preparation templates (`classroom_activity_templates`, LESSON_PREP) linked to objectives.
+### M20 Portfolios (full) (⬜ To do, ≈ 2 weeks, Sonnet high)
+**Goal:** the P2 parts of portfolios. **Read first:** §124, DB §4.16 (P2 columns), `docs/Portfolio_Rules.md`.
+1. **Collections** (`portfolio_collections`) curated by the student with teacher approval.
+2. **Objective tags** on items through the M16 tagging service.
+3. **Formal teacher feedback** with rubrics (`portfolio_feedback`, M18 rubrics); guardians see feedback only on APPROVED, guardian-visible items.
+4. **Featured work** at class and school level (the visibility cap of M12a still applies).
+5. **Share to the class story** (U-26) only if the media copy operation keeps the feed consent gate intact; otherwise it stays deferred.
+6. *Tests:* the M12a visibility matrix extended to collections and feedback.
+*Exit:* a student builds a term collection, the teacher adds rubric feedback, and the guardian sees it.
 
-### M21 Data governance
-1. Retention policies and jobs, legal holds, data-subject export and deletion requests, and an admin UI for them (§131).
+*(The lesson-preparation templates once planned here are replaced by M39 Lesson planning.)*
+
+### M21 Data governance (⬜ To do, ≈ 3 weeks, **Opus**)
+**Goal:** retention, legal holds, and data-subject export and erasure across modules. **Read first:** §131, DB §4.18 (`retention_policies`, `legal_holds`, `data_subject_requests`), the retention notes in every as-built section (sync payloads, messages, portfolio tombstones, moderation evidence holds).
+1. **Retention policies** per data category and country, with jobs per owning module (each module purges its own data; `@SchedulerLock`; returns `Integer`), all skipping anything under a legal hold or `media.legal_hold`.
+2. **Legal holds** set and lifted by authorized roles, honoured by every purge (moderation evidence holds release automatically when their case's retention ends: U-27).
+3. **Data-subject requests:** export (a machine-readable archive of a person's own data, assembled by an SPI each module implements) and erasure (each module's erase hook, e.g. `PortfolioItemService.erase`), with identity verification, a guardian acting for a child, a school's approval where the data is a school record, and an audit trail.
+4. **Admin UI** for policies, holds and requests (school and platform).
+5. *Tests:* a purge never touches held data; erasure leaves no personal data in any table of a seeded test person; export contains only the person's own data; allow/deny matrix.
+*Exit:* a guardian's export request is fulfilled, an erasure removes the person from every module, and a legal hold stops a purge.
 
 ---
 
 ## Phase 2b — School operations (≈ 3–4 months, two parallel tracks)
+
+**Status:** ⬜ To do
 
 Scope: Spec §134.1–§134.4, §134.6. Tables: DB §4.30–§4.33, §4.35. Decisions D21, D23–D29, D39, D40. These milestones complete the academic and administrative work of a school; they run alongside Phase 2 and are ordered by dependency, not by number.
 
@@ -1011,6 +1415,11 @@ Scope: Spec §134.1–§134.4, §134.6. Tables: DB §4.30–§4.33, §4.35. Deci
 **Model guidance (Opus only where security-critical, see the model policy):** none of the Phase 2b milestones needs Opus. Sonnet high, with the lead reviewing every security-sensitive diff (the public verification endpoint of M41, exam answer secrecy in M42, rank visibility in M40, document access) before merge. Opus is recommended for M22, M27, M31b and M31c (payments and child-safety messaging).
 
 ### M35 Student numbers, ID cards & transferred status (≈ 2 weeks)
+
+**Status:** ⬜ To do
+
+**Depends on:** M3 (people), M7e (the card's QR credential; number allocation and the transferred status can ship before). **Read first:** DB §4.35, spec §134.6, D21, D39.
+
 Tables: DB §4.35. Decisions D21, D39.
 1. **Number allocation:** `student_number_formats` and `student_number_counters`; `StudentNumbers.allocate(...)` locks the counter row inside the admission transaction (a number is never reused, not even after withdrawal); preview of the format; manual entry still allowed (imports keep their numbers); the existing unique index is the final guard.
 2. **Bulk generation** for existing students without a number: a dry run lists the order and the first and last number, a second confirmation runs it, in a stable order (admission date, then name key); audited.
@@ -1022,6 +1431,11 @@ Tables: DB §4.35. Decisions D21, D39.
 **Exit:** a new school generates numbers for 500 students, prints a card batch, a lost card is revoked, and a student who leaves shows as transferred.
 
 ### M37 Timetable & annual academic plan (≈ 4 weeks, manual builder)
+
+**Status:** ⬜ To do
+
+**Depends on:** M3 (classes, teachers), M11 (calendar sources). **Read first:** DB §4.30, spec §134.1, D29, D40, the M11a as-built note.
+
 Tables: DB §4.30. Spec §134.1. Decisions D29, D40. **There is no automatic generator**: it is deferred until a school with many classes asks for it.
 1. **Bell schedules and periods, rooms and subject period requirements** (weekly period targets per class and subject; admin screens on web).
 2. **Timetable versions and entries:** a grid editor (class × weekday × period) with drag and drop, a per-class **coverage view** (periods placed against `subject_period_requirements`), and **live clash detection that mirrors the database unique indexes** (class, teacher, room per weekday and period); co-teachers through `timetable_entry_teachers`; copy a version to start the next one.
@@ -1034,6 +1448,11 @@ Tables: DB §4.30. Spec §134.1. Decisions D29, D40. **There is no automatic gen
 **Exit:** a pilot school builds and publishes a weekly timetable by hand, with every class's weekly periods covered; teachers and families see it in the calendar; a substitution reaches the class; the school publishes its annual plan.
 
 ### M39 Lesson planning (≈ 2.5 weeks)
+
+**Status:** ⬜ To do
+
+**Depends on:** M37 (timetable entries), M16 (objectives); M19 optional (resources). **Read first:** DB §4.31, spec §134.2, D28.
+
 Tables: DB §4.31. Spec §134.2. Decision D28.
 1. **Templates:** `lesson_plan_templates` per level and country/school; a generic template ships; the **Ministry of Education format is added as a template once the owner supplies it** (open item in Spec_Review). Fields are validated against the template (type, required, maximum length).
 2. **Plans and chain:** annual → term → weekly → daily, each linked to its parent; curriculum objectives tagged from M16 (`lesson_plan_objectives`); resources from the library (M19) when it exists.
@@ -1044,6 +1463,11 @@ Tables: DB §4.31. Spec §134.2. Decision D28.
 **Exit:** teachers plan a week from the timetable, submit it, and a head approves; a plan prints in the configured format.
 
 ### M40 Assessment plans, marklists, semester results & ranking (≈ 3 weeks, extends M18)
+
+**Status:** ⬜ To do
+
+**Depends on:** M18. **Read first:** DB §4.32, spec §134.3, D25, D26.
+
 Tables: DB §4.32. Spec §134.3. Decisions D25, D26.
 1. **Assessment plans:** per class, subject and period with weighted components (weights must add to 100 to activate; drop-lowest; maximum marks); an assessment links to a component; the plan locks when the first result is entered (changing it afterwards needs a reason and recomputes).
 2. **Marklist and mark entry:** the web gradebook grid (keyboard-first, paste from a spreadsheet, validation against maximum marks, offline-tolerant drafts) for the subject's teachers only; per-student excused and absent handling per the setting `grading.absent_counts_as_zero`; the **marklist workflow** DRAFT → SUBMITTED → (APPROVED when `grading.marklist_approval_required`) → PUBLISHED; the approver is never the submitter.
@@ -1055,6 +1479,11 @@ Tables: DB §4.32. Spec §134.3. Decisions D25, D26.
 **Exit:** a pilot class completes a term: plans, marks entered, marklists published, ranks shown to families per the school's setting.
 
 ### M41 Report cards & transcripts (≈ 3 weeks)
+
+**Status:** ⬜ To do
+
+**Depends on:** M40; the PDF-engine decision (provider table). **Read first:** DB §4.32, spec §134.3, D27.
+
 Tables: DB §4.32. Spec §134.3. Decision D27. Security-sensitive (public verification and document integrity): the lead reviews the verification endpoint and the access rules before merge.
 1. **Templates:** `report_card_templates` (layout JSON: sections, columns, labels in i18n, signature blocks, a rank section only when `shows_rank`); the Ethiopian format is a template once supplied (open item). **PDF engine decision (ADR):** a server-side renderer that handles **Ethiopic (Ge'ez) script and shaping** (embed a Noto Sans Ethiopic font), right pagination and QR; verify output for am and en on a real device before choosing.
 2. **Issuing:** a job generates cards for a class from the PUBLISHED `period_results` and `period_grades` into an immutable **snapshot** with `content_sha256`; the PDF is a `media` row (purpose `REPORT`, short-lived signed links, never cached or logged); `report_cards.status` ISSUED, SUPERSEDED, REVOKED; a correction supersedes and notifies the family, never edits. A second person signs when the school requires it.
@@ -1066,6 +1495,11 @@ Tables: DB §4.32. Spec §134.3. Decision D27. Security-sensitive (public verifi
 **Exit:** a pilot school issues a term's report cards to a whole grade, families download them, and a printed card verifies by QR.
 
 ### M42 Question banks & secure online exams (≈ 4 weeks)
+
+**Status:** ⬜ To do
+
+**Depends on:** M18 (quiz engine), M16 (tags), M13a (reports). **Read first:** DB §4.33, spec §134.4, D23, D24.
+
 Tables: DB §4.33. Spec §134.4. Decisions D23, D24. Security-sensitive (answer secrecy, exam integrity): the lead reviews the student-facing DTOs and the timer.
 1. **Question banks:** `question_banks`, `bank_questions` by subject and grade, objective tagging (`target_type = BANK_QUESTION`), difficulty and language, versions, approval (an approver differs from the author when `quizzes.bank.review_required`), visibility PRIVATE, SUBJECT_TEAM, SCHOOL; import from CSV; platform-curated read-only banks. **No cross-school sharing.**
 2. **Compose an exam:** pick or randomly draw questions by objective and difficulty into a quiz; the quiz **copies** the questions (`bank_question_id` + `bank_question_version`), so a later bank edit never changes an exam already taken.
@@ -1080,9 +1514,16 @@ Tables: DB §4.33. Spec §134.4. Decisions D23, D24. Security-sensitive (answer 
 
 ## Phase 3 — Payments & school fees (≈ 3 months)
 
+**Status:** ⬜ To do
+
 Scope: Spec §134.7, §60, §61. Tables: DB §4.26, §4.28, §4.36. Decisions D30, D37. *Phase 3 was "Online learning" (courses and video); those were removed (D33) and school fees moved here (D37).* Order: M22, then M31a, M31b, M31c, M31d. M31a needs no payment provider and can start first.
 
 ### M22 Payment core (≈ 2 weeks; **Opus**)
+
+**Status:** ⬜ To do
+
+**Depends on:** the payment-provider decision; a deployed staging environment for webhooks (U-24). **Read first:** DB §4.26, spec §61, D30.
+
 1. A `PaymentService` provider abstraction (§61). The first Ethiopian provider adapter is chosen after commercial evaluation (for example Chapa, telebirr or ArifPay).
 2. `payments`, `payment_transactions`, `platform_invoices`, `payment_webhook_events`. **A payment is SUCCEEDED only after a valid signature, a server-side status query, and an amount, currency and reference match, once per event id** (D30). A status-polling fallback handles providers whose webhooks are not reliable. There are **no orders and no provider refunds**: a payment returned to a payer is a reversal recorded by finance.
 3. Webhook endpoints are unauthenticated by design, so: signature first, body size limit, rate limit, no side effects before verification, no body in logs, replay safe, constant-time compare.
@@ -1090,6 +1531,11 @@ Scope: Spec §134.7, §60, §61. Tables: DB §4.26, §4.28, §4.36. Decisions D3
 5. **Tests:** forged webhook, replayed webhook, correct signature with the wrong amount, currency or reference, a success redirect without a webhook, parallel duplicates, a provider outage and a late webhook.
 
 ### M31a Fee structures, billing schedules & automatic invoicing (≈ 3 weeks; needs no payment provider)
+
+**Status:** ⬜ To do
+
+**Depends on:** M3 (students), M5 (guardian links; new `can_view_fees`/`can_pay_fees` columns). **Read first:** DB §4.28 and §4.36, spec §134.7, D15, D16, D37.
+
 Tables: DB §4.28 and §4.36. Decisions D15, D16, D37.
 0. **Roles:** seed `SCHOOL_BURSAR` and `SCHOOL_FINANCE_MANAGER` with the `school.fees.*` grants of DB §4.36 (administrators get read, manage and report only), so recording and verifying are done by two people; the staff screen assigns them.
 1. **Fee setup:** `fee_items`, `fee_structures` per grade, year and campus, `fee_structure_items` with a billing cycle each (once, monthly, termly, yearly) and optional items (transport, meals), `payment_plans` (instalment shares add up to 10000 bps), `student_fee_assignments` (one ACTIVE per student and year, bulk by grade or class), `fee_discounts` (percent or fixed, a **reason code only**, an approver, validity).
@@ -1102,6 +1548,11 @@ Tables: DB §4.28 and §4.36. Decisions D15, D16, D37.
 **Exit:** a school defines its fees, activates a monthly schedule, and invoices appear on the right day for every assigned student.
 
 ### M31b Pay in the app, cash recording & receipts (≈ 4 weeks, needs M22; **Opus**)
+
+**Status:** ⬜ To do
+
+**Depends on:** M22, M31a. **Read first:** DB §4.26 and §4.36, D30.
+
 Tables: DB §4.26, §4.36. Spec §134.7. Decision D30. **Security-critical (money, insider fraud, forgery).**
 1. **Pay an invoice or instalment in the app** through the country's provider (M22), with `can_pay_fees`. On success, in one transaction: `payment_allocations` (append-only; a reversal is a negative row), invoice and installment totals recomputed **from allocations**, a receipt and a notification. An overpayment becomes a credit on the student's account.
 2. **Cash and other manual payments:** `manual_payments` (CASH, CHEQUE, BANK_DEPOSIT_SLIP) recorded by `school.fees.record`; a **second person** with `school.fees.verify` verifies cheques, deposit slips and cash at or above `fees.cash.approval_threshold_minor` (CHECK plus service rule); smaller cash is verified at once but is covered by the **cash session's closing, signed off by a different person**; a recorded payment is never edited, a wrong one is **voided with a reason by a second person** (reversal row, replacement receipt). A cashier cannot void, approve their own entry or change another cashier's session. `fees.single_person_mode` lets a one-person school verify its own entries; every such entry is flagged in the audit and the cash book.
@@ -1112,6 +1563,11 @@ Tables: DB §4.26, §4.36. Spec §134.7. Decision D30. **Security-critical (mone
 **Exit:** a guardian pays an invoice in the app and gets a receipt; a bursar records a day's cash, a second person signs it off, and a printed receipt verifies by QR.
 
 ### M31c Verify external payments with Veritas (≈ 3 weeks, needs M31b; **Opus**)
+
+**Status:** ⬜ To do
+
+**Depends on:** M31b; Veritas terms, privacy policy and plan (Spec_Review open item 2). **Read first:** DB §4.36, D37.
+
 Tables: DB §4.36 (`verification_providers`, `school_receiving_accounts`, `external_payment_claims`). Decision D37. **Security-critical (money, third-party data).** This is the "pay through your bank or wallet, then verify" path.
 0. **Terms and spike first (about 3 days).** Before any design is final: read Veritas's terms and privacy policy (Spec_Review open item 2), choose a plan, get a key, and **record each method's real answer** (CBE, Telebirr, Dashen, Abyssinia, CBE Birr, M-Pesa; successes, not-found, wrong suffix, and an HTTP 200 failure) as fixtures in a contract test, because the service documents no response fields. Confirm whether Telebirr lookups work from the hosting region. If the spike shows the service is unusable, the manual path and check.et remain.
 1. **Verification port and Veritas adapter.** A `PaymentVerifier` port with a `VeritasVerifier` (https://veritas.et; hosted API, `x-api-key` header, key in the secrets store). The adapter chooses the **dedicated route from the method the guardian picked** (never auto-detection), **validates the reference format per method** before spending a credit (for example a 10-character Telebirr reference, a 16-character Dashen reference, a CBE `FT` reference), maps each method's answer into one internal `VerifiedTransfer` (amount, currency, paid time, receiver account, payer name, status) and treats **HTTP 200 with `success: false`** as a failure; **a missing or unexpected field is NEEDS_REVIEW**. Lookups run in a **background job** (the claim shows "checking") with a **65-second timeout**, one retry for network errors only (each lookup uses a credit), a **rate limiter below the plan's requests a minute**, and a circuit breaker. Raw responses are never logged or stored. A second adapter (check.et) can be added behind the same port.
@@ -1124,6 +1580,11 @@ Tables: DB §4.36 (`verification_providers`, `school_receiving_accounts`, `exter
 **Exit:** a guardian pays through a bank app, submits the reference, and the invoice is confirmed within about a minute with a receipt (longer if the service is slow); a doubtful claim lands in the review queue.
 
 ### M31d Fee reports (≈ 1.5 weeks)
+
+**Status:** ⬜ To do
+
+**Depends on:** M31a–M31c. **Read first:** DB §4.36, D15.
+
 Tables: DB §4.36. Decision D15.
 1. **Reports** (`report_jobs`, CSV rules, audited, rate-limited, never e-mailed): arrears and ageing, collection summary by day, fee type and method, **cash book** per cashier session, **receipts register** (every number including voids), **claims log**, student statement.
 2. **Tests:** the cash book equals the sum of verified cash, the receipts register has no gaps, a campus administrator sees only their campus, exports are audited and rate-limited, and arrears never appear to teachers.
@@ -1133,21 +1594,38 @@ Tables: DB §4.36. Decision D15.
 
 ## Phase 4 — Tutor directory (≈ 2 months)
 
+**Status:** ⬜ To do
+
 Scope: Spec §135 (replaces §114–§116 and §128). Tables: DB §4.27, plus `platform_invoices` (§4.26) and the `TUTOR` arm of `subscriptions` (§4.20). Decisions D32, D35, D36. *Phase 4 was the tutor marketplace (services, bookings, sessions, reviews, payouts); it is now a directory where tutors pay to be listed and families message them.* Needs M22 (payments) and the messaging module (M9).
 
 ### M25 Tutor onboarding & verification (≈ 2 weeks)
+
+**Status:** ⬜ To do
+
+**Depends on:** M2 (media, purpose `VERIFICATION_DOC`), M13a (platform moderation queue). **Read first:** DB §4.27, spec §135, D32.
+
 1. Create a tutor profile. A teacher can opt in with a **separate** profile (§40). Subjects, languages, qualifications, a photo (`AVATAR`).
 2. Verification requirements per country (`verification_requirements`), document upload (`VERIFICATION_DOC`: private media readable only by platform reviewers), a platform review queue (PLATFORM_MODERATOR), statuses and reason **codes** (not free text) back to the tutor. Only VERIFIED tutors can be listed; a change of identity or qualification returns the tutor to review.
 3. The same review covers the **listing text and photo** before the first listing (`PENDING_REVIEW` to `LISTED`).
 4. **Tests:** a tutor cannot list without verification; documents unreadable to everyone but reviewers; a tutor sees only their own profile and requests; another tutor's documents are a 404.
 
 ### M26 Directory profile, availability & search (≈ 3 weeks)
+
+**Status:** ⬜ To do
+
+**Depends on:** M25. **Read first:** DB §4.27, spec §135, D32, D35.
+
 1. **Profile:** headline, bio, years of experience, subjects and levels, languages, delivery (in person, online with the tutor's own tools), **area-level locations** (`tutor_locations`; never an address), a weekly **availability pattern** (informational: nothing is reserved), an informational rate, `accepting_learners`.
 2. **Search** for **verified adults only** (`users.adult_confirmed_at`; a student account gets a 404 and has no directory, Messaging_Rules R4.6): filters subject, level, language, area or city, in person or online, price range, day of week, verified. `pg_trgm` and ordinary indexes, no separate search engine (§119). **Ordering is relevance and recent activity, never payment, and the factors are shown.** Keyset paging; per-user query limits (60 an hour) and no bulk export, against scraping. Search and profile responses never contain phone, e-mail, an exact address or documents.
 3. **Screens:** "Find a tutor" (web and the guardian app), the profile page, the tutor's profile editor and a listing preview.
 4. **Tests:** only VERIFIED, LISTED and subscribed tutors appear; a tutor in grace still appears and an expired one does not; students and anonymous callers are refused; no contact data in any payload (schema test); ordering ignores the subscription.
 
 ### M27 Inquiries, listing subscription & safety (≈ 3 weeks; **Opus**)
+
+**Status:** ⬜ To do
+
+**Depends on:** M26, M22, M9 (messaging), M13a. **Read first:** DB §4.27, §4.20, §4.26, `docs/Messaging_Rules.md` R14, D35, D36.
+
 Tables: DB §4.27, §4.20, §4.26. Messaging_Rules R14. Decisions D35, D36. **Child-safety critical.**
 1. **Inquiry conversation (`TUTOR_INQUIRY`, R14).** A migration relaxes `conversations.school_id` for this type only (a CHECK ties NULL to `TUTOR_INQUIRY`) and the messaging `Eligibility` gets a tutor branch. Only a **verified adult** (`users.adult_confirmed_at`: a phone verified by OTP and a date of birth showing 18 or over, or a guardian link verified by a school; never a student profile or managed account) may start one, for a child or for themself; **students under 18 never contact a tutor** and a student account can never be a member; a tutor can never start. The tutor sees "Parent" or "Learner", the child's **age band** and the subject only. Limits: 5 new inquiries a day per user, one live inquiry per tutor and user, 30 new people a week per tutor, a text-only first message of at most 1,000 characters with no links or attachments; safety notices at the top and before the first message; messages that look like a phone number, e-mail or off-platform payment request are delivered with a notice to both sides and counted for review. Tutor inbox with "pause new inquiries".
 2. **Listing subscription (D35).** The `TUTOR_PRO` plan priced per country (`plan_prices`), `subscriptions.tutor_id` and the `TUTOR` arm of the subscriber check, `platform_invoices`, payment through M22, renewal reminders, a **7-day grace** after a missed payment, then the listing is hidden (`EXPIRED`) and the data kept; paying again relists it without a new review unless the profile text or photo changed; a trial is configurable (`TRIALING`). **Paying buys a listing, not rank.**
@@ -1160,13 +1638,25 @@ Tables: DB §4.27, §4.20, §4.26. Messaging_Rules R14. Decisions D35, D36. **Ch
 
 ## Phase 5 — Platform billing & reconciliation (≈ 1–1.5 months)
 
+**Status:** ⬜ To do
+
 Scope: Spec §105, §106. Tables: DB §4.20, §4.26.
 
 ### M29 Reconciliation (≈ 2 weeks)
+
+**Status:** ⬜ To do
+
+**Depends on:** M22. **Read first:** DB §4.26.
+
 1. Automated reconciliation of provider reports against `payments`, with an exception queue (differences, missing webhooks, late settlements).
 2. Recording of reversals (money returned to a payer, settled outside the platform) with the matching allocation reversal and receipt void.
 
 ### M31 School subscription billing
+
+**Status:** ⬜ To do
+
+**Depends on:** M22. **Read first:** DB §4.20, §4.26, spec §105.
+
 1. Automated billing of school plans through `platform_invoices` (plan prices per country), usage limits from `plan_entitlements`, reminders and dunning. Tutor listing billing is already in M27.
 
 ---
@@ -1225,15 +1715,17 @@ Scope: Spec §105, §106. Tables: DB §4.20, §4.26.
 
 ## Timeline summary (rough, team of ~5)
 
-| Phase | Duration | Cumulative |
+| Phase | Duration | Status (27 Nov 2026) |
 |---|---|---|
-| 0 Foundation | 3–4 weeks | ~1 month |
-| 1 School & family MVP, then pilot | 7–9 months | ~9–10 months |
-| Pilot evaluation window | 1–2 months (Phase 2 design runs in parallel) | |
-| 2 School learning | 4–5 months | |
-| 2b School operations (student numbers and cards, timetable, lesson plans, results and report cards, question banks and exams; two parallel tracks) | 3–4 months | |
-| 3 Payments & school fees (payment core, periodic invoicing, in-app payment, cash and receipts, payment verification, reports) | ~3 months | |
-| 4 Tutor directory (verification, search, inquiries, paid listing) | ~2 months | |
-| 5 Platform billing & reconciliation | 1–1.5 months | |
+| 0 Foundation | 3–4 weeks | ✅ Done (M0.5 brand needs a designer) |
+| 1 School & family MVP, then pilot | 7–9 months | 🟡 M1–M11 done; left: M7d, M7e, M12b/c, M13b–d, M14, M15 (about 3 months) and the pre-pilot items of part C |
+| Pilot evaluation window | 1–2 months (Phase 2 design runs in parallel) | ⬜ |
+| 2 School learning | 4–5 months | ⬜ |
+| 2b School operations (student numbers and cards, timetable, lesson plans, results and report cards, question banks and exams; two parallel tracks) | 3–4 months | ⬜ |
+| 3 Payments & school fees (payment core, periodic invoicing, in-app payment, cash and receipts, payment verification, reports) | ~3 months | ⬜ |
+| 4 Tutor directory (verification, search, inquiries, paid listing) | ~2 months | ⬜ |
+| 5 Platform billing & reconciliation | 1–1.5 months | ⬜ |
+
+**Recommended order of the remaining work:** see **B2** (numbered steps, what runs in parallel, when each step may start) and **B3** (owner decisions and when they are needed).
 
 Phase 1's critical path is M1 → M3 → M5 → M8/M9, because guardian linking and consent gate the feed and messaging. M4, M6, M7, M10–M12 run in parallel tracks once M3 is done.
