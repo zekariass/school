@@ -104,8 +104,8 @@ public class AttendanceViews {
 		return CursorPage.fromOverfetch(rows, pageSize, (r) -> Cursors.encode(r.date().toString(), r.recordId().toString()));
 	}
 
-	public AttendanceDashboard dashboard(CurrentUser user, UUID schoolId, LocalDate date, String slot, String cursor,
-			Integer limit) {
+	public AttendanceDashboard dashboard(CurrentUser user, UUID schoolId, LocalDate date, String slot, UUID subjectId,
+			String cursor, Integer limit) {
 		this.access.gate().requireVisible(user, schoolId);
 		this.access.requireFeature(schoolId);
 		boolean reader = this.access.reader(user, schoolId);
@@ -116,6 +116,9 @@ public class AttendanceViews {
 		String effectiveSlot = (slot == null || slot.isBlank()) ? slots.getFirst() : slot;
 		if (!slots.contains(effectiveSlot)) {
 			throw ApiException.badRequest("attendance.slot_not_enabled");
+		}
+		if (subjectId != null && !subjectKnown(schoolId, subjectId)) {
+			throw ApiException.badRequest("attendance.invalid_subject");
 		}
 		ZoneId zone = this.time.zoneOfSchool(schoolId);
 		LocalDate day = (date != null) ? date : this.time.today(zone);
@@ -136,7 +139,7 @@ public class AttendanceViews {
 			}
 		}
 		String inner = """
-				select c.id as class_id, c.name as class_name, lower(c.name) as sort_name,
+				select c.id as class_id, c.name as class_name, lower(c.name) as sort_name, s.subject_id, sub.name as subject_name,
 				       (select count(distinct cs.student_id) from class_students cs
 				        where cs.class_id = c.id and cs.status in ('ACTIVE', 'FORMER', 'REMOVED')
 				          and cs.joined_at < :as_end and (cs.left_at is null or cs.left_at >= :as_start)) as students,
@@ -149,10 +152,15 @@ public class AttendanceViews {
 				       count(r.id) filter (where r.status = 'LEFT_EARLY') as left_early
 				from classes c
 				left join attendance_sessions s on s.class_id = c.id and s.attendance_date = :as_date and s.slot = :as_slot
+				     and (cast(:as_subject as uuid) is null or s.subject_id = :as_subject)
+				left join subjects sub on sub.id = s.subject_id
 				left join attendance_records r on r.attendance_session_id = s.id
-				where c.school_id = :as_school and c.status <> 'ARCHIVED' and (""" + scope.sql() + """
+				where c.school_id = :as_school and c.status <> 'ARCHIVED'
+				  and (cast(:as_subject as uuid) is null
+				       or exists (select 1 from class_subjects cs where cs.class_id = c.id and cs.subject_id = :as_subject))
+				  and (""" + scope.sql() + """
 				)
-				group by c.id, c.name, s.id""";
+				group by c.id, c.name, s.id, sub.name""";
 		List<SortedClass> rows = this.jdbc.sql("select * from (" + inner + """
 				) x where (cast(:as_after_name as text) is null or (x.sort_name, x.class_id) > (cast(:as_after_name as text), cast(:as_after_id as uuid)))
 				order by x.sort_name, x.class_id limit :as_n""")
@@ -161,6 +169,7 @@ public class AttendanceViews {
 			.param("as_end", java.sql.Timestamp.from(end))
 			.param("as_date", java.sql.Date.valueOf(day))
 			.param("as_slot", effectiveSlot)
+			.param("as_subject", subjectId)
 			.param("as_school", schoolId)
 			.param("as_after_name", afterName)
 			.param("as_after_id", afterId)
@@ -169,7 +178,8 @@ public class AttendanceViews {
 				int students = rs.getInt("students");
 				int marked = rs.getInt("marked");
 				return new SortedClass(new DashboardClass(Rows.uuid(rs, "class_id"), rs.getString("class_name"), students,
-						Rows.uuid(rs, "session_id") != null, Rows.uuid(rs, "taken_by"), Rows.instant(rs, "taken_at"), marked,
+						Rows.uuid(rs, "session_id") != null, Rows.uuid(rs, "taken_by"), Rows.instant(rs, "taken_at"),
+						Rows.uuid(rs, "subject_id"), rs.getString("subject_name"), marked,
 						Math.max(0, students - marked), rs.getInt("present"), rs.getInt("absent"), rs.getInt("late"),
 						rs.getInt("excused"), rs.getInt("left_early")), rs.getString("sort_name"));
 			})
@@ -187,6 +197,7 @@ public class AttendanceViews {
 			.param("as_end", java.sql.Timestamp.from(end))
 			.param("as_date", java.sql.Date.valueOf(day))
 			.param("as_slot", effectiveSlot)
+			.param("as_subject", subjectId)
 			.param("as_school", schoolId)
 			.query((rs, i) -> {
 				int students = rs.getInt("students");
@@ -199,7 +210,15 @@ public class AttendanceViews {
 		CursorPage<DashboardClass> page = CursorPage
 			.fromOverfetch(rows, pageSize, (c) -> Cursors.encode(c.sortName(), c.view().classId().toString()))
 			.map(SortedClass::view);
-		return new AttendanceDashboard(day, effectiveSlot, slots, zone.getId(), totals, page);
+		return new AttendanceDashboard(day, effectiveSlot, slots, subjectId, zone.getId(), totals, page);
+	}
+
+	private boolean subjectKnown(UUID schoolId, UUID subjectId) {
+		return this.jdbc.sql("select exists (select 1 from subjects where id = :id and school_id = :s)")
+			.param("id", subjectId)
+			.param("s", schoolId)
+			.query(Boolean.class)
+			.single();
 	}
 
 	// --- shapes -----------------------------------------------------------------------------
@@ -211,7 +230,7 @@ public class AttendanceViews {
 
 	public record AttendanceDashboard(@NotNull LocalDate date, @NotNull String slot,
 			@Schema(description = "The slots the school enabled (attendance.slots), so clients can offer a switcher") @NotNull List<String> slots,
-			@NotNull String timeZone,
+			@Schema(description = "The subject filter that was asked for, if any") UUID subjectId, @NotNull String timeZone,
 			@Schema(description = "Over every class the caller sees, not just this page") @NotNull DashboardTotals totals,
 			@NotNull CursorPage<DashboardClass> classes) {
 	}
@@ -222,7 +241,8 @@ public class AttendanceViews {
 	}
 
 	public record DashboardClass(@NotNull UUID classId, @NotNull String className, int students, boolean taken, UUID takenBy,
-			Instant takenAt, int marked, int unmarked, int present, int absent, int late, int excused, int leftEarly) {
+			Instant takenAt, @Schema(description = "The subject the roll was taken for (a period roll), if any") UUID subjectId,
+			String subjectName, int marked, int unmarked, int present, int absent, int late, int excused, int leftEarly) {
 	}
 
 	private record SortedClass(DashboardClass view, String sortName) {

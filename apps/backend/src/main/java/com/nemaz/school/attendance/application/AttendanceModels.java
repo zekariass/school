@@ -28,7 +28,8 @@ public final class AttendanceModels {
 	public record AttendanceRollRequest(
 			@NotNull(message = "validation.required") @Schema(description = "School-local calendar date (the school's or campus's time zone), not in the future beyond a small tolerance") LocalDate date,
 			@Size(max = 3, message = "validation.invalid") @Schema(description = "DAY (default), AM, PM or P1..P8; must be one the school enabled (attendance.slots)") String slot,
-			@Schema(description = "Subject of a period roll (optional; only used when the roll is created)") UUID subjectId,
+			@Schema(description = "Subject of a period roll (P1..P8 only; one of the class's subjects). Set when the roll is created; a later request naming another subject is refused (409 attendance.subject_mismatch)") UUID subjectId,
+			@Schema(description = "Restricts this request to the members of a saved student group of the class (an elective's group): only they may be marked and markAllPresent covers only them. Not stored with the roll") UUID groupId,
 			@Schema(description = "Mark everyone without a record present (see the description above)") Boolean markAllPresent,
 			@Schema(description = "The roll's version you read (the sessionVersion): your marks for students whose record has not changed since are applied even without a per-record expectedVersion") Integer baseVersion,
 			@Size(max = 200, message = "validation.tooLong") @Schema(description = "Required to edit a locked roll (lead teacher, class manager or attendance manager); audited") String overrideReason,
@@ -81,9 +82,10 @@ public final class AttendanceModels {
 			AbsenceAnnotationView absence) {
 	}
 
-	@Schema(description = "The roll of a class for a date and slot: every student who belonged to the class that day, with the record (if any) and the absence-report annotation")
+	@Schema(description = "The roll of a class for a date and slot: every student who belonged to the class that day (or of the requested group), with the record (if any) and the absence-report annotation")
 	public record AttendanceRollView(@NotNull UUID classId, @NotNull LocalDate date, @NotNull String slot,
-			@NotNull List<String> slots, UUID sessionId,
+			@NotNull List<String> slots, UUID subjectId, String subjectName,
+			@Schema(description = "The group the roster was restricted to, if one was asked for") UUID groupId, UUID sessionId,
 			@Schema(description = "The roll's version: send it as baseVersion; null while nobody has taken the roll") Integer sessionVersion,
 			UUID takenBy, Instant takenAt,
 			@Schema(description = "True once the lock window has passed: only the lead teacher, class managers and attendance managers may edit, with a reason") boolean locked,

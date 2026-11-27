@@ -23,6 +23,8 @@ class AttendanceSettings {
 
 	static final String NOTIFY_STATUSES = "attendance.notify_guardians.statuses";
 
+	static final String STAFF_ENABLED = "attendance.staff.enabled";
+
 	static final int DEFAULT_LOCK_AFTER_HOURS = 24;
 
 	private final SettingsService settings;
@@ -43,6 +45,11 @@ class AttendanceSettings {
 
 	int lockAfterHours(UUID schoolId) {
 		return this.settings.getInt(LOCK_AFTER_HOURS, SettingScope.school(schoolId)).orElse(DEFAULT_LOCK_AFTER_HOURS);
+	}
+
+	/** Staff attendance (M7d) is off until a school switches it on. */
+	boolean staffEnabled(UUID schoolId) {
+		return this.settings.getBoolean(STAFF_ENABLED, SettingScope.school(schoolId));
 	}
 
 	/** The marks that notify guardians. */
