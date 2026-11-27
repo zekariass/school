@@ -996,18 +996,6 @@
         "title": "Delete this?",
         "body": "This cannot be undone. Its photos are deleted too."
       },
-      "report": {
-        "title": "Report this post",
-        "body": "Tell us what is wrong. Only the school's moderators see reports.",
-        "thanks": "Thank you. We will look at it.",
-        "failed": "The report could not be sent. Please try again.",
-        "reason": {
-          "INAPPROPRIATE": "Not appropriate",
-          "PRIVACY": "Shows someone who should not be shown",
-          "SPAM": "Spam",
-          "OTHER": "Something else"
-        }
-      },
       "translation": {
         "see": "See translation",
         "seeOriginal": "See the original",
@@ -1740,23 +1728,6 @@
         "legalGuardian": "legal guardian",
         "other": "family member"
       },
-      "report": {
-        "action": "Report",
-        "title": "Report this message",
-        "body": "Tell us what is wrong. Only the people at school who keep children safe see reports.",
-        "noteLabel": "Anything else we should know (optional)",
-        "send": "Send report",
-        "thanksTitle": "Thank you",
-        "thanksBody": "Your report was sent to the school.",
-        "reason": {
-          "inappropriate": "Not appropriate",
-          "bullying": "Bullying or unkindness",
-          "privacy": "Shares private information",
-          "safety": "Someone may be in danger",
-          "spam": "Unwanted message",
-          "other": "Something else"
-        }
-      },
       "scheduled": {
         "title": "Scheduled messages",
         "intro": "Messages waiting to be sent. Times are in the school's time zone. When the time comes the school checks again that you may write.",
@@ -2372,6 +2343,49 @@
         "unfeatured": "No longer featured",
         "deleted": "Deleted",
         "other": "Updated"
+      }
+    },
+    "moderation": {
+      "action": "Report",
+      "personAction": "Report a problem with this person",
+      "title": "Report a problem",
+      "intro": {
+        "post": "You are reporting this post.",
+        "comment": "You are reporting this comment.",
+        "story": "You are reporting this story.",
+        "message": "You are reporting this message.",
+        "person": "You are reporting this person."
+      },
+      "reasonLabel": "What is the problem?",
+      "reason": {
+        "harassment": "Bullying or unkind behaviour",
+        "inappropriate": "Not suitable for children",
+        "safetyConcern": "I am worried about someone's safety",
+        "privacy": "Private information is shown",
+        "spam": "Spam or unwanted advertising",
+        "other": "Something else"
+      },
+      "detailsLabel": "Tell us more (optional)",
+      "detailsHint": "Please do not write passwords, phone numbers or addresses.",
+      "detailsCount": "{count} / {max}",
+      "send": "Send report",
+      "thanksTitle": "Thank you for telling us",
+      "thanksBody": "We received your report.",
+      "offlineTitle": "No connection",
+      "offlineBody": "A report can only be sent while you are online. It is not saved on this phone.",
+      "safetyTitle": "Safety information",
+      "error": {
+        "reasonRequired": "Choose what the problem is.",
+        "detailsTooLong": "That is too long. Please use at most {max} characters.",
+        "notFound": "We could not find what you wanted to report.",
+        "rateLimited": "You have sent many reports. Please try again later.",
+        "offline": "There is no connection. Try again when you are online.",
+        "generic": "The report could not be sent. Please try again."
+      },
+      "retry": {
+        "seconds": "Try again in {value} s.",
+        "minutes": "Try again in {value} min.",
+        "hours": "Try again in {value} h."
       }
     }
   },

@@ -11,6 +11,7 @@ import { ME_KEY } from '@/lib/auth/use-me';
 import { unregisterStoredPushDevice } from '@/lib/notifications/device';
 import { endReasonFor } from '@/lib/auth/session-events';
 import { clearMessagingMemory } from '@/lib/messaging/runtime';
+import { clearModerationMemory } from '@/lib/moderation/memory';
 import { clearQueryCache } from '@/lib/query/query-client';
 import { kv, saveQuietly } from '@/lib/storage';
 import { wipeOfflineData } from '@/lib/sync/runtime';
@@ -172,10 +173,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (previewRef.current) return;
         dispatch({ type: 'signedOut', reason });
         clearMessagingMemory();
+        clearModerationMemory(queryClient);
         void clearQueryCache();
         void wipeOfflineData();
       }),
-    [],
+    [queryClient],
   );
 
   // Opened offline: renew the session as soon as the phone is online again (a revoked session ends right then).
@@ -233,8 +235,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // The outbox and the offline cache hold children's ids and marks: nothing of them outlives the session.
     // Unsent messages and everything of the messaging are memory only: they go first and synchronously.
     clearMessagingMemory();
+    clearModerationMemory(queryClient);
     await Promise.allSettled([clearTokens(), clearQueryCache(), wipeOfflineData()]);
-  }, [invalidateRestore]);
+  }, [invalidateRestore, queryClient]);
 
   const startPreview = useCallback((role: Role) => {
     if (!__DEV__) return;

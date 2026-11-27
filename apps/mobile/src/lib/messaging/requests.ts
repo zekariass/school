@@ -17,7 +17,6 @@ import type {
   MessageItem,
   MessagePage,
   MessagingCapabilities,
-  ReportReason,
   SendResult,
 } from './types';
 
@@ -161,16 +160,6 @@ export const deleteReaction = (conversationId: string, messageId: string, emoji:
     unwrap(
       await api.DELETE('/api/v1/conversations/{conversationId}/messages/{messageId}/reaction', {
         params: { path: { conversationId, messageId }, query: { emoji } },
-      }),
-    ),
-  );
-
-export const reportMessage = (conversationId: string, messageId: string, reason: ReportReason, note?: string): Promise<void> =>
-  request(async () =>
-    assertOk(
-      await api.POST('/api/v1/conversations/{conversationId}/messages/{messageId}/report', {
-        ...messagePath(conversationId, messageId),
-        body: { reason, ...(note ? { note } : {}) },
       }),
     ),
   );
