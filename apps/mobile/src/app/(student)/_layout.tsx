@@ -21,9 +21,8 @@ export default function StudentTabs() {
         <NativeTabs.Trigger.Label>{t('mobile.points.tab')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'trophy', selected: 'trophy.fill' }} md="emoji_events" />
       </NativeTabs.Trigger>
-      {/* Five tabs at most (the Android bar allows no more): the portfolio is still a placeholder, so its tab makes room for the
-          messages. The route stays, hidden, until the portfolio is built. */}
-      <NativeTabs.Trigger name="portfolio" hidden />
+      {/* Five tabs at most (the Android bar allows no more): the portfolio is not a tab but a card on the home screen that opens the
+          `portfolio` stack (the calendar does the same). */}
       <NativeTabs.Trigger name="messages">
         <NativeTabs.Trigger.Label>{t('nav.messages')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon

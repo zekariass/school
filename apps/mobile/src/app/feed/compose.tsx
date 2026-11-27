@@ -10,7 +10,7 @@ import { AttachmentRow } from '@/components/feed/attachment-row';
 import { ConfirmNoUnconsented, GatePanel } from '@/components/feed/gate-panel';
 import { SchedulePicker } from '@/components/feed/schedule-picker';
 import { StudentTagger, type StudentOption } from '@/components/feed/student-picker';
-import { usePhotoUploads } from '@/components/feed/use-photo-uploads';
+import { usePhotoUploads } from '@/components/media/use-photo-uploads';
 import { ProblemBanner } from '@/components/problem-banner';
 import { Button, EmptyState, SegmentedControl, Text, TextField } from '@/components/ui';
 import { ApiRequestError } from '@/lib/api-error';

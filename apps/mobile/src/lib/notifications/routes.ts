@@ -28,6 +28,8 @@ const UUID_ONLY = new RegExp(`^${UUID}$`);
 /** The feed (M8): a post (NEW_POST, POST_APPROVED/REJECTED, POST_PUBLISH_BLOCKED, POST_MEDIA_WITHHELD), a story, the approval queue. */
 const FEED_POST = new RegExp(`^/feed/posts/(${UUID})$`);
 const FEED_STORY = new RegExp(`^/feed/stories/(${UUID})$`);
+/** A portfolio item (PORTFOLIO_SUBMITTED, PORTFOLIO_REVIEWED, PORTFOLIO_NEW_ITEM, PORTFOLIO_COMMENT): `/portfolio/items/{id}`. */
+const PORTFOLIO_ITEM = new RegExp(`^/portfolio/items/(${UUID})$`);
 /** An announcement (ANNOUNCEMENT_PUBLISHED, ACK_REQUESTED, _UPDATED, _REMINDER, _WITHDRAWN, _PUBLISH_BLOCKED): `/announcements/{id}`. */
 const ANNOUNCEMENT = new RegExp(`^/announcements/(${UUID})$`);
 /** An event (EVENT_INVITATION, EVENT_UPDATED, EVENT_CANCELLED, UPCOMING_EVENT): `/calendar/events/{id}`. */
@@ -57,6 +59,13 @@ export function routeForPath(path: unknown, homeRoute: string | null, data?: unk
   }
   const feed = feedRoute(trimmed, homeRoute, data);
   if (feed !== undefined) return feed;
+  const item = PORTFOLIO_ITEM.exec(trimmed);
+  if (item) {
+    if (!homeRoute) return null;
+    // `data.schoolId` saves the lookup; without it the screen asks the caller's schools in turn. The item itself is checked by
+    // the API (404 for anybody who may not see it), so no id is trusted here and nothing about the item is put in the route.
+    return `/portfolio/item/${item[1]}${queryOf([['schoolId', idFrom(data, 'schoolId')]])}`;
+  }
   const announcement = ANNOUNCEMENT.exec(trimmed);
   if (announcement) {
     if (!homeRoute) return null;
