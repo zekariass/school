@@ -160,7 +160,7 @@ PR numbers refer to `github.com/zekariass/school/pull/<n>`. The order in which t
 | M9 Messaging | ✅ Done 🔧 | #42, #45, #46 | Part C: U-20; the tutor conversation type is M27 |
 | M10 School communications centre | ✅ Done 🔧 | #39, #40, #41 | Part C: U-21 (SMS adapter needs the provider) |
 | M11 Calendar & events | ✅ Done 🔧 | #44, #47, #48 | Part C: U-22, U-05 |
-| M12 Student portfolios (basic) | 🟡 Partly done | #50 (backend), M12c (mobile) | Backend and mobile done; **web (M12b) to do** (B2 step 3); part C: U-26, U-32 |
+| M12 Student portfolios (basic) | 🟡 Partly done | #50 (backend), #56 (mobile) | Backend and mobile done; **web (M12b) to do** (B2 step 3); part C: U-26, U-32 |
 | M13 Moderation, safeguarding & platform admin | 🟡 Partly done | #49 (rule book), #51 (backend) | **M13b web, M13c mobile, M13d platform administration** (B2 steps 5–6) |
 | M14 Localization, low-data & release-gate instrumentation | ⬜ To do | (catalogs exist; #18 review pack) | Whole milestone (B2 step 7) |
 | M15 Hardening & pilot launch | ⬜ To do | — | Whole milestone; needs M1.5 deployed and the pre-pilot items of part C (B2 step 9) |
