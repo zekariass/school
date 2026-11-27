@@ -5,8 +5,7 @@ import { useTranslations } from 'use-intl';
 import { problemOf } from '@/lib/api-error';
 import type { MessageAction } from '@/lib/messaging/actions';
 import { editMinutesLeft } from '@/lib/messaging/derive';
-import { REPORT_REASONS, REPORT_REASON_LABEL } from '@/lib/messaging/labels';
-import { REACTION_SET, type MessageItem, type ReportReason } from '@/lib/messaging/types';
+import { REACTION_SET, type MessageItem } from '@/lib/messaging/types';
 import { useAppTheme } from '@/lib/theme/theme-provider';
 
 import { Button, Sheet, Text, TextField } from '../ui';
@@ -16,13 +15,14 @@ export interface MessageOptionsHandlers {
   react: (emoji: string, remove: boolean) => Promise<void>;
   edit: (body: string) => Promise<void>;
   remove: () => Promise<void>;
-  report: (reason: ReportReason, note: string) => Promise<void>;
+  /** Opens the shared report sheet for this message (the options close first: the sheet is its own screen). */
+  report: () => void;
   block: () => Promise<void>;
   hide: (reason: string) => Promise<void>;
   unhide: () => Promise<void>;
 }
 
-type Mode = 'menu' | 'edit' | 'report' | 'hide';
+type Mode = 'menu' | 'edit' | 'hide';
 
 /**
  * The options of one message, as a sheet. Which actions appear comes from `messageActions` (flags the API sent); every action is
@@ -49,8 +49,6 @@ export function MessageOptions({
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [draft, setDraft] = useState(message.body ?? '');
-  const [reason, setReason] = useState<ReportReason | null>(null);
-  const [note, setNote] = useState('');
   const [hideReason, setHideReason] = useState('');
 
   async function run(work: () => Promise<void>, done: 'close' | 'stay' = 'close') {
@@ -69,7 +67,7 @@ export function MessageOptions({
 
   const has = (action: MessageAction) => actions.includes(action);
   const left = editMinutesLeft(editRemainingMs);
-  const title = mode === 'edit' ? t('mobile.messaging.edit.title') : mode === 'report' ? t('mobile.messaging.report.title') : mode === 'hide' ? t('mobile.messaging.moderation.hideTitle') : t('mobile.messaging.message.optionsTitle');
+  const title = mode === 'edit' ? t('mobile.messaging.edit.title') : mode === 'hide' ? t('mobile.messaging.moderation.hideTitle') : t('mobile.messaging.message.optionsTitle');
 
   return (
     <Sheet visible onClose={onClose} title={title}>
@@ -114,7 +112,7 @@ export function MessageOptions({
               }
             />
           ) : null}
-          {has('report') ? <Button variant="ghost" label={t('mobile.messaging.report.action')} onPress={() => setMode('report')} /> : null}
+          {has('report') ? <Button variant="ghost" label={t('mobile.moderation.action')} onPress={() => { onClose(); handlers.report(); }} /> : null}
           {has('block') ? (
             <Button
               variant="destructive"
@@ -136,28 +134,6 @@ export function MessageOptions({
         <>
           <TextField label={t('mobile.messaging.edit.label')} value={draft} onChangeText={setDraft} multiline autoFocus style={{ minHeight: 96, textAlignVertical: 'top' }} />
           <Button label={t('common.save')} loading={busy} disabled={draft.trim().length === 0 || draft.trim() === (message.body ?? '').trim()} onPress={() => void run(() => handlers.edit(draft.trim()))} />
-          <Button variant="ghost" label={t('common.cancel')} onPress={() => setMode('menu')} />
-        </>
-      ) : null}
-
-      {mode === 'report' ? (
-        <>
-          <Text tone="muted">{t('mobile.messaging.report.body')}</Text>
-          <View accessibilityRole="radiogroup" style={{ gap: spacing[2] }}>
-            {REPORT_REASONS.map((value) => (
-              <Pressable
-                key={value}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: reason === value }}
-                accessibilityLabel={t(REPORT_REASON_LABEL[value])}
-                onPress={() => setReason(value)}
-                style={{ minHeight: minTouchTarget, justifyContent: 'center', paddingHorizontal: 12, borderRadius: radii.lg, borderWidth: 1, borderColor: reason === value ? colors.primary : colors.border, backgroundColor: reason === value ? colors.accent : colors.card }}>
-                <Text variant="label">{t(REPORT_REASON_LABEL[value])}</Text>
-              </Pressable>
-            ))}
-          </View>
-          <TextField label={t('mobile.messaging.report.noteLabel')} value={note} onChangeText={setNote} multiline maxLength={500} />
-          <Button label={t('mobile.messaging.report.send')} loading={busy} disabled={!reason} onPress={() => void run(() => handlers.report(reason!, note.trim()))} />
           <Button variant="ghost" label={t('common.cancel')} onPress={() => setMode('menu')} />
         </>
       ) : null}

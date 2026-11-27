@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { assertOk, request, unwrap } from '@/lib/api-error';
 
 import { FEED_PAGE_SIZE } from './keys';
-import type { CommentPage, FeedCapabilities, PostPage, PostStatus, PostView, ReactionType, ReportReason, StoryView } from './types';
+import type { CommentPage, FeedCapabilities, PostPage, PostStatus, PostView, ReactionType, StoryView } from './types';
 
 type S = components['schemas'];
 
@@ -239,9 +239,6 @@ export const markPostSeen = (schoolId: string, postId: string): Promise<void> =>
 
 export const markStoryViewed = (schoolId: string, storyId: string): Promise<void> =>
   request(async () => assertOk(await api.POST('/api/v1/schools/{schoolId}/stories/{storyId}/view', { params: { path: { schoolId, storyId } } })));
-
-export const reportPost = (schoolId: string, postId: string, reason: ReportReason): Promise<void> =>
-  request(async () => assertOk(await api.POST('/api/v1/schools/{schoolId}/posts/{postId}/report', { params: { path: { schoolId, postId } }, body: { reason } })));
 
 export const translatePost = (schoolId: string, postId: string, language: string) =>
   request(async () =>

@@ -13,7 +13,6 @@ export type PostRights = S['PostRights'];
 export type PostStatus = PostView['status'];
 export type PostType = PostView['postType'];
 export type ReactionType = NonNullable<PostView['myReaction']>;
-export type ReportReason = S['PostReportRequest']['reason'];
 export type PublishMode = NonNullable<S['PostCreateRequest']['mode']>;
 export type PostPage = S['CursorPagePostView'];
 export type CommentPage = S['CursorPageCommentView'];

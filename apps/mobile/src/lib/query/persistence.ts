@@ -6,6 +6,7 @@ import { isPersistableFamilyQuery } from '@/lib/family/keys';
 import { isPersistableFeedQuery } from '@/lib/feed/keys';
 import { shouldPersistQuery } from '@/lib/media/url-cache';
 import { isPersistableMessagingQuery } from '@/lib/messaging/keys';
+import { isPersistableModerationQuery } from '@/lib/moderation/keys';
 import { isPersistableNotificationQuery } from '@/lib/notifications/keys';
 import { isPersistablePeopleQuery } from '@/lib/people/keys';
 import { isPersistablePointsQuery } from '@/lib/points/keys';
@@ -13,7 +14,7 @@ import { isPersistablePortfolioQuery } from '@/lib/portfolio/keys';
 
 /**
  * Whether a query with this key may be written to the persisted cache (SQLite). Signed media links, notification texts and
- * counts, student records, the guardian screens, points, attendance (staff attendance too: employees' records), the feed, the announcements, the messaging, the calendar and the portfolio all stay in memory only:
+ * counts, student records, the guardian screens, points, attendance (staff attendance too: employees' records), the feed, the announcements, the messaging, the calendar, the portfolio and reporting all stay in memory only:
  * they describe children's school life. What a teacher needs offline is stored by `lib/offline` in its own owner-scoped table.
  */
 export function isPersistableQuery(queryKey: readonly unknown[]): boolean {
@@ -29,6 +30,7 @@ export function isPersistableQuery(queryKey: readonly unknown[]): boolean {
     isPersistableAttendanceQuery(queryKey) &&
     isPersistableStaffAttendanceQuery(queryKey) &&
     isPersistableCalendarQuery(queryKey) &&
-    isPersistablePortfolioQuery(queryKey)
+    isPersistablePortfolioQuery(queryKey) &&
+    isPersistableModerationQuery(queryKey)
   );
 }

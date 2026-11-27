@@ -20,7 +20,6 @@ export type Reaction = S['ReactionView'];
 export type Attachment = S['AttachmentView'];
 
 export type GroupKind = S['CreateGroupConversationRequest']['kind'];
-export type ReportReason = S['ReportMessageRequest']['reason'];
 export type MemberRole = Participant['role'];
 export type ActingAs = Participant['actingAs'];
 export type RelationshipType = NonNullable<GuardianLabel['relationshipType']>;

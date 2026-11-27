@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslations } from 'use-intl';
 
 import { problemOf } from '@/lib/api-error';
+import { useMe } from '@/lib/auth/use-me';
 import { FEED_ROOT } from '@/lib/feed/keys';
 import { authorLabel } from '@/lib/feed/post-model';
 import { deleteStory, markStoryViewed } from '@/lib/feed/requests';
@@ -25,8 +26,10 @@ import {
 } from '@/lib/feed/story-timing';
 import type { StoryView } from '@/lib/feed/types';
 import { useClock } from '@/lib/feed/use-clock';
+import { canReportStory } from '@/lib/moderation/visibility';
 import { useReduceMotion } from '@/lib/use-reduce-motion';
 
+import { ReportSheet } from '../moderation/report-sheet';
 import { Text } from '../ui';
 
 import { FeedImage } from './feed-image';
@@ -54,6 +57,9 @@ export function StoryViewer({ stories: all, startIndex, onClose }: { stories: re
   const clock = useClock();
   const [screenReader, setScreenReader] = useState(false);
   const [removed, setRemoved] = useState<ReadonlySet<string>>(new Set());
+  // The story being reported (its id only). The story waits while the sheet is open.
+  const [reporting, setReporting] = useState<string | null>(null);
+  const viewerId = useMe().data?.id;
   // The list is fixed when the viewer opens (what was live then and not deleted since).
   const [now] = useState(() => Date.now());
   const stories = useMemo(() => liveStories(all, now).filter((story) => !removed.has(story.id)), [all, now, removed]);
@@ -217,6 +223,17 @@ export function StoryViewer({ stories: all, startIndex, onClose }: { stories: re
                 {typeof story.seenCount === 'number' ? ` · ${t('mobile.feed.seenCount', { count: story.seenCount })}` : ''}
               </Text>
             </View>
+            {canReportStory(story, viewerId) ? (
+              <RoundButton
+                label={t('mobile.moderation.action')}
+                ios="flag"
+                android="flag"
+                onPress={() => {
+                  setPlayer((state) => setPaused(state, true));
+                  setReporting(story.id);
+                }}
+              />
+            ) : null}
             {story.canDelete ? <RoundButton label={t('mobile.feed.menu.delete')} ios="trash" android="delete" onPress={confirmDelete} /> : null}
             <RoundButton label={t('mobile.feed.close')} ios="xmark" android="close" onPress={onClose} />
           </View>
@@ -246,6 +263,13 @@ export function StoryViewer({ stories: all, startIndex, onClose }: { stories: re
             <RoundButton label={t('mobile.feed.story.next')} ios="chevron.right" android="chevron_right" onPress={goNext} />
           </View>
         </View>
+        <ReportSheet
+          target={reporting ? { type: 'STORY', id: reporting, schoolId: story.schoolId } : null}
+          onClose={() => {
+            setReporting(null);
+            setPlayer((state) => setPaused(state, false));
+          }}
+        />
       </View>
     </Modal>
   );
