@@ -3,8 +3,8 @@
 import { BanIcon, EyeOffIcon, FlagIcon, LanguagesIcon, MoreVerticalIcon, PencilIcon, ReplyIcon, SmilePlusIcon, Trash2Icon, UserRoundXIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { toast } from "sonner";
 import { MediaImage } from "@/components/media/media-image";
+import { ReportDialog } from "@/components/moderation/report-dialog";
 import { ConfirmDialog } from "@/components/school/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -15,7 +15,7 @@ import { charCount, messageSegments, previewLine } from "@/lib/messaging/text";
 import { isSystem, isTombstone } from "@/lib/messaging/thread";
 import { REACTIONS, type Capabilities, type Message } from "@/lib/messaging/types";
 import { cn } from "@/lib/utils";
-import { ReasonDialog, ReportDialog } from "./message-dialogs";
+import { ReasonDialog } from "./message-dialogs";
 import { usePersonText } from "./person-name";
 import { useMessageActions } from "./use-message-actions";
 import type { MessageTime } from "./message-list";
@@ -260,27 +260,7 @@ export function MessageBubble({ conversationId, message, replyTarget, showSender
         </p>
       ) : null}
 
-      {dialog === "report" ? (
-        <ReportDialog
-          pending={actions.report.isPending}
-          error={actions.report.error}
-          onClose={() => {
-            actions.report.reset();
-            setDialog(null);
-          }}
-          onSubmit={(reason, note) =>
-            actions.report.mutate(
-              { messageId: message.id, reason, note },
-              {
-                onSuccess: () => {
-                  setDialog(null);
-                  toast.success(t("report.sent"));
-                },
-              },
-            )
-          }
-        />
-      ) : null}
+      {dialog === "report" ? <ReportDialog target={{ type: "MESSAGE", id: message.id }} onClose={() => setDialog(null)} /> : null}
       {dialog === "block" ? (
         <ConfirmDialog
           title={t("block.title")}

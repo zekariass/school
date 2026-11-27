@@ -1,4 +1,5 @@
 import { GROUPS_PATH, conversationIdFromPath } from '@/lib/messaging/notifications';
+import { isModerationPath } from '@/lib/moderation/notifications';
 
 /**
  * Where a notification's `data.path` may take the user. The server sends relative in-app
@@ -48,6 +49,8 @@ export function routeForPath(path: unknown, homeRoute: string | null, data?: unk
   if (/[\u0000-\u001f\u007f]/.test(path)) return null;
   const clean = path.split(/[?#]/)[0] ?? '';
   const trimmed = clean.length > 1 ? clean.replace(/\/+$/, '') : clean;
+  // Moderation and safeguarding (the alerts of moderators and leads) are web screens: the phone has none, so it stays put.
+  if (isModerationPath(trimmed)) return null;
   const absences = CLASS_ABSENCES.exec(trimmed);
   if (absences) return homeRoute?.startsWith('/(teacher)/') ? `/class/${absences[1]}/absences` : homeRoute;
   if (trimmed === '/children' && homeRoute?.startsWith('/(guardian)/')) {

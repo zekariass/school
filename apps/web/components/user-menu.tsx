@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClockIcon, ChevronDownIcon, LogOutIcon, UserRoundIcon, UserRoundPenIcon } from "lucide-react";
+import { CalendarClockIcon, ChevronDownIcon, LifeBuoyIcon, LogOutIcon, UserRoundIcon, UserRoundPenIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,12 @@ export function UserMenu({ name, detail }: { name: string; detail?: string }) {
           <Link href="/account">
             <UserRoundPenIcon className="size-4" aria-hidden />
             {tAccount("link")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="min-h-10 gap-2 rounded-lg">
+          <Link href="/safety" data-testid="safety-link">
+            <LifeBuoyIcon className="size-4" aria-hidden />
+            {tNav("safety")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem

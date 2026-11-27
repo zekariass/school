@@ -54,9 +54,11 @@ export interface PostMenu {
   unhide: boolean;
   remove: boolean;
   report: boolean;
+  /** Report the author as a person: only when the API named them (`author.userId`), and never one's own post. */
+  reportAuthor: boolean;
 }
 
-export function postMenu(post: Pick<Post, "status" | "pinned" | "rights" | "contribution">): PostMenu {
+export function postMenu(post: Pick<Post, "status" | "pinned" | "rights" | "contribution"> & { author?: { userId?: string | null } }): PostMenu {
   const r = post.rights;
   const published = post.status === "PUBLISHED";
   return {
@@ -71,6 +73,7 @@ export function postMenu(post: Pick<Post, "status" | "pinned" | "rights" | "cont
     unhide: !!r.canModerate && post.status === "HIDDEN",
     remove: !!r.canDelete,
     report: published && !r.canEdit && !r.canModerate,
+    reportAuthor: published && !r.canEdit && !r.canModerate && !!post.author?.userId,
   };
 }
 

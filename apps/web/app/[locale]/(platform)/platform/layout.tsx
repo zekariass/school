@@ -28,6 +28,7 @@ async function PlatformGate({ children }: { children: React.ReactNode }) {
       <PlatformShell
         user={{ name: me.displayName, detail: roles.join(", ") || undefined }}
         permissions={[...permissionsOf(me)].sort()}
+        userId={me.id}
         skipLabel={t("skipToContent")}
       >
         {children}

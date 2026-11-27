@@ -9,6 +9,7 @@ import { Button, EmptyState, Text } from '@/components/ui';
 import { useFormatInstant } from '@/lib/calendar/use-format-instant';
 import type { InboxItem } from '@/lib/notifications/events';
 import { useInbox, useInboxActions, useUnreadCount } from '@/lib/notifications/queries';
+import { isReportNotification } from '@/lib/moderation/notifications';
 import { routeForPath } from '@/lib/notifications/routes';
 import { homeRouteFor } from '@/lib/session/roles';
 import { useSession } from '@/lib/session/session-provider';
@@ -27,6 +28,8 @@ export default function NotificationsScreen() {
 
   function open(item: InboxItem) {
     if (!item.readAt) markRead.mutate(item.id);
+    // A reporter's thank-you and "reviewed" notices are generic and open nothing: there is no case screen for a reporter.
+    if (isReportNotification(item.typeCode)) return;
     const target = routeForPath(item.data?.path, activeRole ? homeRouteFor(activeRole) : null, {
       ...item.data,
       ...(item.schoolId ? { schoolId: item.schoolId } : {}),

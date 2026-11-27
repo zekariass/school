@@ -1,15 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
 import { Avatar } from '@/components/avatar';
+import { ReportSheet } from '@/components/moderation/report-sheet';
 import { CaptureForStudentButton } from '@/components/portfolio/class-actions';
 import { ProblemBanner } from '@/components/problem-banner';
 import { Button, Card, EmptyState, Screen, Text } from '@/components/ui';
 import { api } from '@/lib/api';
 import { ApiRequestError, assertOk, request } from '@/lib/api-error';
+import { useMe } from '@/lib/auth/use-me';
 import { useFormatCivilDate } from '@/lib/calendar/use-format-instant';
+import { canReportPerson } from '@/lib/moderation/visibility';
 import { canEditRoster, moveTargets } from '@/lib/people/classes';
 import { invalidateRoster, useMyClass, useMyClasses, useRoster, useStudent } from '@/lib/people/queries';
 import { canSeePrivateFields } from '@/lib/people/roster';
@@ -28,6 +32,8 @@ export default function StudentProfile() {
   const student = useStudent(cls?.schoolId, studentId, full);
   const formatDate = useFormatCivilDate();
   const queryClient = useQueryClient();
+  const viewerId = useMe().data?.id;
+  const [reporting, setReporting] = useState(false);
 
   const editable = canEditRoster(cls);
   const targets = cls ? moveTargets(mine.data ?? [], cls) : [];
@@ -136,6 +142,10 @@ export default function StudentProfile() {
 
       <CaptureForStudentButton schoolId={cls.schoolId} classId={cls.id} studentId={entry.id} />
 
+      {canReportPerson(entry.id, viewerId) ? (
+        <Button variant="ghost" label={t('mobile.moderation.personAction')} onPress={() => setReporting(true)} />
+      ) : null}
+
       {editable ? (
         <View style={{ gap: spacing[3] }}>
           <Button
@@ -162,6 +172,7 @@ export default function StudentProfile() {
           <Button variant="destructive" label={t('mobile.classes.student.remove')} loading={remove.isPending} onPress={confirmRemove} />
         </View>
       ) : null}
+      <ReportSheet target={reporting ? { type: 'USER', id: entry.id, schoolId: cls.schoolId } : null} onClose={() => setReporting(false)} />
     </Screen>
   );
 }

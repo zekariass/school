@@ -1,11 +1,12 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronLeftIcon, ChevronRightIcon, EyeIcon, PauseIcon, PlayIcon, Trash2Icon, XIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, EyeIcon, FlagIcon, PauseIcon, PlayIcon, Trash2Icon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { MediaImage } from "@/components/media/media-image";
+import { ReportDialog } from "@/components/moderation/report-dialog";
 import { ConfirmDialog } from "@/components/school/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/lib/console/errors";
@@ -54,6 +55,7 @@ export function StoryViewer({ stories, startAt, onClose }: { stories: readonly S
   const [paused, setPaused] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [removing, setRemoving] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
   const reduced = usePrefersReducedMotion();
   const root = useRef<HTMLDivElement>(null);
@@ -100,7 +102,7 @@ export function StoryViewer({ stories, startAt, onClose }: { stories: readonly S
   }, [storyId, storySchool, alreadyViewed, queryClient]);
 
   // The clock for the bars; the story moves on when its time is up (never with "reduce motion", or while paused).
-  const running = !paused && !reduced && !removing && !!story;
+  const running = !paused && !reduced && !removing && !reporting && !!story;
   useEffect(() => {
     if (!running || duration <= 0) return;
     let frame = 0;
@@ -152,7 +154,7 @@ export function StoryViewer({ stories, startAt, onClose }: { stories: readonly S
       className="fixed inset-0 z-40 flex flex-col bg-foreground text-background outline-none"
       data-testid="story-viewer"
       onKeyDown={(event) => {
-        if (removing) return;
+        if (removing || reporting) return;
         if (event.key === "Escape") onClose();
         else if (event.key === "ArrowRight") {
           if (document.dir === "rtl") go(stepBack(index));
@@ -190,6 +192,11 @@ export function StoryViewer({ stories, startAt, onClose }: { stories: readonly S
           {!reduced ? (
             <Button type="button" variant="ghost" size="icon" className="text-background hover:bg-background/20 hover:text-background" aria-label={paused ? t("play") : t("pause")} onClick={() => setPaused((value) => !value)}>
               {paused ? <PlayIcon aria-hidden /> : <PauseIcon aria-hidden />}
+            </Button>
+          ) : null}
+          {!story.canDelete ? (
+            <Button type="button" variant="ghost" size="icon" className="text-background hover:bg-background/20 hover:text-background" aria-label={t("report")} onClick={() => setReporting(true)} data-testid="story-report">
+              <FlagIcon aria-hidden />
             </Button>
           ) : null}
           {story.canDelete ? (
@@ -251,6 +258,7 @@ export function StoryViewer({ stories, startAt, onClose }: { stories: readonly S
           </div>
         </footer>
       </div>
+      {reporting ? <ReportDialog target={{ type: "STORY", id: story.id }} onClose={() => setReporting(false)} /> : null}
       {removing ? (
         <ConfirmDialog
           title={t("deleteTitle")}

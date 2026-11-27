@@ -8,6 +8,7 @@
     ".": "./src/index.ts",
     "./guardians": "./src/guardians.ts",
     "./family": "./src/family.ts",
+    "./login-code": "./src/login-code.ts",
     "./country": "./src/country.ts"
   },
   "scripts": {

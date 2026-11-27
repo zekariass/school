@@ -1,3 +1,5 @@
+import { canReportPost } from '@/lib/moderation/visibility';
+
 import type { FeedAuthor, PostView } from './types';
 
 /**
@@ -57,7 +59,7 @@ export function overflowActions(post: Pick<PostView, 'rights' | 'status' | 'pinn
   if (rights.canDelete && status === 'PUBLISHED') actions.push('archive');
   if (rights.canModerate && status === 'PUBLISHED') actions.push('hide');
   if (rights.canModerate && status === 'HIDDEN') actions.push('unhide');
-  if (status === 'PUBLISHED' && !rights.canEdit) actions.push('report');
+  if (canReportPost(post)) actions.push('report');
   if (rights.canDelete) actions.push('delete');
   return actions;
 }
