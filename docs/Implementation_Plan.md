@@ -268,6 +268,7 @@ Each item has an id, the milestone it comes from, what to change, and **when** i
 |---|---|---|---|
 | U-07 | `subscriptions` (Java enums `SubscriberType`, `PlanAudience`; `TUTOR_PRO` plan) | **Keep.** Used by M27 (listing subscription). Only check that nothing else assumes tutor bookings | Before M27 |
 | U-31 | `media` (`V2_01`, `V13_02`, `MediaPurpose`, `PurposeRules`), `consent_records.scope_ref_type` (`V5_02`) | Remove the media purposes `COURSE`, `RECORDING` and `TRANSCRIPT` and the consent scope values `TUTORING_RELATIONSHIP`, `COURSE` and `VIDEO_ROOM` (same guarded pattern as `V14_01`: refuse if rows carry them). Found during the C1 cleanup; not in its original list | Later (with the next migration that touches media or consent) |
+| U-35 | Backend tests (found in CI of #55) | **Flaky tests** caused by background deliveries in the shared test context: `EventLifecycleTest.ordinaryEventsDoNotPushWhenCreatedUnlessTheSchoolAsksFor` deletes `notifications` while `NotificationFanout` is still inserting deliveries for them (deadlock, and FK errors that leave event publications incomplete forever). Fix: wait for the test's own publications before deleting, or delete by id after deliveries completed. `NoTextLeakTest` was fixed in #55 to wait only for its own publications; any other test that waits for *all* incomplete publications has the same weakness | Now (CI reliability) |
 
 ### C2. Pre-pilot items (block M15)
 
