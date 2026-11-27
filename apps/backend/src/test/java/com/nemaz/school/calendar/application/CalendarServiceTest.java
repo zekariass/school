@@ -23,8 +23,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The union over the {@link CalendarSource} SPI with fake sources: this is how assignments, live sessions and tutoring
- * sessions will plug in later, with no change to the calendar module.
+ * The union over the {@link CalendarSource} SPI with fake sources: this is how assignment due dates (M17) and the published
+ * timetable (M37) will plug in later, with no change to the calendar module.
  */
 class CalendarServiceTest {
 

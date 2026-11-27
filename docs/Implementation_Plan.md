@@ -195,7 +195,7 @@ PR numbers refer to `github.com/zekariass/school/pull/<n>`. The order in which t
 | M38 Timetable generator | ⏸ Deferred | — | Owner decision (D40) |
 | M43 School AI assistant | ⏸ Deferred | — | Owner decision (D34) |
 | M23, M24, M28, M30, M32, M33, M34, M36 | ✖ Removed | — | Do not build (D32–D34, D39) |
-| **Scope-revision cleanup of built code** | 🔧 Needs update | — | Part C: U-01 to U-07 (one small PR) |
+| **Scope-revision cleanup of built code** | ✅ Done | #55 | U-01 to U-06 done (`V14_01__scope_cleanup.sql`); U-07 stays in part C1 (keep, check before M27) |
 
 
 ## B2. Recommended order of the remaining work
@@ -205,7 +205,7 @@ Work through the steps in order. A step may start when its **"Starts when"** con
 | # | Step | Why here | Starts when | Done when | Model |
 |---|---|---|---|---|---|
 | 0 | **Merge the open documentation PRs** (#53 consistency fixes, #54 this plan) | Every later step reads these documents | Now | Both merged | — |
-| 1 | **Scope-revision cleanup** (part C1: U-01 to U-06), one small backend PR | Removes the unused values of the old scope (feature flags, moderation targets, event scope, consent types) before new migrations build on them; the smallest possible change, a good first task | Step 0 | CI green, part C1 rows removed | Sonnet medium |
+| 1 | **Scope-revision cleanup** (part C1: U-01 to U-06), one small backend PR | Removes the unused values of the old scope (feature flags, moderation targets, event scope, consent types) before new migrations build on them; the smallest possible change, a good first task | Step 0 | ✅ Done: CI green, part C1 rows U-01 to U-06 removed (U-07 stays) | Sonnet medium |
 | 2 | **M7d** Per-period attendance, staff attendance, reports | Schools use attendance every day; it builds directly on the finished M7 and needs no owner decision | Step 1 merged (to avoid migration clashes) | Exit criteria of M7d | Sonnet high |
 | 3 ‖ | **M12b + M12c** Portfolio web and mobile | The backend (M12a) is finished and waiting; frontend-only work, so it runs beside the backend work of steps 2 and 4 | Step 0 | Exit criteria of M12b and M12c | Sonnet high |
 | 4 | **M7e** QR check-in | Needs M7d's staff attendance records; the credentials need a careful review | Step 2 merged | Exit criteria of M7e | Sonnet high, lead review |
@@ -266,13 +266,9 @@ Each item has an id, the milestone it comes from, what to change, and **when** i
 
 | Id | Where | Change | When |
 |---|---|---|---|
-| U-01 | `R__20_definitions.sql`, `R__30_subscription_plans.sql`, tests | Remove the unused feature flags `courses`, `marketplace`, `tutoring`, `ai_copilot`, `ai_student_tutor` and their plan entitlements (including the `ai_copilot` credit limit of `SCHOOL_PREMIUM`). A repeatable seed cannot delete by itself: add an explicit `delete from plan_entitlements …; delete from feature_overrides …; delete from feature_definitions where key in (…)` at the top of the repeatable file (or a versioned migration). Add `tutor_directory` and `school_fees` when M25 and M31a start, not now | Now |
-| U-02 | New migration on `moderation_cases` and `content_reports`, `moderation.TargetTypes` | Remove the target types `COURSE`, `TUTOR_REVIEW`, `AI_OUTPUT` from the check constraint (`V13_01`) and from the Java list; keep `TUTOR_PROFILE` (used by M27) | Now |
-| U-03 | New migration on `events` | Remove `COURSE` from the `scope_type` check (`V11_01`) and drop `course_id` if it exists | Now |
-| U-04 | `policy_documents`, `consent_records` checks (`V5_02`), `R__60` | Remove `RECORDING` and `TRANSCRIPTION` from the policy and consent types (nothing records). Keep `AI_PROCESSING` (reserved for the deferred assistant). Do not add `LOCATION_CHECKIN` (D38) or `TRANSFER_RECORDS` (D39) | Now |
-| U-05 | `calendar/CalendarSource.java`, `calendar/package-info.java` | Comments name "live sessions, tutoring sessions" as future sources; replace with "assignment due dates (M17) and the published timetable (M37)" | Now |
-| U-06 | `system/openapi/OpenApiConfig.java` | API description says "school, family, learning and tutoring platform"; change to "school, family and tutor-directory platform" (then export the spec and run codegen) | Now |
 | U-07 | `subscriptions` (Java enums `SubscriberType`, `PlanAudience`; `TUTOR_PRO` plan) | **Keep.** Used by M27 (listing subscription). Only check that nothing else assumes tutor bookings | Before M27 |
+| U-31 | `media` (`V2_01`, `V13_02`, `MediaPurpose`, `PurposeRules`), `consent_records.scope_ref_type` (`V5_02`) | Remove the media purposes `COURSE`, `RECORDING` and `TRANSCRIPT` and the consent scope values `TUTORING_RELATIONSHIP`, `COURSE` and `VIDEO_ROOM` (same guarded pattern as `V14_01`: refuse if rows carry them). Found during the C1 cleanup; not in its original list | Later (with the next migration that touches media or consent) |
+| U-35 | Backend tests (found in CI of #55) | **Flaky tests** caused by background deliveries in the shared test context: `EventLifecycleTest.ordinaryEventsDoNotPushWhenCreatedUnlessTheSchoolAsksFor` deletes `notifications` while `NotificationFanout` is still inserting deliveries for them (deadlock, and FK errors that leave event publications incomplete forever). Fix: wait for the test's own publications before deleting, or delete by id after deliveries completed. `NoTextLeakTest` was fixed in #55 to wait only for its own publications; any other test that waits for *all* incomplete publications has the same weakness | Now (CI reliability) |
 
 ### C2. Pre-pilot items (block M15)
 
@@ -1697,7 +1693,9 @@ Scope: Spec §105, §106. Tables: DB §4.20, §4.26.
 | Double-entry ledger, financial periods, manual journals, trial balance (old M31a and M31d scope) | **Removed** | D15, D37 |
 | M43 School AI assistant | **Deferred**: no milestone scheduled. The design is in `Database_Design.md` §4.37 and `Education_Platform.md` §134.9. **Before it can start:** the owner decides to build it; an AI platform (gateway, prompt templates, usage quotas, benchmark sets, enablement and kill switch) is designed and built first; the legal position on sending children's records to a model provider is settled; the `AI_PROCESSING` consent type is put in use; and the injection and cross-user disclosure test suites are written. It stays read-only, runs as the signed-in user and keeps no copy of children's records | D34 |
 
-**Cleanup of what is already built (for the owner to schedule):** the seeded feature flags `courses`, `marketplace`, `tutoring`, `ai_copilot` and `ai_student_tutor` in `R__20_definitions.sql` are unused and a small migration removes them (adding `tutor_directory` and `school_fees`); the policy types `RECORDING` and `TRANSCRIPTION` in the consent schema, the `COURSE` scope in the built `events` check, and the moderation target types `COURSE`, `TUTOR_REVIEW` and `AI_OUTPUT` in `V13_01` are unused; the calendar comments that mention live and tutoring sessions should name the timetable instead; `SubscriberType.TUTOR` and the `TUTOR_PRO` plan are kept and used by M27. No application code was changed by this plan update.
+**Cleanup of what is already built:** done by the scope-revision cleanup (`V14_01__scope_cleanup.sql`, U-01 to U-06); the remaining unused values are U-31, and `SubscriberType.TUTOR` with the `TUTOR_PRO` plan are kept for M27 (U-07).
+
+**As built: scope-revision cleanup (27 November 2026, `V14_01__scope_cleanup.sql`).** Removed: the feature flags `courses`, `marketplace`, `tutoring`, `ai_copilot` and `ai_student_tutor` (definitions in `R__20`, plan entitlements and the `SCHOOL_PREMIUM` `ai_copilot` credit limit in `R__30`; the migration also deletes the existing `plan_entitlements`, `feature_overrides` and `feature_definitions` rows, in that order); the moderation target types `COURSE`, `TUTOR_REVIEW` and `AI_OUTPUT` (check on `moderation_cases`, `moderation.TargetTypes`, the OpenAPI enum of the report request; `TUTOR_PROFILE` stays); the `COURSE` value of `events.scope_type` and the column `events.course_id`; the policy and consent types `RECORDING` and `TRANSCRIPTION` (checks on `policy_documents` and `consent_records`; `AI_PROCESSING` stays). The migration refuses to run, naming the table, if a row still holds a removed value (nothing is deleted silently). The calendar comments now name assignment due dates (M17) and the published timetable (M37), and the API description reads "school, family and tutor-directory platform". `tutor_directory` and `school_fees` flags are added by M25 and M31a. Left alone on purpose: the media purposes `COURSE`, `RECORDING` and `TRANSCRIPT` (`V2_01`, `V13_02`, `MediaPurpose`) and the consent `scope_ref_type` values `TUTORING_RELATIONSHIP`, `COURSE`, `VIDEO_ROOM` (`V5_02`), which the plan did not list.
 
 ---
 

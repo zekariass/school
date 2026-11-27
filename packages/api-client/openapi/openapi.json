@@ -1,7 +1,7 @@
 {
   "openapi" : "3.1.0",
   "info" : {
-    "description" : "Multi-tenant school, family, learning and tutoring platform API. Errors are RFC 9457 problem details (application/problem+json) with a stable `code`.",
+    "description" : "Multi-tenant school, family and tutor-directory platform API. Errors are RFC 9457 problem details (application/problem+json) with a stable `code`.",
     "title" : "School API",
     "version" : "v1"
   },
@@ -26118,7 +26118,7 @@
           },
           "targetType" : {
             "type" : "string",
-            "enum" : [ "POST", "POST_COMMENT", "STORY", "MESSAGE", "USER", "PORTFOLIO_ITEM", "TUTOR_PROFILE", "COURSE", "TUTOR_REVIEW", "LIBRARY_RESOURCE", "MEDIA", "AI_OUTPUT" ],
+            "enum" : [ "POST", "POST_COMMENT", "STORY", "MESSAGE", "USER", "PORTFOLIO_ITEM", "TUTOR_PROFILE", "LIBRARY_RESOURCE", "MEDIA" ],
             "minLength" : 1
           }
         },

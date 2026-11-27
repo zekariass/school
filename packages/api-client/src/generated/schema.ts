@@ -8016,7 +8016,7 @@ export interface components {
             /** Format: uuid */
             targetId: string;
             /** @enum {string} */
-            targetType: "POST" | "POST_COMMENT" | "STORY" | "MESSAGE" | "USER" | "PORTFOLIO_ITEM" | "TUTOR_PROFILE" | "COURSE" | "TUTOR_REVIEW" | "LIBRARY_RESOURCE" | "MEDIA" | "AI_OUTPUT";
+            targetType: "POST" | "POST_COMMENT" | "STORY" | "MESSAGE" | "USER" | "PORTFOLIO_ITEM" | "TUTOR_PROFILE" | "LIBRARY_RESOURCE" | "MEDIA";
         };
         ModerationReviewContent: {
             items?: components["schemas"]["ModerationReviewItem"][];
