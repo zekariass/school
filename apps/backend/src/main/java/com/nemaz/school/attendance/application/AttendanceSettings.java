@@ -25,7 +25,19 @@ class AttendanceSettings {
 
 	static final String STAFF_ENABLED = "attendance.staff.enabled";
 
+	static final String METHODS_ENABLED = "attendance.methods.enabled";
+
+	static final String QR_ROTATION_SECONDS = "attendance.qr.rotation_seconds";
+
+	static final String STAFF_LATE_AFTER_MINUTES = "attendance.staff.late_after_minutes";
+
+	static final String METHOD_QR_ROTATING = "QR_ROTATING";
+
+	static final String METHOD_QR_STATIC = "QR_STATIC";
+
 	static final int DEFAULT_LOCK_AFTER_HOURS = 24;
+
+	static final int DEFAULT_ROTATION_SECONDS = 30;
 
 	private final SettingsService settings;
 
@@ -50,6 +62,25 @@ class AttendanceSettings {
 	/** Staff attendance (M7d) is off until a school switches it on. */
 	boolean staffEnabled(UUID schoolId) {
 		return this.settings.getBoolean(STAFF_ENABLED, SettingScope.school(schoolId));
+	}
+
+	/** The methods the school turned on besides manual marking (which is always available): QR_ROTATING and QR_STATIC. */
+	Set<String> methods(UUID schoolId) {
+		return Set.copyOf(this.settings.getStringList(METHODS_ENABLED, SettingScope.school(schoolId)));
+	}
+
+	boolean methodEnabled(UUID schoolId, String method) {
+		return methods(schoolId).contains(method);
+	}
+
+	/** Seconds a rotating code stays the same (new sessions snapshot it). */
+	int rotationSeconds(UUID schoolId) {
+		return this.settings.getInt(QR_ROTATION_SECONDS, SettingScope.school(schoolId)).orElse(DEFAULT_ROTATION_SECONDS);
+	}
+
+	/** Minutes after a staff session opened from which a check-in is LATE; 0: nobody is late. */
+	int staffLateAfterMinutes(UUID schoolId) {
+		return this.settings.getInt(STAFF_LATE_AFTER_MINUTES, SettingScope.school(schoolId)).orElse(0);
 	}
 
 	/** The marks that notify guardians. */

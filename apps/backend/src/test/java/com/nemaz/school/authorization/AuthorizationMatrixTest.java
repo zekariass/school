@@ -665,6 +665,7 @@ class AuthorizationMatrixTest {
 		cases.addAll(pointsCases());
 		cases.addAll(attendanceCases());
 		cases.addAll(staffAttendanceCases());
+		cases.addAll(attendanceCheckinCases());
 		cases.addAll(feedCases());
 		cases.addAll(announcementCases());
 		cases.addAll(messagingCases());
@@ -1275,6 +1276,194 @@ class AuthorizationMatrixTest {
 			cases.add(school("GET staff attendance " + report.substring(9), HttpMethod.GET, (f) -> staffBase(f) + report, null, 200,
 					managers, members));
 		}
+		return cases;
+	}
+
+	// ---- attendance QR check-in (M7e) ---------------------------------------------------------------------
+
+	private UUID lastQrSession;
+
+	/** The QR methods on for school A (the afterEach clears the settings) and staff attendance on. */
+	private void qrOn(Fixture f) {
+		this.settingsService.set("attendance.methods.enabled", com.nemaz.school.tenancy.SettingScope.school(f.schoolA()),
+				this.json.valueToTree(List.of("MANUAL", "QR_ROTATING", "QR_STATIC")), this.personas.platformAdmin().userId());
+		this.settingsService.set("attendance.staff.enabled", com.nemaz.school.tenancy.SettingScope.school(f.schoolA()),
+				this.json.valueToTree(true), this.personas.platformAdmin().userId());
+	}
+
+	/** A student of a fresh class that TEACHER_LEAD_A leads (fixtures; the API paths are tested in the attendance package). */
+	private UUID cardStudent(Fixture f) {
+		UUID classId = freshClass(f);
+		UUID student = this.personas.newStudent(f.schoolA(), "matrix-card");
+		this.personas.addStudentToClass(f.schoolA(), classId, student);
+		return student;
+	}
+
+	private void liveCredential(Fixture f, UUID student, UUID staff) {
+		this.jdbc.update("""
+				insert into attendance_credentials (id, school_id, student_id, staff_id, token_hash, key_id, issued_by, issued_at, expires_at)
+				values (?, ?, ?, ?, ?, 't1', ?, now(), now() + interval '30 days')""", Ids.newId(), f.schoolA(), student, staff,
+				"matrix" + Ids.newId(), userOf(SCHOOL_ADMIN_A));
+	}
+
+	private UUID freshStaff(Fixture f) {
+		UUID teacher = this.personas.newTeacher(f.schoolA(), "matrix-staff");
+		return this.jdbc.queryForObject("select id from school_staff where user_id = ?", UUID.class, teacher);
+	}
+
+	/** An OPEN rotating session of the class (or, without a class, of the staff of school A), valid now. */
+	private UUID qrSession(Fixture f, UUID classId) {
+		UUID id = Ids.newId();
+		this.jdbc.update("""
+				insert into attendance_qr_sessions (id, school_id, subject_kind, class_id, attendance_date, slot, opened_by, opens_at,
+				                                    closes_at, rotation_s)
+				values (?, ?, ?, ?, ?, ?, ?, now() - interval '1 minute', now() + interval '1 hour', 30)""", id, f.schoolA(),
+				(classId != null) ? "STUDENT" : "STAFF", classId, java.sql.Date.valueOf(matrixToday()), (classId != null) ? "DAY" : null,
+				userOf((classId != null) ? TEACHER_LEAD_A : SCHOOL_ADMIN_A));
+		this.lastQrSession = id;
+		return id;
+	}
+
+	/** A session of a fresh class with an accepted check-in of student A1 (a mark that nobody has changed). */
+	private String qrEntry(Fixture f) {
+		UUID classId = freshClass(f);
+		UUID session = qrSession(f, classId);
+		UUID roll = Ids.newId();
+		UUID checkin = Ids.newId();
+		this.jdbc.update("""
+				insert into attendance_sessions (id, school_id, class_id, attendance_date, slot, taken_by, taken_at)
+				values (?, ?, ?, ?, 'DAY', ?, now())""", roll, f.schoolA(), classId, java.sql.Date.valueOf(matrixToday()), userOf(TEACHER_LEAD_A));
+		this.jdbc.update("""
+				insert into attendance_checkins (id, school_id, subject_type, student_id, class_id, attendance_date, slot, attendance_session_id,
+				                                 method, scanner_user_id, qr_session_id, result, marked_status, checked_in_at)
+				values (?, ?, 'STUDENT', ?, ?, ?, 'DAY', ?, 'QR_ROTATING', ?, ?, 'ACCEPTED', 'PRESENT', now())""", checkin, f.schoolA(),
+				userOf(STUDENT_A1), classId, java.sql.Date.valueOf(matrixToday()), roll, userOf(STUDENT_A1), session);
+		this.jdbc.update("""
+				insert into attendance_records (id, attendance_session_id, school_id, class_id, attendance_date, student_id, status, recorded_by,
+				                                recorded_at, source, checkin_id)
+				values (?, ?, ?, ?, ?, ?, 'PRESENT', ?, now(), 'QR_ROTATING', ?)""", Ids.newId(), roll, f.schoolA(), classId,
+				java.sql.Date.valueOf(matrixToday()), userOf(STUDENT_A1), userOf(STUDENT_A1), checkin);
+		return SCHOOLS + f.schoolA() + "/attendance/qr-sessions/" + session + "/check-ins/" + checkin;
+	}
+
+	private static String currentQrCode(UUID session) {
+		return com.nemaz.school.attendance.QrTestSupport.code(session, java.time.Instant.now().getEpochSecond() / 30);
+	}
+
+	List<Case> attendanceCheckinCases() {
+		List<Case> cases = new ArrayList<>();
+		String schools = SCHOOLS;
+		Name[] managers = SCHOOL_A_MANAGERS;
+		Name[] classTeachers = { TEACHER_LEAD_A, TEACHER_SUBJECT_A };
+		Name[] classBystanders = { STUDENT_A1, GUARDIAN_A1 };
+		Name[] visitingOrMember = concat(SCHOOL_A_VISITING_ADMINS, SCHOOL_A_MEMBERS);
+		Name[] everyoneWhoSeesTheSchool = concat(managers, visitingOrMember);
+
+		// --- which methods are on: every member of the school; guardians and outsiders are not told
+		cases.add(school("GET attendance methods", HttpMethod.GET, (f) -> schools + f.schoolA() + "/attendance/methods", null, 200,
+				everyoneWhoSeesTheSchool));
+
+		// --- student credentials: the credential managers and the LEAD of the student's class; every other member 403, before anything is said about the student
+		Name[] cardIssuers = concat(managers, new Name[] { TEACHER_LEAD_A });
+		Name[] cardRefused = concat(SCHOOL_A_VISITING_ADMINS, new Name[] { TEACHER_SUBJECT_A, TEACHER_OTHER_A }, SCHOOL_A_STUDENTS);
+		cases.add(school("POST issue student attendance credential", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/students/" + cardStudent(f) + "/attendance-credentials", null, 201, cardIssuers, cardRefused));
+		cases.add(school("POST reissue student attendance credential", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/students/" + cardStudent(f) + "/attendance-credentials/reissue", null, 201, cardIssuers,
+				cardRefused));
+		cases.add(school("POST revoke student attendance credential", HttpMethod.POST, (f) -> {
+			UUID student = cardStudent(f);
+			liveCredential(f, student, null);
+			return schools + f.schoolA() + "/students/" + student + "/attendance-credentials/revoke";
+		}, (f) -> Map.of("reason", "LOST"), 200, cardIssuers, cardRefused));
+		cases.add(school("GET student attendance credentials", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/students/" + cardStudent(f) + "/attendance-credentials", null, 200, cardIssuers, cardRefused));
+
+		// --- staff credentials: the credential managers only
+		Name[] staffCardRefused = visitingOrMember;
+		cases.add(school("POST issue staff attendance credential", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/staff/" + freshStaff(f) + "/attendance-credentials", null, 201, managers, staffCardRefused));
+		cases.add(school("POST reissue staff attendance credential", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/staff/" + freshStaff(f) + "/attendance-credentials/reissue", null, 201, managers, staffCardRefused));
+		cases.add(school("POST revoke staff attendance credential", HttpMethod.POST, (f) -> {
+			UUID staff = freshStaff(f);
+			liveCredential(f, null, staff);
+			return schools + f.schoolA() + "/staff/" + staff + "/attendance-credentials/revoke";
+		}, (f) -> Map.of("reason", "LOST"), 200, managers, staffCardRefused));
+		cases.add(school("GET staff attendance credentials", HttpMethod.GET,
+				(f) -> schools + f.schoolA() + "/staff/" + freshStaff(f) + "/attendance-credentials", null, 200, managers, staffCardRefused));
+
+		// --- the class sheet and the school's list
+		cases.add(school("POST class attendance credential sheet", HttpMethod.POST,
+				(f) -> schools + f.schoolA() + "/classes/" + freshClass(f) + "/attendance-credentials", null, 200, cardIssuers,
+				new Name[] { TEACHER_SUBJECT_A, STUDENT_A1, GUARDIAN_A1 }));
+		cases.add(school("GET school attendance credentials", HttpMethod.GET, (f) -> schools + f.schoolA() + "/attendance/credentials", null, 200,
+				managers, visitingOrMember));
+
+		// --- a class's rotating code: the people who take the roll (the guardian is no member of the school: 404)
+		cases.add(school("POST open class QR session", HttpMethod.POST, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/classes/" + freshClass(f) + "/attendance/qr-sessions";
+		}, (f) -> Map.of(), 201, concat(managers, classTeachers), classBystanders));
+		Name[] runners = concat(managers, classTeachers);
+		cases.add(school("GET class QR session", HttpMethod.GET, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/attendance/qr-sessions/" + qrSession(f, freshClass(f));
+		}, null, 200, runners, new Name[] { STUDENT_A1 }));
+		cases.add(school("GET class QR session codes", HttpMethod.GET, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/attendance/qr-sessions/" + qrSession(f, freshClass(f)) + "/codes";
+		}, null, 200, runners, new Name[] { STUDENT_A1 }));
+		cases.add(school("POST close class QR session", HttpMethod.POST, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/attendance/qr-sessions/" + qrSession(f, freshClass(f)) + "/close";
+		}, null, 200, runners, new Name[] { STUDENT_A1 }));
+		cases.add(school("DELETE class QR check-in", HttpMethod.DELETE, (f) -> {
+			qrOn(f);
+			return qrEntry(f);
+		}, null, 200, runners, new Name[] { STUDENT_A1 }));
+
+		// --- the student's own check-in: students of the class get in (200), other students of the school are logged as not enrolled (409), everybody else is refused
+		cases.add(new Case("POST check in to a class QR session", HttpMethod.POST, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/attendance/qr-sessions/" + qrSession(f, freshClass(f)) + "/check-ins";
+		}, (f) -> Map.of("code", currentQrCode(this.lastQrSession)),
+				merge(allow(200, STUDENT_A1), allow(409, STUDENT_A2, STUDENT_FORMER_A),
+						allow(403, concat(managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_TEACHERS))),
+				404));
+
+		// --- the teacher scans a card: the people who take the roll (an unknown card is answered 409 REJECTED_INVALID)
+		cases.add(school("POST scan a student card", HttpMethod.POST, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/classes/" + freshClass(f) + "/attendance/scans";
+		}, (f) -> Map.of("token", "AAAAAAAAAAAAAAAAAAAAAA"), 409, concat(managers, classTeachers), classBystanders));
+
+		// --- staff: the managers run the code and scan the cards; every staff member checks in
+		cases.add(school("POST open staff QR session", HttpMethod.POST, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/staff-attendance/qr-sessions";
+		}, (f) -> Map.of(), 201, managers, visitingOrMember));
+		cases.add(school("GET staff QR session", HttpMethod.GET, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/attendance/qr-sessions/" + qrSession(f, null);
+		}, null, 200, managers, visitingOrMember));
+		cases.add(school("GET staff QR session codes", HttpMethod.GET, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/attendance/qr-sessions/" + qrSession(f, null) + "/codes";
+		}, null, 200, managers, visitingOrMember));
+		cases.add(school("POST close staff QR session", HttpMethod.POST, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/attendance/qr-sessions/" + qrSession(f, null) + "/close";
+		}, null, 200, managers, visitingOrMember));
+		cases.add(school("POST scan a staff card", HttpMethod.POST, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/staff-attendance/scans";
+		}, (f) -> Map.of("token", "AAAAAAAAAAAAAAAAAAAAAA"), 409, managers, visitingOrMember));
+		cases.add(new Case("POST check in to a staff QR session", HttpMethod.POST, (f) -> {
+			qrOn(f);
+			return schools + f.schoolA() + "/attendance/qr-sessions/" + qrSession(f, null) + "/check-ins";
+		}, (f) -> Map.of("code", currentQrCode(this.lastQrSession)),
+				merge(allow(200, SCHOOL_A_TEACHERS), allow(403, concat(managers, SCHOOL_A_VISITING_ADMINS, SCHOOL_A_STUDENTS))), 404));
 		return cases;
 	}
 

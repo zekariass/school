@@ -12,7 +12,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.nemaz.school.attendance.AttendanceStatus;
 import com.nemaz.school.attendance.StaffAttendanceStatus;
+import com.nemaz.school.attendance.application.CheckinLedger.Attempt;
+import com.nemaz.school.attendance.application.CheckinModels.CheckinResultCode;
 import com.nemaz.school.attendance.application.StaffAttendanceModels.StaffCorrectionRequest;
 import com.nemaz.school.attendance.application.StaffAttendanceModels.StaffCorrectionView;
 import com.nemaz.school.attendance.application.StaffAttendanceModels.StaffDayEntry;
@@ -33,6 +36,7 @@ import com.nemaz.school.common.pagination.Cursors;
 import com.nemaz.school.common.persistence.Rows;
 import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.common.security.Permissions;
+import com.nemaz.school.common.tx.AdvisoryLocks;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
@@ -80,7 +84,11 @@ public class StaffAttendanceService {
 
 	private final AuditLog audit;
 
-	StaffAttendanceService(AttendanceAccess access, AttendanceSettings settings, SchoolTime time, JdbcClient jdbc, AuditLog audit) {
+	private final CheckinLedger ledger;
+
+	StaffAttendanceService(AttendanceAccess access, AttendanceSettings settings, SchoolTime time, JdbcClient jdbc, AuditLog audit,
+			CheckinLedger ledger) {
+		this.ledger = ledger;
 		this.access = access;
 		this.settings = settings;
 		this.time = time;
@@ -279,6 +287,109 @@ public class StaffAttendanceService {
 				.metadata("markedRestPresent", rest));
 		}
 		return new StaffDayResult(date, created, existing, outcomes);
+	}
+
+	// --- check-ins (M7e) --------------------------------------------------------------------
+
+	/** What a staff check-in asks of the day's record; {@code status} is PRESENT or LATE. */
+	record StaffCheckin(Attempt attempt, StaffAttendanceStatus status, Integer minutesLate) {
+	}
+
+	record StaffCheckinOutcome(CheckinResultCode result, UUID checkinId, StaffRecordView record) {
+
+		boolean accepted() {
+			return this.result == CheckinResultCode.ACCEPTED;
+		}
+
+	}
+
+	/**
+	 * The only way a QR scan reaches {@code staff_attendance_records}, under the rules of manual marking: one record per
+	 * staff member and school-local day (their campus's zone, else the school's), <b>never overwritten</b> (a stored record
+	 * that holds the same status is REJECTED_DUPLICATE, a different one REJECTED_CONFLICT: a change is a manager's correction),
+	 * only PRESENT or LATE, only for the staff member's current day (REJECTED_WINDOW), only for an ACTIVE staff member
+	 * (REJECTED_NOT_ENROLLED). The caller has checked the credential or the code and the scanner's right; the ledger row is
+	 * appended in every case, the record only when ACCEPTED. The switches (feature, {@code attendance.staff.enabled}) are
+	 * the caller's: {@link #requireCheckinOn}.
+	 */
+	StaffCheckinOutcome recordFromCheckin(StaffCheckin c) {
+		Attempt attempt = c.attempt();
+		UUID schoolId = attempt.schoolId();
+		UUID staffId = attempt.personId();
+		if (c.status() != StaffAttendanceStatus.PRESENT && c.status() != StaffAttendanceStatus.LATE) {
+			throw ApiException.badRequest("attendance.checkin_status_invalid");
+		}
+		checkMinutes(c.status(), c.minutesLate());
+		StaffRow staff = staffRows(schoolId, Set.of(staffId)).get(staffId);
+		if (staff == null || !staff.active()) {
+			return refuse(attempt, CheckinResultCode.REJECTED_NOT_ENROLLED, null);
+		}
+		ZoneId zone = this.time.zoneOf(schoolId, staff.campusId());
+		LocalDate date = attempt.date();
+		if (!date.equals(this.time.today(zone))) {
+			return refuse(attempt, CheckinResultCode.REJECTED_WINDOW, null);
+		}
+		AdvisoryLocks.acquire(this.jdbc, "staff-attendance:" + staffId + ":" + date);
+		StaffRecordView existing = this.jdbc.sql(RECORD_SELECT + " where r.staff_id = :staff and r.attendance_date = :date")
+			.param("staff", staffId)
+			.param("date", java.sql.Date.valueOf(date))
+			.query(StaffAttendanceService::view)
+			.optional()
+			.orElse(null);
+		if (existing != null) {
+			boolean same = existing.status() == c.status() && java.util.Objects.equals(existing.minutesLate(), c.minutesLate());
+			return refuse(attempt, same ? CheckinResultCode.REJECTED_DUPLICATE : CheckinResultCode.REJECTED_CONFLICT, existing);
+		}
+		Timestamp now = Timestamp.from(this.time.now());
+		this.ledger.append(attempt, CheckinResultCode.ACCEPTED, AttendanceStatus.valueOf(c.status().name()), c.minutesLate());
+		int inserted = this.jdbc.sql("""
+				insert into staff_attendance_records (id, school_id, campus_id, staff_id, attendance_date, status, minutes_late,
+				                                      check_in_at, method, checkin_id, recorded_by, created_at, updated_at)
+				values (:id, :school, :campus, :staff, :date, :status, :minutes, :now, :method, :checkin, :by, :now, :now)
+				on conflict (staff_id, attendance_date) do nothing""")
+			.param("id", Ids.newId())
+			.param("school", schoolId)
+			.param("campus", staff.campusId())
+			.param("staff", staffId)
+			.param("date", java.sql.Date.valueOf(date))
+			.param("status", c.status().name())
+			.param("minutes", c.minutesLate())
+			.param("now", now)
+			.param("method", attempt.method())
+			.param("checkin", attempt.id())
+			.param("by", attempt.scannerUserId())
+			.update();
+		if (inserted == 0) {
+			// a manual mark of the same day slipped in between: nothing is written (this rolls the ledger row back too)
+			throw ApiException.conflict("attendance.checkin_conflict");
+		}
+		return new StaffCheckinOutcome(CheckinResultCode.ACCEPTED, attempt.id(), recordOf(staffId, date));
+	}
+
+	private StaffCheckinOutcome refuse(Attempt attempt, CheckinResultCode result, StaffRecordView existing) {
+		this.ledger.append(attempt, result, null, null);
+		return new StaffCheckinOutcome(result, attempt.id(), existing);
+	}
+
+	/** A manager takes a check-in's record off the day, while it is exactly what the check-in wrote (version 0: no correction). */
+	boolean removeCheckinRecord(UUID checkinId) {
+		return this.jdbc.sql("delete from staff_attendance_records where checkin_id = :c and version = 0")
+			.param("c", checkinId)
+			.update() > 0;
+	}
+
+	/** The switches of staff check-in: the feature {@code attendance} and the setting {@code attendance.staff.enabled}. */
+	void requireCheckinOn(UUID schoolId) {
+		requireOn(schoolId);
+	}
+
+	/** The caller's ACTIVE staff row of the school (a rotating check-in is the staff member's own); empty for nobody else. */
+	java.util.Optional<UUID> activeStaffIdOf(UUID schoolId, UUID userId) {
+		return this.jdbc.sql("select id from school_staff where school_id = :s and user_id = :u and status = 'ACTIVE' order by id limit 1")
+			.param("s", schoolId)
+			.param("u", userId)
+			.query(UUID.class)
+			.optional();
 	}
 
 	// --- corrections ------------------------------------------------------------------------

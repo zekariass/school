@@ -8336,6 +8336,80 @@
         "tags" : [ "announcements" ]
       }
     },
+    "/api/v1/schools/{schoolId}/attendance/credentials" : {
+      "get" : {
+        "operationId" : "listAttendanceCredentials",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "kind",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "state",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "suspectedCopy",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageAttendanceCredentialView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The school's credentials, newest first, keyset paged: kind (STUDENT, STAFF), state (LIVE, EXPIRED, REVOKED) and suspectedCopy=true (live credentials that two scanners read within a minute: the SUSPECTED_COPY alert; revoke them with the reason SUSPECTED_COPY). Never the QR. school.attendance.credentials.manage only",
+        "tags" : [ "attendance-credentials" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/attendance/dashboard" : {
       "get" : {
         "operationId" : "getAttendanceDashboard",
@@ -8410,6 +8484,44 @@
         },
         "summary" : "The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot (with subjectId: only the classes that have the subject and only rolls taken for it), students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403",
         "tags" : [ "attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/methods" : {
+      "get" : {
+        "operationId" : "getAttendanceCheckinMethods",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CheckinMethods"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "How attendance is taken at the school: the QR methods that are on (QR_ROTATING, QR_STATIC; manual marking is always available), the rotation of the code and the staff late threshold. Any member who can see the school; 403 attendance.feature_disabled when attendance is off",
+        "tags" : [ "attendance-checkin" ]
       }
     },
     "/api/v1/schools/{schoolId}/attendance/period-report" : {
@@ -8579,6 +8691,254 @@
         },
         "summary" : "The per-period summary as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized. Audited (attendance.period_report.export), rate limited with the other attendance exports (10 per 10 minutes, 429 attendance.export_rate_limited), at most 50000 rows",
         "tags" : [ "attendance-reports" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}" : {
+      "get" : {
+        "operationId" : "getAttendanceQrSession",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "sessionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QrSessionDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A rotating code session with its live list (who checked in, oldest first; removed entries are marked). The people who run it: those who may take the roll, or the staff attendance managers for a staff code; 404 for anybody else",
+        "tags" : [ "attendance-checkin" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}/check-ins" : {
+      "post" : {
+        "operationId" : "checkInToAttendanceQrSession",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "sessionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QrCheckinRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CheckinResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A student's (class code) or staff member's (staff code) own check-in with the code shown on the teacher's or manager's screen (the part after the dot of the payload). The caller is the authenticated person, never anonymous: an ACTIVE student of the school for a class code, an ACTIVE staff member for a staff code (403 attendance.checkin_not_allowed for anybody else, a guardian included). 200 with result ACCEPTED (PRESENT, or LATE after the session's threshold); 409 with the same body when it was refused and logged: REJECTED_EXPIRED (wrong, replayed or older than the previous window), REJECTED_NOT_ENROLLED (not in the class on that date), REJECTED_WINDOW (session closed, not open yet, another day, or the roll locked), REJECTED_DUPLICATE (one accepted check-in per person per session), REJECTED_CONFLICT (the roll already holds a different mark: nothing is overwritten). 404 for a session of another school or an unknown one; 429 attendance.checkin_rate_limited (per person and per session). The school must be ACTIVE and the method on",
+        "tags" : [ "attendance-checkin" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}/check-ins/{checkinId}" : {
+      "delete" : {
+        "operationId" : "removeAttendanceQrCheckin",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "sessionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "checkinId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QrSessionDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Takes one accepted check-in off the roll (or the staff day) while nobody has changed its mark since (409 attendance.checkin_changed otherwise); the removal is appended and audited and the person cannot check in again to this session (mark them by hand). 404 attendance.checkin_not_found for an entry that is not an accepted one of this session or was already removed. The people who run the session",
+        "tags" : [ "attendance-checkin" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}/close" : {
+      "post" : {
+        "operationId" : "closeAttendanceQrSession",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "sessionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QrSessionView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Closes the session (idempotent): its codes stop working at once. The people who run it; audited",
+        "tags" : [ "attendance-checkin" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}/codes" : {
+      "get" : {
+        "operationId" : "getAttendanceQrSessionCodes",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "sessionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QrCodes"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The codes of the current window and of the windows ahead (about ten minutes, never past the end of the session), so the teacher's display keeps rotating without a connection; each carries the payload to show as a QR (the session id, a dot and the code). A code is accepted in its own window and the next. Never cached (Cache-Control: no-store). 409 attendance.qr_session_closed once the session was closed or ran out. The people who run the session",
+        "tags" : [ "attendance-checkin" ]
       }
     },
     "/api/v1/schools/{schoolId}/attendance/report" : {
@@ -9429,6 +9789,173 @@
         },
         "summary" : "Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, a subject that is not one of the class's (400 attendance.invalid_subject) or is given for a slot that is not a period (400 attendance.subject_requires_period) or differs from the roll's own (409 attendance.subject_mismatch), a group that is not the class's (400 attendance.invalid_group), a student outside the group (409 attendance.student_not_in_group), locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage",
         "tags" : [ "attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/attendance-credentials" : {
+      "post" : {
+        "operationId" : "issueClassAttendanceCredentials",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CredentialSheetRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CredentialSheet"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Credentials for the cards of a class (printing is the web's job): every ACTIVE student of the class (studentIds narrows it) without a live credential gets one; with replaceExisting the others get a new one and the old is revoked as REPLACED; without it they are listed as skipped (ALREADY_ISSUED). Every qrPayload is in this answer ONLY (Cache-Control: no-store). 409 attendance.student_not_in_class for a listed student who is not ACTIVE in the class. The class's LEAD teacher, class managers and school.attendance.credentials.manage; 403 for the class's other teachers, 404 for people who cannot see the class",
+        "tags" : [ "attendance-credentials" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/attendance/qr-sessions" : {
+      "post" : {
+        "operationId" : "openClassAttendanceQrSession",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OpenClassQrSessionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QrSessionView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Opens a rotating code for today's roll (school-local date) of the class and a slot: the code changes every attendance.qr.rotation_seconds and lives durationMinutes (default 15, at most 120); lateAfterMinutes makes later check-ins LATE. Opening one closes the class's other open codes for that roll. Needs the school ACTIVE (403 attendance.school_not_active), the method QR_ROTATING on (403 attendance.method_disabled), a roll that has not locked (409 attendance.session_locked), 400 for a slot the school does not use, a bad subject or duration. The people who may take the roll (the class's teachers, class managers, school.attendance.manage); audited",
+        "tags" : [ "attendance-checkin" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/classes/{classId}/attendance/scans" : {
+      "post" : {
+        "operationId" : "scanAttendanceCredential",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "classId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StaticScanRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CheckinResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A teacher scans a student's card (the bare token of its QR) for a class roll: PRESENT or LATE only (status), for the school-local date (default today) and slot, through the roll's own rules. 200 ACCEPTED; 409 with the same body when refused: REJECTED_REVOKED (a card of this school that was revoked: logged with the scanner), REJECTED_NOT_ENROLLED, REJECTED_WINDOW (date not started or roll locked: a scan has no override), REJECTED_DUPLICATE, REJECTED_CONFLICT (a different mark is stored; current shows it, nothing was overwritten), REJECTED_INVALID (unknown, malformed, expired, another school's or a staff card: one answer for all, nothing about the card is said). The answer names the scanned student by first name and avatar only. clientOpId makes a retry answer the first outcome. Offline scans use the sync operation ATTENDANCE_CHECKIN. The people who may take the roll; 429 attendance.scan_rate_limited",
+        "tags" : [ "attendance-checkin" ]
       }
     },
     "/api/v1/schools/{schoolId}/classes/{classId}/consent-summary" : {
@@ -16943,6 +17470,54 @@
         "tags" : [ "staff-attendance" ]
       }
     },
+    "/api/v1/schools/{schoolId}/staff-attendance/qr-sessions" : {
+      "post" : {
+        "operationId" : "openStaffAttendanceQrSession",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OpenStaffQrSessionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QrSessionView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Opens a rotating code for today's staff of a campus (campusId; omit for the whole school): durationMinutes default 60 (at most 480), lateAfterMinutes default the school's attendance.staff.late_after_minutes (0: nobody late). Staff scan it with their own app. school.staff_attendance.manage, staff attendance on, the school ACTIVE, the method QR_ROTATING on",
+        "tags" : [ "attendance-checkin" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/staff-attendance/records" : {
       "get" : {
         "operationId" : "listStaffAttendance",
@@ -17335,6 +17910,54 @@
         "tags" : [ "staff-attendance" ]
       }
     },
+    "/api/v1/schools/{schoolId}/staff-attendance/scans" : {
+      "post" : {
+        "operationId" : "scanStaffAttendanceCredential",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StaffScanRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CheckinResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A manager scans a staff member's card for today (staff attendance rules: one record per day, never overwritten, PRESENT only). Same answers as the student scan; first name and avatar only. Online only. school.staff_attendance.manage, staff attendance on, the school ACTIVE, the method QR_STATIC on",
+        "tags" : [ "attendance-checkin" ]
+      }
+    },
     "/api/v1/schools/{schoolId}/staff/{staffId}" : {
       "get" : {
         "operationId" : "getStaff",
@@ -17433,6 +18056,219 @@
         },
         "summary" : "Change job title, campus or employee number (absent fields stay)",
         "tags" : [ "staff" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff/{staffId}/attendance-credentials" : {
+      "get" : {
+        "operationId" : "listStaffAttendanceCredentials",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "staffId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AttendanceCredentialView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "A staff member's credentials, newest first (at most 20), never the QR. school.attendance.credentials.manage only",
+        "tags" : [ "attendance-credentials" ]
+      },
+      "post" : {
+        "operationId" : "issueStaffAttendanceCredential",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "staffId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IssueCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IssuedAttendanceCredential"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Issues an attendance credential for a staff member (school_staff id): same rules and answer as for a student (qrPayload once, no-store). 409 staff_attendance.staff_not_active for staff who are not ACTIVE. school.attendance.credentials.manage only",
+        "tags" : [ "attendance-credentials" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff/{staffId}/attendance-credentials/reissue" : {
+      "post" : {
+        "operationId" : "reissueStaffAttendanceCredential",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "staffId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ReissueCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IssuedAttendanceCredential"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Replaces a staff member's live credential (see the student call). school.attendance.credentials.manage only",
+        "tags" : [ "attendance-credentials" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/staff/{staffId}/attendance-credentials/revoke" : {
+      "post" : {
+        "operationId" : "revokeStaffAttendanceCredential",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "staffId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RevokeCredentialRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AttendanceCredentialView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Revokes a staff member's live credential with a reason. school.attendance.credentials.manage only",
+        "tags" : [ "attendance-credentials" ]
       }
     },
     "/api/v1/schools/{schoolId}/staff/{staffId}/deactivate" : {
@@ -18126,6 +18962,219 @@
         },
         "summary" : "A student's attendance history, newest first, keyset paged, optionally by class and school-local date range. The student and their ACTIVE guardians with can_view_academics see status, lateness, date and class (no teacher note); teachers see the classes they teach (with notes); school.attendance.read sees everything. 403 for others who can see the student, 404 for the rest",
         "tags" : [ "attendance" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/attendance-credentials" : {
+      "get" : {
+        "operationId" : "listStudentAttendanceCredentials",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AttendanceCredentialView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "The student's credentials, newest first (at most 20): when issued, by whom, expiry, revocation, last use and the SUSPECTED_COPY flag. Never the QR. Same access as issuing; guardians and students never see them",
+        "tags" : [ "attendance-credentials" ]
+      },
+      "post" : {
+        "operationId" : "issueStudentAttendanceCredential",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IssueCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IssuedAttendanceCredential"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Issues the student's attendance credential (the QR of a card; 128 random bits, never the login code, never personal data). qrPayload is the bare token: it is in this answer ONLY (Cache-Control: no-store; only its keyed hash is stored) and can never be read again. 409 attendance.credential_exists while the student has a live credential (reissue instead), 409 attendance.credential_person_not_active for a student who is not ACTIVE, 400 attendance.credential_invalid_ttl. school.attendance.credentials.manage, or the LEAD teacher / class manager of a class the student is in; 403 for everybody else (before anything is said about the student), 404 for people who cannot see the school. Audited without the token",
+        "tags" : [ "attendance-credentials" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/attendance-credentials/reissue" : {
+      "post" : {
+        "operationId" : "reissueStudentAttendanceCredential",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ReissueCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IssuedAttendanceCredential"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Replaces the student's live credential: it is revoked with the reason (LOST, REPLACED by default, SUSPECTED_COPY, OTHER) and a new one is issued in the same transaction (qrPayload once, no-store). Same access as issuing",
+        "tags" : [ "attendance-credentials" ]
+      }
+    },
+    "/api/v1/schools/{schoolId}/students/{studentId}/attendance-credentials/revoke" : {
+      "post" : {
+        "operationId" : "revokeStudentAttendanceCredential",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "schoolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "studentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RevokeCredentialRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AttendanceCredentialView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "default" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Error (RFC 9457 problem details)"
+          }
+        },
+        "summary" : "Revokes the student's live credential with a reason (LOST, REPLACED, LEFT_SCHOOL, SUSPECTED_COPY, OTHER): its next scan is refused (REJECTED_REVOKED) and logged with the scanner. 404 attendance.credential_not_found when there is none. Same access as issuing",
+        "tags" : [ "attendance-credentials" ]
       }
     },
     "/api/v1/schools/{schoolId}/students/{studentId}/badges" : {
@@ -20438,6 +21487,66 @@
           }
         }
       },
+      "AttendanceCredentialView" : {
+        "type" : "object",
+        "description" : "The state of a credential: LIVE (not revoked, not expired), EXPIRED or REVOKED. Never the QR itself",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "issuedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "issuedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lastUsedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "revokedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "revokedReason" : {
+            "type" : "string"
+          },
+          "staffId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The school_staff id (STAFF)"
+          },
+          "state" : {
+            "type" : "string",
+            "description" : "LIVE, EXPIRED or REVOKED"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The student's user id (STUDENT)"
+          },
+          "subjectKind" : {
+            "type" : "string",
+            "description" : "STUDENT or STAFF"
+          },
+          "suspectedCopyAt" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "Set when two scanners read this credential within a minute: a sign that a copy is in use. The school decides (revoke it with SUSPECTED_COPY); a scan is not refused because of it"
+          }
+        },
+        "required" : [ "displayName", "expiresAt", "id", "issuedAt", "issuedBy", "state", "subjectKind" ]
+      },
       "AttendanceDashboard" : {
         "type" : "object",
         "properties" : {
@@ -22018,6 +23127,65 @@
         },
         "required" : [ "channel", "enabled", "locked" ]
       },
+      "CheckinMethods" : {
+        "type" : "object",
+        "description" : "How attendance is taken at this school: the QR methods that are on (manual marking is always available) and the rotation of the code",
+        "properties" : {
+          "methods" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "rotationSeconds" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "staffAttendanceEnabled" : {
+            "type" : "boolean"
+          },
+          "staffLateAfterMinutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "methods" ]
+      },
+      "CheckinResult" : {
+        "type" : "object",
+        "description" : "The answer of a check-in. 200 with result ACCEPTED; 409 with the same body for every refusal that was logged (and for REJECTED_INVALID, which is not). code and detail are the stable error code and its localized sentence. person: first name and avatar of a scanned card (never for a student's own check-in). current: the roll's stored mark when the scan was refused as a duplicate or a conflict (scans by teachers only)",
+        "properties" : {
+          "checkinId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "current" : {
+            "$ref" : "#/components/schemas/AttendanceRecordView"
+          },
+          "detail" : {
+            "type" : "string"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "person" : {
+            "$ref" : "#/components/schemas/ScannedPerson"
+          },
+          "result" : {
+            "type" : "string",
+            "enum" : [ "ACCEPTED", "REJECTED_EXPIRED", "REJECTED_NOT_ENROLLED", "REJECTED_DUPLICATE", "REJECTED_REVOKED", "REJECTED_WINDOW", "REJECTED_CONFLICT", "REJECTED_INVALID" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "EXCUSED", "LEFT_EARLY" ]
+          }
+        },
+        "required" : [ "result" ]
+      },
       "Child" : {
         "type" : "object",
         "properties" : {
@@ -23489,6 +24657,90 @@
         },
         "required" : [ "displayName", "id" ]
       },
+      "CredentialSheet" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CredentialSheetItem"
+            }
+          },
+          "skipped" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CredentialSheetSkip"
+            }
+          }
+        },
+        "required" : [ "items", "skipped" ]
+      },
+      "CredentialSheetItem" : {
+        "type" : "object",
+        "description" : "One printable card of a sheet: first name for the label, the QR payload (shown once)",
+        "properties" : {
+          "credentialId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "issuedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "qrPayload" : {
+            "type" : "string"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "credentialId", "displayName", "expiresAt", "issuedAt", "qrPayload", "studentId" ]
+      },
+      "CredentialSheetRequest" : {
+        "type" : "object",
+        "description" : "Credentials for a class sheet: students of the class (studentIds narrows it) who have no live credential get one; with replaceExisting the others get a new one too (the old is revoked as REPLACED)",
+        "properties" : {
+          "replaceExisting" : {
+            "type" : "boolean"
+          },
+          "studentIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "maxItems" : 500,
+            "minItems" : 0
+          },
+          "ttlDays" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Days the credentials stay valid, 1 to 1095 (default 365)"
+          }
+        }
+      },
+      "CredentialSheetSkip" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "description" : "ALREADY_ISSUED: the student has a live credential and replaceExisting was not set"
+          },
+          "studentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "reason", "studentId" ]
+      },
       "CurrencyResponse" : {
         "type" : "object",
         "properties" : {
@@ -23563,6 +24815,22 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/AnnouncementRecipientView"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string",
+            "description" : "Opaque cursor of the next page; absent on the last page"
+          }
+        },
+        "required" : [ "items" ]
+      },
+      "CursorPageAttendanceCredentialView" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AttendanceCredentialView"
             }
           },
           "nextCursor" : {
@@ -25221,6 +26489,17 @@
           }
         }
       },
+      "IssueCredentialRequest" : {
+        "type" : "object",
+        "description" : "Issue a credential (a card QR) for one person. ttlDays: days it stays valid (1 to 1095, default 365)",
+        "properties" : {
+          "ttlDays" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Days the credential stays valid, 1 to 1095 (default 365)"
+          }
+        }
+      },
       "IssueParentCodesRequest" : {
         "type" : "object",
         "properties" : {
@@ -25234,6 +26513,19 @@
             "minItems" : 0
           }
         }
+      },
+      "IssuedAttendanceCredential" : {
+        "type" : "object",
+        "description" : "A new credential. qrPayload is the bare token to print as a QR code: it is shown ONCE, here, and can never be read again (only its keyed hash is stored)",
+        "properties" : {
+          "credential" : {
+            "$ref" : "#/components/schemas/AttendanceCredentialView"
+          },
+          "qrPayload" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "credential", "qrPayload" ]
       },
       "IssuedCode" : {
         "type" : "object",
@@ -26497,6 +27789,54 @@
           }
         },
         "required" : [ "days", "end", "start", "timeZone" ]
+      },
+      "OpenClassQrSessionRequest" : {
+        "type" : "object",
+        "description" : "Open a rotating code for the roll of today (school-local date) and a slot. Opening one closes the class's other open codes for that roll",
+        "properties" : {
+          "durationMinutes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Minutes the code can be used, 1 to 120 (default 15)"
+          },
+          "lateAfterMinutes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "A check-in more than this many minutes after the code was opened is LATE (0 to 600); omit for nobody late"
+          },
+          "slot" : {
+            "type" : "string",
+            "description" : "DAY (default), AM, PM or P1..P8; one the school enabled",
+            "maxLength" : 3,
+            "minLength" : 0
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Period rolls only (P1..P8): the class's subject the roll is created with, like the roll of the online endpoint"
+          }
+        }
+      },
+      "OpenStaffQrSessionRequest" : {
+        "type" : "object",
+        "description" : "Open a rotating code for the staff of a campus (or the whole school) for today (school-local date)",
+        "properties" : {
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The campus whose staff may scan; omit for the whole school"
+          },
+          "durationMinutes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Minutes the code can be used, 1 to 480 (default 60)"
+          },
+          "lateAfterMinutes" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "A check-in more than this many minutes after the code was opened is LATE (0 to 600); default the school's attendance.staff.late_after_minutes (0: nobody late)"
+          }
+        }
       },
       "OrganizationResponse" : {
         "type" : "object",
@@ -28052,6 +29392,180 @@
         },
         "required" : [ "key", "scope", "value" ]
       },
+      "QrCheckinRequest" : {
+        "type" : "object",
+        "description" : "A student's (or staff member's) own check-in: the code from the QR on the teacher's (manager's) screen, the part after the dot of the payload",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 8
+          }
+        },
+        "required" : [ "code" ]
+      },
+      "QrCode" : {
+        "type" : "object",
+        "description" : "The code of one window. payload is what the QR shows: the session id, a dot and the code",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "endsAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "payload" : {
+            "type" : "string"
+          },
+          "startsAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "code", "endsAt", "payload", "startsAt" ]
+      },
+      "QrCodes" : {
+        "type" : "object",
+        "description" : "The codes of the current window and the windows ahead (about ten minutes), so the display keeps rotating without a connection. A code is accepted during its own window and the next one",
+        "properties" : {
+          "codes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QrCode"
+            }
+          },
+          "rotationSeconds" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "serverTime" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "sessionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "codes", "serverTime", "sessionId" ]
+      },
+      "QrSessionDetail" : {
+        "type" : "object",
+        "description" : "A session with its live list, oldest first",
+        "properties" : {
+          "entries" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QrSessionEntry"
+            }
+          },
+          "session" : {
+            "$ref" : "#/components/schemas/QrSessionView"
+          }
+        },
+        "required" : [ "entries", "session" ]
+      },
+      "QrSessionEntry" : {
+        "type" : "object",
+        "description" : "One accepted check-in of a session. removed: a teacher took it off the roll",
+        "properties" : {
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "checkedInAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "checkinId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "personId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "The student's user id, or the school_staff id of a staff member"
+          },
+          "removed" : {
+            "type" : "boolean"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "checkedInAt", "checkinId", "displayName", "personId", "status" ]
+      },
+      "QrSessionView" : {
+        "type" : "object",
+        "description" : "A rotating code session. open is false once it was closed or its time ran out",
+        "properties" : {
+          "acceptedCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Accepted check-ins that were not removed"
+          },
+          "campusId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "closesAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lateAfterMinutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "open" : {
+            "type" : "boolean"
+          },
+          "openedBy" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "opensAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "rotationSeconds" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "slot" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "OPEN or CLOSED"
+          },
+          "subjectKind" : {
+            "type" : "string"
+          },
+          "timeZone" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "closesAt", "date", "id", "openedBy", "opensAt", "status", "subjectKind", "timeZone" ]
+      },
       "ReactionSummary" : {
         "type" : "object",
         "properties" : {
@@ -28194,6 +29708,22 @@
           }
         },
         "required" : [ "platform", "provider", "token" ]
+      },
+      "ReissueCredentialRequest" : {
+        "type" : "object",
+        "description" : "Replace the person's live credential: it is revoked with the reason (default REPLACED, never LEFT_SCHOOL) and a new one is issued in the same transaction",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "description" : "LOST, REPLACED (default), SUSPECTED_COPY or OTHER",
+            "enum" : [ "LOST", "REPLACED", "LEFT_SCHOOL", "SUSPECTED_COPY", "OTHER" ]
+          },
+          "ttlDays" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Days the new credential stays valid, 1 to 1095 (default 365)"
+          }
+        }
       },
       "RemoveConversationMemberRequest" : {
         "type" : "object",
@@ -28443,6 +29973,17 @@
           }
         },
         "required" : [ "messages" ]
+      },
+      "RevokeCredentialRequest" : {
+        "type" : "object",
+        "description" : "Revoke the person's live credential: its next scan is refused and logged",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "enum" : [ "LOST", "REPLACED", "LEFT_SCHOOL", "SUSPECTED_COPY", "OTHER" ]
+          }
+        },
+        "required" : [ "reason" ]
       },
       "RevokedCodes" : {
         "type" : "object",
@@ -29009,6 +30550,27 @@
           }
         },
         "required" : [ "columnMapping" ]
+      },
+      "ScannedPerson" : {
+        "type" : "object",
+        "description" : "Whom a card belongs to, as far as a scanner may know: first name and avatar, nothing else. personId only when the person is on the class roll for the date",
+        "properties" : {
+          "avatar" : {
+            "$ref" : "#/components/schemas/MediaSummary"
+          },
+          "avatarConfig" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          },
+          "firstName" : {
+            "type" : "string"
+          },
+          "personId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "firstName" ]
       },
       "SchoolConfigurationResponse" : {
         "type" : "object",
@@ -29925,7 +31487,7 @@
           },
           "method" : {
             "type" : "string",
-            "description" : "MANUAL; the QR methods arrive with M7e"
+            "description" : "MANUAL, QR_ROTATING (the staff member scanned the manager's code) or QR_STATIC (a manager scanned the card)"
           },
           "minutesLate" : {
             "type" : "integer",
@@ -29959,6 +31521,22 @@
           }
         },
         "required" : [ "date", "id", "method", "recordedAt", "recordedBy", "staffId", "staffName", "status" ]
+      },
+      "StaffScanRequest" : {
+        "type" : "object",
+        "description" : "A manager scans a staff member's card for today",
+        "properties" : {
+          "clientOpId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "token" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 8
+          }
+        },
+        "required" : [ "token" ]
       },
       "StaffView" : {
         "type" : "object",
@@ -30030,6 +31608,48 @@
           }
         },
         "required" : [ "recipientUserId" ]
+      },
+      "StaticScanRequest" : {
+        "type" : "object",
+        "description" : "A teacher scans a student's card for a class roll. status: PRESENT (default) or LATE; nothing else (a scan never marks absent). clientOpId: a UUID the app keeps per scan, so a retry or an offline replay applies once",
+        "properties" : {
+          "clientOpId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date",
+            "description" : "School-local date of the roll (default today)"
+          },
+          "minutesLate" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Minutes late, 1 to 600, only with LATE"
+          },
+          "slot" : {
+            "type" : "string",
+            "description" : "DAY (default), AM, PM or P1..P8",
+            "maxLength" : 3,
+            "minLength" : 0
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PRESENT", "ABSENT", "LATE", "EXCUSED", "LEFT_EARLY" ]
+          },
+          "subjectId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Period rolls only (P1..P8): the class's subject, used when the scan has to create the roll"
+          },
+          "token" : {
+            "type" : "string",
+            "description" : "The bare token read from the card's QR",
+            "maxLength" : 64,
+            "minLength" : 8
+          }
+        },
+        "required" : [ "token" ]
       },
       "StoryCreateRequest" : {
         "type" : "object",
@@ -30538,13 +32158,13 @@
           },
           "entityType" : {
             "type" : "string",
-            "description" : "ATTENDANCE_SESSION for ATTENDANCE_MARK, POINT_TRANSACTION for POINT_AWARD",
+            "description" : "ATTENDANCE_SESSION for ATTENDANCE_MARK, ATTENDANCE_CHECKIN for ATTENDANCE_CHECKIN, POINT_TRANSACTION for POINT_AWARD",
             "maxLength" : 40,
             "minLength" : 1
           },
           "operationType" : {
             "type" : "string",
-            "description" : "ATTENDANCE_MARK or POINT_AWARD",
+            "description" : "ATTENDANCE_MARK, ATTENDANCE_CHECKIN or POINT_AWARD",
             "maxLength" : 40,
             "minLength" : 1
           },

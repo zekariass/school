@@ -87,6 +87,12 @@ public final class Permissions {
 	public static final String SCHOOL_STAFF_ATTENDANCE_READ = "school.staff_attendance.read";
 
 	/**
+	 * The QR credentials of attendance (M7e): issue, reissue and revoke the cards of students and staff and list their
+	 * state. Class LEAD teachers and class managers issue and revoke for the students of their own classes without it.
+	 */
+	public static final String SCHOOL_ATTENDANCE_CREDENTIALS_MANAGE = "school.attendance.credentials.manage";
+
+	/**
 	 * The school-wide feed (M8): post and pin school-wide posts and stories, approve or reject contributions of any class,
 	 * and moderate (hide, delete) any post, story or comment of the school.
 	 */
@@ -154,7 +160,7 @@ public final class Permissions {
 			SCHOOL_READ, SCHOOL_MANAGE, SCHOOL_SETTINGS_MANAGE, AUDIT_READ, SCHOOL_ACADEMIC_MANAGE, SCHOOL_STAFF_MANAGE,
 			SCHOOL_STUDENTS_MANAGE, CLASS_MANAGE, SCHOOL_IMPORT_MANAGE, SCHOOL_GUARDIANS_MANAGE, SCHOOL_POLICIES_MANAGE,
 			SCHOOL_POINTS_MANAGE, SCHOOL_POINTS_READ, SCHOOL_ATTENDANCE_MANAGE, SCHOOL_ATTENDANCE_READ, SCHOOL_STAFF_ATTENDANCE_MANAGE,
-			SCHOOL_STAFF_ATTENDANCE_READ, SCHOOL_FEED_MANAGE,
+			SCHOOL_STAFF_ATTENDANCE_READ, SCHOOL_ATTENDANCE_CREDENTIALS_MANAGE, SCHOOL_FEED_MANAGE,
 			SCHOOL_ANNOUNCEMENTS_MANAGE, SCHOOL_ANNOUNCEMENTS_URGENT, SCHOOL_MESSAGING_MODERATE, SCHOOL_MESSAGING_REVIEW, SCHOOL_CALENDAR_MANAGE,
 			SCHOOL_MODERATION_MANAGE, SCHOOL_SAFEGUARDING_READ, SCHOOL_SAFEGUARDING_MANAGE, PLATFORM_MODERATION_MANAGE,
 			PLATFORM_USERS_LOCK,

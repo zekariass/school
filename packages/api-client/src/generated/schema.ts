@@ -2510,6 +2510,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/attendance/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The school's credentials, newest first, keyset paged: kind (STUDENT, STAFF), state (LIVE, EXPIRED, REVOKED) and suspectedCopy=true (live credentials that two scanners read within a minute: the SUSPECTED_COPY alert; revoke them with the reason SUSPECTED_COPY). Never the QR. school.attendance.credentials.manage only */
+        get: operations["listAttendanceCredentials"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/attendance/dashboard": {
         parameters: {
             query?: never;
@@ -2519,6 +2536,23 @@ export interface paths {
         };
         /** The daily dashboard: per class (keyset paged by name) whether the roll was taken for the date and slot (with subjectId: only the classes that have the subject and only rolls taken for it), students, marked, unmarked and the counts per status, plus school totals including the classes that have not taken attendance. school.attendance.read/manage see every class, teachers the classes they teach; students and guardians get 403 */
         get: operations["getAttendanceDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** How attendance is taken at the school: the QR methods that are on (QR_ROTATING, QR_STATIC; manual marking is always available), the rotation of the code and the staff late threshold. Any member who can see the school; 403 attendance.feature_disabled when attendance is off */
+        get: operations["getAttendanceCheckinMethods"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2553,6 +2587,91 @@ export interface paths {
         };
         /** The per-period summary as a CSV download: UTF-8 with a byte order mark, CRLF line ends, headers in the caller's language, spreadsheet formulas neutralized. Audited (attendance.period_report.export), rate limited with the other attendance exports (10 per 10 minutes, 429 attendance.export_rate_limited), at most 50000 rows */
         get: operations["exportAttendancePeriodReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A rotating code session with its live list (who checked in, oldest first; removed entries are marked). The people who run it: those who may take the roll, or the staff attendance managers for a staff code; 404 for anybody else */
+        get: operations["getAttendanceQrSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}/check-ins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A student's (class code) or staff member's (staff code) own check-in with the code shown on the teacher's or manager's screen (the part after the dot of the payload). The caller is the authenticated person, never anonymous: an ACTIVE student of the school for a class code, an ACTIVE staff member for a staff code (403 attendance.checkin_not_allowed for anybody else, a guardian included). 200 with result ACCEPTED (PRESENT, or LATE after the session's threshold); 409 with the same body when it was refused and logged: REJECTED_EXPIRED (wrong, replayed or older than the previous window), REJECTED_NOT_ENROLLED (not in the class on that date), REJECTED_WINDOW (session closed, not open yet, another day, or the roll locked), REJECTED_DUPLICATE (one accepted check-in per person per session), REJECTED_CONFLICT (the roll already holds a different mark: nothing is overwritten). 404 for a session of another school or an unknown one; 429 attendance.checkin_rate_limited (per person and per session). The school must be ACTIVE and the method on */
+        post: operations["checkInToAttendanceQrSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}/check-ins/{checkinId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Takes one accepted check-in off the roll (or the staff day) while nobody has changed its mark since (409 attendance.checkin_changed otherwise); the removal is appended and audited and the person cannot check in again to this session (mark them by hand). 404 attendance.checkin_not_found for an entry that is not an accepted one of this session or was already removed. The people who run the session */
+        delete: operations["removeAttendanceQrCheckin"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Closes the session (idempotent): its codes stop working at once. The people who run it; audited */
+        post: operations["closeAttendanceQrSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/attendance/qr-sessions/{sessionId}/codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The codes of the current window and of the windows ahead (about ten minutes, never past the end of the session), so the teacher's display keeps rotating without a connection; each carries the payload to show as a QR (the session id, a dot and the code). A code is accepted in its own window and the next. Never cached (Cache-Control: no-store). 409 attendance.qr_session_closed once the session was closed or ran out. The people who run the session */
+        get: operations["getAttendanceQrSessionCodes"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2713,6 +2832,57 @@ export interface paths {
         /** Takes or corrects a roll: records are upserted (students left out stay as they are, unmarked stay unmarked), markAllPresent marks every student without a record present (EXCUSED when an acknowledged absence report covers the date). A mark that differs from the stored record is written only when it carries the record's current version (expectedVersion) or the roll's baseVersion is current; otherwise it is a CONFLICT and nothing is overwritten. 200 with per-student outcomes; 409 with the same body when some marks conflicted (the others were written). Refused before writing anything: date in the future (409 attendance.date_in_future), student not in the class that day (409 attendance.student_not_in_class), slot not enabled, a subject that is not one of the class's (400 attendance.invalid_subject) or is given for a slot that is not a period (400 attendance.subject_requires_period) or differs from the roll's own (409 attendance.subject_mismatch), a group that is not the class's (400 attendance.invalid_group), a student outside the group (409 attendance.student_not_in_group), locked roll without the right or the reason (409 attendance.session_locked, 400 attendance.override_reason_required), archived class (409 class.archived). Teachers of the class (assistants while the school allows it), class managers, school.attendance.manage */
         put: operations["takeClassAttendance"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/attendance-credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Credentials for the cards of a class (printing is the web's job): every ACTIVE student of the class (studentIds narrows it) without a live credential gets one; with replaceExisting the others get a new one and the old is revoked as REPLACED; without it they are listed as skipped (ALREADY_ISSUED). Every qrPayload is in this answer ONLY (Cache-Control: no-store). 409 attendance.student_not_in_class for a listed student who is not ACTIVE in the class. The class's LEAD teacher, class managers and school.attendance.credentials.manage; 403 for the class's other teachers, 404 for people who cannot see the class */
+        post: operations["issueClassAttendanceCredentials"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/attendance/qr-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Opens a rotating code for today's roll (school-local date) of the class and a slot: the code changes every attendance.qr.rotation_seconds and lives durationMinutes (default 15, at most 120); lateAfterMinutes makes later check-ins LATE. Opening one closes the class's other open codes for that roll. Needs the school ACTIVE (403 attendance.school_not_active), the method QR_ROTATING on (403 attendance.method_disabled), a roll that has not locked (409 attendance.session_locked), 400 for a slot the school does not use, a bad subject or duration. The people who may take the roll (the class's teachers, class managers, school.attendance.manage); audited */
+        post: operations["openClassAttendanceQrSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/classes/{classId}/attendance/scans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A teacher scans a student's card (the bare token of its QR) for a class roll: PRESENT or LATE only (status), for the school-local date (default today) and slot, through the roll's own rules. 200 ACCEPTED; 409 with the same body when refused: REJECTED_REVOKED (a card of this school that was revoked: logged with the scanner), REJECTED_NOT_ENROLLED, REJECTED_WINDOW (date not started or roll locked: a scan has no override), REJECTED_DUPLICATE, REJECTED_CONFLICT (a different mark is stored; current shows it, nothing was overwritten), REJECTED_INVALID (unknown, malformed, expired, another school's or a staff card: one answer for all, nothing about the card is said). The answer names the scanned student by first name and avatar only. clientOpId makes a retry answer the first outcome. Offline scans use the sync operation ATTENDANCE_CHECKIN. The people who may take the roll; 429 attendance.scan_rate_limited */
+        post: operations["scanAttendanceCredential"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4734,6 +4904,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/staff-attendance/qr-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Opens a rotating code for today's staff of a campus (campusId; omit for the whole school): durationMinutes default 60 (at most 480), lateAfterMinutes default the school's attendance.staff.late_after_minutes (0: nobody late). Staff scan it with their own app. school.staff_attendance.manage, staff attendance on, the school ACTIVE, the method QR_ROTATING on */
+        post: operations["openStaffAttendanceQrSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/staff-attendance/records": {
         parameters: {
             query?: never;
@@ -4853,6 +5040,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{schoolId}/staff-attendance/scans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A manager scans a staff member's card for today (staff attendance rules: one record per day, never overwritten, PRESENT only). Same answers as the student scan; first name and avatar only. Online only. school.staff_attendance.manage, staff attendance on, the school ACTIVE, the method QR_STATIC on */
+        post: operations["scanStaffAttendanceCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{schoolId}/staff/{staffId}": {
         parameters: {
             query?: never;
@@ -4869,6 +5073,58 @@ export interface paths {
         head?: never;
         /** Change job title, campus or employee number (absent fields stay) */
         patch: operations["updateStaff"];
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff/{staffId}/attendance-credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A staff member's credentials, newest first (at most 20), never the QR. school.attendance.credentials.manage only */
+        get: operations["listStaffAttendanceCredentials"];
+        put?: never;
+        /** Issues an attendance credential for a staff member (school_staff id): same rules and answer as for a student (qrPayload once, no-store). 409 staff_attendance.staff_not_active for staff who are not ACTIVE. school.attendance.credentials.manage only */
+        post: operations["issueStaffAttendanceCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff/{staffId}/attendance-credentials/reissue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replaces a staff member's live credential (see the student call). school.attendance.credentials.manage only */
+        post: operations["reissueStaffAttendanceCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/staff/{staffId}/attendance-credentials/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revokes a staff member's live credential with a reason. school.attendance.credentials.manage only */
+        post: operations["revokeStaffAttendanceCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/schools/{schoolId}/staff/{staffId}/deactivate": {
@@ -5006,6 +5262,58 @@ export interface paths {
         get: operations["listStudentAttendance"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/attendance-credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The student's credentials, newest first (at most 20): when issued, by whom, expiry, revocation, last use and the SUSPECTED_COPY flag. Never the QR. Same access as issuing; guardians and students never see them */
+        get: operations["listStudentAttendanceCredentials"];
+        put?: never;
+        /** Issues the student's attendance credential (the QR of a card; 128 random bits, never the login code, never personal data). qrPayload is the bare token: it is in this answer ONLY (Cache-Control: no-store; only its keyed hash is stored) and can never be read again. 409 attendance.credential_exists while the student has a live credential (reissue instead), 409 attendance.credential_person_not_active for a student who is not ACTIVE, 400 attendance.credential_invalid_ttl. school.attendance.credentials.manage, or the LEAD teacher / class manager of a class the student is in; 403 for everybody else (before anything is said about the student), 404 for people who cannot see the school. Audited without the token */
+        post: operations["issueStudentAttendanceCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/attendance-credentials/reissue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replaces the student's live credential: it is revoked with the reason (LOST, REPLACED by default, SUSPECTED_COPY, OTHER) and a new one is issued in the same transaction (qrPayload once, no-store). Same access as issuing */
+        post: operations["reissueStudentAttendanceCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{schoolId}/students/{studentId}/attendance-credentials/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revokes the student's live credential with a reason (LOST, REPLACED, LEFT_SCHOOL, SUSPECTED_COPY, OTHER): its next scan is refused (REJECTED_REVOKED) and logged with the scanner. 404 attendance.credential_not_found when there is none. Same access as issuing */
+        post: operations["revokeStudentAttendanceCredential"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5763,6 +6071,42 @@ export interface components {
             /** Format: int32 */
             unmarked?: number;
         };
+        /** @description The state of a credential: LIVE (not revoked, not expired), EXPIRED or REVOKED. Never the QR itself */
+        AttendanceCredentialView: {
+            displayName: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            issuedAt: string;
+            /** Format: uuid */
+            issuedBy: string;
+            /** Format: date-time */
+            lastUsedAt?: string;
+            /** Format: date-time */
+            revokedAt?: string;
+            revokedReason?: string;
+            /**
+             * Format: uuid
+             * @description The school_staff id (STAFF)
+             */
+            staffId?: string;
+            /** @description LIVE, EXPIRED or REVOKED */
+            state: string;
+            /**
+             * Format: uuid
+             * @description The student's user id (STUDENT)
+             */
+            studentId?: string;
+            /** @description STUDENT or STAFF */
+            subjectKind: string;
+            /**
+             * Format: date-time
+             * @description Set when two scanners read this credential within a minute: a sign that a copy is in use. The school decides (revoke it with SUSPECTED_COPY); a scan is not refused because of it
+             */
+            suspectedCopyAt?: string;
+        };
         AttendanceDashboard: {
             classes: components["schemas"]["CursorPageDashboardClass"];
             /** Format: date */
@@ -6470,6 +6814,30 @@ export interface components {
             enabled: boolean;
             locked: boolean;
         };
+        /** @description How attendance is taken at this school: the QR methods that are on (manual marking is always available) and the rotation of the code */
+        CheckinMethods: {
+            methods: string[];
+            /** Format: int32 */
+            rotationSeconds?: number;
+            staffAttendanceEnabled?: boolean;
+            /** Format: int32 */
+            staffLateAfterMinutes?: number;
+        };
+        /** @description The answer of a check-in. 200 with result ACCEPTED; 409 with the same body for every refusal that was logged (and for REJECTED_INVALID, which is not). code and detail are the stable error code and its localized sentence. person: first name and avatar of a scanned card (never for a student's own check-in). current: the roll's stored mark when the scan was refused as a duplicate or a conflict (scans by teachers only) */
+        CheckinResult: {
+            /** Format: uuid */
+            checkinId?: string;
+            code?: string;
+            current?: components["schemas"]["AttendanceRecordView"];
+            detail?: string;
+            /** Format: int32 */
+            minutesLate?: number;
+            person?: components["schemas"]["ScannedPerson"];
+            /** @enum {string} */
+            result: "ACCEPTED" | "REJECTED_EXPIRED" | "REJECTED_NOT_ENROLLED" | "REJECTED_DUPLICATE" | "REJECTED_REVOKED" | "REJECTED_WINDOW" | "REJECTED_CONFLICT" | "REJECTED_INVALID";
+            /** @enum {string} */
+            status?: "PRESENT" | "ABSENT" | "LATE" | "EXCUSED" | "LEFT_EARLY";
+        };
         Child: {
             avatar?: components["schemas"]["MediaSummary"];
             avatarConfig?: {
@@ -7011,6 +7379,39 @@ export interface components {
             maskedEmail?: string;
             maskedPhone?: string;
         };
+        CredentialSheet: {
+            items: components["schemas"]["CredentialSheetItem"][];
+            skipped: components["schemas"]["CredentialSheetSkip"][];
+        };
+        /** @description One printable card of a sheet: first name for the label, the QR payload (shown once) */
+        CredentialSheetItem: {
+            /** Format: uuid */
+            credentialId: string;
+            displayName: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            issuedAt: string;
+            qrPayload: string;
+            /** Format: uuid */
+            studentId: string;
+        };
+        /** @description Credentials for a class sheet: students of the class (studentIds narrows it) who have no live credential get one; with replaceExisting the others get a new one too (the old is revoked as REPLACED) */
+        CredentialSheetRequest: {
+            replaceExisting?: boolean;
+            studentIds?: string[];
+            /**
+             * Format: int32
+             * @description Days the credentials stay valid, 1 to 1095 (default 365)
+             */
+            ttlDays?: number;
+        };
+        CredentialSheetSkip: {
+            /** @description ALREADY_ISSUED: the student has a live credential and replaceExisting was not set */
+            reason: string;
+            /** Format: uuid */
+            studentId: string;
+        };
         CurrencyResponse: {
             code: string;
             /** Format: int32 */
@@ -7035,6 +7436,11 @@ export interface components {
         };
         CursorPageAnnouncementRecipientView: {
             items: components["schemas"]["AnnouncementRecipientView"][];
+            /** @description Opaque cursor of the next page; absent on the last page */
+            nextCursor?: string;
+        };
+        CursorPageAttendanceCredentialView: {
+            items: components["schemas"]["AttendanceCredentialView"][];
             /** @description Opaque cursor of the next page; absent on the last page */
             nextCursor?: string;
         };
@@ -7662,8 +8068,21 @@ export interface components {
              */
             type?: "QR" | "TEXT" | "BOTH";
         };
+        /** @description Issue a credential (a card QR) for one person. ttlDays: days it stays valid (1 to 1095, default 365) */
+        IssueCredentialRequest: {
+            /**
+             * Format: int32
+             * @description Days the credential stays valid, 1 to 1095 (default 365)
+             */
+            ttlDays?: number;
+        };
         IssueParentCodesRequest: {
             studentIds?: string[];
+        };
+        /** @description A new credential. qrPayload is the bare token to print as a QR code: it is shown ONCE, here, and can never be read again (only its keyed hash is stored) */
+        IssuedAttendanceCredential: {
+            credential: components["schemas"]["AttendanceCredentialView"];
+            qrPayload: string;
         };
         IssuedCode: {
             displayName: string;
@@ -8169,6 +8588,44 @@ export interface components {
             end: string;
             start: string;
             timeZone: string;
+        };
+        /** @description Open a rotating code for the roll of today (school-local date) and a slot. Opening one closes the class's other open codes for that roll */
+        OpenClassQrSessionRequest: {
+            /**
+             * Format: int32
+             * @description Minutes the code can be used, 1 to 120 (default 15)
+             */
+            durationMinutes?: number;
+            /**
+             * Format: int32
+             * @description A check-in more than this many minutes after the code was opened is LATE (0 to 600); omit for nobody late
+             */
+            lateAfterMinutes?: number;
+            /** @description DAY (default), AM, PM or P1..P8; one the school enabled */
+            slot?: string;
+            /**
+             * Format: uuid
+             * @description Period rolls only (P1..P8): the class's subject the roll is created with, like the roll of the online endpoint
+             */
+            subjectId?: string;
+        };
+        /** @description Open a rotating code for the staff of a campus (or the whole school) for today (school-local date) */
+        OpenStaffQrSessionRequest: {
+            /**
+             * Format: uuid
+             * @description The campus whose staff may scan; omit for the whole school
+             */
+            campusId?: string;
+            /**
+             * Format: int32
+             * @description Minutes the code can be used, 1 to 480 (default 60)
+             */
+            durationMinutes?: number;
+            /**
+             * Format: int32
+             * @description A check-in more than this many minutes after the code was opened is LATE (0 to 600); default the school's attendance.staff.late_after_minutes (0: nobody late)
+             */
+            lateAfterMinutes?: number;
         };
         OrganizationResponse: {
             countryCode: string;
@@ -8764,6 +9221,84 @@ export interface components {
             /** @description Any JSON value valid for the setting */
             value: components["schemas"]["JsonNode"];
         };
+        /** @description A student's (or staff member's) own check-in: the code from the QR on the teacher's (manager's) screen, the part after the dot of the payload */
+        QrCheckinRequest: {
+            code: string;
+        };
+        /** @description The code of one window. payload is what the QR shows: the session id, a dot and the code */
+        QrCode: {
+            code: string;
+            /** Format: date-time */
+            endsAt: string;
+            payload: string;
+            /** Format: date-time */
+            startsAt: string;
+        };
+        /** @description The codes of the current window and the windows ahead (about ten minutes), so the display keeps rotating without a connection. A code is accepted during its own window and the next one */
+        QrCodes: {
+            codes: components["schemas"]["QrCode"][];
+            /** Format: int32 */
+            rotationSeconds?: number;
+            /** Format: date-time */
+            serverTime: string;
+            /** Format: uuid */
+            sessionId: string;
+        };
+        /** @description A session with its live list, oldest first */
+        QrSessionDetail: {
+            entries: components["schemas"]["QrSessionEntry"][];
+            session: components["schemas"]["QrSessionView"];
+        };
+        /** @description One accepted check-in of a session. removed: a teacher took it off the roll */
+        QrSessionEntry: {
+            avatar?: components["schemas"]["MediaSummary"];
+            /** Format: date-time */
+            checkedInAt: string;
+            /** Format: uuid */
+            checkinId: string;
+            displayName: string;
+            /** Format: int32 */
+            minutesLate?: number;
+            /**
+             * Format: uuid
+             * @description The student's user id, or the school_staff id of a staff member
+             */
+            personId: string;
+            removed?: boolean;
+            status: string;
+        };
+        /** @description A rotating code session. open is false once it was closed or its time ran out */
+        QrSessionView: {
+            /**
+             * Format: int32
+             * @description Accepted check-ins that were not removed
+             */
+            acceptedCount?: number;
+            /** Format: uuid */
+            campusId?: string;
+            /** Format: uuid */
+            classId?: string;
+            /** Format: date-time */
+            closesAt: string;
+            /** Format: date */
+            date: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            lateAfterMinutes?: number;
+            open?: boolean;
+            /** Format: uuid */
+            openedBy: string;
+            /** Format: date-time */
+            opensAt: string;
+            /** Format: int32 */
+            rotationSeconds?: number;
+            slot?: string;
+            /** @description OPEN or CLOSED */
+            status: string;
+            subjectKind: string;
+            timeZone: string;
+        };
         ReactionSummary: {
             counts: {
                 [key: string]: number;
@@ -8817,6 +9352,19 @@ export interface components {
             /** @enum {string} */
             provider: "EXPO" | "FCM" | "APNS" | "WEBPUSH";
             token: string;
+        };
+        /** @description Replace the person's live credential: it is revoked with the reason (default REPLACED, never LEFT_SCHOOL) and a new one is issued in the same transaction */
+        ReissueCredentialRequest: {
+            /**
+             * @description LOST, REPLACED (default), SUSPECTED_COPY or OTHER
+             * @enum {string}
+             */
+            reason?: "LOST" | "REPLACED" | "LEFT_SCHOOL" | "SUSPECTED_COPY" | "OTHER";
+            /**
+             * Format: int32
+             * @description Days the new credential stays valid, 1 to 1095 (default 365)
+             */
+            ttlDays?: number;
         };
         RemoveConversationMemberRequest: {
             reason: string;
@@ -8920,6 +9468,11 @@ export interface components {
         ReviewedPageView: {
             messages: components["schemas"]["ReviewedMessageView"][];
             nextCursor?: string;
+        };
+        /** @description Revoke the person's live credential: its next scan is refused and logged */
+        RevokeCredentialRequest: {
+            /** @enum {string} */
+            reason: "LOST" | "REPLACED" | "LEFT_SCHOOL" | "SUSPECTED_COPY" | "OTHER";
         };
         RevokedCodes: {
             /** Format: int32 */
@@ -9159,6 +9712,16 @@ export interface components {
             options?: components["schemas"]["ImportOptions"];
             /** @description Also save this mapping as a profile with this name */
             saveAsProfile?: string;
+        };
+        /** @description Whom a card belongs to, as far as a scanner may know: first name and avatar, nothing else. personId only when the person is on the class roll for the date */
+        ScannedPerson: {
+            avatar?: components["schemas"]["MediaSummary"];
+            avatarConfig?: {
+                [key: string]: unknown;
+            };
+            firstName: string;
+            /** Format: uuid */
+            personId?: string;
         };
         SchoolConfigurationResponse: {
             features: components["schemas"]["FeatureStateResponse"][];
@@ -9526,7 +10089,7 @@ export interface components {
             date: string;
             /** Format: uuid */
             id: string;
-            /** @description MANUAL; the QR methods arrive with M7e */
+            /** @description MANUAL, QR_ROTATING (the staff member scanned the manager's code) or QR_STATIC (a manager scanned the card) */
             method: string;
             /** Format: int32 */
             minutesLate?: number;
@@ -9542,6 +10105,12 @@ export interface components {
             status: "PRESENT" | "ABSENT" | "LATE" | "HALF_DAY" | "EXCUSED";
             /** Format: int32 */
             version?: number;
+        };
+        /** @description A manager scans a staff member's card for today */
+        StaffScanRequest: {
+            /** Format: uuid */
+            clientOpId?: string;
+            token: string;
         };
         StaffView: {
             avatar?: components["schemas"]["MediaSummary"];
@@ -9579,6 +10148,32 @@ export interface components {
              * @description The child the thread is about; required for guardian-teacher and guardian-guardian conversations
              */
             studentId?: string;
+        };
+        /** @description A teacher scans a student's card for a class roll. status: PRESENT (default) or LATE; nothing else (a scan never marks absent). clientOpId: a UUID the app keeps per scan, so a retry or an offline replay applies once */
+        StaticScanRequest: {
+            /** Format: uuid */
+            clientOpId?: string;
+            /**
+             * Format: date
+             * @description School-local date of the roll (default today)
+             */
+            date?: string;
+            /**
+             * Format: int32
+             * @description Minutes late, 1 to 600, only with LATE
+             */
+            minutesLate?: number;
+            /** @description DAY (default), AM, PM or P1..P8 */
+            slot?: string;
+            /** @enum {string} */
+            status?: "PRESENT" | "ABSENT" | "LATE" | "EXCUSED" | "LEFT_EARLY";
+            /**
+             * Format: uuid
+             * @description Period rolls only (P1..P8): the class's subject, used when the scan has to create the roll
+             */
+            subjectId?: string;
+            /** @description The bare token read from the card's QR */
+            token: string;
         };
         StoryCreateRequest: {
             caption?: string;
@@ -9819,9 +10414,9 @@ export interface components {
              * @description A UUID the app makes once at install and keeps; with the user and clientOperationId it identifies the operation
              */
             deviceId: string;
-            /** @description ATTENDANCE_SESSION for ATTENDANCE_MARK, POINT_TRANSACTION for POINT_AWARD */
+            /** @description ATTENDANCE_SESSION for ATTENDANCE_MARK, ATTENDANCE_CHECKIN for ATTENDANCE_CHECKIN, POINT_TRANSACTION for POINT_AWARD */
             entityType: string;
-            /** @description ATTENDANCE_MARK or POINT_AWARD */
+            /** @description ATTENDANCE_MARK, ATTENDANCE_CHECKIN or POINT_AWARD */
             operationType: string;
             /** @description The operation's data; its shape depends on operationType */
             payload: components["schemas"]["JsonNode"];
@@ -16354,6 +16949,43 @@ export interface operations {
             };
         };
     };
+    listAttendanceCredentials: {
+        parameters: {
+            query?: {
+                kind?: string;
+                state?: string;
+                suspectedCopy?: boolean;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageAttendanceCredentialView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getAttendanceDashboard: {
         parameters: {
             query?: {
@@ -16378,6 +17010,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttendanceDashboard"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getAttendanceCheckinMethods: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckinMethods"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -16454,6 +17117,171 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getAttendanceQrSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrSessionDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    checkInToAttendanceQrSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QrCheckinRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckinResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    removeAttendanceQrCheckin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                sessionId: string;
+                checkinId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrSessionDetail"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    closeAttendanceQrSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrSessionView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getAttendanceQrSessionCodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrCodes"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -16948,6 +17776,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttendanceWriteResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    issueClassAttendanceCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CredentialSheetRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialSheet"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    openClassAttendanceQrSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenClassQrSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrSessionView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    scanAttendanceCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                classId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaticScanRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckinResult"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -21841,6 +22777,41 @@ export interface operations {
             };
         };
     };
+    openStaffAttendanceQrSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenStaffQrSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrSessionView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listStaffAttendance: {
         parameters: {
             query?: {
@@ -22082,6 +23053,41 @@ export interface operations {
             };
         };
     };
+    scanStaffAttendanceCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffScanRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckinResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getStaff: {
         parameters: {
             query?: never;
@@ -22137,6 +23143,146 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StaffView"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStaffAttendanceCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                staffId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceCredentialView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    issueStaffAttendanceCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                staffId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["IssueCredentialRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuedAttendanceCredential"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reissueStaffAttendanceCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                staffId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReissueCredentialRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuedAttendanceCredential"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    revokeStaffAttendanceCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                staffId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeCredentialRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceCredentialView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */
@@ -22578,6 +23724,146 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CursorPageAttendanceHistoryItem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listStudentAttendanceCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceCredentialView"][];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    issueStudentAttendanceCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["IssueCredentialRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuedAttendanceCredential"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    reissueStudentAttendanceCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReissueCredentialRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuedAttendanceCredential"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    revokeStudentAttendanceCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schoolId: string;
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeCredentialRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceCredentialView"];
                 };
             };
             /** @description Error (RFC 9457 problem details) */

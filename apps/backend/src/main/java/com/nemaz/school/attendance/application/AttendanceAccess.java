@@ -20,6 +20,7 @@ import com.nemaz.school.common.security.SchoolGate;
 import com.nemaz.school.guardians.GuardianAccess;
 import com.nemaz.school.guardians.GuardianPermission;
 import com.nemaz.school.tenancy.FeatureService;
+import com.nemaz.school.tenancy.TenantDirectory;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
@@ -60,8 +61,12 @@ class AttendanceAccess {
 
 	private final JdbcClient jdbc;
 
+	private final TenantDirectory directory;
+
 	AttendanceAccess(ClassAccess classes, ClassMemberships memberships, SchoolGate gate, SchoolPeople people,
-			GuardianAccess guardians, FeatureService features, AttendanceSettings settings, JdbcClient jdbc) {
+			GuardianAccess guardians, FeatureService features, AttendanceSettings settings, JdbcClient jdbc,
+			TenantDirectory directory) {
+		this.directory = directory;
 		this.classes = classes;
 		this.memberships = memberships;
 		this.gate = gate;
@@ -96,6 +101,23 @@ class AttendanceAccess {
 	void requireFeature(UUID schoolId) {
 		if (!this.features.isEnabled(FEATURE, schoolId)) {
 			throw ApiException.forbidden("attendance.feature_disabled");
+		}
+	}
+
+	/**
+	 * The QR check-in endpoints (opening a code, a scan, a student's check-in) work only in a school that is ACTIVE
+	 * (403 {@code attendance.school_not_active}); the other attendance endpoints keep working while a school is onboarding.
+	 */
+	void requireActiveSchool(UUID schoolId) {
+		if (!this.directory.school(schoolId).filter(TenantDirectory.SchoolRef::isActive).isPresent()) {
+			throw ApiException.forbidden("attendance.school_not_active");
+		}
+	}
+
+	/** 403 {@code attendance.method_disabled} unless the school turned the QR method on (QR_ROTATING or QR_STATIC). */
+	void requireMethod(UUID schoolId, String method) {
+		if (!this.settings.methodEnabled(schoolId, method)) {
+			throw ApiException.forbidden("attendance.method_disabled");
 		}
 	}
 

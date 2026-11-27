@@ -14,6 +14,17 @@ school:
       active-key-id: t1
       keys:
         t1: 3XW2ygDFVBin17tAEfBguxoWYqoElaHNMzBdJ/X10Lc=
+  attendance:
+    secrets:
+      # Test-only keys (two, so the tests can rotate): never used outside the test profile.
+      active-key-id: t1
+      keys:
+        t1: 7e+HlmBvZ51mlWtawaTop83ghsWRxYWjkpvTtcRRrFQ=
+        t0: sF1u6bCobKoRwn+Cf5LRZeF8EBa49p72ig4TlQ1M81k=
+      qr-key: FeQupzK7Ifab2dnmv6jYZGFQ+zM9miuCaTETqNihN0I=
+    checkin:
+      # small, so that the per-class limit can be reached by a test class of a few dozen students (defaults: 10 and 120)
+      class-attempts-per-minute: 25
   sms:
     provider: console
   guardians:

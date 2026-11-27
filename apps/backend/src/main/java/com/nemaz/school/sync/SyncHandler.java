@@ -25,4 +25,12 @@ public interface SyncHandler {
 
 	SyncOutcome apply(SyncOperation operation, CurrentUser user);
 
+	/**
+	 * The payload the sync ledger keeps for 30 days. Anything secret in a payload (the token of a scanned card) must be left
+	 * out here: the ledger is a diagnostic record, not a place for credentials. The default keeps the payload as sent.
+	 */
+	default tools.jackson.databind.JsonNode storedPayload(tools.jackson.databind.JsonNode payload) {
+		return payload;
+	}
+
 }

@@ -176,7 +176,24 @@ public class SyncService {
 			case APPLIED -> SyncStatus.APPLIED;
 			case CONFLICT -> SyncStatus.CONFLICT;
 			case DUPLICATE -> SyncStatus.DUPLICATE;
+			case REJECTED -> SyncStatus.REJECTED;
 		};
+		if (outcome.kind() == SyncOutcome.Kind.REJECTED) {
+			// The handler's writes stay (the transaction commits); the operation is stored as REJECTED with its problem.
+			ObjectNode rejected = this.json.createObjectNode();
+			ObjectNode problem = rejected.putObject("problem");
+			problem.put("code", outcome.problemCode());
+			problem.put("status", outcome.problemStatus());
+			problem.putArray("args");
+			if (adjusted) {
+				rejected.put("timeAdjusted", true);
+			}
+			insert(user, op, outcome.schoolId(), null, SyncStatus.REJECTED, outcome.problemCode(), rejected,
+					handler.storedPayload(op.payload()), recorded, received);
+			return new SyncOperationResult(op.deviceId(), op.clientOperationId(), SyncStatus.REJECTED, null,
+					op.operationType(), op.entityType(), null, null, null,
+					problem(outcome.problemCode(), outcome.problemStatus(), new Object[0]), adjusted, false);
+		}
 		ObjectNode stored = this.json.createObjectNode();
 		if (outcome.state() != null) {
 			stored.set("state", outcome.state());
@@ -187,7 +204,8 @@ public class SyncService {
 		if (adjusted) {
 			stored.put("timeAdjusted", true);
 		}
-		insert(user, op, outcome.schoolId(), outcome.entityId(), status, null, stored, op.payload(), recorded, received);
+		insert(user, op, outcome.schoolId(), outcome.entityId(), status, null, stored, handler.storedPayload(op.payload()),
+				recorded, received);
 		return new SyncOperationResult(op.deviceId(), op.clientOperationId(), status, null, op.operationType(),
 				op.entityType(), outcome.entityId(), outcome.version(), outcome.state(), null, adjusted, false);
 	}
@@ -210,7 +228,9 @@ public class SyncService {
 		if (adjusted) {
 			stored.put("timeAdjusted", true);
 		}
-		JsonNode payload = (size(op.payload()) > this.props.maxOperationBytes()) ? this.json.createObjectNode() : op.payload();
+		SyncHandler handler = this.handlers.get(op.operationType());
+		JsonNode payload = (size(op.payload()) > this.props.maxOperationBytes()) ? this.json.createObjectNode()
+				: (handler != null) ? handler.storedPayload(op.payload()) : op.payload();
 		insert(user, op, null, null, SyncStatus.REJECTED, ex.code(), stored, payload, recorded, received);
 		return new SyncOperationResult(op.deviceId(), op.clientOperationId(), SyncStatus.REJECTED, null,
 				op.operationType(), op.entityType(), null, null, null, problem(ex.code(), ex.status().value(), ex.args()),
@@ -317,8 +337,8 @@ public class SyncService {
 	public record SyncOperationRequest(
 			@NotNull(message = "validation.required") @Schema(description = "A UUID the app makes once at install and keeps; with the user and clientOperationId it identifies the operation") UUID deviceId,
 			@NotNull(message = "validation.required") @Schema(description = "A UUID the app makes once per queued operation and keeps until it has the result") UUID clientOperationId,
-			@NotNull(message = "validation.required") @Size(min = 1, max = 40, message = "validation.invalid") @Schema(description = "ATTENDANCE_MARK or POINT_AWARD") String operationType,
-			@NotNull(message = "validation.required") @Size(min = 1, max = 40, message = "validation.invalid") @Schema(description = "ATTENDANCE_SESSION for ATTENDANCE_MARK, POINT_TRANSACTION for POINT_AWARD") String entityType,
+			@NotNull(message = "validation.required") @Size(min = 1, max = 40, message = "validation.invalid") @Schema(description = "ATTENDANCE_MARK, ATTENDANCE_CHECKIN or POINT_AWARD") String operationType,
+			@NotNull(message = "validation.required") @Size(min = 1, max = 40, message = "validation.invalid") @Schema(description = "ATTENDANCE_SESSION for ATTENDANCE_MARK, ATTENDANCE_CHECKIN for ATTENDANCE_CHECKIN, POINT_TRANSACTION for POINT_AWARD") String entityType,
 			@Schema(description = "The version of the entity the client edited from (ATTENDANCE_MARK: the roll's session version, null when the client had no roll)") Integer baseVersion,
 			@NotNull(message = "validation.required") @Schema(description = "The operation's data; its shape depends on operationType") JsonNode payload,
 			@NotNull(message = "validation.required") @Schema(description = "Device time of the user's action") Instant clientCreatedAt) {
