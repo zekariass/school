@@ -43,7 +43,7 @@ public abstract class QrTestSupport extends AttendanceTestSupport {
 
 	// --- the algorithms, independently -------------------------------------------------------
 
-	protected static byte[] hmac(String base64Key, String value) {
+	public static byte[] hmac(String base64Key, String value) {
 		try {
 			Mac mac = Mac.getInstance("HmacSHA256");
 			mac.init(new SecretKeySpec(Base64.getDecoder().decode(base64Key), "HmacSHA256"));
@@ -55,7 +55,7 @@ public abstract class QrTestSupport extends AttendanceTestSupport {
 	}
 
 	/** The code of a rotating session in a window: the first 128 bits of HMAC(qr key, "attendance-qr:" id ":" window). */
-	protected static String code(UUID session, long window) {
+	public static String code(UUID session, long window) {
 		byte[] full = hmac(QR_KEY, "attendance-qr:" + session + ":" + window);
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(java.util.Arrays.copyOf(full, 16));
 	}

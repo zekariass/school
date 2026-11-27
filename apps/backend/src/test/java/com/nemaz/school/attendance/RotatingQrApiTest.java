@@ -409,6 +409,27 @@ class RotatingQrApiTest extends QrTestSupport {
 	}
 
 	@Test
+	void aPeriodCodeCreatesTheRollWithItsSubjectSoTheTeacherCanStillTakeItWithThatSubject() throws Exception {
+		Setup s = qrSetup("Qr period school");
+		setting(s.schoolId(), "attendance.slots", List.of("DAY", "P1"));
+		UUID maths = this.jdbc.queryForObject("select id from subjects where school_id = ? and code = 'M'", UUID.class, s.schoolId());
+		this.jdbc.update("insert into class_subjects (class_id, subject_id, school_id) values (?, ?, ?)", s.classId(), maths, s.schoolId());
+		// a subject belongs to a period only, and to one of the class's subjects
+		assertThat(errorCode(call(HttpMethod.POST, s.rollUrl() + "/qr-sessions", s.lead(), map("subjectId", maths), 400)))
+			.contains("attendance.subject_requires_period");
+		assertThat(errorCode(call(HttpMethod.POST, s.rollUrl() + "/qr-sessions", s.lead(), map("slot", "P1", "subjectId", UUID.randomUUID()), 400)))
+			.contains("attendance.invalid_subject");
+		UUID id = uuid(openCode(s, s.lead(), map("slot", "P1", "subjectId", maths), 201), "id");
+		checkIn(s, id, s.student1(), currentCode(id), 200);
+		JsonNode roll = get(s.rollUrl() + "?date=" + today() + "&slot=P1", s.lead());
+		assertThat(uuid(roll, "subjectId")).isEqualTo(maths);
+		assertThat(student(roll, s.s1()).get("record").get("source").asString()).isEqualTo("QR_ROTATING");
+		// the teacher takes the same roll with the same subject (no 409 attendance.subject_mismatch)
+		JsonNode taken = take(s, s.lead(), map("date", today().toString(), "slot", "P1", "subjectId", maths, "records", list(mark(s.s2(), "PRESENT"))), 200);
+		assertThat(taken.get("applied").asInt()).isEqualTo(1);
+	}
+
+	@Test
 	void noLocationIsAcceptedOrStoredAnywhereInAttendance() throws Exception {
 		Setup s = qrSetup("Qr location school");
 		UUID id = openCode(s);

@@ -337,8 +337,8 @@ public class SyncService {
 	public record SyncOperationRequest(
 			@NotNull(message = "validation.required") @Schema(description = "A UUID the app makes once at install and keeps; with the user and clientOperationId it identifies the operation") UUID deviceId,
 			@NotNull(message = "validation.required") @Schema(description = "A UUID the app makes once per queued operation and keeps until it has the result") UUID clientOperationId,
-			@NotNull(message = "validation.required") @Size(min = 1, max = 40, message = "validation.invalid") @Schema(description = "ATTENDANCE_MARK or POINT_AWARD") String operationType,
-			@NotNull(message = "validation.required") @Size(min = 1, max = 40, message = "validation.invalid") @Schema(description = "ATTENDANCE_SESSION for ATTENDANCE_MARK, POINT_TRANSACTION for POINT_AWARD") String entityType,
+			@NotNull(message = "validation.required") @Size(min = 1, max = 40, message = "validation.invalid") @Schema(description = "ATTENDANCE_MARK, ATTENDANCE_CHECKIN or POINT_AWARD") String operationType,
+			@NotNull(message = "validation.required") @Size(min = 1, max = 40, message = "validation.invalid") @Schema(description = "ATTENDANCE_SESSION for ATTENDANCE_MARK, ATTENDANCE_CHECKIN for ATTENDANCE_CHECKIN, POINT_TRANSACTION for POINT_AWARD") String entityType,
 			@Schema(description = "The version of the entity the client edited from (ATTENDANCE_MARK: the roll's session version, null when the client had no roll)") Integer baseVersion,
 			@NotNull(message = "validation.required") @Schema(description = "The operation's data; its shape depends on operationType") JsonNode payload,
 			@NotNull(message = "validation.required") @Schema(description = "Device time of the user's action") Instant clientCreatedAt) {

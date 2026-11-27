@@ -66,7 +66,7 @@ public final class StaffAttendanceModels {
 
 	public record StaffRecordView(@NotNull UUID id, @NotNull UUID staffId, @NotNull String staffName, @NotNull LocalDate date,
 			@NotNull StaffAttendanceStatus status, Integer minutesLate, String note,
-			@Schema(description = "MANUAL; the QR methods arrive with M7e") @NotNull String method, UUID campusId, int version,
+			@Schema(description = "MANUAL, QR_ROTATING (the staff member scanned the manager's code) or QR_STATIC (a manager scanned the card)") @NotNull String method, UUID campusId, int version,
 			@NotNull UUID recordedBy, @NotNull Instant recordedAt,
 			@Schema(description = "How many corrections the record has") int corrections) {
 	}
