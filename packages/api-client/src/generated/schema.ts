@@ -757,7 +757,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The home feed of a guardian (or student): posts of the classes their children are ACTIVE in and school-wide posts of those children's schools, newest first, across schools. studentId narrows it to one child (404 student.not_found when it is not the caller's child). Children behind a revoked, pending or custody-restricted link, or without can_view_academics, contribute nothing; photos withheld for consent are left out */
+        /** The home feed of a guardian (or student): posts of the classes their children are ACTIVE in and school-wide posts of those children's schools, newest first, across schools. studentId narrows it to one child; optional filters `type` and `photos=true` as for a class (404 student.not_found when it is not the caller's child). Children behind a revoked, pending or custody-restricted link, or without can_view_academics, contribute nothing; photos withheld for consent are left out */
         get: operations["getMyFeed"];
         put?: never;
         post?: never;
@@ -2930,7 +2930,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The published posts of a class, pinned first then newest first. Teachers and managers of the class, its ACTIVE students and guardians of ACTIVE students (not custody-restricted, with can_view_academics); 404 class.not_found for everybody else, 403 feed.feature_disabled when the school switched the feed off */
+        /** The published posts of a class, pinned first then newest first; optional filters: `type` (POST, ACTIVITY, ACHIEVEMENT) and `photos=true` (only posts that carry media), applied after the visibility rule. Teachers and managers of the class, its ACTIVE students and guardians of ACTIVE students (not custody-restricted, with can_view_academics); 404 class.not_found for everybody else, 403 feed.feature_disabled when the school switched the feed off */
         get: operations["getClassFeed"];
         put?: never;
         post?: never;
@@ -3411,7 +3411,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The published school-wide posts, pinned first then newest first. ACTIVE students, staff and guardians of ACTIVE students of the school, and school feed managers; 404 school.not_found for everybody else */
+        /** The published school-wide posts, pinned first then newest first; optional filters `type` and `photos=true` as for a class. ACTIVE students, staff and guardians of ACTIVE students of the school, and school feed managers; 404 school.not_found for everybody else */
         get: operations["getSchoolFeed"];
         put?: never;
         post?: never;
@@ -12736,6 +12736,8 @@ export interface operations {
         parameters: {
             query?: {
                 studentId?: string;
+                type?: "POST" | "ACTIVITY" | "ACHIEVEMENT";
+                photos?: boolean;
                 cursor?: string;
                 limit?: number;
             };
@@ -17968,6 +17970,8 @@ export interface operations {
     getClassFeed: {
         parameters: {
             query?: {
+                type?: "POST" | "ACTIVITY" | "ACHIEVEMENT";
+                photos?: boolean;
                 cursor?: string;
                 limit?: number;
             };
@@ -19101,6 +19105,8 @@ export interface operations {
     getSchoolFeed: {
         parameters: {
             query?: {
+                type?: "POST" | "ACTIVITY" | "ACHIEVEMENT";
+                photos?: boolean;
                 cursor?: string;
                 limit?: number;
             };

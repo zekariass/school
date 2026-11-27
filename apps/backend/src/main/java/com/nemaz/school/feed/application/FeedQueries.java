@@ -20,6 +20,7 @@ import com.nemaz.school.common.security.CurrentUser;
 import com.nemaz.school.feed.application.FeedModels.FeedCapabilities;
 import com.nemaz.school.feed.application.FeedModels.FeedScope;
 import com.nemaz.school.feed.application.FeedModels.PostStatus;
+import com.nemaz.school.feed.application.FeedModels.PostType;
 import com.nemaz.school.feed.application.FeedModels.PostView;
 import com.nemaz.school.feed.application.FeedRows.PostRow;
 import com.nemaz.school.guardians.GuardianAccess.GuardianGrant;
@@ -62,21 +63,51 @@ public class FeedQueries {
 		return this.views.one(user, this.views.requireReadable(user, schoolId, postId));
 	}
 
-	public CursorPage<PostView> classFeed(CurrentUser user, UUID schoolId, UUID classId, String cursor, Integer limit) {
+	/**
+	 * An optional narrowing of a feed list: only posts of one type (POST, ACTIVITY, ACHIEVEMENT) and/or only posts that carry
+	 * media. It is applied <em>after</em> the visibility rule, so it can only remove posts, never add or reveal one; the
+	 * answer is still exactly what the API would have shown (photos withheld for consent stay withheld).
+	 */
+	public record PostFilter(PostType type, boolean photos) {
+
+		public static final PostFilter NONE = new PostFilter(null, false);
+
+		public static PostFilter of(PostType type, Boolean photos) {
+			return new PostFilter(type, Boolean.TRUE.equals(photos));
+		}
+
+		void apply(StringBuilder where, Map<String, Object> params) {
+			if (this.type != null) {
+				where.append(" and p.post_type = :f_type");
+				params.put("f_type", this.type.name());
+			}
+			if (this.photos) {
+				where.append(" and exists (select 1 from post_media fpm where fpm.post_id = p.id)");
+			}
+		}
+
+	}
+
+	public CursorPage<PostView> classFeed(CurrentUser user, UUID schoolId, UUID classId, PostFilter filter, String cursor,
+			Integer limit) {
 		this.access.requireSchool(user, schoolId);
 		this.access.viewableClass(user, schoolId, classId);
 		SqlFragment visible = this.visibility.visiblePosts(user, "p");
 		StringBuilder where = new StringBuilder("p.scope_type = 'CLASS' and p.school_id = :school and p.class_id = :class and ("
 				+ visible.sql() + ")");
-		return pinnedFirst(user, where, visible, Map.of("school", schoolId, "class", classId), cursor, limit);
+		java.util.HashMap<String, Object> params = new java.util.HashMap<>(Map.of("school", schoolId, "class", classId));
+		filter.apply(where, params);
+		return pinnedFirst(user, where, visible, params, cursor, limit);
 	}
 
-	public CursorPage<PostView> schoolFeed(CurrentUser user, UUID schoolId, String cursor, Integer limit) {
+	public CursorPage<PostView> schoolFeed(CurrentUser user, UUID schoolId, PostFilter filter, String cursor, Integer limit) {
 		this.access.requireSchool(user, schoolId);
 		this.access.requireSchoolMember(user, schoolId);
 		SqlFragment visible = this.visibility.visiblePosts(user, "p");
 		StringBuilder where = new StringBuilder("p.scope_type = 'SCHOOL' and p.school_id = :school and (" + visible.sql() + ")");
-		return pinnedFirst(user, where, visible, Map.of("school", schoolId), cursor, limit);
+		java.util.HashMap<String, Object> params = new java.util.HashMap<>(Map.of("school", schoolId));
+		filter.apply(where, params);
+		return pinnedFirst(user, where, visible, params, cursor, limit);
 	}
 
 	private CursorPage<PostView> pinnedFirst(CurrentUser user, StringBuilder where, SqlFragment visible,
@@ -113,7 +144,7 @@ public class FeedQueries {
 	 * come from ACTIVE, not custody-restricted guardian links with {@code can_view_academics}; a restricted or revoked
 	 * link contributes nothing. Schools whose feed is switched off are left out.
 	 */
-	public CursorPage<PostView> familyFeed(CurrentUser user, UUID studentId, String cursor, Integer limit) {
+	public CursorPage<PostView> familyFeed(CurrentUser user, UUID studentId, PostFilter filter, String cursor, Integer limit) {
 		Set<UUID> kids = new LinkedHashSet<>();
 		for (GuardianGrant grant : this.access.guardians().childrenOf(user.userId())) {
 			if (grant.allows(GuardianPermission.VIEW_ACADEMICS)) {
@@ -157,6 +188,7 @@ public class FeedQueries {
 			.append(" and fc.student_id in (:kids) and fc.status = 'ACTIVE'))")
 			.append(" or (p.scope_type = 'SCHOOL' and exists (select 1 from school_students fs where fs.school_id = p.school_id")
 			.append(" and fs.student_id in (:kids) and fs.status = 'ACTIVE')))");
+		filter.apply(where, params);
 		if (cursor != null) {
 			List<String> parts = Cursors.decode(cursor, 2);
 			try {
