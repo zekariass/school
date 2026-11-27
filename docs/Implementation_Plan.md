@@ -154,7 +154,7 @@ PR numbers refer to `github.com/zekariass/school/pull/<n>`. The order in which t
 | M5 Families, guardians & consent | ✅ Done 🔧 | #22, #23, #25 | Part C: U-15, U-16 |
 | M6 Points, badges & toolkit | ✅ Done 🔧 | #26, #27, #28, #30 | Part C: U-17, U-30 |
 | M7 Attendance with offline sync | ✅ Done 🔧 | #32, #33, #34 | Part C: U-18; per-period rolls and staff attendance are M7d |
-| M7d Per-period & staff attendance, reports | 🟡 Partly done | M7d-a (backend) | Backend done; web and mobile screens to do (step 4); timetable link with M37; Part C: U-18 |
+| M7d Per-period & staff attendance, reports | 🟡 Partly done | #58 (backend) | Backend done; web and mobile screens to do (step 4); timetable link with M37; Part C: U-18 |
 | M7e QR check-in | ⬜ To do | — | Whole milestone (B2 step 4) |
 | M8 Class Story, School Story & feed | ✅ Done 🔧 | #35, #36, #37 | Part C: U-19, U-30 |
 | M9 Messaging | ✅ Done 🔧 | #42, #45, #46 | Part C: U-20; the tutor conversation type is M27 |
