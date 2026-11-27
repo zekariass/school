@@ -137,6 +137,8 @@ function RootNavigator() {
           <Stack.Screen name="messages" />
           {/* The calendar (M11): the calendar for roles without a tab, one event (a notification opens it), the create/edit form. */}
           <Stack.Screen name="events" />
+          {/* The manager's staff roll (M7d): online only; who sees an entry point comes from /me, the API checks again. */}
+          <Stack.Screen name="staff-attendance" options={{ ...header, title: t('mobile.attendance.staff.title'), headerLeft: () => <HeaderBack /> }} />
           <Stack.Screen name="notifications" options={{ ...header, title: t('mobile.notifications.title') }} />
           {/* Guardians decide on consent requests. */}
           <Stack.Screen name="consent" options={{ ...header, title: t('consent.title') }} />

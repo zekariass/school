@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useTranslations } from 'use-intl';
 
+import { StaffAttendanceButton } from '@/components/attendance/staff-entry';
 import { PushPromptCard } from '@/components/push-prompt-card';
 import { TabHeader } from '@/components/tab-header';
 import { Button, EmptyState, Screen, Text } from '@/components/ui';
@@ -28,6 +29,7 @@ export default function NoAppRoleScreen() {
             {t('mobile.noAppRole.signedInAs', { name: profile.displayName })}
           </Text>
         ) : null}
+        <StaffAttendanceButton />
         <Button variant="secondary" label={t('nav.settings')} onPress={() => router.push('/settings')} />
         <Button variant="ghost" label={t('auth.signOut')} onPress={() => signOut()} />
       </EmptyState>
