@@ -306,6 +306,7 @@ Each item has an id, the milestone it comes from, what to change, and **when** i
 | U-28 | Platform console (M1c) | Search in the school and country pickers (they load the first 100); a batched user lookup for the admin list; web screens for password sign-in and e-mail codes | Later |
 | U-29 | Identity (M1) | Federated sign-in (Google, Apple; table exists); e-mail verification flows | Later |
 | U-30 | Mobile points and feed (M6c, M8c) | The leaderboard view stays off unless a school enables it; notes on awards; offline undo of a sent award; routine ticks across devices; student contributions on the web | Later |
+| U-34 | Reports (M7d-a finding) | **Asynchronous report generation** (`report_jobs`, DB §4.19) was designed but never built: every report so far is a synchronous CSV download with a row cap and a rate limit. Build the job table, worker and download (private media, short retention, audited) before the heavy reports and PDFs that the plan sends "through `report_jobs`" (M35 ID-card sheets, M40, M41 report cards, M31d) | **Before M35 / M40**, whichever comes first |
 
 ---
 # Part D — Milestones by phase
