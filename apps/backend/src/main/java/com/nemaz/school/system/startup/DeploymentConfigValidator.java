@@ -72,6 +72,11 @@ public final class DeploymentConfigValidator {
 	private static final Set<String> KNOWN_SAFEGUARDING_KEYS = Set.of("ZpMvTuBbu45fW1DPsfAjLbkM70qGZACjbSFvt31V1WE=",
 			"3XW2ygDFVBin17tAEfBguxoWYqoElaHNMzBdJ/X10Lc=");
 
+	/** The development and test keys of the attendance QR check-in (they are in the repository): never deployed. */
+	private static final Set<String> KNOWN_ATTENDANCE_KEYS = Set.of("Hf9wPtZqZ8P5OV7B9Mok7tIpN72WnK1OVDcjtLwgMRA=",
+			"6hFNRriTkGy3V2iYiHYqwAjOttPd7WiG+Iymfduxxlg=", "7e+HlmBvZ51mlWtawaTop83ghsWRxYWjkpvTtcRRrFQ=",
+			"sF1u6bCobKoRwn+Cf5LRZeF8EBa49p72ig4TlQ1M81k=", "FeQupzK7Ifab2dnmv6jYZGFQ+zM9miuCaTETqNihN0I=");
+
 	private static final Pattern SAFEGUARDING_KEY_ID = Pattern.compile("^[A-Za-z0-9_-]{1,32}$");
 
 	private static final Set<String> WEAK_DB_PASSWORDS = Set.of("school", "postgres", "password", "changeme",
@@ -131,6 +136,7 @@ public final class DeploymentConfigValidator {
 				jwt();
 				pepper();
 				safeguardingKeys();
+				attendanceSecrets();
 				providers();
 				invitations();
 				storage();
@@ -331,11 +337,78 @@ public final class DeploymentConfigValidator {
 		}
 	}
 
+	/**
+	 * The secrets of the attendance QR check-in (M7e): at least one valid credential pepper key with the active one among
+	 * them, and the server key of the rotating codes; every key is base64 of 32 random bytes and none ships in the
+	 * repository. Values are never echoed.
+	 */
+	private void attendanceSecrets() {
+		String active = text("school.attendance.secrets.active-key-id");
+		Map<String, String> keys = keyMap("school.attendance.secrets.keys");
+		if (keys.isEmpty()) {
+			problem("SCHOOL_ATTENDANCE_SECRETS_KEYS_K1", "is not set (base64 of 32 random bytes: openssl rand -base64 32; "
+					+ "attendance QR credentials cannot be issued without a key)");
+		}
+		if (active == null) {
+			problem("SCHOOL_ATTENDANCE_SECRETS_ACTIVE_KEY_ID", "is not set (the id of the key new credentials are hashed with, "
+					+ "e.g. k1)");
+		}
+		else if (!keys.isEmpty() && !keys.containsKey(active)) {
+			problem("SCHOOL_ATTENDANCE_SECRETS_ACTIVE_KEY_ID", "names a key that is not configured");
+		}
+		for (Map.Entry<String, String> entry : keys.entrySet()) {
+			String id = entry.getKey();
+			if (!SAFEGUARDING_KEY_ID.matcher(id).matches()) {
+				problem("SCHOOL_ATTENDANCE_SECRETS_KEYS", "has a key id that is not valid (letters, digits, _ and -)");
+				continue;
+			}
+			randomKey("SCHOOL_ATTENDANCE_SECRETS_KEYS_" + id.toUpperCase(Locale.ROOT), entry.getValue());
+		}
+		String qr = text("school.attendance.secrets.qr-key");
+		if (qr == null) {
+			problem("SCHOOL_ATTENDANCE_SECRETS_QR_KEY", "is not set (base64 of 32 random bytes: openssl rand -base64 32)");
+		}
+		else {
+			randomKey("SCHOOL_ATTENDANCE_SECRETS_QR_KEY", qr);
+		}
+	}
+
+	/** One base64 key of 32 bytes that is not a repository key and looks random. */
+	private void randomKey(String name, String value) {
+		byte[] raw;
+		try {
+			raw = Base64.getDecoder().decode(value);
+		}
+		catch (IllegalArgumentException ex) {
+			problem(name, "is not valid base64");
+			return;
+		}
+		if (raw.length != 32) {
+			problem(name, "must be 32 bytes: openssl rand -base64 32");
+		}
+		else if (KNOWN_ATTENDANCE_KEYS.contains(value)) {
+			problem(name, "is a development or test key that ships in the repository; generate a random one");
+		}
+		else {
+			Set<Byte> distinct = new HashSet<>();
+			for (byte b : raw) {
+				distinct.add(b);
+			}
+			if (distinct.size() < 8) {
+				problem(name, "has too little variety to be random; generate a random one");
+			}
+		}
+	}
+
 	private Map<String, String> safeguardingKeyMap() {
+		return keyMap("school.safeguarding.encryption.keys");
+	}
+
+	private Map<String, String> keyMap(String property) {
 		Map<String, String> keys = new LinkedHashMap<>();
 		try {
 			Map<String, String> bound = Binder.get(this.env)
-				.bind("school.safeguarding.encryption.keys", Bindable.mapOf(String.class, String.class))
+				.bind(property, Bindable.mapOf(String.class, String.class))
 				.orElse(Map.of());
 			bound.forEach((id, value) -> {
 				if (value != null && !value.isBlank() && !value.contains("${")) {

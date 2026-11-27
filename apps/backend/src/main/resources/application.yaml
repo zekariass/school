@@ -105,6 +105,15 @@ school:
       # the ACTIVE one encrypts new text, every listed one still decrypts. No defaults: the deployed profiles refuse to
       # start without a valid key, the development key lives in application-local.yaml only.
       active-key-id: ${SCHOOL_SAFEGUARDING_ENCRYPTION_ACTIVE_KEY_ID:}
+  attendance:
+    secrets:
+      # QR check-in (M7e, docs/ops/Runbook.md section 6): the pepper keys of the stored credential hashes are a map
+      # (SCHOOL_ATTENDANCE_SECRETS_KEYS_K1=<base64 of 32 random bytes>, ..._K2 for rotation; key ids are lower case), the
+      # ACTIVE one hashes new credentials and every listed key still verifies; QR_KEY is the server key of the rotating
+      # codes (base64 of 32 random bytes). No defaults: the deployed profiles refuse to start without valid values, the
+      # development values live in application-local.yaml only.
+      active-key-id: ${SCHOOL_ATTENDANCE_SECRETS_ACTIVE_KEY_ID:}
+      qr-key: ${SCHOOL_ATTENDANCE_SECRETS_QR_KEY:}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:}
   storage:

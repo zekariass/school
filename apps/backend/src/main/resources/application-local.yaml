@@ -43,6 +43,13 @@ school:
       active-key-id: dev
       keys:
         dev: ZpMvTuBbu45fW1DPsfAjLbkM70qGZACjbSFvt31V1WE=
+  attendance:
+    secrets:
+      # DEVELOPMENT KEYS, not secrets: they are in the repository, so a deployed profile refuses them (DeploymentConfigValidator).
+      active-key-id: dev
+      keys:
+        dev: Hf9wPtZqZ8P5OV7B9Mok7tIpN72WnK1OVDcjtLwgMRA=
+      qr-key: 6hFNRriTkGy3V2iYiHYqwAjOttPd7WiG+Iymfduxxlg=
   sms:
     provider: console             # one-time codes are printed in the backend log
   guardians:

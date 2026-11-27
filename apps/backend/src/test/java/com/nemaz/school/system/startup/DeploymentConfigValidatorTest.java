@@ -28,6 +28,13 @@ class DeploymentConfigValidatorTest {
 	private static final String SAFEGUARDING_KEY = java.util.Base64.getEncoder()
 		.encodeToString("Q7x!mP2#vL9$kR4&tW6*zN8^bH3@cF5%".getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
+	/** Valid attendance QR secrets (32 bytes each) that are not keys of the repository. */
+	private static final String ATTENDANCE_KEY = java.util.Base64.getEncoder()
+		.encodeToString("Hg4!sD7#jK2$pW9&xB5*nM1^cV8@zQ3%".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+	private static final String ATTENDANCE_QR_KEY = java.util.Base64.getEncoder()
+		.encodeToString("rT6!yU3#iO8$aS1&dF4*gH7^jL2@kZ9%".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
 	/** A configuration that passes in both deployed profiles. */
 	private static MockEnvironment valid(String profile) {
 		MockEnvironment env = new MockEnvironment();
@@ -41,6 +48,9 @@ class DeploymentConfigValidatorTest {
 		env.setProperty("school.auth.otp.pepper", SECRET_PEPPER);
 		env.setProperty("school.safeguarding.encryption.active-key-id", "k1");
 		env.setProperty("school.safeguarding.encryption.keys.k1", SAFEGUARDING_KEY);
+		env.setProperty("school.attendance.secrets.active-key-id", "k1");
+		env.setProperty("school.attendance.secrets.keys.k1", ATTENDANCE_KEY);
+		env.setProperty("school.attendance.secrets.qr-key", ATTENDANCE_QR_KEY);
 		env.setProperty("school.sms.provider", "console");
 		env.setProperty("school.sms.allow-console", "true");
 		env.setProperty("school.push.provider", "expo");
@@ -112,6 +122,9 @@ class DeploymentConfigValidatorTest {
 			.anyMatch((p) -> p.startsWith("SCHOOL_AUTH_OTP_PEPPER"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_SAFEGUARDING_ENCRYPTION_KEYS_K1"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_SAFEGUARDING_ENCRYPTION_ACTIVE_KEY_ID"))
+			.anyMatch((p) -> p.startsWith("SCHOOL_ATTENDANCE_SECRETS_KEYS_K1"))
+			.anyMatch((p) -> p.startsWith("SCHOOL_ATTENDANCE_SECRETS_ACTIVE_KEY_ID"))
+			.anyMatch((p) -> p.startsWith("SCHOOL_ATTENDANCE_SECRETS_QR_KEY"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_SMS_PROVIDER"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_PUSH_PROVIDER"))
 			.anyMatch((p) -> p.startsWith("SCHOOL_GUARDIANS_INVITE_BASE_URL"))
@@ -411,6 +424,47 @@ class DeploymentConfigValidatorTest {
 			.doesNotContain("school-dev-secret")
 			.doesNotContain("garbage-private-material")
 			.doesNotContain("password=school");
+	}
+
+	// ------------------------------------------------ attendance QR secrets (M7e)
+
+	@Test
+	void theAttendanceQrSecretsAreRequiredInDeployedProfiles() {
+		for (String profile : new String[] { "staging", "prod" }) {
+			assertSingleProblem(problems(profile, (env) -> env.setProperty("school.attendance.secrets.keys.k1", "")),
+					"SCHOOL_ATTENDANCE_SECRETS_KEYS_K1 is not set");
+			assertSingleProblem(problems(profile, (env) -> env.setProperty("school.attendance.secrets.active-key-id", "")),
+					"SCHOOL_ATTENDANCE_SECRETS_ACTIVE_KEY_ID is not set");
+			assertSingleProblem(problems(profile, (env) -> env.setProperty("school.attendance.secrets.active-key-id", "k9")),
+					"SCHOOL_ATTENDANCE_SECRETS_ACTIVE_KEY_ID names a key that is not configured");
+			assertSingleProblem(problems(profile, (env) -> env.setProperty("school.attendance.secrets.qr-key", "")),
+					"SCHOOL_ATTENDANCE_SECRETS_QR_KEY is not set");
+		}
+	}
+
+	@Test
+	void theAttendanceKeysThatShipInTheRepositoryAreRefusedAndNeverPrinted() {
+		// application-local.yaml (key and QR key) and application-test.yaml
+		for (String key : new String[] { "Hf9wPtZqZ8P5OV7B9Mok7tIpN72WnK1OVDcjtLwgMRA=",
+				"6hFNRriTkGy3V2iYiHYqwAjOttPd7WiG+Iymfduxxlg=", "7e+HlmBvZ51mlWtawaTop83ghsWRxYWjkpvTtcRRrFQ=",
+				"FeQupzK7Ifab2dnmv6jYZGFQ+zM9miuCaTETqNihN0I=" }) {
+			List<String> credential = problems("prod", (env) -> env.setProperty("school.attendance.secrets.keys.k1", key));
+			assertSingleProblem(credential, "SCHOOL_ATTENDANCE_SECRETS_KEYS_K1 is a development or test key");
+			assertThat(credential.getFirst()).doesNotContain(key);
+			List<String> qr = problems("prod", (env) -> env.setProperty("school.attendance.secrets.qr-key", key));
+			assertSingleProblem(qr, "SCHOOL_ATTENDANCE_SECRETS_QR_KEY is a development or test key");
+			assertThat(qr.getFirst()).doesNotContain(key);
+		}
+		assertSingleProblem(problems("staging", (env) -> env.setProperty("school.attendance.secrets.qr-key", "not base64!")),
+				"SCHOOL_ATTENDANCE_SECRETS_QR_KEY is not valid base64");
+		assertSingleProblem(problems("staging", (env) -> env.setProperty("school.attendance.secrets.keys.k1",
+				java.util.Base64.getEncoder().encodeToString(new byte[16]))), "SCHOOL_ATTENDANCE_SECRETS_KEYS_K1 must be 32 bytes");
+		assertSingleProblem(problems("staging", (env) -> env.setProperty("school.attendance.secrets.keys.k1",
+				java.util.Base64.getEncoder().encodeToString(new byte[32]))), "SCHOOL_ATTENDANCE_SECRETS_KEYS_K1 has too little variety");
+		// a second valid key (rotation overlap) and an unset slot are fine
+		assertThat(problems("prod", (env) -> env.setProperty("school.attendance.secrets.keys.k2",
+				java.util.Base64.getEncoder().encodeToString("L6y#nB1$xC7&vM3*qZ9^wK5@eR2%tH8!".getBytes())))).isEmpty();
+		assertThat(problems("prod", (env) -> env.setProperty("school.attendance.secrets.keys.k2", ""))).isEmpty();
 	}
 
 	// ------------------------------------------------ safeguarding encryption keys
