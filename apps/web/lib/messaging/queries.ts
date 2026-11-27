@@ -1,6 +1,6 @@
 import { getBrowserApi } from "@/lib/api-client";
 import { ensureOk, unwrap } from "@/lib/api-error";
-import type { CreateGroupRequest, ReportReason } from "./types";
+import type { CreateGroupRequest } from "./types";
 import type { SendRequest } from "./composer";
 
 const api = () => getBrowserApi();
@@ -141,14 +141,6 @@ export const unreactToMessage = async (conversationId: string, messageId: string
   unwrap(
     await api().DELETE("/api/v1/conversations/{conversationId}/messages/{messageId}/reaction", {
       params: { path: { conversationId, messageId }, query: { emoji } },
-    }),
-  );
-
-export const reportMessage = async (conversationId: string, messageId: string, reason: ReportReason, note?: string) =>
-  ensureOk(
-    await api().POST("/api/v1/conversations/{conversationId}/messages/{messageId}/report", {
-      params: { path: { conversationId, messageId } },
-      body: { reason, note: note?.trim() || undefined },
     }),
   );
 

@@ -6,6 +6,8 @@ import {
   LayoutDashboardIcon,
   ScrollTextIcon,
   SchoolIcon,
+  ShieldAlertIcon,
+  ShieldCheckIcon,
   SlidersHorizontalIcon,
   type LucideIcon,
 } from "lucide-react";
@@ -21,6 +23,8 @@ const ICONS: Record<SectionId, LucideIcon> = {
   featureFlags: FlagIcon,
   settings: SlidersHorizontalIcon,
   audit: ScrollTextIcon,
+  moderation: ShieldAlertIcon,
+  safeguarding: ShieldCheckIcon,
 };
 
 /** Left navigation of the platform console; sections depend on the user's permissions. */

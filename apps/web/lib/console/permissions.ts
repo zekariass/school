@@ -10,9 +10,11 @@ export const P = {
   schoolManage: "school.manage",
   schoolSettingsManage: "school.settings.manage",
   auditRead: "audit.read",
+  moderationManage: "platform.moderation.manage",
+  safeguardingRead: "school.safeguarding.read",
 } as const;
 
-export type SectionId = "schools" | "organizations" | "featureFlags" | "settings" | "audit";
+export type SectionId = "schools" | "organizations" | "featureFlags" | "settings" | "audit" | "moderation" | "safeguarding";
 
 export interface Section {
   id: SectionId;
@@ -27,6 +29,10 @@ export const SECTIONS: readonly Section[] = [
   { id: "featureFlags", href: "/platform/feature-flags", anyOf: [P.featuresManage] },
   { id: "settings", href: "/platform/settings", anyOf: [P.settingsManage, P.schoolSettingsManage] },
   { id: "audit", href: "/platform/audit-log", anyOf: [P.auditRead] },
+  // The platform moderation queue: platform moderators (the API keeps the school queues apart).
+  { id: "moderation", href: "/platform/moderation", anyOf: [P.moderationManage] },
+  // Platform safeguarding leads only: administrators do not hold this permission and are not told the area exists.
+  { id: "safeguarding", href: "/platform/safeguarding", anyOf: [P.safeguardingRead] },
 ];
 
 /** The sections a user with these permissions (held at any scope) sees. The API still checks every call. */

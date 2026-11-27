@@ -7,16 +7,18 @@ import { PlatformNav } from "./platform-nav";
 export function PlatformShell({
   user,
   permissions,
+  userId,
   skipLabel,
   children,
 }: {
   user: { name: string; detail?: string };
   permissions: string[];
+  userId: string;
   skipLabel: string;
   children: React.ReactNode;
 }) {
   return (
-    <ConsoleProvider permissions={permissions}>
+    <ConsoleProvider permissions={permissions} userId={userId}>
       <RealtimeMount />
       <div className="flex min-h-dvh">
         <a

@@ -21,6 +21,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useFormatInstantIn } from "@/components/attendance/status";
+import { ReportDialog } from "@/components/moderation/report-dialog";
 import { ConfirmDialog } from "@/components/school/confirm-dialog";
 import { FormDialog } from "@/components/school/form-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -40,14 +41,12 @@ import {
   markPostSeen,
   publishPost,
   react,
-  reportPost,
   schedulePost,
   setPinned,
   translatePost,
   unhidePost,
   unschedulePost,
   type Post,
-  type ReportReason,
 } from "@/lib/feed/queries";
 import { REACTIONS, applyReaction, nextReaction, reactionTotal, type ReactionName } from "@/lib/feed/reactions";
 import { hasAnyAction, hasSeenCount, isWithheldPlaceholder, isWithheldWarning, postMenu } from "@/lib/feed/view";
@@ -64,7 +63,7 @@ export const REACTION_EMOJI: Record<ReactionName, string> = { LIKE: "👍", HEAR
 const seenThisSession = new Set<string>();
 
 type Dialog =
-  | { kind: "delete" | "hide" | "report" | "schedule" }
+  | { kind: "delete" | "hide" | "report" | "reportUser" | "schedule" }
   | { kind: "gate"; error: GateError; retry: (confirm: boolean) => Promise<unknown> };
 
 /**
@@ -229,8 +228,13 @@ export function PostCard({ post, onEdit, defaultCommentsOpen = false }: { post: 
                     </DropdownMenuItem>
                   ) : null}
                   {menu.report ? (
-                    <DropdownMenuItem onSelect={() => setDialog({ kind: "report" })}>
+                    <DropdownMenuItem data-testid="post-report" onSelect={() => setDialog({ kind: "report" })}>
                       <FlagIcon aria-hidden /> {t("report")}
+                    </DropdownMenuItem>
+                  ) : null}
+                  {menu.reportAuthor ? (
+                    <DropdownMenuItem data-testid="post-report-author" onSelect={() => setDialog({ kind: "reportUser" })}>
+                      <FlagIcon aria-hidden /> {t("reportAuthor")}
                     </DropdownMenuItem>
                   ) : null}
                   {menu.remove ? (
@@ -309,7 +313,10 @@ export function PostCard({ post, onEdit, defaultCommentsOpen = false }: { post: 
         />
       ) : null}
       {dialog?.kind === "hide" ? <HideDialog post={post} onClose={() => setDialog(null)} /> : null}
-      {dialog?.kind === "report" ? <ReportDialog post={post} onClose={() => setDialog(null)} /> : null}
+      {dialog?.kind === "report" ? <ReportDialog target={{ type: "POST", id: post.id }} onClose={() => setDialog(null)} /> : null}
+      {dialog?.kind === "reportUser" && post.author.userId ? (
+        <ReportDialog target={{ type: "USER", id: post.author.userId }} onClose={() => setDialog(null)} />
+      ) : null}
       {dialog?.kind === "schedule" ? <ScheduleDialog post={post} onClose={() => setDialog(null)} /> : null}
       {dialog?.kind === "gate" ? <GateDialog error={dialog.error} retry={dialog.retry} onClose={() => setDialog(null)} /> : null}
     </Card>
@@ -469,33 +476,6 @@ function HideDialog({ post, onClose }: { post: Post; onClose: () => void }) {
         </label>
         <Textarea id="hide-reason" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
       </div>
-    </FormDialog>
-  );
-}
-
-function ReportDialog({ post, onClose }: { post: Post; onClose: () => void }) {
-  const t = useTranslations("school.feed.post");
-  const [reason, setReason] = useState<ReportReason>("INAPPROPRIATE");
-  const [error, setError] = useState<string | null>(null);
-  const report = useMutation({
-    mutationFn: () => reportPost(post.schoolId, post.id, reason),
-    onSuccess: () => {
-      toast.success(t("reported"));
-      onClose();
-    },
-    onError: (e) => setError(errorMessage(e, t("actionFailed"))),
-  });
-  return (
-    <FormDialog title={t("reportTitle")} description={t("reportBody")} submitLabel={t("report")} pending={report.isPending} error={error} onSubmit={() => report.mutate()} onClose={onClose}>
-      <fieldset className="flex flex-col gap-2">
-        <legend className="sr-only">{t("reportTitle")}</legend>
-        {(["INAPPROPRIATE", "PRIVACY", "SPAM", "OTHER"] as ReportReason[]).map((value) => (
-          <label key={value} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-3">
-            <input type="radio" name="report-reason" className="accent-primary" checked={reason === value} onChange={() => setReason(value)} />
-            {t(`reportReasons.${value}`)}
-          </label>
-        ))}
-      </fieldset>
     </FormDialog>
   );
 }

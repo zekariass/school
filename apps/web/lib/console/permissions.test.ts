@@ -20,6 +20,6 @@ describe("visibleSections", () => {
   });
 
   it("keeps the section order", () => {
-    expect(ids(Object.values(P))).toEqual(["schools", "organizations", "featureFlags", "settings", "audit"]);
+    expect(ids(Object.values(P))).toEqual(["schools", "organizations", "featureFlags", "settings", "audit", "moderation", "safeguarding"]);
   });
 });

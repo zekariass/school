@@ -10,13 +10,12 @@ import {
   editMessage,
   hideMessage,
   reactToMessage,
-  reportMessage,
   translateMessage,
   unhideMessage,
   unreactToMessage,
 } from "@/lib/messaging/queries";
 import { tombstone, upsertMessage } from "@/lib/messaging/thread";
-import type { Message, ReportReason } from "@/lib/messaging/types";
+import type { Message } from "@/lib/messaging/types";
 
 type Pages = InfiniteData<{ items: Message[]; nextCursor?: string }, string | undefined>;
 
@@ -59,10 +58,6 @@ export function useMessageActions(conversationId: string, fallbacks: { failed: s
         patch(tombstone(message));
         refresh();
       },
-    }),
-    report: useMutation({
-      mutationFn: ({ messageId, reason, note }: { messageId: string; reason: ReportReason; note?: string }) =>
-        reportMessage(conversationId, messageId, reason, note),
     }),
     hide: useMutation({
       mutationFn: ({ messageId, reason }: { messageId: string; reason: string }) => hideMessage(conversationId, messageId, reason),
