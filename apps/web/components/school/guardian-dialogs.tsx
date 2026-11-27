@@ -147,7 +147,7 @@ export function InviteGuardianDialog({
       pending={invite.isPending}
       error={invite.isError ? errorMessage(invite.error, t("failed")) : null}
       onSubmit={() => {
-        const read = readContact(contact);
+        const read = readContact(contact, school.country.code);
         if (!read.ok) {
           setErrors({ [read.field]: read.key });
           return;
@@ -212,7 +212,7 @@ export function AddGuardianDialog({
       pending={add.isPending}
       error={add.isError ? errorMessage(add.error, t("failed")) : null}
       onSubmit={() => {
-        const read = readContact(contact);
+        const read = readContact(contact, school.country.code);
         setNameError(!name.trim());
         if (!read.ok) {
           setErrors({ [read.field]: read.key });

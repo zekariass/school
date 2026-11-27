@@ -62,17 +62,4 @@ export function relay(upstream: Response): Response {
   });
 }
 
-/** What the sign-in routes accept: one phone or email, the rest is ignored. */
-export interface Destination {
-  phone?: string;
-  email?: string;
-}
-
-export function parseDestination(input: unknown): Destination | null {
-  if (typeof input !== "object" || input === null) return null;
-  const { phone, email } = input as Record<string, unknown>;
-  const hasPhone = typeof phone === "string" && phone.trim() !== "";
-  const hasEmail = typeof email === "string" && email.trim() !== "";
-  if (hasPhone === hasEmail) return null;
-  return hasPhone ? { phone: (phone as string).trim() } : { email: (email as string).trim() };
-}
+export { parseDestination, type Destination } from "./destination-input";

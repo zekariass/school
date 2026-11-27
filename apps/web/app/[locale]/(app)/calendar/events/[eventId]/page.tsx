@@ -20,7 +20,7 @@ export default function CalendarEventPage({ params }: PageProps<"/[locale]/calen
     <CalendarShell>
       {(me) => (
         <Suspense fallback={<Skeleton className="h-64 rounded-2xl" />}>
-          <Opened params={params} timezone={me.timezone ?? null} />
+          <Opened params={params} timezone={me.timezone ?? me.country.defaultTimezone} />
         </Suspense>
       )}
     </CalendarShell>

@@ -10,6 +10,7 @@ import { getAccessToken, getRefreshToken } from "./session";
 
 export type Me = components["schemas"]["MeResponse"];
 export type SchoolSummary = components["schemas"]["SchoolSummary"];
+export type CountryConfig = components["schemas"]["CountryConfig"];
 
 export type SessionResult =
   | { status: "ok"; me: Me }
@@ -91,6 +92,12 @@ export interface WorkspaceSchool {
   slug: string;
   name: string;
   logo?: SchoolSummary["logo"];
+  /** The school's own IANA zone: school dates and times are shown in it (D42). */
+  timezone: string;
+  /** Default calendar of the school (an API calendar code). */
+  defaultCalendarCode: string;
+  /** The school's country: its calendars, languages and calling code. */
+  country: CountryConfig;
 }
 
 /**
@@ -105,7 +112,17 @@ export const getWorkspaceSchool = cache(async (slug: string): Promise<WorkspaceS
   if (access.permissions.has(SP.read)) return getSchoolBySlug(slug);
   const membership = me.memberships.find((m) => m.schoolSlug === slug);
   if (!membership) notFound();
-  return { id: membership.schoolId, slug: membership.schoolSlug, name: membership.schoolName };
+  // `/me` sends the configuration of every membership's country next to the memberships.
+  const country = me.countries.find((c) => c.code === membership.countryCode);
+  if (!country) throw new Error("The School API is unavailable.");
+  return {
+    id: membership.schoolId,
+    slug: membership.schoolSlug,
+    name: membership.schoolName,
+    timezone: membership.timezone,
+    defaultCalendarCode: country.defaultCalendarCode,
+    country,
+  };
 });
 
 /** Permission codes the user holds at any scope. */

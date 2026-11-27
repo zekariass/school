@@ -15,7 +15,9 @@ import {
   type ContactDestination,
   type RelationshipType,
 } from "@school/validation/guardians";
+import { PhoneCountryPicker } from "@/components/phone-country-picker";
 import { SelectField } from "@/components/school/fields";
+import { usePhoneCountry } from "@/components/use-phone-country";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -276,18 +278,19 @@ function ContactStep({
   const [blockedUntil, setBlockedUntil] = useState<number | null>(null);
   const [pending, setPending] = useState(false);
   const blockedFor = useSecondsLeft(blockedUntil);
+  const phoneCountry = usePhoneCountry();
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFailure(null);
-    const parsed = parseDestinationInput(value);
+    const parsed = parseDestinationInput(value, phoneCountry.regionCode);
     if (!parsed.ok) {
       setFieldError(parsed.key.replace("validation.", "") as "required" | "phone" | "email");
       return;
     }
     setFieldError(null);
     setPending(true);
-    const result = await postJson<{ expiresIn?: number }>("/api/invitations/otp", { ...keyOf, ...parsed.destination }, locale);
+    const result = await postJson<{ expiresIn?: number }>("/api/invitations/otp", { ...keyOf, ...parsed.destination, country: phoneCountry.country?.code }, locale);
     setPending(false);
     if (result.ok) {
       onSent(parsed.destination, codeTtl(result.data));
@@ -305,6 +308,14 @@ function ContactStep({
   const hintId = `${id}-contact-hint`;
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-5">
+      {phoneCountry.showPicker ? (
+        <PhoneCountryPicker
+          countries={phoneCountry.countries}
+          value={phoneCountry.country?.code}
+          onChange={phoneCountry.select}
+          disabled={pending}
+        />
+      ) : null}
       <div className="flex flex-col gap-2">
         <Label htmlFor={inputId}>{t("contactLabel")}</Label>
         <Input
@@ -330,7 +341,7 @@ function ContactStep({
           </p>
         ) : null}
       </div>
-      <Button type="submit" size="lg" disabled={pending || blockedFor > 0}>
+      <Button type="submit" size="lg" disabled={pending || phoneCountry.loading || blockedFor > 0}>
         {pending ? t("sending") : blockedFor > 0 ? t("tryAgainIn", { seconds: blockedFor }) : t("sendCode")}
       </Button>
       <div aria-live="polite" className="empty:hidden">

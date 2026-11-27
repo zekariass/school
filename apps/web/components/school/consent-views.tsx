@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { unwrap } from "@/lib/api-error";
 import { getBrowserApi } from "@/lib/api-client";
+import { isCountryNotAvailableProblem } from "@school/validation/family";
 import { ApiRequestError } from "@/lib/api-error";
 import { errorMessage } from "@/lib/console/errors";
 import { consentGuardians, familyAbilities } from "@/lib/school/families";
@@ -216,7 +217,8 @@ function RecordConsentDialog({ student, onClose }: { student: StudentView; onClo
       try {
         return await fetchEffectivePolicy(school.id, type, locale);
       } catch (error) {
-        if (error instanceof ApiRequestError && error.status === 404) return null;
+        // "No version yet" is a 404 too, but "this country has no text" (D42) is an error to show as the API words it.
+        if (error instanceof ApiRequestError && error.status === 404 && !isCountryNotAvailableProblem(error.problem)) return null;
         throw error;
       }
     },
@@ -252,7 +254,7 @@ function RecordConsentDialog({ student, onClose }: { student: StudentView; onClo
     onSuccess: onClose,
   });
 
-  const noVersion = !policy.isPending && !policy.data;
+  const noVersion = !policy.isPending && !policy.isError && !policy.data;
 
   return (
     <FormDialog
@@ -260,7 +262,15 @@ function RecordConsentDialog({ student, onClose }: { student: StudentView; onClo
       description={t("recordBody")}
       submitLabel={t("submit")}
       pending={record.isPending}
-      error={record.isError ? errorMessage(record.error, t("failed")) : noVersion ? t("noVersion") : null}
+      error={
+        record.isError
+          ? errorMessage(record.error, t("failed"))
+          : policy.isError
+            ? errorMessage(policy.error, t("failed"))
+            : noVersion
+              ? t("noVersion")
+              : null
+      }
       onSubmit={() => {
         const incomplete = who === "link" ? !byLink || !linkId : !name.trim();
         setMissing(incomplete);

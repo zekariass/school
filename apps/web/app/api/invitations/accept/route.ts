@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       ...input.key,
       phone: input.phone,
       email: input.email,
-      country: "ET",
+      country: input.country,
       otpCode: input.otpCode,
       displayName: input.displayName,
       preferredLanguage: input.preferredLanguage,

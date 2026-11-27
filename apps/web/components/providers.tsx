@@ -1,7 +1,7 @@
 "use client";
 
 import { isServer, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { CalendarPreferenceProvider } from "@/components/calendar-preference";
+import { PlatformPlaceProvider } from "@/components/display-place";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { shouldRetry } from "@/lib/api-error";
@@ -29,12 +29,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
   return (
     <ThemeProvider>
-      <CalendarPreferenceProvider>
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        {/* Public pages show the platform default country's zone and calendars; signed-in layouts replace them. */}
+        <PlatformPlaceProvider>
           {children}
           <Toaster />
-        </QueryClientProvider>
-      </CalendarPreferenceProvider>
+        </PlatformPlaceProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }
