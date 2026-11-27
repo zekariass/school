@@ -328,8 +328,7 @@ tutor directory is not a people search: it lists tutors, never students or famil
 1. **Type.** `TUTOR_INQUIRY`, exactly two people: one **tutor** and one **inquirer**. It has no school and no class, and
    it never mixes with school conversations: a school administrator or reviewer cannot see it, and a tutor cannot see
    anything of a school.
-2. **Who may start one.** Only (a) a **guardian** who is ACTIVE and has at least one ACTIVE, unrestricted link to a child,
-   and (b) an **independent adult learner**: an ACTIVE account with `adult_confirmed_at` set (a verified phone and a date of birth showing 18 or over, never a student profile or managed account, changeable only through support). **Students under 18 never message a tutor** (owner decision, 26 November 2026). A student
+2. **Who may start one.** Only any **verified adult**: an ACTIVE account with `users.adult_confirmed_at` set, either (a) at sign-up with a phone verified by OTP and a date of birth showing 18 or over, or (b) when a school verifies the account's guardian link (the school vouches for an adult). The account must never have been a student profile or a managed account. The adult says whether they ask **for a child** (shown as "Parent", with the child's age band) or **for themself** (shown as "Learner"); no link to a school is needed, so families whose children are not in a platform school can use the directory too. **Students under 18 never message a tutor** (owner decision, 26 November 2026): a student
    (managed or minor) **can never start, join or be added to** a tutor conversation. A tutor can **never start** a
    conversation: they can only reply to an inquiry addressed to them.
 3. **Which tutor.** Only a tutor who is VERIFIED, LISTED and has a live listing subscription (or the 7-day grace), who is
@@ -345,13 +344,15 @@ tutor directory is not a people search: it lists tutors, never students or famil
    outside the platform, that the platform does not run or guarantee them, and that a child's guardian should be present
    or meet the tutor first. A message that contains what looks like a phone number, e-mail address or an off-platform
    payment request is delivered, but both sides get a visible safety notice and the message is counted for review.
-7. **Block and report.** Either side can block (R7) and report (R11, reason category `TUTOR_CONDUCT`). A report is read
-   by **platform moderators** only (never by a school). A confirmed case can suspend the tutor's listing at once, which
+7. **Block and report.** Either side can block (R7) and report (R11, with the normal reason codes). The case goes to the
+   **platform moderation queue** (`platform.moderation.manage`; the case has no school), never to a school; a case that needs a
+   safeguarding lead becomes a platform incident of category `TUTOR_CONDUCT`. A confirmed case can suspend the tutor's listing at once, which
    closes all their open inquiries.
 8. **Closing.** Either side can close an inquiry; it closes by itself after 30 days without a message. A closed
    conversation is read-only and is deleted according to the retention policy.
-9. **Review.** The audited, reason-bound review of R13 applies to tutor conversations, with **platform reviewers only**
-   (`platform.messaging.review`), because no school owns the conversation.
+9. **Review.** There is no general review of tutor conversations. A platform moderator reads one **only through a reported
+   case** (the case-bound, audited read of the moderation module), because no school owns the conversation and no school
+   reviewer may see it.
 10. **No notification text** contains the message, the child's name or the tutor's full name (R9.3 applies).
 
 Tests (a promise, like the rest of this document): `TutorInquiryTest.onlyGuardiansAndAdultLearnersMayStart`,
@@ -381,4 +382,4 @@ Existing (DB 4.11): `messaging.parent_teacher.enabled` (true), `messaging.parent
 8. Message retention: nothing is purged yet (deleted originals stay in history). What are the retention periods (M13/M21)?
 9. Emoji reactions are a fixed list of 12; content moderation of free emoji is avoided.
 10. Voice notes and video are not built.
-11. **Tutor inquiries (R14, new).** Is it acceptable that guardians and adult learners may message tutors, that a minor never does, and that the platform does not block phone numbers but only warns? Should a guardian also be able to add the other guardian to the conversation? (Not allowed today: two people only.) Platform reviewers, not schools, review tutor conversations: confirm.
+11. **Tutor inquiries (R14, new).** Is it acceptable that any verified adult (asking for a child or for themself) may message tutors, that a minor never does, and that the platform does not block phone numbers but only warns? Should a guardian also be able to add the other guardian to the conversation? (Not allowed today: two people only.) Platform moderators read a tutor conversation only through a reported case: confirm.
