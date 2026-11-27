@@ -85,6 +85,18 @@ describe("navItems", () => {
     expect(navItems(schoolAccess(schoolAdmin, "sunrise"))).not.toContain("attendance");
   });
 
+  it("shows Attendance (its Staff tab) to staff attendance managers and readers of this school only", () => {
+    for (const permission of ["school.staff_attendance.manage", "school.staff_attendance.read"]) {
+      const holder: MeLike = { scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: [permission] }] };
+      expect(navItems(schoolAccess(holder, "sunrise"))).toEqual(["dashboard", "attendance"]);
+      // An administrator of another school: the grant names that school, so nothing applies here.
+      expect(navItems(schoolAccess(holder, "moon"))).toEqual(["dashboard"]);
+    }
+    // A platform-wide grant applies to every school below it.
+    const platform: MeLike = { scopes: [{ scope: { type: "PLATFORM" }, permissions: ["school.staff_attendance.manage"] }] };
+    expect(navItems(schoolAccess(platform, "sunrise"))).toContain("attendance");
+  });
+
   it("keeps a teacher who also administers classes on the full Classes section", () => {
     const both: MeLike = {
       scopes: [{ scope: { type: "SCHOOL" }, schoolSlug: "sunrise", permissions: ["class.manage"] }],
