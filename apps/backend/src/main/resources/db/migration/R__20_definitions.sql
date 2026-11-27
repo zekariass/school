@@ -19,12 +19,7 @@ insert into feature_definitions (key, description, default_enabled) values
   ('portfolio',       'Student portfolios', true),
   ('library',         'Digital library (P2)', false),
   ('assignments',     'Assignments, assessment and grading (P2)', false),
-  ('courses',         'Courses and video (P3)', false),
-  ('marketplace',     'Tutor marketplace (P4)', false),
-  ('tutoring',        'Tutoring sessions and bookings (P4)', false),
   ('payments',        'Payments and school fees (P3, P5)', false),
-  ('ai_copilot',      'AI Tutor Copilot (P6)', false),
-  ('ai_student_tutor','Student AI Tutor (P6)', false),
   ('max_students',    'Capacity entitlement: maximum active students (limit_value)', true),
   ('storage_bytes',   'Capacity entitlement: media storage in bytes (limit_value)', true)
 on conflict (key) do update

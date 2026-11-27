@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 import com.nemaz.school.IntegrationTest;
@@ -81,6 +82,10 @@ class ReportingTest extends ModerationTestSupport {
 		Msg m = school("rep-validate");
 		UUID post = post(m, m.lead().userId(), "TEACHER", "x");
 		assertThat(code(report(m.g1(), "NOPE", post, "OTHER", null, 400))).isEqualTo("moderation.target_type_invalid");
+		// the target types of the removed scope (D32-D40) are no longer valid
+		for (String removed : List.of("COURSE", "TUTOR_REVIEW", "AI_OUTPUT")) {
+			assertThat(code(report(m.g1(), removed, post, "OTHER", null, 400))).isEqualTo("moderation.target_type_invalid");
+		}
 		assertThat(code(report(m.g1(), "POST", post, "NOPE", null, 400))).isEqualTo("moderation.reason_invalid");
 		assertThat(code(report(m.g1(), "TUTOR_PROFILE", post, "OTHER", null, 400))).isEqualTo("moderation.target_type_unsupported");
 		assertThat(code(report(m.g1(), "POST", post, "OTHER", "x".repeat(1001), 400))).isEqualTo("moderation.details_too_long");

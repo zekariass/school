@@ -47,7 +47,7 @@ public class OpenApiConfig {
 		return new OpenAPI()
 			.info(new Info().title("School API")
 				.version("v1")
-				.description("Multi-tenant school, family, learning and tutoring platform API. "
+				.description("Multi-tenant school, family and tutor-directory platform API. "
 						+ "Errors are RFC 9457 problem details (application/problem+json) with a stable `code`."))
 			.servers(List.of(new Server().url("/").description("Same origin")))
 			.components(new Components().addSecuritySchemes(BEARER_SCHEME,

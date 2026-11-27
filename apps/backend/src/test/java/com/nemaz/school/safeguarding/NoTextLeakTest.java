@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
+import java.util.Set;
 import java.util.UUID;
 
 import com.nemaz.school.IntegrationTest;
@@ -28,6 +29,10 @@ class NoTextLeakTest extends SafeguardingTestSupport {
 
 	@Test
 	void textOfReportsDecisionsAndIncidentsIsNeverInAuditEventsNotificationsPushesLogsOrLists(CapturedOutput output) throws Exception {
+		// Publications other tests left incomplete (a deliberately failing listener, deliveries for notifications a test
+		// deleted) never complete in the shared context; wait only for the ones this test causes.
+		Set<UUID> incompleteBefore = Set.copyOf(this.jdbc.queryForList(
+				"select id from event_publication where completion_date is null", UUID.class));
 		Msg m = school("canary");
 		Persona lead = safeguardingLead(m, "canary-lead");
 		String leadDevice = device(lead);
@@ -66,8 +71,10 @@ class NoTextLeakTest extends SafeguardingTestSupport {
 		// the case page shows the report details only to a lead, never anywhere else
 		assertThat(detail(m.admin(), caseId, 200).toString()).doesNotContain("CANARY-DETAILS");
 		// wait for asynchronous deliveries (notifications and event listeners)
-		await().atMost(Duration.ofSeconds(30)).until(() -> this.jdbc.queryForObject(
-				"select count(*) from event_publication where completion_date is null", Integer.class) == 0);
+		await().atMost(Duration.ofSeconds(30)).until(() -> this.jdbc
+			.queryForList("select id from event_publication where completion_date is null", UUID.class)
+			.stream()
+			.allMatch(incompleteBefore::contains));
 		// the audit log
 		assertThat(this.jdbc.queryForObject("""
 				select count(*) from audit_logs where metadata::text like '%CANARY%' or changes::text like '%CANARY%'
