@@ -1,12 +1,13 @@
 "use client";
 
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { EyeOffIcon, Languages, Trash2Icon } from "lucide-react";
+import { EyeOffIcon, FlagIcon, Languages, Trash2Icon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { EmptyNotice, ErrorNotice, LoadMore, LoadingRows } from "@/components/console/states";
 import { useSubmit } from "@/components/console/use-submit";
+import { ReportDialog } from "@/components/moderation/report-dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { errorMessage } from "@/lib/console/errors";
@@ -110,7 +111,10 @@ function CommentRow({
   const t = useTranslations("school.feed.comments");
   const locale = useLocale();
   const [translated, setTranslated] = useState<string | null>(null);
+  const [reporting, setReporting] = useState(false);
   const hidden = comment.status === "HIDDEN";
+  // Anybody who sees somebody else's visible comment may report it; the API checks again and answers 404 for what the viewer cannot see.
+  const canReport = !comment.mine && comment.status === "VISIBLE";
 
   const remove = useMutation({
     mutationFn: () => deleteComment(post.schoolId, post.id, comment.id),
@@ -156,6 +160,12 @@ function CommentRow({
             {t("translate")}
           </Button>
         ) : null}
+        {canReport ? (
+          <Button type="button" variant="ghost" size="sm" onClick={() => setReporting(true)} data-testid="comment-report">
+            <FlagIcon aria-hidden />
+            {t("report")}
+          </Button>
+        ) : null}
         {comment.canHide ? (
           <Button type="button" variant="ghost" size="sm" disabled={hide.isPending} onClick={() => hide.mutate()}>
             {hidden ? t("unhide") : t("hide")}
@@ -168,6 +178,7 @@ function CommentRow({
           </Button>
         ) : null}
       </div>
+      {reporting ? <ReportDialog target={{ type: "POST_COMMENT", id: comment.id }} onClose={() => setReporting(false)} /> : null}
     </li>
   );
 }

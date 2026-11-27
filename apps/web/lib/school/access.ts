@@ -27,6 +27,8 @@ export const SP = {
   messagingModerate: "school.messaging.moderate",
   messagingReview: "school.messaging.review",
   calendarManage: "school.calendar.manage",
+  moderationManage: "school.moderation.manage",
+  safeguardingRead: "school.safeguarding.read",
 } as const;
 
 export interface ScopeLike {
@@ -90,6 +92,9 @@ export type NavId =
   | "announcements"
   | "messages"
   | "messageReview"
+  | "moderation"
+  | "safeguarding"
+  | "concern"
   | "calendar"
   | "policies";
 
@@ -119,6 +124,11 @@ export function navItems(access: SchoolAccess): NavId[] {
   if (canOpenMessages(access)) items.push("messages");
   // Safeguarding review: only holders of the review permission (the API stays the authority and audits every read).
   if (canReviewMessages(access)) items.push("messageReview");
+  // Moderation queue: holders of `school.moderation.manage`. Safeguarding incidents: leads only (`school.safeguarding.read`; administrators
+  // do not hold it and are not shown the item). Raising a concern: teachers and other staff.
+  if (can(SP.moderationManage)) items.push("moderation");
+  if (can(SP.safeguardingRead)) items.push("safeguarding");
+  if (access.isTeacher || access.isStaff) items.push("concern");
   // The school's calendar: members who work at the school (the API decides who may create what, from its capabilities).
   if (canOpenCalendar(access)) items.push("calendar");
   if (can(SP.policies)) items.push("policies");
@@ -219,6 +229,9 @@ export const NAV_PATH: Record<NavId, string> = {
   announcements: "announcements",
   messages: "messages",
   messageReview: "messages/review",
+  moderation: "moderation",
+  safeguarding: "safeguarding",
+  concern: "concern",
   calendar: "calendar",
   policies: "policies",
 };

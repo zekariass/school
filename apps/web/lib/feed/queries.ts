@@ -17,7 +17,6 @@ export type PostCreate = S["PostCreateRequest"];
 export type PostUpdate = S["PostUpdateRequest"];
 export type StoryCreate = S["StoryCreateRequest"];
 export type ContributionCreate = S["ContributionCreateRequest"];
-export type ReportReason = S["PostReportRequest"]["reason"];
 export type Translation = S["TranslationView"];
 
 /** Page size of the feed lists ("Load more"). */
@@ -190,11 +189,6 @@ export const react = async (schoolId: string, postId: string, reaction: Reaction
 
 export const markPostSeen = async (schoolId: string, postId: string) =>
   ensureOk(await api().POST("/api/v1/schools/{schoolId}/posts/{postId}/view", { params: { path: { schoolId, postId } } }));
-
-export const reportPost = async (schoolId: string, postId: string, reason: ReportReason) =>
-  ensureOk(
-    await api().POST("/api/v1/schools/{schoolId}/posts/{postId}/report", { params: { path: { schoolId, postId } }, body: { reason } }),
-  );
 
 export const translatePost = async (schoolId: string, postId: string, language: string) =>
   unwrap(

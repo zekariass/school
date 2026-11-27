@@ -44,7 +44,39 @@
     "codeExpired": "This code has expired. Send a new one.",
     "codeResent": "We've sent a new code to {destination}.",
     "signInFailed": "We couldn't sign you in right now. Please try again.",
-    "tryAgainIn": "Try again in {seconds}s"
+    "tryAgainIn": "Try again in {seconds}s",
+    "studentCode": {
+      "title": "Student sign-in",
+      "subtitle": "Use the class code your teacher gave you.",
+      "link": "I'm a student",
+      "scan": {
+        "title": "Scan your QR code",
+        "permission": "We use the camera only to read your class QR code. Nothing is recorded or saved.",
+        "start": "Use the camera",
+        "starting": "Starting the camera…",
+        "stop": "Turn the camera off",
+        "videoLabel": "Camera view for scanning your class QR code",
+        "hint": "Hold the QR code inside the frame.",
+        "found": "Got it!",
+        "notACode": "That isn't a class code. Try your own code.",
+        "denied": "The camera is turned off for this page. You can allow it in your browser, or type your class code below.",
+        "unavailable": "The camera isn't available here. Type your class code below instead."
+      },
+      "type": {
+        "title": "Or type your code",
+        "label": "Class code",
+        "hint": "Ask your teacher if you don't have one."
+      },
+      "submit": "Let's go!",
+      "signingIn": "Signing in…",
+      "tryAgainIn": "Try again in {seconds}s",
+      "teacherLink": "I'm a teacher or parent",
+      "errors": {
+        "invalid": "That code didn't work. Ask your teacher for a new one.",
+        "rateLimited": "Too many tries. Wait {seconds} s, then try again.",
+        "unavailable": "We can't reach School right now. Check the internet and try again."
+      }
+    }
   },
   "roles": {
     "teacher": "Teacher",
@@ -99,7 +131,11 @@
     "feed": "School feed",
     "announcements": "Announcements",
     "messaging": "Messages",
-    "messageReview": "Safeguarding review"
+    "messageReview": "Safeguarding review",
+    "moderation": "Moderation",
+    "safeguarding": "Safeguarding",
+    "concern": "Raise a concern",
+    "safety": "Safety information"
   },
   "locale": {
     "label": "Language"
@@ -2415,14 +2451,18 @@
       "organizations": "Organizations",
       "featureFlags": "Feature flags",
       "settings": "Settings",
-      "audit": "Audit log"
+      "audit": "Audit log",
+      "moderation": "Moderation",
+      "safeguarding": "Safeguarding"
     },
     "overview": {
       "schools": "Create schools, set their plan and choose who administers them.",
       "organizations": "Groups of schools that share an owner, such as a school network.",
       "featureFlags": "Switch features on or off for the platform, a country, an organization or a school.",
       "settings": "Change behaviour settings at any level of the hierarchy.",
-      "audit": "Review who changed what, and when."
+      "audit": "Review who changed what, and when.",
+      "moderation": "Review reports of content and people, and decide what happens.",
+      "safeguarding": "Safeguarding incidents across schools, for platform safeguarding leads."
     },
     "filters": {
       "status": "Status",
@@ -2737,6 +2777,449 @@
       "failed": "We couldn't send the test notification."
     }
   },
+  "moderation": {
+    "report": {
+      "titles": {
+        "POST": "Report this post",
+        "POST_COMMENT": "Report this comment",
+        "STORY": "Report this story",
+        "MESSAGE": "Report this message",
+        "USER": "Report this person"
+      },
+      "description": "Tell us what is wrong. The person you report is not told that you did.",
+      "reasonLabel": "What is the problem?",
+      "reasons": {
+        "INAPPROPRIATE": "Not appropriate",
+        "HARASSMENT": "Bullying or unkind",
+        "SAFETY_CONCERN": "Someone may be unsafe",
+        "PRIVACY": "Shares private information",
+        "SPAM": "Spam",
+        "INACCURATE": "Wrong or misleading",
+        "COPYRIGHT": "Copied without permission",
+        "OTHER": "Something else"
+      },
+      "reasonRequired": "Please choose what the problem is.",
+      "detailsLabel": "More details (optional)",
+      "detailsHint": "Please don't write private information. Up to {max} characters.",
+      "detailsTooLong": "Too long: up to {max} characters.",
+      "submit": "Send report",
+      "failed": "We couldn't send the report. Please try again.",
+      "sentTitle": "Thank you",
+      "sentBody": "Your report was received and the school will look at it.",
+      "done": "Done",
+      "safetyLink": "Where to get help if someone is in danger"
+    },
+    "emergency": {
+      "title": "If someone is in danger"
+    },
+    "safety": {
+      "title": "Safety information",
+      "intro": "If a child or anyone else is in danger, get help now.",
+      "none": "There is no safety information for your country yet. Tell a trusted adult.",
+      "loadFailed": "We couldn't load the safety information. Please try again."
+    },
+    "roles": {
+      "STUDENT": "a student",
+      "TEACHER": "a teacher",
+      "STAFF": "a staff member",
+      "GUARDIAN": "a guardian",
+      "OTHER": "a person"
+    },
+    "queue": {
+      "title": "Moderation",
+      "subtitleSchool": "Reports of content and people at {school}.",
+      "subtitlePlatform": "Reports handed up to the platform and reports about school leaders.",
+      "filters": {
+        "status": "Status",
+        "priority": "Priority",
+        "target": "About",
+        "any": "Any"
+      },
+      "status": {
+        "OPEN": "Open",
+        "ASSIGNED": "Assigned",
+        "RESOLVED": "Resolved",
+        "ESCALATED": "Escalated",
+        "ALL": "All"
+      },
+      "priority": {
+        "LOW": "Low",
+        "NORMAL": "Normal",
+        "HIGH": "High",
+        "CRITICAL": "Critical"
+      },
+      "target": {
+        "POST": "A post",
+        "POST_COMMENT": "A comment",
+        "STORY": "A story",
+        "MESSAGE": "A message",
+        "USER": "A person"
+      },
+      "reason": {
+        "INAPPROPRIATE": "Not appropriate",
+        "HARASSMENT": "Bullying or unkind",
+        "SAFETY_CONCERN": "Someone may be unsafe",
+        "PRIVACY": "Shares private information",
+        "SPAM": "Spam",
+        "INACCURATE": "Wrong or misleading",
+        "COPYRIGHT": "Copied without permission",
+        "OTHER": "Something else"
+      },
+      "about": "About {role}",
+      "legalHold": "Legal hold",
+      "fromSchool": "From a school",
+      "reporters": "{count, plural, one {# person reported} other {# people reported}}",
+      "empty": "No cases here.",
+      "loadFailed": "We couldn't load the cases. Please try again."
+    },
+    "case": {
+      "back": "Back to the queue",
+      "loadFailed": "We couldn't load this case. Please try again.",
+      "title": {
+        "POST": "A reported post",
+        "POST_COMMENT": "A reported comment",
+        "STORY": "A reported story",
+        "MESSAGE": "A reported message",
+        "USER": "A reported person"
+      },
+      "platformQueue": "Platform queue",
+      "assignedToYou": "Assigned to you",
+      "assignedToOther": "Assigned to another moderator",
+      "unassigned": "Not assigned yet",
+      "decided": "Decision: {decision}",
+      "decision": {
+        "ASSIGN": "Taken",
+        "REASSIGN": "Reassigned",
+        "NO_ACTION": "No action",
+        "HIDE": "Hidden",
+        "REMOVE": "Removed",
+        "WARN_USER": "Person warned",
+        "SUSPEND_USER": "Person suspended",
+        "ESCALATE": "Escalated to safeguarding",
+        "REOPEN": "Reopened",
+        "RESTORE": "Shown again",
+        "LIFT_SUSPENSION": "Suspension lifted",
+        "UNLOCK_USER": "Account unlocked",
+        "REFER_UP": "Handed up to the platform",
+        "SET_PRIORITY": "Priority changed",
+        "HOLD_SET": "Legal hold set",
+        "HOLD_LIFTED": "Legal hold lifted"
+      },
+      "openIncident": "Open the safeguarding incident",
+      "actions": "Actions",
+      "assignToMe": "Take this case",
+      "decide": "Decide",
+      "restore": "Show it again",
+      "liftSuspension": "Lift the suspension",
+      "reopen": "Reopen",
+      "referUp": "Hand up to the platform",
+      "setHold": "Set legal hold",
+      "liftHold": "Lift legal hold",
+      "noActions": "Nothing more to do on this case.",
+      "priorityLabel": "Priority",
+      "actionFailed": "That didn't work. Please try again.",
+      "reports": {
+        "title": "Reports",
+        "identityVisible": "You can see who reported and what they wrote, because you are a safeguarding lead or a platform moderator for this case.",
+        "identityHidden": "You see who the reporters are by role only. Who reported and what they wrote is kept for safeguarding leads.",
+        "none": "No reports to show.",
+        "by": "by {role}",
+        "reporterId": "Reporter ID: {id}"
+      },
+      "history": {
+        "title": "History",
+        "none": "Nothing has been done yet.",
+        "other": "Update",
+        "level": {
+          "SCHOOL": "at the school",
+          "PLATFORM": "whole account"
+        },
+        "you": "you",
+        "someone": "a moderator"
+      }
+    },
+    "content": {
+      "title": "The reported content",
+      "audited": "Reading it is recorded with your name, and you can read a limited number each hour. Read it only when you need to decide.",
+      "read": "Read the reported content",
+      "loading": "Opening…",
+      "gone": "Nothing is here any more.",
+      "rateLimited": "You have read a lot of content this hour. Please wait a little.",
+      "failed": "We couldn't open the content. Please try again.",
+      "retryAfter": "Try again in {seconds} s.",
+      "retry": "Try again",
+      "messagePointer": "A message is not read here. A reviewer opens its conversation through the audited safeguarding review.",
+      "openReview": "Open the safeguarding review",
+      "none": "There is nothing to show.",
+      "type": {
+        "POST": "Post",
+        "COMMENT": "Comment",
+        "STORY": "Story"
+      },
+      "status": {
+        "PUBLISHED": "Published",
+        "VISIBLE": "Visible",
+        "HIDDEN": "Hidden",
+        "DELETED": "Deleted",
+        "EXPIRED": "Ended"
+      },
+      "reported": "Reported",
+      "photos": "Photos",
+      "photoAlt": "A photo in the reported content"
+    },
+    "decision": {
+      "title": "Decide this case",
+      "description": "Choose what happens and write why. The reporters are told only that it was reviewed.",
+      "submit": "Save decision",
+      "failed": "The decision couldn't be saved. Please try again.",
+      "choose": "What do you decide?",
+      "chooseRequired": "Please choose a decision.",
+      "choices": {
+        "NO_ACTION": {
+          "label": "No action",
+          "help": "Nothing is wrong, or nothing needs to be done."
+        },
+        "HIDE": {
+          "label": "Hide",
+          "help": "Others cannot see it. The original is kept and you can show it again."
+        },
+        "REMOVE": {
+          "label": "Remove",
+          "help": "Others cannot see it. The original is kept, but this cannot be undone here."
+        },
+        "WARN_USER": {
+          "label": "Warn the person",
+          "help": "They get a general notice that something did not follow the rules. It does not quote anything."
+        },
+        "SUSPEND_USER": {
+          "label": "Suspend the person",
+          "help": "They cannot take part for now. You can lift it later."
+        },
+        "ESCALATE": {
+          "label": "Escalate to safeguarding",
+          "help": "A safeguarding incident is created. Only safeguarding leads can read it."
+        }
+      },
+      "level": {
+        "label": "How far does the suspension go?",
+        "SCHOOL": "At this school only",
+        "PLATFORM": "The whole account (locks every sign-in)"
+      },
+      "escalate": {
+        "category": "Category",
+        "severity": "How serious",
+        "note": "Your reason becomes the incident text. It is encrypted, and moderators cannot read it afterwards.",
+        "categories": {
+          "CONDUCT": "Conduct",
+          "ONLINE_SAFETY": "Online safety",
+          "WELLBEING": "Wellbeing",
+          "DATA_BREACH": "Data breach",
+          "OTHER": "Other"
+        },
+        "severities": {
+          "LOW": "Low",
+          "MEDIUM": "Medium",
+          "HIGH": "High",
+          "CRITICAL": "Critical"
+        }
+      }
+    },
+    "reason": {
+      "label": "Why? (kept in the case history)",
+      "hint": "Write {min} to {max} characters. Do not paste the content itself.",
+      "tooShort": "Please write at least {min} characters.",
+      "tooLong": "Too long: up to {max} characters."
+    },
+    "reasonAction": {
+      "reopen": {
+        "title": "Reopen this case",
+        "description": "The case goes back to the open queue.",
+        "submit": "Reopen"
+      },
+      "restore": {
+        "title": "Show it again",
+        "description": "The hidden content becomes visible again.",
+        "submit": "Show it again"
+      },
+      "lift-suspension": {
+        "title": "Lift the suspension",
+        "description": "The person can take part again.",
+        "submit": "Lift suspension"
+      },
+      "refer-up": {
+        "title": "Hand up to the platform",
+        "description": "The platform moderators take this case over.",
+        "submit": "Hand up"
+      },
+      "failed": "That didn't work. Please try again."
+    }
+  },
+  "safeguarding": {
+    "incidents": {
+      "title": "Safeguarding",
+      "subtitleSchool": "Incidents at {school}.",
+      "subtitlePlatform": "Incidents of every school, for platform safeguarding leads.",
+      "filters": {
+        "status": "Status",
+        "severity": "How serious",
+        "category": "Category",
+        "any": "Any"
+      },
+      "status": {
+        "OPEN": "Open",
+        "INVESTIGATING": "Investigating",
+        "ACTION_TAKEN": "Action taken",
+        "REFERRED": "Referred",
+        "CLOSED": "Closed"
+      },
+      "severity": {
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "HIGH": "High",
+        "CRITICAL": "Critical"
+      },
+      "category": {
+        "CONDUCT": "Conduct",
+        "ONLINE_SAFETY": "Online safety",
+        "WELLBEING": "Wellbeing",
+        "DATA_BREACH": "Data breach",
+        "OTHER": "Other"
+      },
+      "legalHold": "Legal hold",
+      "assignedToYou": "Assigned to you",
+      "assignedToOther": "Assigned to another lead",
+      "unassigned": "Not assigned yet",
+      "empty": "No incidents here.",
+      "loadFailed": "We couldn't load the incidents. Please try again."
+    },
+    "incident": {
+      "back": "Back to the incidents",
+      "loadFailed": "We couldn't load this incident. Please try again.",
+      "openFailed": "The incident couldn't be opened. Please try again.",
+      "actionFailed": "That didn't work. Please try again.",
+      "created": "Raised",
+      "updated": "Last changed",
+      "closed": "Closed",
+      "guardianInformed": "Child's guardians told",
+      "referred": "Referred to an authority",
+      "notRecorded": "Not recorded",
+      "sourceCase": "Open the moderation case",
+      "nobodyTold": "The system never tells anyone about an incident by itself: not the guardians, not an authority, not the school administrator. Record here when a person has done so.",
+      "controls": "Incident controls",
+      "assignToMe": "Assign to me",
+      "setHold": "Set legal hold",
+      "liftHold": "Lift legal hold",
+      "narrative": "What was written",
+      "referredTo": "Referred to:",
+      "involved": "{count, plural, one {# other person is named in this incident.} other {# other people are named in this incident.}}",
+      "open": {
+        "title": "Open this incident",
+        "help": "Reading an incident is recorded with your name and the reason you pick. You can read a limited number each hour.",
+        "reasonLabel": "Why are you opening it?",
+        "submit": "Open incident",
+        "reasons": {
+          "TRIAGE": "Deciding what to do first",
+          "INVESTIGATION": "Investigating",
+          "FOLLOW_UP": "Following up",
+          "REFERRAL": "Preparing a referral",
+          "OVERSIGHT": "Oversight",
+          "LEGAL_REQUEST": "A legal request"
+        }
+      },
+      "timeline": {
+        "title": "Notes and changes",
+        "none": "No notes yet.",
+        "kind": {
+          "NOTE": "Note",
+          "STATUS": "Status changed",
+          "CLOSE": "Closed",
+          "REOPEN": "Reopened",
+          "ASSIGN": "Assigned",
+          "REFERRAL": "Referral recorded",
+          "GUARDIAN_INFORMED": "Guardians told"
+        },
+        "you": "you",
+        "someone": "a lead",
+        "hasAttachment": "Has an attachment."
+      },
+      "actions": {
+        "title": "Work on this incident",
+        "changeStatus": "Change the status",
+        "guardianInformed": "Record that the guardians were told",
+        "referral": "Record a referral",
+        "noteLabel": "Add a note",
+        "noteRequired": "Please write a note.",
+        "noteTooLong": "Too long: up to {max} characters.",
+        "noteHint": "Up to {max} characters. Notes are encrypted.",
+        "addNote": "Add note",
+        "failed": "That didn't work. Please try again."
+      },
+      "status": {
+        "title": "Change the status",
+        "description": "Closing needs a closing note. Reopening a closed incident needs a reason.",
+        "choose": "New status",
+        "chooseRequired": "Please choose a status.",
+        "closingNote": "Closing note",
+        "reopenReason": "Why is it reopened?",
+        "noteOptional": "Note (optional)",
+        "tooShort": "Please write at least {min} characters.",
+        "tooLong": "Too long: up to {max} characters.",
+        "needsNote": "At least {min} characters.",
+        "noteHint": "Up to {max} characters.",
+        "submit": "Change status",
+        "failed": "The status couldn't be changed. Please try again."
+      },
+      "record": {
+        "guardian": {
+          "title": "Record that the guardians were told",
+          "description": "A person tells the guardians, not the system. This records that it was done, now.",
+          "submit": "Record"
+        },
+        "referral": {
+          "title": "Record a referral",
+          "description": "Record that this was referred to an authority or another body. The system sends nothing.",
+          "submit": "Record"
+        },
+        "failed": "That couldn't be recorded. Please try again.",
+        "note": "Note (optional)",
+        "noteHint": "Up to {max} characters.",
+        "noteTooLong": "Too long: up to {max} characters.",
+        "referredTo": "Referred to",
+        "referredToRequired": "Please say who it was referred to.",
+        "referredToTooLong": "Too long: up to {max} characters.",
+        "referredToHint": "For example the authority or office. Up to {max} characters."
+      }
+    },
+    "concern": {
+      "title": "Raise a safeguarding concern",
+      "subtitle": "If you are worried about a child or about how an adult is behaving, write it down here. Only safeguarding leads can read it, and you will not see it again.",
+      "category": "What kind of concern is it?",
+      "categories": {
+        "CONDUCT": "Conduct",
+        "ONLINE_SAFETY": "Online safety",
+        "WELLBEING": "Wellbeing",
+        "DATA_BREACH": "Data breach",
+        "OTHER": "Other"
+      },
+      "categoryRequired": "Please choose a kind of concern.",
+      "severity": "How serious is it?",
+      "severities": {
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "HIGH": "High",
+        "CRITICAL": "Critical"
+      },
+      "severityRequired": "Please choose how serious it is.",
+      "narrative": "What happened or what worries you?",
+      "narrativeHint": "Write {min} to {max} characters. Stick to what you saw or heard.",
+      "narrativeShort": "Please write at least {min} characters.",
+      "narrativeLong": "Too long: up to {max} characters.",
+      "submit": "Send concern",
+      "failed": "The concern couldn't be sent. Please try again.",
+      "sent": "Thank you. Your concern was passed to the safeguarding leads. If a child is in danger now, also contact the people who can help right away.",
+      "another": "Raise another concern"
+    }
+  },
   "school": {
     "common": {
       "noAccessTitle": "This page isn't available to you",
@@ -2752,8 +3235,8 @@
       "short": "This is too short."
     },
     "studentApp": {
-      "title": "Students sign in with the School app",
-      "body": "Students use the School app on their phone or tablet. Ask your teacher for your class code, then open the app and sign in with it.",
+      "title": "Student home",
+      "body": "Your points and your portfolio are here. For everything else, use the School app on your phone or tablet and sign in with the same class code.",
       "portfolioLink": "My portfolio"
     },
     "teacherRole": {
@@ -3089,7 +3572,7 @@
         "BOTH": "QR and text code"
       },
       "title": "Student login codes",
-      "intro": "Make a printable sheet with one card per student. Students scan the QR code or type the code in the School app.",
+      "intro": "Make a printable sheet with one card per student. Students scan the QR code or type the code in the School app or on the website.",
       "replaceWarning": "Generating new codes replaces every earlier code of these students. The codes are shown only now: print them before you leave the page.",
       "kindLabel": "What to print",
       "ttlLabel": "Valid for (days)",
@@ -4777,7 +5260,8 @@
         "unhide": "Show again",
         "delete": "Delete",
         "actionFailed": "That did not work. Please try again.",
-        "translateFailed": "The translation is not available."
+        "translateFailed": "The translation is not available.",
+        "report": "Report"
       },
       "roles": {
         "TEACHER": "A teacher",
@@ -4829,15 +5313,7 @@
         "hideTitle": "Hide this post",
         "hideBody": "Nobody but the author and the moderators will see it. The author is told why.",
         "hideReason": "Reason (optional)",
-        "reportTitle": "Report this post",
-        "reportBody": "Tell the school what is wrong. Your report is private.",
-        "reported": "Thank you. The school was told.",
-        "reportReasons": {
-          "INAPPROPRIATE": "Not appropriate",
-          "PRIVACY": "A privacy concern",
-          "SPAM": "Spam",
-          "OTHER": "Something else"
-        }
+        "reportAuthor": "Report the author"
       },
       "status": {
         "pinned": "Pinned",
@@ -4894,7 +5370,8 @@
         "deleted": "The story was deleted.",
         "deleteFailed": "The story could not be deleted.",
         "deleteTitle": "Delete this story?",
-        "deleteBody": "The story and its photo are removed for everybody."
+        "deleteBody": "The story and its photo are removed for everybody.",
+        "report": "Report this story"
       },
       "storyComposer": {
         "title": "New story",

@@ -5,7 +5,7 @@ const TIMEOUT_MS = 15_000;
 
 /** POSTs JSON to a public `/api/v1/auth/*` endpoint; null when the API is unreachable. */
 export async function postAuth(
-  path: "otp/request" | "otp/verify" | "logout",
+  path: "otp/request" | "otp/verify" | "login-code" | "logout",
   body: unknown,
   locale: string,
 ): Promise<Response | null> {

@@ -13,7 +13,7 @@ export async function generateMetadata() {
   return { title: t("title") };
 }
 
-/** Students sign in with the School app, not on the web: friendly explanation instead of a workspace. */
+/** Managed students sign in on the web with their class code (D41) and land here: their home (points, portfolio), not a workspace. */
 export default function StudentAppPage() {
   return (
     <Suspense fallback={<SiteHeader />}>

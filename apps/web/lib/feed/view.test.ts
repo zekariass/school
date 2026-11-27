@@ -78,6 +78,13 @@ describe("postMenu follows the API's rights and the status", () => {
     expect(postMenu(post({ status: "REJECTED", rights: rights({ canEdit: true, canDelete: true }) }))).toMatchObject({ edit: false, remove: true });
   });
 
+  it("offers reporting the author as a person only when the API named them and the post is not theirs", () => {
+    expect(postMenu({ ...post(), author: { userId: "u-1" } })).toMatchObject({ report: true, reportAuthor: true });
+    expect(postMenu({ ...post(), author: {} }).reportAuthor).toBe(false);
+    expect(postMenu({ ...post({ rights: rights({ canEdit: true }) }), author: { userId: "u-1" } }).reportAuthor).toBe(false);
+    expect(postMenu({ ...post({ status: "HIDDEN" }), author: { userId: "u-1" } }).reportAuthor).toBe(false);
+  });
+
   it("is empty when nothing is allowed", () => {
     expect(hasAnyAction(postMenu(post({ status: "ARCHIVED" })))).toBe(false);
   });
