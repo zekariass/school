@@ -195,7 +195,7 @@ PR numbers refer to `github.com/zekariass/school/pull/<n>`. The order in which t
 | M38 Timetable generator | ⏸ Deferred | — | Owner decision (D40) |
 | M43 School AI assistant | ⏸ Deferred | — | Owner decision (D34) |
 | M23, M24, M28, M30, M32, M33, M34, M36 | ✖ Removed | — | Do not build (D32–D34, D39) |
-| **Scope-revision cleanup of built code** | ✅ Done | — | U-01 to U-06 done (`V14_01__scope_cleanup.sql`); U-07 stays in part C1 (keep, check before M27) |
+| **Scope-revision cleanup of built code** | ✅ Done | #55 | U-01 to U-06 done (`V14_01__scope_cleanup.sql`); U-07 stays in part C1 (keep, check before M27) |
 
 
 ## B2. Recommended order of the remaining work
