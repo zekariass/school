@@ -86,15 +86,15 @@ export function FeedList({ query, posts, band, statusStrip, header, empty, trans
         }
         ListHeaderComponent={
           band ? (
-            <View style={{ gap: spacing[4] }}>
+            <View style={{ gap: spacing[4], paddingBottom: spacing[4] }}>
               <View style={{ marginHorizontal: -spacing[5], marginTop: -spacing[4] }}>{band}</View>
               {header}
             </View>
-          ) : (
-            (header ?? undefined)
-          )
+          ) : header ? (
+            <View style={{ paddingBottom: spacing[4] }}>{header}</View>
+          ) : undefined
         }
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: spacing[5], paddingVertical: spacing[4], gap: spacing[4] }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: spacing[5], paddingVertical: spacing[4] }}
         refreshControl={
           <RefreshControl
             refreshing={query.isRefetching && !query.isFetchingNextPage}
