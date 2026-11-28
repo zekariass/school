@@ -305,8 +305,8 @@ function BadgesEarned({ badges }: { badges: StudentPoints["badges"] }) {
 export function StudentHome({ schools, name }: { schools: { schoolId: string; schoolName: string; studentId: string }[]; name: string }) {
   const t = useTranslations("family.points");
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <header className="flex items-center gap-3">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      <header className="mx-auto flex w-full max-w-3xl items-center gap-3">
         <SparklesIcon className="size-8 text-primary" aria-hidden />
         <div>
           <h1 className="text-3xl font-bold">{t("studentTitle")}</h1>
@@ -315,7 +315,7 @@ export function StudentHome({ schools, name }: { schools: { schoolId: string; sc
       </header>
       {schools.length === 0 ? <EmptyNotice>{t("noSchool")}</EmptyNotice> : <StudentFeed />}
       {schools.map((school) => (
-        <div key={school.studentId} className="flex flex-col gap-6">
+        <div key={school.studentId} className="mx-auto flex w-full max-w-3xl flex-col gap-6">
           <StudentPointsView
             schoolId={school.schoolId}
             studentId={school.studentId}

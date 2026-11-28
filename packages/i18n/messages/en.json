@@ -5540,6 +5540,69 @@
           "title": "Offer \"See translation\"",
           "description": "Shows machine translation of posts and comments. Only the text, with children's names hidden, is sent to the translation service. Switch it on only when the school has agreed to this."
         }
+      },
+      "redesign": {
+        "tabs": {
+          "label": "Sections of the feed",
+          "feed": "Feed",
+          "photos": "Photos",
+          "activities": "Activities",
+          "achievements": "Achievements"
+        },
+        "empty": {
+          "photos": "No photos have been shared yet.",
+          "activities": "No activities have been shared yet.",
+          "achievements": "No achievements have been shared yet."
+        },
+        "banner": {
+          "allChildren": "All my children",
+          "familySubtitle": "News from your children's classes",
+          "studentTitle": "News from my class",
+          "schoolSubtitle": "News and stories for the whole school",
+          "region": "About this feed"
+        },
+        "children": {
+          "title": "My children",
+          "all": "All children",
+          "allHint": "News from every class",
+          "show": "Show posts for {name}",
+          "showAll": "Show posts for all children",
+          "noClass": "No class yet",
+          "quickLinks": "Quick links",
+          "announcements": "Announcements",
+          "calendar": "Calendar",
+          "unread": "{count} unread"
+        },
+        "announcement": {
+          "label": "Announcement",
+          "pinned": "Pinned",
+          "published": "Published {when}",
+          "view": "View details",
+          "viewLabel": "View details of the announcement",
+          "new": "New"
+        },
+        "post": {
+          "activity": "Activity",
+          "achievement": "Achievement",
+          "recognised": "Well done to",
+          "tagged": "Students in this post"
+        },
+        "rail": {
+          "label": "About this class",
+          "classInfo": "Class info",
+          "students": "Students",
+          "teachers": "Teachers",
+          "teachersList": "Teachers of this class",
+          "message": "Send a message",
+          "messageLabel": "Message {name}",
+          "upcoming": "Upcoming",
+          "viewAll": "View all",
+          "allDay": "All day",
+          "recent": "Recent achievements",
+          "more": "+{count} more",
+          "plainAchievement": "Achievement",
+          "loading": "Loading"
+        }
       }
     },
     "announcements": {

@@ -10,11 +10,13 @@ import {
   Languages,
   MessageCircleIcon,
   MoreHorizontalIcon,
+  PaletteIcon,
   PencilIcon,
   PinIcon,
   PinOffIcon,
   SendIcon,
   Trash2Icon,
+  TrophyIcon,
   UndoIcon,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -49,8 +51,10 @@ import {
   type Post,
 } from "@/lib/feed/queries";
 import { REACTIONS, applyReaction, nextReaction, reactionTotal, type ReactionName } from "@/lib/feed/reactions";
+import { postVariant, roleChipTone, splitFirstLine } from "@/lib/feed/post-style";
 import { hasAnyAction, hasSeenCount, isWithheldPlaceholder, isWithheldWarning, postMenu } from "@/lib/feed/view";
 import { cn } from "@/lib/utils";
+import { StudentAvatar } from "@/components/school/student-avatar";
 import { AuthorAvatar, AuthorName } from "./author";
 import { Comments } from "./comments";
 import { GateNotice } from "./gate-notice";
@@ -73,6 +77,8 @@ type Dialog =
  */
 export function PostCard({ post, onEdit, defaultCommentsOpen = false }: { post: Post; onEdit?: (post: Post) => void; defaultCommentsOpen?: boolean }) {
   const t = useTranslations("school.feed.post");
+  const tr = useTranslations("school.feed.redesign.post");
+  const variant = postVariant(post);
   const queryClient = useQueryClient();
   const refresh = useRefreshFeed();
   const [commentsOpen, setCommentsOpen] = useState(defaultCommentsOpen);
@@ -147,15 +153,40 @@ export function PostCard({ post, onEdit, defaultCommentsOpen = false }: { post: 
   const warn = isWithheldWarning(post);
 
   return (
-    <Card data-testid="post-card" data-status={post.status}>
+    <Card className={cn("gap-0 py-5 shadow-sm", variant === "achievement" && "border-primary/30")} data-testid="post-card" data-status={post.status} data-variant={variant}>
       <article ref={ref} aria-label={t("articleLabel")}>
-        <CardContent className="flex flex-col gap-3">
+        <CardContent className="flex flex-col gap-4 px-5">
           <header className="flex items-start gap-3">
-            <AuthorAvatar author={post.author} />
+            {variant === "achievement" ? (
+              <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary" data-testid="achievement-badge">
+                <TrophyIcon className="size-6" />
+              </span>
+            ) : (
+              <AuthorAvatar author={post.author} size={48} />
+            )}
             <div className="min-w-0 flex-1">
-              <p className="flex flex-wrap items-center gap-x-2 font-semibold">
+              {variant === "achievement" ? (
+                <p className="text-lg leading-tight font-bold text-primary" data-testid="achievement-title">
+                  {tr("achievement")}
+                </p>
+              ) : null}
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold">
                 <AuthorName author={post.author} />
-                <span className="text-sm font-normal text-muted-foreground">{t(`roleOn.${post.author.role}`)}</span>
+                <span
+                  className={cn(
+                    "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                    roleChipTone(post.author.role) === "accent" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+                  )}
+                  data-testid="role-chip"
+                >
+                  {t(`roleOn.${post.author.role}`)}
+                </span>
+                {variant === "activity" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground" data-testid="activity-chip">
+                    <PaletteIcon className="size-3.5" aria-hidden />
+                    {tr("activity")}
+                  </span>
+                ) : null}
               </p>
               <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
                 <RelativeTime instant={post.publishedAt ?? post.createdAt} />
@@ -262,7 +293,18 @@ export function PostCard({ post, onEdit, defaultCommentsOpen = false }: { post: 
             </p>
           ) : null}
 
-          {post.tags.length > 0 ? (
+          {post.tags.length > 0 && variant === "achievement" ? (
+            <ul aria-label={tr("tagged")} className="flex flex-wrap gap-x-4 gap-y-3" data-testid="post-tags">
+              {post.tags.map((tag) => (
+                <li key={tag.studentId} className="flex flex-col items-center gap-1.5">
+                  <StudentAvatar id={tag.studentId} name={tag.displayName} mediaId={tag.avatar?.id} size={56} className="ring-2 ring-primary/40 ring-offset-2 ring-offset-card" />
+                  <span className="max-w-28 truncate rounded-full bg-primary/10 px-3 py-0.5 text-sm font-semibold text-primary" data-testid="post-tag">
+                    {tag.displayName}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : post.tags.length > 0 ? (
             <p className="text-sm text-muted-foreground" data-testid="post-tags">
               <span className="font-medium">{t("with")}</span> {post.tags.map((tag) => tag.displayName).join(", ")}
             </p>
@@ -274,11 +316,11 @@ export function PostCard({ post, onEdit, defaultCommentsOpen = false }: { post: 
                 <ReactionBar post={post} mine={mine} onReact={(r) => reactMutation.mutate(nextReaction(mine, r))} disabled={post.status !== "PUBLISHED"} />
                 <Button
                   type="button"
-                  variant="ghost"
-                  size="sm"
+                  variant="outline"
                   aria-expanded={commentsOpen}
                   onClick={() => setCommentsOpen((open) => !open)}
                   data-testid="comments-toggle"
+                  className="min-h-11 rounded-full bg-card px-4"
                 >
                   <MessageCircleIcon aria-hidden />
                   {t("comments", { count: post.commentCount ?? 0 })}
@@ -391,12 +433,19 @@ function Body({ post, translationEnabled }: { post: Post; translationEnabled: bo
       toast.message(errorMessage(error, t("translateUnavailable")));
     },
   });
+  // The first line is bold by CSS only: the text itself is exactly what the API sent (or the translation).
+  const text = splitFirstLine(shown === "translated" && translate.data ? translate.data.text : (post.body ?? ""));
   const sameLanguage = !!post.bodyLanguageCode && post.bodyLanguageCode.toLowerCase().startsWith(locale.toLowerCase());
   const canOffer = translationEnabled && !unavailable && !sameLanguage && post.status === "PUBLISHED";
   return (
     <div className="flex flex-col gap-2">
-      <p className="break-words whitespace-pre-wrap" lang={post.bodyLanguageCode ?? undefined} data-testid="post-body-text">
-        {shown === "translated" && translate.data ? translate.data.text : post.body}
+      <p className="text-base break-words whitespace-pre-wrap" lang={post.bodyLanguageCode ?? undefined} data-testid="post-body-text">
+        {text.first ? (
+          <span className="font-semibold" data-testid="post-first-line">
+            {text.first}
+          </span>
+        ) : null}
+        {text.rest}
       </p>
       {shown === "translated" && translate.data ? <p className="text-xs font-medium text-muted-foreground">{t("machineTranslated")}</p> : null}
       {canOffer ? (
@@ -429,21 +478,20 @@ function ReactionBar({
 }) {
   const t = useTranslations("school.feed.reactions");
   return (
-    <div role="group" aria-label={t("label")} className="flex flex-wrap gap-1">
+    <div role="group" aria-label={t("label")} className="flex flex-wrap gap-2">
       {REACTIONS.map((reaction) => {
         const count = post.reactionCounts[reaction] ?? 0;
         return (
           <Button
             key={reaction}
             type="button"
-            variant={mine === reaction ? "secondary" : "ghost"}
-            size="sm"
+            variant="outline"
             aria-pressed={mine === reaction}
             aria-label={t(`names.${reaction}`)}
             disabled={disabled}
             onClick={() => onReact(reaction)}
             data-testid={`react-${reaction}`}
-            className={cn("min-w-11", mine === reaction && "ring-1 ring-primary")}
+            className={cn("min-h-11 min-w-11 rounded-full bg-card px-3.5", mine === reaction && "border-primary bg-primary/10 text-primary hover:bg-primary/15")}
           >
             <span aria-hidden>{REACTION_EMOJI[reaction]}</span>
             {count > 0 ? <span data-testid={`react-count-${reaction}`}>{count}</span> : null}

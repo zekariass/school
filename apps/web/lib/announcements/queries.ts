@@ -37,6 +37,8 @@ export const ank = {
   all: ["announcements"] as const,
   summary: ["announcements", "me", "summary"] as const,
   inbox: (schoolId: string | null, filter: InboxFilter, sort: InboxSort) => ["announcements", "me", "inbox", schoolId ?? "all", filter, sort] as const,
+  /** The few newest announcements of the person, for the pinned card on the feed screens. */
+  latest: (schoolId: string | null) => ["announcements", "me", "latest", schoolId ?? "all"] as const,
   school: (schoolId: string) => ["announcements", schoolId] as const,
   schoolList: (schoolId: string, filter: InboxFilter, sort: InboxSort) => ["announcements", schoolId, "list", filter, sort] as const,
   authored: (schoolId: string, status: string, mine: boolean) => ["announcements", schoolId, "authored", status, mine] as const,
@@ -59,6 +61,12 @@ export const fetchInbox = async (schoolId: string | null, filter: InboxFilter, s
       params: { query: { schoolId: schoolId ?? undefined, filter: filter === "ALL" ? undefined : filter, sort: sort === "NEWEST" ? undefined : sort, cursor, limit: PAGE } },
     }),
   );
+
+/** How many cards the feed's pinned announcement looks at (the newest that is published is shown). */
+export const LATEST_LOOKAHEAD = 3;
+
+export const fetchLatest = async (schoolId: string | null) =>
+  unwrap(await api().GET("/api/v1/me/announcements", { params: { query: { schoolId: schoolId ?? undefined, limit: LATEST_LOOKAHEAD } } }));
 
 export const fetchSchoolList = async (schoolId: string, filter: InboxFilter, sort: InboxSort, cursor?: string) =>
   unwrap(

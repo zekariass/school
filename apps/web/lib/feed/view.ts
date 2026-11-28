@@ -29,16 +29,18 @@ export function hasSeenCount(post: Pick<Post, "seenCount"> | Pick<Story, "seenCo
   return typeof post.seenCount === "number";
 }
 
-/** The image grid layout class for n photos (1 large, 2 side by side, 3+ a grid with the first large). */
-export function gridShape(count: number): "one" | "two" | "many" {
-  return count <= 1 ? "one" : count === 2 ? "two" : "many";
+/** The collage layout for n photos: 1 wide, 2 side by side, 3 or more one large tile with two stacked beside it. */
+export type CollageShape = "one" | "two" | "three";
+
+export function collageShape(count: number): CollageShape {
+  return count <= 1 ? "one" : count === 2 ? "two" : "three";
 }
 
-/** Photos shown in a card; the rest is "+n". */
-export const GRID_LIMIT = 4;
+/** Photos shown in a post card's collage; the rest is a "+n" on the last tile. */
+export const COLLAGE_LIMIT = 3;
 
-export function gridPhotos<T>(items: readonly T[]): { shown: T[]; extra: number } {
-  return { shown: items.slice(0, GRID_LIMIT), extra: Math.max(0, items.length - GRID_LIMIT) };
+export function collagePhotos<T>(items: readonly T[]): { shown: T[]; extra: number } {
+  return { shown: items.slice(0, COLLAGE_LIMIT), extra: Math.max(0, items.length - COLLAGE_LIMIT) };
 }
 
 /** Which actions the overflow menu offers, from the post's status and the API's `rights` (the API stays the authority). */

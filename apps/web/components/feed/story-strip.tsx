@@ -37,7 +37,7 @@ export function StoryStrip({
   if (!create && (stories.isPending || stories.isError || list.length === 0)) return null;
 
   return (
-    <section aria-label={t("title")} data-testid="story-strip">
+    <section aria-label={t("title")} data-testid="story-strip" className="rounded-2xl border bg-card p-3 shadow-sm">
       <ul className="flex gap-3 overflow-x-auto pb-1">
         {create ? (
           <li className="shrink-0">
@@ -63,7 +63,7 @@ export function StoryStrip({
                 data-viewed={story.viewedByMe ? "true" : "false"}
                 data-index={index}
               >
-                <span className={cn("grid size-16 place-items-center overflow-hidden rounded-full p-0.5 ring-2 ring-offset-2 ring-offset-background", story.viewedByMe ? "ring-border" : "ring-primary")}>
+                <span className={cn("grid size-16 place-items-center overflow-hidden rounded-full p-0.5 ring-2 ring-offset-2 ring-offset-card", story.viewedByMe ? "ring-border" : "ring-primary")}>
                   {story.media && !story.mediaWithheld ? (
                     <MediaImage mediaId={story.media.mediaId} variant="THUMB" alt="" width={64} height={64} className="size-full rounded-full object-cover" />
                   ) : (

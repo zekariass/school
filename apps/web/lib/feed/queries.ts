@@ -2,6 +2,7 @@ import type { components } from "@school/api-client";
 import { getBrowserApi } from "@/lib/api-client";
 import { ensureOk, unwrap } from "@/lib/api-error";
 import type { ReactionName } from "./reactions";
+import { filterQuery, type FeedFilter, type FeedTab } from "./tabs";
 
 type S = components["schemas"];
 
@@ -33,11 +34,16 @@ export const fk = {
   all: ["feed"] as const,
   school: (schoolId: string) => ["feed", schoolId] as const,
   capabilities: (schoolId: string, classId?: string) => ["feed", schoolId, "capabilities", classId ?? "school"] as const,
-  classFeed: (schoolId: string, classId: string) => ["feed", schoolId, "class", classId, "posts"] as const,
-  schoolFeed: (schoolId: string) => ["feed", schoolId, "school", "posts"] as const,
+  /** One list per tab (Feed, Photos, Activities, Achievements): the API filters, so each tab is its own query. */
+  classFeed: (schoolId: string, classId: string, tab: FeedTab = "feed") => ["feed", schoolId, "class", classId, "posts", tab] as const,
+  schoolFeed: (schoolId: string, tab: FeedTab = "feed") => ["feed", schoolId, "school", "posts", tab] as const,
+  /** The latest achievements of a scope, for the "Recent achievements" card. */
+  recentClass: (schoolId: string, classId: string) => ["feed", schoolId, "class", classId, "recent"] as const,
+  recentSchool: (schoolId: string) => ["feed", schoolId, "school", "recent"] as const,
+  recentMine: (studentId: string | null) => ["feed", "me", "recent", studentId ?? "all"] as const,
   classStories: (schoolId: string, classId: string) => ["feed", schoolId, "class", classId, "stories"] as const,
   schoolStories: (schoolId: string) => ["feed", schoolId, "school", "stories"] as const,
-  myFeed: (studentId: string | null) => ["feed", "me", "posts", studentId ?? "all"] as const,
+  myFeed: (studentId: string | null, tab: FeedTab = "feed") => ["feed", "me", "posts", studentId ?? "all", tab] as const,
   myStories: (studentId: string | null) => ["feed", "me", "stories", studentId ?? "all"] as const,
   myPosts: (schoolId: string, status: string, classId?: string) => ["feed", schoolId, "mine", status, classId ?? "all"] as const,
   pending: (schoolId: string, classId?: string) => ["feed", schoolId, "pending", classId ?? "all"] as const,
@@ -53,21 +59,25 @@ export const fetchCapabilities = async (schoolId: string, classId?: string) =>
     }),
   );
 
-export const fetchClassFeed = async (schoolId: string, classId: string, cursor?: string) =>
+export const fetchClassFeed = async (schoolId: string, classId: string, cursor?: string, filter?: FeedFilter, limit = FEED_PAGE) =>
   unwrap(
     await api().GET("/api/v1/schools/{schoolId}/classes/{classId}/feed", {
-      params: { path: { schoolId, classId }, query: { cursor, limit: FEED_PAGE } },
+      params: { path: { schoolId, classId }, query: { cursor, limit, ...filterQuery(filter) } },
     }),
   );
 
-export const fetchSchoolFeed = async (schoolId: string, cursor?: string) =>
+export const fetchSchoolFeed = async (schoolId: string, cursor?: string, filter?: FeedFilter, limit = FEED_PAGE) =>
   unwrap(
-    await api().GET("/api/v1/schools/{schoolId}/feed", { params: { path: { schoolId }, query: { cursor, limit: FEED_PAGE } } }),
+    await api().GET("/api/v1/schools/{schoolId}/feed", {
+      params: { path: { schoolId }, query: { cursor, limit, ...filterQuery(filter) } },
+    }),
   );
 
-export const fetchMyFeed = async (studentId: string | null, cursor?: string) =>
+export const fetchMyFeed = async (studentId: string | null, cursor?: string, filter?: FeedFilter, limit = FEED_PAGE) =>
   unwrap(
-    await api().GET("/api/v1/me/feed", { params: { query: { studentId: studentId ?? undefined, cursor, limit: FEED_PAGE } } }),
+    await api().GET("/api/v1/me/feed", {
+      params: { query: { studentId: studentId ?? undefined, cursor, limit, ...filterQuery(filter) } },
+    }),
   );
 
 export const fetchMyPosts = async (schoolId: string, status?: PostStatus, classId?: string, cursor?: string) =>
