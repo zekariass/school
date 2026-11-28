@@ -1,8 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { randomUUID } from 'expo-crypto';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslations } from 'use-intl';
 
@@ -10,7 +11,7 @@ import { PostCard } from '@/components/feed/post-card';
 import { usePostMenu } from '@/components/feed/post-menu';
 import { ReportSheet } from '@/components/moderation/report-sheet';
 import { ProblemBanner } from '@/components/problem-banner';
-import { Button, EmptyState, Text, TextField } from '@/components/ui';
+import { Button, EmptyState, Text } from '@/components/ui';
 import { ApiRequestError, problemOf } from '@/lib/api-error';
 import { useFormatInstant } from '@/lib/calendar/use-format-instant';
 import { commentsKey } from '@/lib/feed/keys';
@@ -95,7 +96,7 @@ function CommentsList({
   onMenu: ReturnType<typeof usePostMenu>['onMenu'];
 }) {
   const t = useTranslations();
-  const { colors, spacing } = useAppTheme();
+  const { colors, minTouchTarget, radii, spacing } = useAppTheme();
   const { locale } = usePreferences();
   const queryClient = useQueryClient();
   const { query, comments } = useComments(post.schoolId, post.id);
@@ -161,22 +162,60 @@ function CommentsList({
       {post.status === 'PUBLISHED' && post.commentsEnabled ? (
         post.rights.canComment ? (
           <View style={{ padding: spacing[4], gap: spacing[2], borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.background }}>
-            <TextField
-              label={t('mobile.feed.comments.write')}
-              value={draft}
-              onChangeText={setDraft}
-              multiline
-              maxLength={MAX_COMMENT}
-              placeholder={t('mobile.feed.comments.placeholder')}
-              hint={t('mobile.feed.comments.hint')}
-              style={{ maxHeight: 120 }}
-            />
+            <Text variant="caption">{t('mobile.feed.comments.hint')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: spacing[2] }}>
+              <TextInput
+                accessibilityLabel={t('mobile.feed.comments.write')}
+                placeholder={t('mobile.feed.comments.placeholder')}
+                placeholderTextColor={colors.mutedForeground}
+                selectionColor={colors.primary}
+                value={draft}
+                onChangeText={setDraft}
+                multiline
+                maxLength={MAX_COMMENT}
+                autoCapitalize="sentences"
+                style={{
+                  flex: 1,
+                  minHeight: minTouchTarget + 4,
+                  maxHeight: 120,
+                  color: colors.foreground,
+                  backgroundColor: colors.card,
+                  borderColor: colors.input,
+                  borderWidth: 1,
+                  borderRadius: radii.xl,
+                  paddingHorizontal: spacing[3],
+                  paddingTop: 12,
+                  paddingBottom: 12,
+                  fontSize: 16,
+                }}
+              />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={problem?.offline ? t('common.retry') : t('mobile.feed.comments.send')}
+                accessibilityState={{ disabled: !draft.trim() || sending, busy: sending }}
+                disabled={!draft.trim() || sending}
+                onPress={() => void send()}
+                style={{
+                  width: minTouchTarget + 4,
+                  height: minTouchTarget + 4,
+                  borderRadius: (minTouchTarget + 4) / 2,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: colors.primary,
+                  opacity: !draft.trim() || sending ? 0.45 : 1,
+                }}>
+                {sending ? (
+                  <ActivityIndicator color={colors.primaryForeground} />
+                ) : (
+                  <SymbolView name={{ ios: 'arrow.up', android: 'send', web: 'send' } as never} size={22} tintColor={colors.primaryForeground} />
+                )}
+              </Pressable>
+            </View>
             {problem ? (
               <Text variant="caption" tone="destructive" accessibilityLiveRegion="polite">
                 {problem.message}
               </Text>
             ) : null}
-            <Button label={problem?.offline ? t('common.retry') : t('mobile.feed.comments.send')} loading={sending} disabled={!draft.trim()} onPress={() => void send()} />
           </View>
         ) : (
           <View style={{ padding: spacing[4] }}>
