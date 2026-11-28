@@ -5514,6 +5514,69 @@
           "title": "\"ትርጉም እይ\" አቅርብ",
           "description": "የጽሑፎችንና የአስተያየቶችን የማሽን ትርጉም ያሳያል። የልጆች ስም ተደብቆ ጽሑፉ ብቻ ወደ ትርጉም አገልግሎቱ ይላካል። ትምህርት ቤቱ በዚህ ከተስማማ ብቻ ያብሩት።"
         }
+      },
+      "redesign": {
+        "tabs": {
+          "label": "የዜና ክፍሎች",
+          "feed": "ዜና",
+          "photos": "ፎቶዎች",
+          "activities": "እንቅስቃሴዎች",
+          "achievements": "ስኬቶች"
+        },
+        "empty": {
+          "photos": "እስካሁን ምንም ፎቶ አልተጋራም።",
+          "activities": "እስካሁን ምንም እንቅስቃሴ አልተጋራም።",
+          "achievements": "እስካሁን ምንም ስኬት አልተጋራም።"
+        },
+        "banner": {
+          "allChildren": "ሁሉም ልጆቼ",
+          "familySubtitle": "ከልጆችዎ ክፍሎች የሚመጡ ዜናዎች",
+          "studentTitle": "ከክፍሌ የሚመጡ ዜናዎች",
+          "schoolSubtitle": "ለመላው ትምህርት ቤት ዜናዎችና ታሪኮች",
+          "region": "ስለዚህ ዜና"
+        },
+        "children": {
+          "title": "ልጆቼ",
+          "all": "ሁሉም ልጆች",
+          "allHint": "ከሁሉም ክፍሎች ዜና",
+          "show": "የ{name} ዜናዎችን አሳይ",
+          "showAll": "የሁሉም ልጆች ዜናዎችን አሳይ",
+          "noClass": "ገና ክፍል የለም",
+          "quickLinks": "ፈጣን አገናኞች",
+          "announcements": "ማስታወቂያዎች",
+          "calendar": "የቀን መቁጠሪያ",
+          "unread": "{count} ያልተነበቡ"
+        },
+        "announcement": {
+          "label": "ማስታወቂያ",
+          "pinned": "ተለጥፏል",
+          "published": "{when} ታትሟል",
+          "view": "ዝርዝሩን ይመልከቱ",
+          "viewLabel": "የማስታወቂያውን ዝርዝር ይመልከቱ",
+          "new": "አዲስ"
+        },
+        "post": {
+          "activity": "እንቅስቃሴ",
+          "achievement": "ስኬት",
+          "recognised": "እንኳን ደስ አላችሁ",
+          "tagged": "በዚህ ልጥፍ ያሉ ተማሪዎች"
+        },
+        "rail": {
+          "label": "ስለዚህ ክፍል",
+          "classInfo": "የክፍል መረጃ",
+          "students": "ተማሪዎች",
+          "teachers": "መምህራን",
+          "teachersList": "የዚህ ክፍል መምህራን",
+          "message": "መልዕክት ይላኩ",
+          "messageLabel": "ለ{name} መልዕክት ይላኩ",
+          "upcoming": "የሚመጡ",
+          "viewAll": "ሁሉንም ይመልከቱ",
+          "allDay": "ቀኑን ሙሉ",
+          "recent": "የቅርብ ጊዜ ስኬቶች",
+          "more": "+{count} ተጨማሪ",
+          "plainAchievement": "ስኬት",
+          "loading": "በመጫን ላይ"
+        }
       }
     },
     "announcements": {
