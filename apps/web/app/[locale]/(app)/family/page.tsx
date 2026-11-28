@@ -9,7 +9,7 @@ export async function generateMetadata() {
 
 export default function FamilyPage() {
   return (
-    <FamilyShell>
+    <FamilyShell wide>
       <FamilyHome />
     </FamilyShell>
   );

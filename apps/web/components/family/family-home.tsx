@@ -25,7 +25,7 @@ export function FamilyHome() {
   const open = consents.data ? openDecisionCount(consents.data.children) : 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+    <div className="flex w-full flex-col gap-6">
       <header>
         <h1 className="text-3xl font-bold">{t("title")}</h1>
         <p className="text-muted-foreground">{t("subtitle")}</p>
@@ -44,30 +44,32 @@ export function FamilyHome() {
 
       {children.data ? <FamilyFeed kids={children.data.children} /> : null}
 
-      {children.isPending ? (
-        <LoadingRows rows={3} />
-      ) : children.isError ? (
-        <ErrorNotice message={errorMessage(children.error, t("loadFailed"))} onRetry={() => void children.refetch()} />
-      ) : (
-        <>
-          {children.data.children.length === 0 && children.data.pending.length === 0 ? (
-            <EmptyNotice>
-              <span className="block text-lg font-bold text-foreground">{t("emptyTitle")}</span>
-              {t("emptyBody")}
-            </EmptyNotice>
-          ) : null}
-          <ul className="flex flex-col gap-4">
-            {children.data.children.map((child) => (
-              <ChildCard key={child.studentId} child={child} needsDecision={childNeeds(consents.data, child.studentId)} />
-            ))}
-            {children.data.pending.map((link) => (
-              <PendingCard key={link.linkId} link={link} />
-            ))}
-          </ul>
-        </>
-      )}
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+        {children.isPending ? (
+          <LoadingRows rows={3} />
+        ) : children.isError ? (
+          <ErrorNotice message={errorMessage(children.error, t("loadFailed"))} onRetry={() => void children.refetch()} />
+        ) : (
+          <>
+            {children.data.children.length === 0 && children.data.pending.length === 0 ? (
+              <EmptyNotice>
+                <span className="block text-lg font-bold text-foreground">{t("emptyTitle")}</span>
+                {t("emptyBody")}
+              </EmptyNotice>
+            ) : null}
+            <ul className="flex flex-col gap-4">
+              {children.data.children.map((child) => (
+                <ChildCard key={child.studentId} child={child} needsDecision={childNeeds(consents.data, child.studentId)} />
+              ))}
+              {children.data.pending.map((link) => (
+                <PendingCard key={link.linkId} link={link} />
+              ))}
+            </ul>
+          </>
+        )}
 
-      <ConnectCodeCard />
+        <ConnectCodeCard />
+      </div>
     </div>
   );
 }

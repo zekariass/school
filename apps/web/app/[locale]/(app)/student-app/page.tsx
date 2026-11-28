@@ -31,19 +31,19 @@ async function StudentApp() {
   return (
     <>
       <SiteHeader user={{ name: me.displayName }} />
-      <main id="main" className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8">
+      <main id="main" className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-8">
         <StudentHome schools={schools} name={me.givenName || me.displayName} />
         {schools.length > 0 ? (
           <Link
             href="/portfolio"
-            className="flex min-h-14 items-center gap-3 rounded-2xl border bg-card p-4 text-lg font-bold hover:bg-accent/40"
+            className="mx-auto flex min-h-14 w-full max-w-3xl items-center gap-3 rounded-2xl border bg-card p-4 text-lg font-bold hover:bg-accent/40"
             data-testid="student-portfolio-link"
           >
             <PaletteIcon className="size-6 text-primary" aria-hidden />
             {t("portfolioLink")}
           </Link>
         ) : null}
-        <Card className="w-full">
+        <Card className="mx-auto w-full max-w-3xl">
           <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
             <span className="grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary">
               <SmartphoneIcon className="size-7" aria-hidden />
