@@ -18,6 +18,8 @@ export interface AvatarProps {
   config?: Record<string, unknown> | null | undefined;
   /** Letters on the placeholder (1 or 2). */
   maxInitials?: 1 | 2;
+  /** Keep the picture in memory only, never on disk (children's photos shown in the feed). */
+  memoryOnly?: boolean;
 }
 
 /**
@@ -25,7 +27,7 @@ export interface AvatarProps {
  * with initials (same colour every time for the same person, so a class wall looks friendly and
  * stable). The label is the person's name for screen readers.
  */
-export function Avatar({ mediaId, name, size = 96, accessibilityLabel, seed, config, maxInitials = 2 }: AvatarProps) {
+export function Avatar({ mediaId, name, size = 96, accessibilityLabel, seed, config, maxInitials = 2, memoryOnly = false }: AvatarProps) {
   const { colors } = useAppTheme();
   const url = useMediaUrl(mediaId, size > 160 ? 'MEDIUM' : 'SMALL');
   const frame = { width: size, height: size, borderRadius: size / 2 };
@@ -35,6 +37,7 @@ export function Avatar({ mediaId, name, size = 96, accessibilityLabel, seed, con
       <Image
         // Cache by media id: the signed link changes every few minutes, the picture does not.
         source={{ uri: url.data.url, cacheKey: `media-${mediaId}` }}
+        cachePolicy={memoryOnly ? 'memory' : 'disk'}
         accessibilityLabel={accessibilityLabel ?? name}
         accessible
         contentFit="cover"

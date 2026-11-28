@@ -13,7 +13,7 @@ export default function SchoolFeedScreen() {
   return (
     <>
       <Stack.Screen options={{ title: schoolName ?? t('mobile.feed.schoolFeedTitle') }} />
-      <SchoolFeed schoolId={schoolId!} />
+      <SchoolFeed schoolId={schoolId!} schoolName={schoolName} />
     </>
   );
 }

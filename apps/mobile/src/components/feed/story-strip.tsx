@@ -14,6 +14,7 @@ import { Text } from '../ui';
 
 import { FeedImage } from './feed-image';
 import { StoryViewer } from './story-viewer';
+import { Tint } from './tint';
 
 const SIZE = 68;
 
@@ -53,7 +54,8 @@ function AddTile({ onPress }: { onPress: () => void }) {
   const { colors } = useAppTheme();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={t('mobile.feed.story.add')} onPress={onPress} style={{ width: SIZE + 12, alignItems: 'center', gap: 4 }}>
-      <View style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2, borderWidth: 2, borderStyle: 'dashed', borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent }}>
+      <View style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2, borderWidth: 2, borderStyle: 'dashed', borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: colors.card }}>
+        <Tint color={colors.primary} opacity={0.14} />
         <SymbolView name={{ ios: 'plus', android: 'add', web: 'add' }} size={28} tintColor={colors.primary} />
       </View>
       <Text variant="caption" numberOfLines={1}>
