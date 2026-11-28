@@ -33,7 +33,7 @@ export function PinnedAnnouncement({ schoolId, hrefFor }: { schoolId: string | n
       className={cn("flex flex-wrap items-center gap-4 rounded-2xl border p-4 shadow-sm sm:p-5", urgent ? "border-destructive bg-destructive/5" : "border-primary/20 bg-primary/5")}
       data-testid="pinned-announcement"
     >
-      <span aria-hidden className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
+      <span aria-hidden className="hidden size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary sm:grid">
         <MegaphoneIcon className="size-7" />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -49,7 +49,7 @@ export function PinnedAnnouncement({ schoolId, hrefFor }: { schoolId: string | n
           {t("published", { when: format(when) })}
         </p>
       </div>
-      <Button asChild variant="outline" className="min-h-11 rounded-full bg-card">
+      <Button asChild variant="outline" className="min-h-11 w-full rounded-full bg-card sm:w-auto">
         <Link href={hrefFor(card)} aria-label={t("viewLabel")} data-testid="pinned-announcement-link">
           {t("view")}
         </Link>

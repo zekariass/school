@@ -33,9 +33,9 @@ export function FeedTabs({ value, onValueChange, children }: { value: FeedTab; o
               key={tab}
               value={tab}
               data-testid={`feed-tab-${tab}`}
-              className="h-12 min-h-11 flex-1 gap-2 rounded-none px-3 text-sm font-semibold data-[state=active]:text-primary sm:text-base group-data-[variant=line]/tabs-list:after:bottom-0 group-data-[variant=line]/tabs-list:after:h-[3px] group-data-[variant=line]/tabs-list:after:rounded-full group-data-[variant=line]/tabs-list:after:bg-primary"
+              className="h-12 min-h-11 flex-1 gap-2 rounded-none px-1.5 text-xs font-semibold sm:px-3 sm:text-sm data-[state=active]:text-primary md:text-base group-data-[variant=line]/tabs-list:after:bottom-0 group-data-[variant=line]/tabs-list:after:h-[3px] group-data-[variant=line]/tabs-list:after:rounded-full group-data-[variant=line]/tabs-list:after:bg-primary"
             >
-              <Icon aria-hidden />
+              <Icon className="hidden sm:block" aria-hidden />
               {t(tab)}
             </TabsTrigger>
           );
