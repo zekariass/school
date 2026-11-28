@@ -85,7 +85,25 @@ export function PostCard({ post, mode = 'list', translationEnabled = false, time
   const meta = [post.scope === 'SCHOOL' ? t('mobile.feed.schoolWide') : null, when, post.editedAt ? t('mobile.feed.edited') : null].filter(Boolean).join(' · ');
 
   return (
-    <Card style={{ padding: spacing[4], gap: spacing[3], borderRadius: radii.xl }} onLayout={(event) => setWidth(event.nativeEvent.layout.width - spacing[4] * 2)}>
+    <Card
+      style={
+        mode === 'list'
+          ? {
+              // Full width, edge to edge, with a divider under each post (the lists pad their content by spacing[5]).
+              marginHorizontal: -spacing[5],
+              paddingHorizontal: spacing[5],
+              paddingVertical: spacing[4],
+              gap: spacing[3],
+              borderRadius: 0,
+              borderWidth: 0,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border,
+              shadowOpacity: 0,
+              elevation: 0,
+            }
+          : { padding: spacing[4], gap: spacing[3], borderRadius: radii.xl }
+      }
+      onLayout={(event) => setWidth(event.nativeEvent.layout.width - (mode === 'list' ? spacing[5] : spacing[4]) * 2)}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[3] }}>
         {variant.achievement ? (
           <View
