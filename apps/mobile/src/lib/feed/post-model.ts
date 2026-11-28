@@ -90,3 +90,46 @@ export function canOfferTranslation(post: Pick<PostView, 'body' | 'bodyLanguageC
   const source = post.bodyLanguageCode?.toLowerCase().split('-')[0];
   return !source || source !== uiLanguage.toLowerCase().split('-')[0];
 }
+
+/**
+ * The role chip beside an author's name ("Teacher"). Shown only next to a real name: when the API sent none, the role label
+ * already stands in for the name and a chip would say it twice.
+ */
+export function roleChip(author: Pick<FeedAuthor, 'displayName' | 'role'>): FeedAuthor['role'] | null {
+  return author.displayName?.trim() ? author.role : null;
+}
+
+export interface PostVariant {
+  /** The card has its own header: a trophy badge and an "Achievement" title instead of the author's avatar line. */
+  achievement: boolean;
+  /** A small "Activity" chip with an icon. */
+  activityChip: boolean;
+  /** Tagged students as avatars with name chips (an achievement) instead of the "In this post" line. */
+  studentRow: boolean;
+}
+
+/** What a card looks like for its `postType`; the content shown is still exactly the payload's (tags as the API sent them). */
+export function postVariant(post: Pick<PostView, 'postType' | 'tags'>): PostVariant {
+  return {
+    achievement: post.postType === 'ACHIEVEMENT',
+    activityChip: post.postType === 'ACTIVITY',
+    studentRow: post.postType === 'ACHIEVEMENT' && post.tags.length > 0,
+  };
+}
+
+/** The longest first line that is set in bold: a short headline, not a paragraph that happens to have no line break. */
+export const HEADLINE_MAX = 120;
+
+/**
+ * Presentation only: the first line of a text as a headline and the rest, split at the first line break. `headline +
+ * separator + rest` is always exactly the original text (nothing is trimmed away or parsed as a title). A text without a
+ * line break, an empty first line, a first line that is too long or nothing after it has no headline.
+ */
+export function splitHeadline(text: string): { headline: string; separator: string; rest: string } | null {
+  const match = /\r?\n/.exec(text);
+  if (!match) return null;
+  const headline = text.slice(0, match.index);
+  const rest = text.slice(match.index + match[0].length);
+  if (!headline.trim() || headline.length > HEADLINE_MAX || !rest.trim()) return null;
+  return { headline, separator: match[0], rest };
+}

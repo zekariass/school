@@ -10,6 +10,7 @@ import { flattenPages, mapItem, type Pages } from '@/lib/feed/pages';
 import { useSession } from '@/lib/session/session-provider';
 
 import { ackWithCard, readWithCard } from './cards';
+import { FEATURED_LOOKAHEAD, pickFeatured } from './featured';
 import { notificationIdsFor } from './notifications';
 import { withAcknowledged, withRead } from './ack';
 import {
@@ -20,6 +21,7 @@ import {
   capabilitiesKey,
   channelsKey,
   detailKey,
+  featuredKey,
   inboxKey,
   nextPage,
   recipientsKey,
@@ -75,6 +77,21 @@ function usePages(key: readonly unknown[], load: (cursor: string | undefined) =>
 export function useInbox(schoolId: string | null, filter: InboxFilter, sort: InboxSort) {
   const enabled = useEnabled();
   return usePages(inboxKey(schoolId, filter, sort), (cursor) => fetchInbox(schoolId, filter, sort, cursor), enabled);
+}
+
+/**
+ * The announcement shown on top of a feed: the newest published one of the person's inbox (`null` when none). One small page
+ * (the newest few cards), memory only; `schoolId` narrows it to the school of a class feed.
+ */
+export function useFeaturedAnnouncement(schoolId: string | null) {
+  const enabled = useEnabled();
+  return useQuery({
+    queryKey: featuredKey(schoolId),
+    enabled,
+    queryFn: async () => pickFeatured((await fetchInbox(schoolId, 'ALL', 'NEWEST', undefined, FEATURED_LOOKAHEAD)).items),
+    staleTime: 30_000,
+    gcTime: ANNOUNCEMENTS_GC_MS,
+  });
 }
 
 export function useAuthored(schoolId: string | undefined, status: AnnouncementStatus | null, mine: boolean) {

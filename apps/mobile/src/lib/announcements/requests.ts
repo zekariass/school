@@ -33,8 +33,8 @@ const path = (schoolId: string, announcementId: string) => ({ params: { path: { 
 
 // --- reading (the recipient's side) ----------------------------------------------------------------
 
-export const fetchInbox = (schoolId: string | null, filter: InboxFilter, sort: InboxSort, cursor?: string): Promise<AnnouncementPage> =>
-  request(async () => unwrap(await api.GET('/api/v1/me/announcements', { params: { query: { ...inboxQueryParams({ schoolId, filter, sort }), ...page(cursor) } } })));
+export const fetchInbox = (schoolId: string | null, filter: InboxFilter, sort: InboxSort, cursor?: string, limit?: number): Promise<AnnouncementPage> =>
+  request(async () => unwrap(await api.GET('/api/v1/me/announcements', { params: { query: { ...inboxQueryParams({ schoolId, filter, sort }), ...page(cursor, limit) } } })));
 
 export const fetchSummary = (): Promise<AnnouncementUnreadSummary> =>
   request(async () => unwrap(await api.GET('/api/v1/me/announcements/summary')));
