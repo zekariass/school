@@ -930,7 +930,28 @@
       "classFeedTitle": "የክፍል ዜና",
       "schoolFeedTitle": "የትምህርት ቤት ዜና",
       "postTitle": "ልጥፍ",
-      "posts": "ልጥፎች",
+      "tabs": {
+        "label": "የዜና ክፍሎች",
+        "FEED": "ዜና",
+        "PHOTOS": "ፎቶዎች",
+        "ACTIVITIES": "እንቅስቃሴዎች",
+        "ACHIEVEMENTS": "ስኬቶች"
+      },
+      "type": {
+        "ACHIEVEMENT": "ስኬት",
+        "ACTIVITY": "እንቅስቃሴ"
+      },
+      "announcement": {
+        "label": "ማስታወቂያ",
+        "open": "ማስታወቂያውን ይከፍታል"
+      },
+      "header": {
+        "profile": "የእርስዎ መገለጫና ቅንብሮች",
+        "switchClass": "ክፍል ይምረጡ"
+      },
+      "achievement": {
+        "students": "ተማሪዎች፦ {names}"
+      },
       "openClassFeed": "የክፍል ዜና",
       "schoolNews": "የትምህርት ቤት ዜና",
       "schoolNewsNamed": "የትምህርት ቤት ዜና፦ {school}",
@@ -954,7 +975,6 @@
       "tagsLine": "በዚህ ልጥፍ ውስጥ፦ {names}",
       "seenCount": "ያዩት፦ {count}",
       "comment": "አስተያየት",
-      "commentCount": "አስተያየቶች፦ {count}",
       "commentsButton": "አስተያየቶች፦ {count}። ልጥፉን ክፈት",
       "commentsOff": "አስተያየት መስጠት ተዘግቷል",
       "reactionWithCount": "{name}፣ {count}",
@@ -1063,7 +1083,13 @@
         "schoolTitle": "እስካሁን የትምህርት ቤት ዜና የለም",
         "schoolBody": "ለመላው ትምህርት ቤት የሚሆን ዜና እዚህ ይታያል።",
         "homeTitle": "እስካሁን እዚህ ምንም የለም",
-        "homeBody": "ከልጆችዎ ክፍል እና ትምህርት ቤት የሚመጡ ልጥፎችና ታሪኮች እዚህ ይታያሉ።"
+        "homeBody": "ከልጆችዎ ክፍል እና ትምህርት ቤት የሚመጡ ልጥፎችና ታሪኮች እዚህ ይታያሉ።",
+        "photosTitle": "እስካሁን ፎቶ የለም",
+        "photosBody": "ፎቶ ያላቸው ልጥፎች እዚህ ይታያሉ።",
+        "activitiesTitle": "እስካሁን እንቅስቃሴ የለም",
+        "activitiesBody": "የክፍል እንቅስቃሴዎች እዚህ ይታያሉ።",
+        "achievementsTitle": "እስካሁን ስኬት የለም",
+        "achievementsBody": "መምህሩ አንድን ተማሪ ሲያመሰግን እዚህ ይታያል።"
       },
       "story": {
         "title": "ታሪክ",

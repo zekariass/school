@@ -8,7 +8,9 @@ export type InboxSort = 'NEWEST' | 'UNREAD_FIRST';
 export const summaryKey = [ANNOUNCEMENTS_ROOT, 'summary'] as const;
 export const inboxKey = (schoolId: string | null, filter: InboxFilter, sort: InboxSort) =>
   [ANNOUNCEMENTS_ROOT, 'inbox', schoolId ?? 'all', filter, sort] as const;
-export const INBOX_PREFIX = [ANNOUNCEMENTS_ROOT, 'inbox'] as const;
+/** The newest announcements of the person, a few cards, for the card on top of the feed. */
+export const featuredKey = (schoolId: string | null) => [ANNOUNCEMENTS_ROOT, 'featured', schoolId ?? 'all'] as const;
+export const INBOX_PREFIX =[ANNOUNCEMENTS_ROOT, 'inbox'] as const;
 export const detailKey = (schoolId: string, announcementId: string) => [ANNOUNCEMENTS_ROOT, 'detail', schoolId, announcementId] as const;
 export const authoredKey = (schoolId: string, status: string | null, mine: boolean) =>
   [ANNOUNCEMENTS_ROOT, 'authored', schoolId, status ?? 'all', mine ? 'mine' : 'school'] as const;

@@ -5,7 +5,7 @@ import type { ProblemDetail } from '@school/api-client';
 import { ApiRequestError } from '@/lib/api-error';
 
 import { gateProblemOf, namedBlocked, withoutStudents } from './gate';
-import { gridLayout, listVariant, pickVariant } from './media-layout';
+import { collageLayout, listVariant, pickVariant } from './media-layout';
 import { flattenPages } from './pages';
 import { authorLabel, overflowActions, photosHidden, photosWarning } from './post-model';
 import { applyReaction } from './reactions';
@@ -100,11 +100,11 @@ describe('a teacher\'s post', () => {
   it('has the whole menu its rights allow, and nothing else', () => {
     expect(overflowActions(teacherPost)).toEqual(['edit', 'pin', 'archive', 'hide', 'delete']);
   });
-  it('is named, shows five photos as 2 x 2 plus "+1" using THUMB or SMALL only', () => {
+  it('is named, shows five photos as a collage of three plus "+2" using THUMB or SMALL only', () => {
     expect(authorLabel(teacherPost.author)).toEqual({ kind: 'name', name: 'Tigist Alemu' });
-    const layout = gridLayout(teacherPost.media.length);
-    expect(layout.rows.flatMap((row) => row.cells.map((cell) => cell.index))).toEqual([0, 1, 2, 3]);
-    expect(layout.more).toBe(1);
+    const layout = collageLayout(teacherPost.media.length);
+    expect(layout.cells).toEqual([0, 1, 2]);
+    expect(layout.more).toBe(2);
     expect(listVariant(180)).toBe('SMALL');
     expect(pickVariant(teacherPost.media[0]!.variants, listVariant(120))).toBe('THUMB');
   });

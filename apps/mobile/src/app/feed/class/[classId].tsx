@@ -12,8 +12,7 @@ export default function ClassFeedScreen() {
   const t = useTranslations();
   const { colors, spacing } = useAppTheme();
   const { classId, schoolId: schoolParam } = useLocalSearchParams<{ classId: string; schoolId?: string }>();
-  const { cls, query: mine } = useMyClass(classId);
-  const schoolId = schoolParam ?? cls?.schoolId;
+  const { cls, query: mine } = useMyClass(classId);  const schoolId = schoolParam ?? cls?.schoolId;
 
   if (!schoolId || !classId) {
     return (
@@ -28,10 +27,20 @@ export default function ClassFeedScreen() {
       </View>
     );
   }
+  // The class switcher: the person's other active classes in the same school (the title is a dropdown when there are any).
+  const options = (mine.data ?? [])
+    .filter((item) => item.status === 'ACTIVE' && item.schoolId === schoolId)
+    .map((item) => ({ value: item.id, label: item.name }));
+  const switcher = {
+    label: t('mobile.feed.header.switchClass'),
+    value: classId,
+    options,
+    onChange: (next: string) => router.replace({ pathname: '/feed/class/[classId]', params: { classId: next, schoolId } }),
+  };
   return (
     <>
       <Stack.Screen options={{ title: cls?.name ?? t('mobile.feed.classFeedTitle') }} />
-      <ClassFeed schoolId={schoolId} classId={classId} />
+      <ClassFeed key={classId} schoolId={schoolId} classId={classId} schoolName={cls?.schoolName} className={cls?.name} switcher={switcher} />
     </>
   );
 }

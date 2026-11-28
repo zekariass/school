@@ -930,7 +930,28 @@
       "classFeedTitle": "Class feed",
       "schoolFeedTitle": "School news",
       "postTitle": "Post",
-      "posts": "Posts",
+      "tabs": {
+        "label": "Feed sections",
+        "FEED": "Feed",
+        "PHOTOS": "Photos",
+        "ACTIVITIES": "Activities",
+        "ACHIEVEMENTS": "Achievements"
+      },
+      "type": {
+        "ACHIEVEMENT": "Achievement",
+        "ACTIVITY": "Activity"
+      },
+      "announcement": {
+        "label": "Announcement",
+        "open": "Opens the announcement"
+      },
+      "header": {
+        "profile": "Your profile and settings",
+        "switchClass": "Choose a class"
+      },
+      "achievement": {
+        "students": "Students: {names}"
+      },
       "openClassFeed": "Class feed",
       "schoolNews": "School news",
       "schoolNewsNamed": "School news: {school}",
@@ -954,7 +975,6 @@
       "tagsLine": "In this post: {names}",
       "seenCount": "Seen by: {count}",
       "comment": "Comment",
-      "commentCount": "Comments: {count}",
       "commentsButton": "Comments: {count}. Open the post",
       "commentsOff": "Comments are off",
       "reactionWithCount": "{name}, {count}",
@@ -1063,7 +1083,13 @@
         "schoolTitle": "No school news yet",
         "schoolBody": "News for the whole school shows up here.",
         "homeTitle": "Nothing here yet",
-        "homeBody": "Posts and stories from your children's classes and school show up here."
+        "homeBody": "Posts and stories from your children's classes and school show up here.",
+        "photosTitle": "No photos yet",
+        "photosBody": "Posts with photos show up here.",
+        "activitiesTitle": "No activities yet",
+        "activitiesBody": "Class activities show up here.",
+        "achievementsTitle": "No achievements yet",
+        "achievementsBody": "When the teacher celebrates a student, it shows up here."
       },
       "story": {
         "title": "Story",
