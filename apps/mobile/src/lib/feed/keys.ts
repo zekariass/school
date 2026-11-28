@@ -1,10 +1,14 @@
 /** Query keys of the feed. Everything under this root is memory-only. */
 
+import { DEFAULT_FEED_TAB, type FeedTab } from './tabs';
+
 export const FEED_ROOT = 'feed';
 
-export const classFeedKey = (schoolId: string, classId: string) => [FEED_ROOT, 'class', schoolId, classId] as const;
-export const schoolFeedKey = (schoolId: string) => [FEED_ROOT, 'school', schoolId] as const;
-export const homeFeedKey = (studentId: string | null) => [FEED_ROOT, 'home', studentId ?? 'all'] as const;
+/** Each tab (Feed, Photos, Activities, Achievements) of a feed is its own query: the server applies the filter. */
+export const classFeedKey = (schoolId: string, classId: string, tab: FeedTab = DEFAULT_FEED_TAB) =>
+  [FEED_ROOT, 'class', schoolId, classId, tab] as const;
+export const schoolFeedKey = (schoolId: string, tab: FeedTab = DEFAULT_FEED_TAB) => [FEED_ROOT, 'school', schoolId, tab] as const;
+export const homeFeedKey = (studentId: string | null, tab: FeedTab = DEFAULT_FEED_TAB) => [FEED_ROOT, 'home', studentId ?? 'all', tab] as const;
 export const myPostsKey = (schoolId: string, status: string | null, classId: string | null) =>
   [FEED_ROOT, 'mine', schoolId, status ?? 'all', classId ?? 'all'] as const;
 export const pendingKey = (schoolId: string, classId: string | null) => [FEED_ROOT, 'pending', schoolId, classId ?? 'all'] as const;

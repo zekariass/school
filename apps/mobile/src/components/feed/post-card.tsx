@@ -7,19 +7,35 @@ import { problemOf } from '@/lib/api-error';
 import { useMe } from '@/lib/auth/use-me';
 import { formatInstant } from '@/lib/calendar/format-instant';
 import { useFormatInstant } from '@/lib/calendar/use-format-instant';
-import { authorLabel, ageOf, canOfferTranslation, isMine, overflowActions, photosHidden, photosWarning, postInstant, type OverflowAction } from '@/lib/feed/post-model';
+import {
+  authorLabel,
+  ageOf,
+  canOfferTranslation,
+  isMine,
+  overflowActions,
+  photosHidden,
+  photosWarning,
+  postInstant,
+  postVariant,
+  roleChip,
+  splitHeadline,
+  type OverflowAction,
+} from '@/lib/feed/post-model';
 import { useReact } from '@/lib/feed/queries';
 import { useClock } from '@/lib/feed/use-clock';
 import { translatePost } from '@/lib/feed/requests';
 import type { PostView } from '@/lib/feed/types';
 import { usePreferences } from '@/lib/preferences/preferences-provider';
-import { avatarColor, initialsOf } from '@/lib/people/avatar';
 import { useAppTheme } from '@/lib/theme/theme-provider';
 
+import { Avatar } from '../avatar';
 import { Card, Text } from '../ui';
+import { LinkedText } from '../announcements/linked-text';
 
 import { MediaGrid } from './media-grid';
 import { ReactionBar } from './reaction-bar';
+import { StudentRow } from './student-row';
+import { Tint } from './tint';
 
 export interface PostCardProps {
   post: PostView;
@@ -34,8 +50,9 @@ export interface PostCardProps {
 }
 
 /**
- * A post as a warm, photo-first card: who, when, the words, the photos, who is in them, reactions and comments.
- * Everything shown comes from the payload as the API filtered it for this viewer; the card never guesses a name.
+ * A post as a warm, photo-first card: who, when, the words, the photos, who is in them, reactions and comments. An achievement
+ * has a trophy badge and its students as avatars with name chips; an activity carries a chip. Everything shown comes from the
+ * payload as the API filtered it for this viewer; the card never guesses a name.
  */
 export function PostCard({ post, mode = 'list', translationEnabled = false, timeZone, onOpen, onMenu }: PostCardProps) {
   const t = useTranslations();
@@ -50,6 +67,8 @@ export function PostCard({ post, mode = 'list', translationEnabled = false, time
 
   const label = authorLabel(post.author);
   const authorText = label.kind === 'name' ? label.name : t(`mobile.feed.author.${label.role}`);
+  const chip = roleChip(post.author);
+  const variant = postVariant(post);
   const age = ageOf(postInstant(post), now);
   const when =
     age.unit === 'now'
@@ -63,27 +82,47 @@ export function PostCard({ post, mode = 'list', translationEnabled = false, time
   const commentCount = post.commentCount ?? 0;
   const mine = isMine(post, me.data?.id);
   const open = mode === 'list' && onOpen ? () => onOpen(post) : undefined;
+  const meta = [post.scope === 'SCHOOL' ? t('mobile.feed.schoolWide') : null, when, post.editedAt ? t('mobile.feed.edited') : null].filter(Boolean).join(' · ');
 
   return (
-    <Card style={{ padding: spacing[4], gap: spacing[3] }} onLayout={(event) => setWidth(event.nativeEvent.layout.width - spacing[4] * 2)}>
+    <Card style={{ padding: spacing[4], gap: spacing[3], borderRadius: radii.xl }} onLayout={(event) => setWidth(event.nativeEvent.layout.width - spacing[4] * 2)}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[3] }}>
-        <View
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: avatarColor(post.author.userId ?? post.author.role), alignItems: 'center', justifyContent: 'center' }}>
-          <Text variant="label" allowFontScaling={false} style={{ color: colors.primaryForeground }}>
-            {initialsOf(authorText, 1) || '?'}
-          </Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text variant="label" numberOfLines={1}>
-            {authorText}
-            {mine ? ` · ${t('mobile.feed.you')}` : ''}
-          </Text>
+        {variant.achievement ? (
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={{ width: 44, height: 44, borderRadius: radii.full, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+            <Tint color={colors.primary} opacity={0.16} />
+            <SymbolView name={{ ios: 'trophy.fill', android: 'emoji_events', web: 'emoji_events' }} size={24} tintColor={colors.primary} />
+          </View>
+        ) : (
+          <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <Avatar
+              mediaId={post.author.avatar?.id}
+              name={authorText}
+              seed={post.author.userId ?? post.author.role}
+              size={44}
+              maxInitials={1}
+              memoryOnly
+            />
+          </View>
+        )}
+        <View style={{ flex: 1, gap: 2 }}>
+          {variant.achievement ? (
+            <Text variant="heading" numberOfLines={1} style={{ color: colors.primary }}>
+              {t('mobile.feed.type.ACHIEVEMENT')}
+            </Text>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[2] }}>
+              <Text variant="label" numberOfLines={1} style={{ flexShrink: 1 }}>
+                {authorText}
+                {mine ? ` · ${t('mobile.feed.you')}` : ''}
+              </Text>
+              {chip ? <RoleChip text={t(`mobile.feed.author.${chip}`)} /> : null}
+            </View>
+          )}
           <Text variant="caption" numberOfLines={1}>
-            {post.scope === 'SCHOOL' ? `${t('mobile.feed.schoolWide')} · ` : ''}
-            {when}
-            {post.editedAt ? ` · ${t('mobile.feed.edited')}` : ''}
+            {variant.achievement ? `${authorText}${mine ? ` · ${t('mobile.feed.you')}` : ''} · ${meta}` : meta}
           </Text>
         </View>
         {actions.length > 0 && onMenu ? (
@@ -98,13 +137,11 @@ export function PostCard({ post, mode = 'list', translationEnabled = false, time
         ) : null}
       </View>
 
-      <Badges post={post} />
+      <Badges post={post} activity={variant.activityChip} />
       <Notices post={post} timeZone={timeZone} />
 
       <Pressable accessibilityRole={open ? 'button' : undefined} accessibilityHint={open ? t('mobile.feed.openPostHint') : undefined} onPress={open} disabled={!open} style={{ gap: spacing[3] }}>
-        {post.body ? (
-          <Translatable post={post} mode={mode} enabled={translationEnabled} locale={locale} />
-        ) : null}
+        {post.body ? <Translatable post={post} mode={mode} enabled={translationEnabled} locale={locale} /> : null}
         {photosHidden(post) ? (
           <View
             accessibilityRole="text"
@@ -120,7 +157,9 @@ export function PostCard({ post, mode = 'list', translationEnabled = false, time
         )}
       </Pressable>
 
-      {post.tags.length > 0 ? (
+      {variant.studentRow ? (
+        <StudentRow tags={post.tags} />
+      ) : post.tags.length > 0 ? (
         <Text variant="caption" accessibilityLabel={t('mobile.feed.tagsLine', { names: post.tags.map((tag) => tag.displayName).join(', ') })}>
           {t('mobile.feed.tagsLine', { names: post.tags.map((tag) => tag.displayName).join(', ') })}
         </Text>
@@ -134,39 +173,68 @@ export function PostCard({ post, mode = 'list', translationEnabled = false, time
             onReact={(next) => {
               setReactionError(null);
               react(post, next).catch((error) => setReactionError(problemOf(error)?.detail ?? t('mobile.feed.reactionFailed')));
-            }}
-          />
-          {reactionError ? (
-            <Text variant="caption" tone="destructive" accessibilityLiveRegion="polite">
-              {reactionError}
-            </Text>
-          ) : null}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[4] }}>
+            }}>
             {post.commentsEnabled ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('mobile.feed.commentsButton', { count: commentCount })}
                 onPress={() => onOpen?.(post)}
                 disabled={!onOpen || mode === 'detail'}
-                hitSlop={6}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: minTouchTarget - 8 }}>
+                hitSlop={4}
+                style={{
+                  minHeight: minTouchTarget - 4,
+                  minWidth: minTouchTarget + spacing[2],
+                  paddingHorizontal: spacing[3],
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  borderRadius: radii.full,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  backgroundColor: colors.card,
+                }}>
                 <SymbolView name={{ ios: 'bubble.left', android: 'chat_bubble', web: 'chat_bubble' }} size={18} tintColor={colors.mutedForeground} />
-                <Text variant="caption">{commentCount > 0 ? t('mobile.feed.commentCount', { count: commentCount }) : t('mobile.feed.comment')}</Text>
+                <Text variant="label" style={{ color: colors.foreground }}>
+                  {commentCount > 0 ? commentCount : t('mobile.feed.comment')}
+                </Text>
               </Pressable>
-            ) : (
-              <Text variant="caption">{t('mobile.feed.commentsOff')}</Text>
-            )}
-            {typeof post.seenCount === 'number' ? <Text variant="caption">{t('mobile.feed.seenCount', { count: post.seenCount })}</Text> : null}
-          </View>
+            ) : null}
+          </ReactionBar>
+          {reactionError ? (
+            <Text variant="caption" tone="destructive" accessibilityLiveRegion="polite">
+              {reactionError}
+            </Text>
+          ) : null}
+          {!post.commentsEnabled || typeof post.seenCount === 'number' ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[4] }}>
+              {!post.commentsEnabled ? <Text variant="caption">{t('mobile.feed.commentsOff')}</Text> : null}
+              {typeof post.seenCount === 'number' ? <Text variant="caption">{t('mobile.feed.seenCount', { count: post.seenCount })}</Text> : null}
+            </View>
+          ) : null}
         </View>
       ) : null}
     </Card>
   );
 }
 
+/** "Teacher", "Student": a small tinted pill beside the author's name. */
+function RoleChip({ text }: { text: string }) {
+  const { colors, radii, spacing } = useAppTheme();
+  return (
+    <View style={{ paddingHorizontal: spacing[2], paddingVertical: 1, borderRadius: radii.full, overflow: 'hidden' }}>
+      <Tint color={colors.primary} opacity={0.16} />
+      <Text variant="caption" numberOfLines={1} style={{ color: colors.foreground, fontSize: 12, lineHeight: 18 }}>
+        {text}
+      </Text>
+    </View>
+  );
+}
+
 /** The post's words, with "See translation" when the school allows it. A translation is always labelled as a machine's. */
 function Translatable({ post, mode, enabled, locale }: { post: PostView; mode: 'list' | 'detail'; enabled: boolean; locale: string }) {
   const t = useTranslations();
+  const theme = useAppTheme();
   const [state, setState] = useState<{ phase: 'idle' | 'loading' | 'shown' | 'hidden'; text?: string; error?: string }>({ phase: 'idle' });
   const [gone, setGone] = useState(false);
   const offer = !gone && canOfferTranslation(post, enabled, locale);
@@ -189,14 +257,24 @@ function Translatable({ post, mode, enabled, locale }: { post: PostView; mode: '
   }
 
   const shown = state.phase === 'shown' && state.text;
+  const text = (shown ? state.text : post.body) ?? '';
+  // Presentation only: a short first line is set in the bold face. The text itself is shown exactly as it is.
+  const split = splitHeadline(text);
+  const bold = { fontFamily: theme.text('heading').fontFamily };
   return (
     <View style={{ gap: 6 }}>
       <Text numberOfLines={mode === 'list' ? 8 : undefined} selectable={mode === 'detail'}>
-        {shown ? state.text : post.body}
+        {split ? (
+          <>
+            <LinkedText text={split.headline} style={bold} />
+            {split.separator}
+            <LinkedText text={split.rest} />
+          </>
+        ) : (
+          <LinkedText text={text} />
+        )}
       </Text>
-      {shown ? (
-        <Text variant="caption">{t('mobile.feed.translation.label')}</Text>
-      ) : null}
+      {shown ? <Text variant="caption">{t('mobile.feed.translation.label')}</Text> : null}
       {offer ? (
         <Pressable
           accessibilityRole="button"
@@ -218,25 +296,40 @@ function Translatable({ post, mode, enabled, locale }: { post: PostView; mode: '
   );
 }
 
-function Badges({ post }: { post: PostView }) {
+function Badges({ post, activity }: { post: PostView; activity: boolean }) {
   const t = useTranslations();
-  const { colors, radii } = useAppTheme();
-  const items: { key: string; text: string; warn?: boolean }[] = [];
-  if (post.pinned) items.push({ key: 'pinned', text: t('mobile.feed.pinned') });
+  const { colors, radii, spacing } = useAppTheme();
+  const items: { key: string; text: string; icon?: { ios: string; android: string }; warn?: boolean }[] = [];
+  if (post.pinned) items.push({ key: 'pinned', text: t('mobile.feed.pinned'), icon: { ios: 'pin.fill', android: 'push_pin' } });
+  if (activity) items.push({ key: 'activity', text: t('mobile.feed.type.ACTIVITY'), icon: { ios: 'calendar', android: 'event' } });
   if (post.contribution) items.push({ key: 'family', text: t('mobile.feed.familyContribution') });
   if (post.status !== 'PUBLISHED') items.push({ key: 'status', text: t(`mobile.feed.status.${post.status}`), warn: post.status === 'REJECTED' || post.status === 'HIDDEN' });
   if (items.length === 0) return null;
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-      {items.map((item) => (
-        <View
-          key={item.key}
-          style={{ paddingHorizontal: 10, paddingVertical: 3, borderRadius: radii.full, backgroundColor: item.warn ? colors.destructive : colors.accent }}>
-          <Text variant="caption" style={{ color: item.warn ? colors.destructiveForeground : colors.accentForeground }}>
-            {item.text}
-          </Text>
-        </View>
-      ))}
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] }}>
+      {items.map((item) => {
+        const color = item.warn ? colors.destructiveForeground : colors.foreground;
+        return (
+          <View
+            key={item.key}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              paddingHorizontal: spacing[3],
+              paddingVertical: 3,
+              borderRadius: radii.full,
+              overflow: 'hidden',
+              backgroundColor: item.warn ? colors.destructive : colors.card,
+            }}>
+            {item.warn ? null : <Tint color={colors.primary} opacity={0.16} />}
+            {item.icon ? <SymbolView name={{ ios: item.icon.ios, android: item.icon.android, web: item.icon.android } as never} size={13} tintColor={colors.primary} /> : null}
+            <Text variant="caption" style={{ color }}>
+              {item.text}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }

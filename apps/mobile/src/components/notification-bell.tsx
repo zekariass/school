@@ -9,8 +9,8 @@ import { useAppTheme } from '@/lib/theme/theme-provider';
 
 import { Text } from './ui';
 
-/** Bell with the unread count; opens the notification inbox. */
-export function NotificationBell() {
+/** Bell with the unread count; opens the notification inbox. `onBand` draws it for a band in the primary colour (the feed's header). */
+export function NotificationBell({ onBand = false }: { onBand?: boolean } = {}) {
   const t = useTranslations();
   const { colors, minTouchTarget } = useAppTheme();
   const { data } = useUnreadCount();
@@ -23,7 +23,7 @@ export function NotificationBell() {
       onPress={() => router.push('/notifications' as Href)}
       hitSlop={4}
       style={{ width: minTouchTarget, height: minTouchTarget, alignItems: 'center', justifyContent: 'center' }}>
-      <SymbolView name={{ ios: 'bell.fill', android: 'notifications', web: 'notifications' }} size={26} tintColor={colors.primary} />
+      <SymbolView name={{ ios: 'bell.fill', android: 'notifications', web: 'notifications' }} size={26} tintColor={onBand ? colors.primaryForeground : colors.primary} />
       {label ? (
         <View
           style={{

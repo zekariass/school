@@ -4,6 +4,7 @@ import { api } from '@/lib/api';
 import { assertOk, request, unwrap } from '@/lib/api-error';
 
 import { FEED_PAGE_SIZE } from './keys';
+import { filterOf, type FeedTab } from './tabs';
 import type { CommentPage, FeedCapabilities, PostPage, PostStatus, PostView, ReactionType, StoryView } from './types';
 
 type S = components['schemas'];
@@ -14,16 +15,25 @@ const page = (cursor: string | undefined, limit: number = FEED_PAGE_SIZE) => ({ 
 
 // --- reading -----------------------------------------------------------------------------------
 
-export const fetchClassFeed = (schoolId: string, classId: string, cursor?: string): Promise<PostPage> =>
+/** The three feeds take the same optional filters (`type`, `photos=true`), chosen by the tab; the server applies them. */
+export const fetchClassFeed = (schoolId: string, classId: string, cursor?: string, tab: FeedTab = 'FEED'): Promise<PostPage> =>
   request(async () =>
-    unwrap(await api.GET('/api/v1/schools/{schoolId}/classes/{classId}/feed', { params: { path: { schoolId, classId }, query: page(cursor) } })),
+    unwrap(
+      await api.GET('/api/v1/schools/{schoolId}/classes/{classId}/feed', {
+        params: { path: { schoolId, classId }, query: { ...page(cursor), ...filterOf(tab) } },
+      }),
+    ),
   );
 
-export const fetchSchoolFeed = (schoolId: string, cursor?: string): Promise<PostPage> =>
-  request(async () => unwrap(await api.GET('/api/v1/schools/{schoolId}/feed', { params: { path: { schoolId }, query: page(cursor) } })));
+export const fetchSchoolFeed = (schoolId: string, cursor?: string, tab: FeedTab = 'FEED'): Promise<PostPage> =>
+  request(async () =>
+    unwrap(await api.GET('/api/v1/schools/{schoolId}/feed', { params: { path: { schoolId }, query: { ...page(cursor), ...filterOf(tab) } } })),
+  );
 
-export const fetchHomeFeed = (studentId: string | null, cursor?: string): Promise<PostPage> =>
-  request(async () => unwrap(await api.GET('/api/v1/me/feed', { params: { query: { ...page(cursor), ...(studentId ? { studentId } : {}) } } })));
+export const fetchHomeFeed = (studentId: string | null, cursor?: string, tab: FeedTab = 'FEED'): Promise<PostPage> =>
+  request(async () =>
+    unwrap(await api.GET('/api/v1/me/feed', { params: { query: { ...page(cursor), ...filterOf(tab), ...(studentId ? { studentId } : {}) } } })),
+  );
 
 export const fetchMyPosts = (schoolId: string, status: PostStatus | null, classId: string | null, cursor?: string): Promise<PostPage> =>
   request(async () =>

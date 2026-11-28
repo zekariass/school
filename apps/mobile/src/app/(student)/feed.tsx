@@ -2,11 +2,9 @@ import { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
-import { Chips } from '@/components/feed/chips';
 import { ClassFeed, SchoolFeed } from '@/components/feed/class-feed';
 import { ProblemBanner } from '@/components/problem-banner';
-import { TabHeader } from '@/components/tab-header';
-import { EmptyState, Screen, Text } from '@/components/ui';
+import { EmptyState, Screen } from '@/components/ui';
 import { useMyClasses } from '@/lib/people/queries';
 import { useSession } from '@/lib/session/session-provider';
 import { useAppTheme } from '@/lib/theme/theme-provider';
@@ -56,21 +54,15 @@ function StudentFeed() {
     );
   }
 
-  const before = (
-    <View style={{ gap: spacing[3] }}>
-      <TabHeader />
-      <Text variant="title">{t('mobile.feed.tab')}</Text>
-      <Chips
-        accessibilityLabel={t('mobile.feed.whichFeed')}
-        value={showSchool ? 'school' : current.id}
-        onChange={setPick}
-        chips={[...mine.map((cls) => ({ value: cls.id, label: cls.name })), { value: 'school', label: t('mobile.feed.schoolWide') }]}
-      />
-    </View>
-  );
+  const switcher = {
+    label: t('mobile.feed.whichFeed'),
+    value: showSchool ? 'school' : current.id,
+    onChange: setPick,
+    options: [...mine.map((cls) => ({ value: cls.id, label: cls.name })), { value: 'school', label: t('mobile.feed.schoolWide') }],
+  };
   return showSchool ? (
-    <SchoolFeed key="school" schoolId={current.schoolId} before={before} edges={['top']} />
+    <SchoolFeed key="school" schoolId={current.schoolId} schoolName={current.schoolName} switcher={switcher} insetTop edges={[]} />
   ) : (
-    <ClassFeed key={current.id} schoolId={current.schoolId} classId={current.id} before={before} edges={['top']} />
+    <ClassFeed key={current.id} schoolId={current.schoolId} classId={current.id} schoolName={current.schoolName} className={current.name} switcher={switcher} insetTop edges={[]} />
   );
 }

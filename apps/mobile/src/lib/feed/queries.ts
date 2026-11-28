@@ -25,6 +25,7 @@ import {
 } from './keys';
 import { flattenPages, mapItem, removeItem, type Pages } from './pages';
 import { applyReaction, withSummary } from './reactions';
+import { DEFAULT_FEED_TAB, type FeedTab } from './tabs';
 import {
   fetchCapabilities,
   fetchClassFeed,
@@ -60,13 +61,14 @@ function useFeedPages(key: readonly unknown[], load: (cursor: string | undefined
   return { query, posts: flattenPages(query.data as Pages<PostView> | undefined) };
 }
 
-export const useClassFeed = (schoolId: string | undefined, classId: string | undefined) =>
-  useFeedPages(classFeedKey(schoolId ?? '', classId ?? ''), (cursor) => fetchClassFeed(schoolId!, classId!, cursor), !!schoolId && !!classId);
+export const useClassFeed = (schoolId: string | undefined, classId: string | undefined, tab: FeedTab = DEFAULT_FEED_TAB) =>
+  useFeedPages(classFeedKey(schoolId ?? '', classId ?? '', tab), (cursor) => fetchClassFeed(schoolId!, classId!, cursor, tab), !!schoolId && !!classId);
 
-export const useSchoolFeed = (schoolId: string | undefined) =>
-  useFeedPages(schoolFeedKey(schoolId ?? ''), (cursor) => fetchSchoolFeed(schoolId!, cursor), !!schoolId);
+export const useSchoolFeed = (schoolId: string | undefined, tab: FeedTab = DEFAULT_FEED_TAB) =>
+  useFeedPages(schoolFeedKey(schoolId ?? '', tab), (cursor) => fetchSchoolFeed(schoolId!, cursor, tab), !!schoolId);
 
-export const useHomeFeed = (studentId: string | null) => useFeedPages(homeFeedKey(studentId), (cursor) => fetchHomeFeed(studentId, cursor), true);
+export const useHomeFeed = (studentId: string | null, tab: FeedTab = DEFAULT_FEED_TAB) =>
+  useFeedPages(homeFeedKey(studentId, tab), (cursor) => fetchHomeFeed(studentId, cursor, tab), true);
 
 export const useMyPosts = (schoolId: string | undefined, status: PostStatus | null, classId: string | null) =>
   useFeedPages(myPostsKey(schoolId ?? '', status, classId), (cursor) => fetchMyPosts(schoolId!, status, classId, cursor), !!schoolId);

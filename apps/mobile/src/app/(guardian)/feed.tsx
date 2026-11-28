@@ -4,13 +4,16 @@ import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslations } from 'use-intl';
 
-import { Chips } from '@/components/feed/chips';
+import { FeedAnnouncementCard } from '@/components/feed/announcement-card';
+import { FeedHeader } from '@/components/feed/feed-header';
 import { FeedList } from '@/components/feed/feed-list';
+import { FeedTabs } from '@/components/feed/feed-tabs';
 import { StoryStrip } from '@/components/feed/story-strip';
-import { TabHeader } from '@/components/tab-header';
 import { Button, EmptyState, Sheet, Text } from '@/components/ui';
 import { useMyChildren } from '@/lib/family/queries';
+import { guardianHeader, guardianSchool } from '@/lib/feed/header';
 import { FEED_GC_MS, capabilitiesKey } from '@/lib/feed/keys';
+import { DEFAULT_FEED_TAB, TAB_EMPTY_KEY, type FeedTab } from '@/lib/feed/tabs';
 import { useHomeFeed, useHomeStories } from '@/lib/feed/queries';
 import { fetchCapabilities } from '@/lib/feed/requests';
 import { useSession } from '@/lib/session/session-provider';
@@ -37,8 +40,9 @@ function HomeFeed() {
   const { spacing } = useAppTheme();
   const children = useMyChildren();
   const [child, setChild] = useState<string>('all');
+  const [tab, setTab] = useState<FeedTab>(DEFAULT_FEED_TAB);
   const studentId = child === 'all' ? null : child;
-  const feed = useHomeFeed(studentId);
+  const feed = useHomeFeed(studentId, tab);
   const stories = useHomeStories(studentId);
 
   const kids = useMemo(() => children.data?.children ?? [], [children.data]);
@@ -64,31 +68,53 @@ function HomeFeed() {
   });
   const canShare = targets.filter((_, index) => capabilities[index]?.data?.canContribute);
 
-  const header = (
-    <View style={{ gap: spacing[4] }}>
-      <TabHeader />
-      <Text variant="title">{t('mobile.feed.tab')}</Text>
-      <StoryStrip stories={stories.data} loading={stories.isPending} />
-      {kids.length > 1 ? (
-        <Chips
-          accessibilityLabel={t('mobile.feed.childFilter')}
-          value={child}
-          onChange={setChild}
-          chips={[{ value: 'all', label: t('mobile.feed.allChildren') }, ...kids.map((kid) => ({ value: kid.studentId, label: kid.givenName }))]}
-        />
-      ) : null}
-      {canShare.length > 0 ? <ShareButton targets={canShare} /> : null}
-    </View>
+  // The child switcher takes the place of the class switcher: the title is the child (or "All children") with their school above.
+  const text = guardianHeader(kids, studentId);
+  const band = (
+    <>
+      <FeedHeader
+        eyebrow={text.eyebrow}
+        title={text.title ?? t('mobile.feed.allChildren')}
+        schoolName={guardianSchool(kids, studentId)}
+        insetTop
+        switcher={
+          kids.length > 1
+            ? {
+                label: t('mobile.feed.childFilter'),
+                value: child,
+                onChange: setChild,
+                options: [{ value: 'all', label: t('mobile.feed.allChildren') }, ...kids.map((kid) => ({ value: kid.studentId, label: kid.givenName }))],
+              }
+            : undefined
+        }
+      />
+      <FeedTabs value={tab} onChange={setTab} />
+    </>
   );
+
+  const header =
+    tab === 'FEED' ? (
+      <View style={{ gap: spacing[4] }}>
+        <FeedAnnouncementCard schoolId={null} />
+        <StoryStrip stories={stories.data} loading={stories.isPending} />
+        {canShare.length > 0 ? <ShareButton targets={canShare} /> : null}
+      </View>
+    ) : null;
 
   return (
     <FeedList
       query={feed.query}
       posts={feed.posts}
+      band={band}
+      statusStrip
       header={header}
-      edges={['top']}
+      edges={[]}
       onRefresh={() => Promise.all([stories.refetch(), children.refetch()])}
-      empty={{ icon: { ios: 'photo.on.rectangle.angled', android: 'photo_library' }, title: t('mobile.feed.empty.homeTitle'), body: t('mobile.feed.empty.homeBody') }}
+      empty={
+        tab === 'FEED'
+          ? { icon: { ios: 'photo.on.rectangle.angled', android: 'photo_library' }, title: t('mobile.feed.empty.homeTitle'), body: t('mobile.feed.empty.homeBody') }
+          : { icon: { ios: 'photo.on.rectangle.angled', android: 'photo_library' }, title: t(TAB_EMPTY_KEY[tab].title), body: t(TAB_EMPTY_KEY[tab].body) }
+      }
     />
   );
 }

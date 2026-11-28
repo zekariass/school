@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { ageOf, authorLabel, canOfferTranslation, isMine, overflowActions, photosHidden, photosWarning, postInstant, statusBadge } from './post-model';
+import {
+  HEADLINE_MAX,
+  ageOf,
+  authorLabel,
+  canOfferTranslation,
+  isMine,
+  overflowActions,
+  photosHidden,
+  photosWarning,
+  postInstant,
+  postVariant,
+  roleChip,
+  splitHeadline,
+  statusBadge,
+} from './post-model';
 import type { PostView } from './types';
 
 const rights = (over: Partial<PostView['rights']> = {}): PostView['rights'] => ({
@@ -20,6 +34,46 @@ describe('authorLabel', () => {
   it('shows only the role when the API left the name out (a family member or a child)', () => {
     expect(authorLabel({ role: 'GUARDIAN' })).toEqual({ kind: 'role', role: 'GUARDIAN' });
     expect(authorLabel({ displayName: '  ', role: 'STUDENT' })).toEqual({ kind: 'role', role: 'STUDENT' });
+  });
+});
+
+describe('roleChip', () => {
+  it('names the role next to a name', () => {
+    expect(roleChip({ displayName: 'Ms. Bekele', role: 'TEACHER' })).toBe('TEACHER');
+    expect(roleChip({ displayName: 'Hana', role: 'STUDENT' })).toBe('STUDENT');
+  });
+  it('shows no chip when the API sent no name (the role label is the name then)', () => {
+    expect(roleChip({ role: 'GUARDIAN' })).toBeNull();
+    expect(roleChip({ displayName: '   ', role: 'STUDENT' })).toBeNull();
+  });
+});
+
+describe('postVariant', () => {
+  const tag = { studentId: 's1', displayName: 'Hana' };
+  it('styles an achievement with its student row only when the API sent tags', () => {
+    expect(postVariant({ postType: 'ACHIEVEMENT', tags: [tag] })).toEqual({ achievement: true, activityChip: false, studentRow: true });
+    expect(postVariant({ postType: 'ACHIEVEMENT', tags: [] })).toEqual({ achievement: true, activityChip: false, studentRow: false });
+  });
+  it('gives an activity a chip and a plain post nothing', () => {
+    expect(postVariant({ postType: 'ACTIVITY', tags: [tag] })).toEqual({ achievement: false, activityChip: true, studentRow: false });
+    expect(postVariant({ postType: 'POST', tags: [] })).toEqual({ achievement: false, activityChip: false, studentRow: false });
+  });
+});
+
+describe('splitHeadline', () => {
+  it('splits at the first line break and loses nothing', () => {
+    const text = 'Our scientists in action!\nToday we planted seeds.\n\nMore soon.';
+    const split = splitHeadline(text)!;
+    expect(split.headline).toBe('Our scientists in action!');
+    expect(split.headline + split.separator + split.rest).toBe(text);
+    const windows = splitHeadline('Title\r\nBody')!;
+    expect(windows.headline + windows.separator + windows.rest).toBe('Title\r\nBody');
+  });
+  it('has no headline for a single paragraph, an empty or too long first line, or nothing after it', () => {
+    expect(splitHeadline('Just one line')).toBeNull();
+    expect(splitHeadline('\nBody')).toBeNull();
+    expect(splitHeadline(`${'x'.repeat(HEADLINE_MAX + 1)}\nBody`)).toBeNull();
+    expect(splitHeadline('Title\n  \n')).toBeNull();
   });
 });
 

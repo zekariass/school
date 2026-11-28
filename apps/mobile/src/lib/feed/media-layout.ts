@@ -23,43 +23,46 @@ export function listVariant(cellWidth: number): Variant {
   return cellWidth <= 140 ? 'THUMB' : 'SMALL';
 }
 
-export interface GridCell {
-  /** Index into the post's media. */
-  index: number;
-  /** Width of the cell as a share of the row (0..1). */
-  flex: number;
-}
+/** How a post's photos tile (the collage of the design). */
+export type CollageShape = 'single' | 'pair' | 'trio';
 
-export interface GridLayout {
-  rows: { cells: GridCell[]; /** width / height */ aspect: number }[];
-  /** Photos beyond the cells shown ("+3"). */
+export interface Collage {
+  shape: CollageShape;
+  /** Photos shown, as indexes into the post's media, in reading order (the first is the large one of a trio). */
+  cells: number[];
+  /** width / height of the whole collage. */
+  aspect: number;
+  /** Photos beyond the cells shown, drawn as "+N" on the last cell. */
   more: number;
 }
 
+/** Share of the width taken by the large photo and by the stacked pair of a trio (5 : 3, as in the design). */
+export const TRIO_SPLIT = { main: 5, side: 3 } as const;
+
+/** Photos shown at most: one large and two stacked. */
+export const COLLAGE_MAX = 3;
+
 /**
- * How a post's photos tile: one wide photo, two side by side, one wide and two below, or 2 x 2 with a "+N" on the last cell.
- * `soloAspect` is the width/height of a lone photo (clamped so a panorama or a poster stays reasonable).
+ * The collage of a post: one wide photo, two side by side, or (three or more) one large photo with two stacked beside it
+ * and a "+N" on the last when there are more. `soloAspect` is the width/height of a lone photo (clamped so a panorama or a
+ * poster stays reasonable).
  */
-export function gridLayout(count: number, soloAspect = 4 / 3): GridLayout {
-  if (count <= 0) return { rows: [], more: 0 };
-  if (count === 1) return { rows: [{ cells: [{ index: 0, flex: 1 }], aspect: clampAspect(soloAspect) }], more: 0 };
-  if (count === 2) return { rows: [{ cells: [{ index: 0, flex: 1 }, { index: 1, flex: 1 }], aspect: 2 }], more: 0 };
-  if (count === 3) {
-    return {
-      rows: [
-        { cells: [{ index: 0, flex: 1 }], aspect: 16 / 9 },
-        { cells: [{ index: 1, flex: 1 }, { index: 2, flex: 1 }], aspect: 2 },
-      ],
-      more: 0,
-    };
-  }
-  return {
-    rows: [
-      { cells: [{ index: 0, flex: 1 }, { index: 1, flex: 1 }], aspect: 2 },
-      { cells: [{ index: 2, flex: 1 }, { index: 3, flex: 1 }], aspect: 2 },
-    ],
-    more: count - 4,
-  };
+export function collageLayout(count: number, soloAspect = 4 / 3): Collage {
+  if (count <= 0) return { shape: 'single', cells: [], aspect: 1, more: 0 };
+  if (count === 1) return { shape: 'single', cells: [0], aspect: clampAspect(soloAspect), more: 0 };
+  if (count === 2) return { shape: 'pair', cells: [0, 1], aspect: 2, more: 0 };
+  return { shape: 'trio', cells: [0, 1, 2], aspect: 1.6, more: count - COLLAGE_MAX };
+}
+
+/** The width of each cell of a collage `width` wide with `gap` between cells: what `listVariant` needs to pick THUMB or SMALL. */
+export function cellWidths(collage: Collage, width: number, gap: number): number[] {
+  if (collage.cells.length === 0 || width <= 0) return [];
+  if (collage.shape === 'single') return [width];
+  if (collage.shape === 'pair') return [(width - gap) / 2, (width - gap) / 2];
+  const room = width - gap;
+  const total = TRIO_SPLIT.main + TRIO_SPLIT.side;
+  const side = (room * TRIO_SPLIT.side) / total;
+  return [(room * TRIO_SPLIT.main) / total, side, side];
 }
 
 export function clampAspect(aspect: number): number {
