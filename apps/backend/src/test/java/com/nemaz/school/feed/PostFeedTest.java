@@ -198,6 +198,46 @@ class PostFeedTest extends FeedTestSupport {
 	}
 
 	@Test
+	void theTypeAndPhotosFiltersOnlyNarrowAFeedAndNeverReachBeyondTheVisibilityRule() throws Exception {
+		Feed f = feed("post-filters");
+		String plain = publish(f.lead(), f, "A plain post").get("id").asString();
+		String activity = classPost(f.lead(), f, "An activity", 201, Map.of("postType", "ACTIVITY")).get("id").asString();
+		String achievement = classPost(f.lead(), f, "An achievement", 201, Map.of("postType", "ACHIEVEMENT")).get("id").asString();
+		UUID photo = photo(f.co(), f.classId());
+		String withPhoto = classPost(f.co(), f, "Plants", 201,
+				Map.of("media", refs(photo), "confirmNoUnconsentedStudents", true, "postType", "ACTIVITY")).get("id").asString();
+		String feed = f.classApi() + "/feed";
+
+		// no filter: everything, newest first
+		assertThat(ids(get(feed, f.guardian1()))).containsExactly(withPhoto, achievement, activity, plain);
+		// one type
+		assertThat(ids(get(feed + "?type=ACHIEVEMENT", f.guardian1()))).containsExactly(achievement);
+		assertThat(ids(get(feed + "?type=ACTIVITY", f.guardian1()))).containsExactly(withPhoto, activity);
+		assertThat(ids(get(feed + "?type=POST", f.guardian1()))).containsExactly(plain);
+		// only the posts that carry media, alone and together with a type
+		assertThat(ids(get(feed + "?photos=true", f.guardian1()))).containsExactly(withPhoto);
+		assertThat(ids(get(feed + "?photos=true&type=ACHIEVEMENT", f.guardian1()))).isEmpty();
+		assertThat(ids(get(feed + "?photos=false", f.guardian1()))).hasSize(4);
+		// the filters keep the keyset paging: a page of one walks the filtered list without repeats or gaps
+		JsonNode first = get(feed + "?type=ACTIVITY&limit=1", f.guardian1());
+		assertThat(ids(first)).containsExactly(withPhoto);
+		JsonNode second = get(feed + "?type=ACTIVITY&limit=1&cursor=" + first.get("nextCursor").asString(), f.guardian1());
+		assertThat(ids(second)).containsExactly(activity);
+		// an unknown type is a bad request, not an unfiltered feed
+		call(HttpMethod.GET, feed + "?type=NOPE", f.guardian1(), null, 400);
+		// a filter never widens access: somebody who may not see the class still gets 404, whatever they ask for
+		call(HttpMethod.GET, feed + "?type=ACHIEVEMENT", f.otherTeacher(), null, 404);
+
+		// the family home feed and the school-wide feed take the same filters
+		assertThat(ids(get("/api/v1/me/feed?type=ACHIEVEMENT", f.guardian1()))).containsExactly(achievement);
+		assertThat(ids(get("/api/v1/me/feed?photos=true&studentId=" + f.s1(), f.guardian1()))).containsExactly(withPhoto);
+		String schoolWide = post(f.api() + "/posts", f.admin(), Map.of("body", "School news", "postType", "ACHIEVEMENT"), 201)
+			.get("id").asString();
+		assertThat(ids(get(f.api() + "/feed?type=ACHIEVEMENT", f.guardian1()))).containsExactly(schoolWide);
+		assertThat(ids(get(f.api() + "/feed?type=ACTIVITY", f.guardian1()))).isEmpty();
+	}
+
+	@Test
 	void pinnedPostsComeFirstAndThePinLimitHolds() throws Exception {
 		Feed f = feed("post-pins");
 		List<String> posts = new ArrayList<>();
