@@ -41,6 +41,13 @@ export function shortDay(iso: string, system: CalendarSystem, locale: string): s
   return new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", timeZone: "UTC" }).format(utcDate(iso));
 }
 
+/** The month name and day number of a date in the display calendar, for a small date badge ("Dec" and 1). */
+export function dayBadge(iso: string, system: CalendarSystem, locale: string): { month: string; day: number } {
+  const d = toDisplay(iso, system);
+  if (system === "ethiopian") return { month: ethiopianMonthName(d.month, locale), day: d.day };
+  return { month: new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" }).format(utcDate(iso)), day: d.day };
+}
+
 /** "Dec 7 - Dec 13" style range of a week. */
 export function rangeLabel(from: string, to: string, system: CalendarSystem, locale: string): string {
   return `${shortDay(from, system, locale)} – ${shortDay(to, system, locale)}`;

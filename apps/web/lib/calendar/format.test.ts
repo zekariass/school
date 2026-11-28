@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayLabel, monthTitle, rangeLabel, shortDay, timeOfDay, timeRange, weekdayName, zoneLabel } from "./format";
+import { dayBadge, dayLabel, monthTitle, rangeLabel, shortDay, timeOfDay, timeRange, weekdayName, zoneLabel } from "./format";
 import { CALENDAR_SETTING_IDS_LIST, CALENDAR_SETTING_KEYS, CALENDAR_MODULE, calendarSettingId } from "./settings";
 
 describe("titles and labels", () => {
@@ -23,6 +23,11 @@ describe("titles and labels", () => {
     expect(shortDay("2026-12-07", "gregorian", "en")).toBe("Dec 7");
     expect(shortDay("2026-12-07", "ethiopian", "en")).toBe("Hidar 28");
     expect(rangeLabel("2026-12-07", "2026-12-13", "gregorian", "en")).toBe("Dec 7 – Dec 13");
+  });
+
+  it("splits a day into a month name and a number for a date badge", () => {
+    expect(dayBadge("2026-12-07", "gregorian", "en")).toEqual({ month: "Dec", day: 7 });
+    expect(dayBadge("2026-12-07", "ethiopian", "en")).toEqual({ month: "Hidar", day: 28 });
   });
 });
 

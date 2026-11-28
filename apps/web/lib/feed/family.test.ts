@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classTargets, filterableChildren, taggableChildren, type ChildLike } from "./family";
+import { bannerOf, classCards, classTargets, filterableChildren, taggableChildren, type ChildLike } from "./family";
 import { feedSettingId, FEED_SETTING_IDS_LIST } from "./settings";
 import { isUuid } from "./ids";
 
@@ -55,5 +55,35 @@ describe("isUuid", () => {
     expect(isUuid("../../etc/passwd")).toBe(false);
     expect(isUuid("0198b3a2-7c1e-7b34-9f4d-2a6c8e1d5f70/extra")).toBe(false);
     expect(isUuid(undefined)).toBe(false);
+  });
+});
+
+describe("classCards", () => {
+  it("lists each class once with the teachers the API gave, skipping hidden links", () => {
+    const withTeacher: ChildLike = {
+      ...child("a", "Abebe", ["c1"]),
+      schools: [{ schoolId: "sch1", schoolName: "Sunrise", classes: [{ classId: "c1", name: "Class c1", icon: "A", teachers: [{ teacherId: "t1", displayName: "Mr. Bekele", role: "LEAD" }] }] }],
+    };
+    const cards = classCards([withTeacher, child("b", "Bekele", ["c1", "c2"]), child("c", "Chaltu", ["c9"], false)]);
+    expect(cards.map((c) => c.classId)).toEqual(["c1", "c2"]);
+    expect(cards[0]?.teachers).toEqual([{ teacherId: "t1", displayName: "Mr. Bekele", role: "LEAD" }]);
+    expect(cards[0]?.icon).toBe("A");
+    expect(cards[1]?.teachers).toEqual([]);
+  });
+});
+
+describe("bannerOf", () => {
+  const card = (classId: string, name: string, school = "Sunrise") => ({ schoolId: "s", schoolName: school, classId, name, icon: null, teachers: [] });
+  it("names a single class and its school", () => {
+    expect(bannerOf([card("c1", "Grade 5A")], false)).toEqual({ title: "Grade 5A", subtitle: "Sunrise", icon: null });
+  });
+  it("joins the classes of one chosen child, leaves the title to the caller for all children", () => {
+    const cards = [card("c1", "Grade 5A"), card("c2", "Choir")];
+    expect(bannerOf(cards, true).title).toBe("Grade 5A · Choir");
+    expect(bannerOf(cards, false).title).toBeNull();
+  });
+  it("lists the schools once and survives no classes", () => {
+    expect(bannerOf([card("c1", "A", "North"), card("c2", "B", "North")], false).subtitle).toBe("North");
+    expect(bannerOf([], false)).toEqual({ title: null, subtitle: null, icon: null });
   });
 });

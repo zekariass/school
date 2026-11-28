@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FeedAuthor, Post } from "./queries";
-import { authorLabel, gridPhotos, gridShape, hasAnyAction, hasSeenCount, isWithheldPlaceholder, isWithheldWarning, postMenu } from "./view";
+import { authorLabel, collagePhotos, collageShape, hasAnyAction, hasSeenCount, isWithheldPlaceholder, isWithheldWarning, postMenu } from "./view";
 
 const rights = (patch: Partial<Post["rights"]> = {}): Post["rights"] => ({ canEdit: false, canDelete: false, canModerate: false, canPin: false, canComment: false, canPublish: false, ...patch });
 const post = (patch: Partial<Pick<Post, "status" | "pinned" | "contribution">> & { rights?: Post["rights"] } = {}) => ({
@@ -38,13 +38,16 @@ describe("seen count", () => {
   });
 });
 
-describe("photo grid", () => {
-  it("shapes by count and caps at four with a +n", () => {
-    expect(gridShape(1)).toBe("one");
-    expect(gridShape(2)).toBe("two");
-    expect(gridShape(7)).toBe("many");
-    expect(gridPhotos([1, 2, 3, 4, 5, 6])).toEqual({ shown: [1, 2, 3, 4], extra: 2 });
-    expect(gridPhotos([1])).toEqual({ shown: [1], extra: 0 });
+describe("photo collage", () => {
+  it("shapes by count and caps at three with a +n", () => {
+    expect(collageShape(0)).toBe("one");
+    expect(collageShape(1)).toBe("one");
+    expect(collageShape(2)).toBe("two");
+    expect(collageShape(3)).toBe("three");
+    expect(collageShape(7)).toBe("three");
+    expect(collagePhotos([1, 2, 3, 4, 5, 6])).toEqual({ shown: [1, 2, 3], extra: 3 });
+    expect(collagePhotos([1, 2, 3])).toEqual({ shown: [1, 2, 3], extra: 0 });
+    expect(collagePhotos([1])).toEqual({ shown: [1], extra: 0 });
   });
 });
 
